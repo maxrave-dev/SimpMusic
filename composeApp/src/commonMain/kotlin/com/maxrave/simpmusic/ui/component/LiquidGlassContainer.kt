@@ -2,12 +2,14 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +46,7 @@ import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
+import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.sign
@@ -74,6 +78,17 @@ fun Modifier.liquidGlass(
     interactive: Boolean = true,
     highlight: Highlight = Highlight.Default,
 ): Modifier {
+    // With the setting off, every glass surface falls back to the flat translucent pill the detail
+    // screens used before the migration (surfaceContainerHighest @ 80%) — shape and hit target
+    // unchanged, only the draw. Gated HERE, at the shared primitive, because none of the ~15 call
+    // sites across Album/Playlist/Artist/LocalPlaylist/Analytics ever read the setting themselves:
+    // the flag used to reach only the nav bar and the MiniPlayer, which branch before composing
+    // glass at all. Desktop never takes this path — AppTheme provides true there unconditionally.
+    if (!LocalLiquidGlassEnabled.current) {
+        return this
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f))
+    }
     val isDark = LocalIsDarkTheme.current
     val layer = rememberGraphicsLayer()
     val interaction = rememberGlassInteraction()

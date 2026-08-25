@@ -13,6 +13,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -963,7 +966,8 @@ fun SearchScreen(
                                     blurEnabled = true
                                 }
                             },
-                        ).padding(vertical = 10.dp),
+                        ).windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(vertical = 10.dp),
             ) {
         AnimatedVisibility(visible = selectionState.isActive) {
             SongSelectionTopAppBar(
@@ -983,6 +987,10 @@ fun SearchScreen(
                 },
                 onOpenActions = { showSelectionSheet = true },
                 containerColor = Color.Transparent,
+                // Zero here AND on the SearchBar below: the Column that holds them both consumes
+                // the status bar once, for the whole stack. Leaving it on either child reserves it
+                // a second time — which is the slab of padding this screen used to show.
+                windowInsets = WindowInsets(0),
             )
         }
         // Search Bar with Animated Placeholder
@@ -1077,6 +1085,8 @@ fun SearchScreen(
                         isFocused = it.isFocused
                     }.padding(horizontal = 16.dp),
             shape = RoundedCornerShape(8.dp),
+            // See the note on SongSelectionTopAppBar above — the Column owns the status-bar inset.
+            windowInsets = WindowInsets(0),
             content = {},
         )
                 // Filter chips ride along inside the blurred block instead of sitting in the

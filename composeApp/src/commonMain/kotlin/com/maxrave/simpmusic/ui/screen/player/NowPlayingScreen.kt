@@ -3,10 +3,7 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import androidx.compose.animation.Animatable
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -14,12 +11,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
@@ -37,49 +28,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -91,93 +47,39 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.compose.LocalPlatformContext
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
-import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
-import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.toggleMiniPlayer
-import com.maxrave.simpmusic.expect.ui.MediaPlayerView
-import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
-import com.maxrave.simpmusic.expect.ui.PlatformCastButton
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
-import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
-import com.maxrave.simpmusic.extension.isElementVisible
-import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
-import com.maxrave.simpmusic.extension.smoothScrimBrush
-import com.maxrave.simpmusic.getPlatform
-import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
-import com.maxrave.simpmusic.ui.component.DescriptionView
-import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
-import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
-import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.component.PlayPauseButton
-import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.icon.AddCircleOutline
-import com.maxrave.simpmusic.ui.icon.CheckCircle
-import com.maxrave.simpmusic.ui.icon.Forward5
-import com.maxrave.simpmusic.ui.icon.Fullscreen
-import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
-import com.maxrave.simpmusic.ui.icon.MoreVert
-import com.maxrave.simpmusic.ui.icon.PlaylistAdd
-import com.maxrave.simpmusic.ui.icon.QueueMusic
-import com.maxrave.simpmusic.ui.icon.Replay5
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.icon.Subtitles
-import com.maxrave.simpmusic.ui.icon.SubtitlesOff
-import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
-import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
-import com.maxrave.simpmusic.ui.theme.overlay
-import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentAppleMusic
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentM3Expressive
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentSpotify
+import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
+import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
+import com.maxrave.simpmusic.ui.screen.player.content.toAudioCodecLabel
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
@@ -187,50 +89,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import simpmusic.composeapp.generated.resources.Res
-import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.crossfading
-import simpmusic.composeapp.generated.resources.description
-import simpmusic.composeapp.generated.resources.like_and_dislike
-import simpmusic.composeapp.generated.resources.line_synced
-import simpmusic.composeapp.generated.resources.lyrics
-import simpmusic.composeapp.generated.resources.lyrics_provider_betterlyrics
-import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
-import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
-import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
-import simpmusic.composeapp.generated.resources.now_playing_upper
-import simpmusic.composeapp.generated.resources.offline_mode
-import simpmusic.composeapp.generated.resources.playing_on_device
-import simpmusic.composeapp.generated.resources.published_at
-import simpmusic.composeapp.generated.resources.rate_lyrics
-import simpmusic.composeapp.generated.resources.rich_synced
-import simpmusic.composeapp.generated.resources.show
-import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
-import simpmusic.composeapp.generated.resources.unsynced
-import simpmusic.composeapp.generated.resources.view_count
-import kotlin.math.roundToLong
 
 private const val TAG = "NowPlayingScreen"
-private val RICH_SYNC_TIMESTAMP_REGEX = Regex("""<\d{2}:\d{2}\.\d{2,3}>\s*""")
-private val WHITESPACE_REGEX = Regex("""\s+""")
-
-// Word-by-word lyrics carry a timestamp per word; replace each with a space
-// (not ""), then collapse — otherwise the words run together.
-private fun String.stripRichSyncTimestamps(): String =
-    replace(RICH_SYNC_TIMESTAMP_REGEX, " ")
-        .replace(WHITESPACE_REGEX, " ")
-        .trim()
-
-// Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
-// next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
-// near-black surface instead. Used for the gradient's end colour, the fade-to target and the
-// area below the gradient so all three match exactly and leave no seam.
-private val PlayerBackdropColor = Color(0xFF121212)
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -289,10 +153,7 @@ fun NowPlayingScreenContent(
     dismissIcon: ImageVector,
     onDismiss: () -> Unit = {},
 ) {
-    val screenInfo = getScreenSizeInfo()
-
-    val localDensity = LocalDensity.current
-    val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
 
     // ViewModel State
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -300,10 +161,20 @@ fun NowPlayingScreenContent(
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
+    // Apple Music style's progress-bar codec badge — see NowPlayingContentState.toAudioCodecLabel.
+    val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
     val lyricsVoteState by sharedViewModel.lyricsVoteState.collectAsStateWithLifecycle()
+    val isUserLoggedIn by sharedViewModel
+        .isUserLoggedInFlow()
+        .collectAsStateWithLifecycle(initialValue = false)
+
+    // Which Now Playing style renders the content layer (Settings → Now Playing style).
+    val nowPlayingStyle by sharedViewModel
+        .getNowPlayingStyle()
+        .collectAsStateWithLifecycle(initialValue = DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
 
     // Artwork Pager state — Spotify-style horizontal swipe between queue tracks.
     // The pager wraps the Canvas + Thumbnail layers. Controller layout below stays fixed.
@@ -318,7 +189,6 @@ fun NowPlayingScreenContent(
     val currentOrderIndex by remember(artworkQueue, nowPlayingVideoId) {
         derivedStateOf { deriveOrderIndex(artworkQueue, nowPlayingVideoId) }
     }
-    val isRepeatOne = controllerState.repeatState is RepeatState.One
     // Single PagerState — the unified ArtworkPager renders BOTH the fullscreen canvas
     // background and the centered square thumbnail in each page, so we don't need two
     // pagers + state mirroring.
@@ -463,11 +333,21 @@ fun NowPlayingScreenContent(
     LaunchedEffect(screenDataState) {
         Logger.d(TAG, "ScreenDataState: $screenDataState")
         showHideMiddleLayout = screenDataState.canvasData == null
-        snapshotFlow { screenDataState.bitmap }.collectLatest {
-            if (it != null) {
+    }
+
+    // Palette generation lives in its own NEVER-restarting effect. Keyed on screenDataState it
+    // was cancelled mid-generate every time ANOTHER field of the data class arrived (canvasData,
+    // lyrics, songInfo), and kmpalette parks on Loading when generate() is cancelled — palette
+    // stays null, startColor stays black, and the M3E style falls back to the app seed (the
+    // "canvas songs are always cyan" bug). Canvas songs hit this deterministically because the
+    // canvas fetch always lands after the artwork bitmap.
+    LaunchedEffect(Unit) {
+        snapshotFlow { screenDataState.bitmap }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .collectLatest {
                 paletteState.generate(it)
             }
-        }
     }
 
     LaunchedEffect(Unit) {
@@ -484,40 +364,6 @@ fun NowPlayingScreenContent(
 
     LaunchedEffect(spotShadowColor) {
         Logger.d(TAG, "spotShadowColor: $spotShadowColor")
-    }
-    // Height
-    var topAppBarHeightDp by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    var middleLayoutHeightDp by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    var infoLayoutHeightDp by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    var middleLayoutPaddingDp by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    val minimumPaddingDp by rememberSaveable {
-        mutableIntStateOf(
-            30,
-        )
-    }
-    LaunchedEffect(
-        topAppBarHeightDp,
-        screenInfo,
-        infoLayoutHeightDp,
-        minimumPaddingDp,
-    ) {
-        if (topAppBarHeightDp > 0 && middleLayoutHeightDp > 0 && infoLayoutHeightDp > 0 && screenInfo.hDP > 0) {
-            val result = (screenInfo.hDP - topAppBarHeightDp - middleLayoutHeightDp - infoLayoutHeightDp - minimumPaddingDp) / 2
-            middleLayoutPaddingDp =
-                if (result > minimumPaddingDp) {
-                    result
-                } else {
-                    minimumPaddingDp
-                }
-        }
     }
 
     var isSliding by rememberSaveable {
@@ -616,20 +462,8 @@ fun NowPlayingScreenContent(
             }
     }
 
-    // Fullscreen overlay
-    var showHideFullscreenOverlay by rememberSaveable {
-        mutableStateOf(false)
-    }
-
     var currentLyricLineIndex by rememberSaveable {
         mutableIntStateOf(-1)
-    }
-
-    LaunchedEffect(key1 = showHideFullscreenOverlay) {
-        if (showHideFullscreenOverlay) {
-            delay(3000)
-            showHideFullscreenOverlay = false
-        }
     }
 
     // Canvas subtitle sync
@@ -770,12 +604,55 @@ fun NowPlayingScreenContent(
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
     }
-    Box {
-        Column(
-            Modifier
-                .verticalScroll(
-                    mainScrollState,
-                    enabled = isExpanded,
+    val state =
+        NowPlayingContentState(
+            screenData = screenDataState,
+            controllerState = controllerState,
+            timelineState = timelineState,
+            timelineFlow = sharedViewModel.timeline,
+            likeStatus = likeStatus,
+            castState = castState,
+            shouldShowVideo = shouldShowVideo,
+            isUserLoggedIn = isUserLoggedIn,
+            artworkQueue = artworkQueue,
+            currentOrderIndex = currentOrderIndex,
+            artworkPagerState = artworkPagerState,
+            startColor = startColor,
+            endColor = endColor,
+            spotShadowColor = spotShadowColor,
+            gradientOffset = gradientOffset,
+            sliderTrackColor = sliderTrackColor,
+            sliderValue = sliderValue,
+            currentLyricLineIndex = currentLyricLineIndex,
+            showControlLayout = showHideControlLayout,
+            controlLayoutAlpha = controlLayoutAlpha,
+            showHideMiddleLayout = showHideMiddleLayout,
+            shouldShowToolbar = shouldShowToolbar,
+            isInPipMode = isInPipMode,
+            mainScrollState = mainScrollState,
+            isExpanded = isExpanded,
+            dismissIcon = dismissIcon,
+            // codecs, NOT mimeType. StreamRepositoryImpl splits YouTube's
+            // `audio/webm; codecs="opus"` with a regex and stores the two halves in SEPARATE
+            // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
+            // codec therefore never matched anything and the badge never rendered, on any track.
+            audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
+        )
+    val actions =
+        NowPlayingContentActions(
+            onUIEvent = { sharedViewModel.onUIEvent(it) },
+            onSeekToQueueIndex = { index ->
+                mediaPlayerHandler.playMediaItemInMediaSource(index)
+            },
+            onArtworkBitmap = { sharedViewModel.setBitmap(it) },
+            onSliderChange = { newValue ->
+                isSliding = true
+                sliderValue = newValue
+            },
+            onSliderChangeFinished = {
+                isSliding = false
+                sharedViewModel.onUIEvent(
+                    UIEvent.UpdateProgress(sliderValue),
                 )
                 // Horizontal swipe is handled by the unified ArtworkPager below.
                 // Spacers in this Column have no pointer input and don't block hits, so
@@ -1315,66 +1192,6 @@ fun NowPlayingScreenContent(
                         TopAppBarDefaults.topAppBarColors().copy(
                             containerColor = Color.Transparent,
                         ),
-                    // Position-aware insets shrink per frame while the sheet is dragged (pinned
-                    // bar + layout jitter) — status-bar space is static padding on the modifier.
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    title = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.now_playing_upper),
-                                style = typo().bodyMedium,
-                                color = Color.White,
-                            )
-                            Text(
-                                text = screenDataState.playlistName,
-                                style = typo().labelMedium,
-                                color = Color.White,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(
-                                            iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately,
-                                        ).focusable(),
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            onDismiss()
-                        }) {
-                            Icon(
-                                imageVector = dismissIcon,
-                                contentDescription = "",
-                                tint = Color.White,
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            showSheet = true
-                        }) {
-                            Icon(
-                                imageVector = SimpIcons.MoreVert,
-                                contentDescription = "",
-                                tint = Color.White,
-                            )
-                        }
-                    },
-                )
-                Column {
-                    Spacer(
-                        modifier =
-                            Modifier.height(
-                                topAppBarHeightDp.dp,
-                            ),
                     )
                     Box {
                         Column(
@@ -2479,146 +2296,46 @@ fun NowPlayingScreenContent(
                         )
                     }
                 }
-            }
-        }
-        AnimatedVisibility(
-            visible = shouldShowToolbar && isExpanded,
-            enter = fadeIn() + slideInVertically(),
-            exit = fadeOut() + slideOutVertically(),
-        ) {
-            ElevatedCard(
-                elevation = CardDefaults.elevatedCardElevation(10.dp),
-                shape = RectangleShape,
-                colors =
-                    CardDefaults.elevatedCardColors(
-                        containerColor =
-                            startColor.value
-                                .copy(
-                                    red = startColor.value.red - 0.05f,
-                                    green = startColor.value.green - 0.05f,
-                                    blue = startColor.value.blue - 0.05f,
-                                ),
-                    ),
-                modifier =
-                    Modifier
-                        .clipToBounds()
-                        .wrapContentHeight()
-                        .fillMaxWidth(),
-            ) {
-                Box(
-                    modifier =
-                        Modifier.padding(
-                            top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() },
-                        ),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier =
-                            Modifier
-                                .padding(
-                                    vertical = 8.dp,
-                                    horizontal = 15.dp,
-                                ).fillMaxWidth(),
-                    ) {
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Box(modifier = Modifier.weight(1F)) {
-                            Column(
-                                Modifier
-                                    .wrapContentHeight(),
-                            ) {
-                                Text(
-                                    text = screenDataState.nowPlayingTitle,
-                                    style = typo().bodyMedium,
-                                    color = Color.White,
-                                    maxLines = 1,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight(
-                                                align = Alignment.CenterVertically,
-                                            ).basicMarquee(
-                                                iterations = Int.MAX_VALUE,
-                                                animationMode = MarqueeAnimationMode.Immediately,
-                                            ).focusable(),
-                                )
-                                LazyRow(verticalAlignment = Alignment.CenterVertically) {
-                                    item {
-                                        AnimatedVisibility(visible = screenDataState.isExplicit) {
-                                            ExplicitBadge(
-                                                modifier =
-                                                    Modifier
-                                                        .size(20.dp)
-                                                        .padding(end = 4.dp)
-                                                        .weight(1f),
-                                            )
-                                        }
-                                    }
-                                    item(
-                                        key = screenDataState.artistName,
-                                    ) {
-                                        Text(
-                                            text = screenDataState.artistName,
-                                            style = typo().bodySmall,
-                                            maxLines = 1,
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .wrapContentHeight(
-                                                        align = Alignment.CenterVertically,
-                                                    ).basicMarquee(
-                                                        iterations = Int.MAX_VALUE,
-                                                        animationMode = MarqueeAnimationMode.Immediately,
-                                                    ).focusable(),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(15.dp))
-                        HeartCheckBox(checked = controllerState.isLiked, size = 30) {
-                            sharedViewModel.onUIEvent(UIEvent.ToggleLike)
-                        }
-                        Spacer(modifier = Modifier.width(15.dp))
-                        Crossfade(targetState = timelineState.loading, label = "") {
-                            if (it) {
-                                Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        color = Color.LightGray,
-                                        strokeWidth = 3.dp,
-                                    )
-                                }
-                            } else {
-                                PlayPauseButton(isPlaying = controllerState.isPlaying, modifier = Modifier.size(48.dp)) {
-                                    sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                }
-                            }
-                        }
-                    }
-                    Box(
-                        modifier =
-                            Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .align(Alignment.BottomCenter),
-                    ) {
-                        LinearProgressIndicator(
-                            progress = { timelineState.current.toFloat() / timelineState.total },
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(4.dp),
-                                    ),
-                            color = Color.White,
-                            trackColor = Color.Gray.copy(alpha = 0.4f),
-                            strokeCap = StrokeCap.Round,
-                            drawStopIndicator = {},
-                        )
-                    }
+            },
+            onAddToYouTubeLiked = { sharedViewModel.addToYouTubeLiked() },
+            onShowMoreSheet = { showSheet = true },
+            onShowQueue = { showQueueBottomSheet = true },
+            onShowInfo = { showInfoBottomSheet = true },
+            onShowAddToPlaylist = { showAddToPlaylistDirectly = true },
+            onShowFullscreenLyrics = { showFullscreenLyrics = true },
+            onShowVoteDialog = { showVoteDialog = true },
+            onEnterFullscreenVideo = {
+                onDismiss()
+                navController.navigate(FullscreenDestination)
+            },
+            onDismiss = onDismiss,
+            onToolbarVisibilityChange = { shouldShowToolbar = it },
+            onMoveQueueItem = { from, to ->
+                coroutineScope.launch {
+                    mediaPlayerHandler.swap(from, to)
                 }
-            }
-        }
+            },
+            onRemoveQueueItem = { index ->
+                mediaPlayerHandler.removeMediaItem(index)
+            },
+        )
+    when (nowPlayingStyle) {
+        DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE ->
+            NowPlayingContentM3Expressive(
+                state = state,
+                actions = actions,
+            )
+
+        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC ->
+            NowPlayingContentAppleMusic(
+                state = state,
+                actions = actions,
+            )
+
+        else ->
+            NowPlayingContentSpotify(
+                state = state,
+                actions = actions,
+            )
     }
 }

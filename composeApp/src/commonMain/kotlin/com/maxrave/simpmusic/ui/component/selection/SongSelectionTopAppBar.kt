@@ -4,6 +4,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -35,9 +36,14 @@ fun SongSelectionTopAppBar(
     modifier: Modifier = Modifier,
     containerColor: Color = Color.Transparent,
     contentColor: Color = Color.White,
+    // Defaults to the status-bar inset, like any TopAppBar. Pass WindowInsets(0) when this bar is
+    // STACKED above something that already consumes that inset — a Material SearchBar does, and two
+    // of them in one Column reserve the status bar twice, which reads as a slab of dead padding.
+    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
 ) {
     TopAppBar(
         modifier = modifier,
+        windowInsets = windowInsets,
         colors =
             TopAppBarDefaults.topAppBarColors(
                 containerColor = containerColor,

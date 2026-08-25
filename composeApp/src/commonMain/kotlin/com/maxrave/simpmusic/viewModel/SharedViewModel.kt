@@ -70,6 +70,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -303,6 +304,30 @@ class SharedViewModel(
                     Logger.w(tag, "NowPlayingState is $state")
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
+
+                    // Seed the timeline from METADATA as soon as the track is known, instead of
+                    // waiting for the player. SimpleMediaState.Ready carries a duration and only
+                    // fires once the container is parsed; after a queue restore nothing plays, the
+                    // position poll never starts (it runs only while isPlaying), and so nothing
+                    // ever reports a length — which is why a restored queue showed no times at all.
+                    // SongEntity has known the length since the song was first seen.
+                    //
+                    // Written on EVERY track change, not just when missing: leaving the old value
+                    // in place would show the previous track's length over the new one.
+                    // Order matters: metadata first because it is available immediately, then the
+                    // player's own duration, and only -1 ("not known yet") when neither has one.
+                    //
+                    // Writing -1 whenever metadata is missing — which this did at first — makes
+                    // every radio track and every first-time track flash NA:NA on the clock until
+                    // the container is parsed, because those rows have no durationSeconds stored.
+                    // Asking the player before giving up covers exactly that case: on a normal
+                    // track change it usually already knows.
+                    val metadataDurationMs = (state.songEntity?.durationSeconds ?: 0).toLong() * 1000L
+                    val seededTotal =
+                        metadataDurationMs.takeIf { it > 0L }
+                            ?: mediaPlayerHandler.getPlayerDuration().takeIf { it > 0L }
+                            ?: -1L
+                    _timeline.update { it.copy(total = seededTotal) }
                     state.songEntity?.let { track ->
                         _nowPlayingScreenData.value =
                             NowPlayingScreenData(
@@ -383,7 +408,7 @@ class SharedViewModel(
                                     if (_timeline.value.total > 0L) {
                                         _timeline.update {
                                             it.copy(
-                                                total = mediaPlayerHandler.getPlayerDuration(),
+                                                total = mediaPlayerHandler.getPlayerDuration().takeIf { d -> d > 0L } ?: it.total,
                                                 current = mediaState.progress,
                                                 loading = false,
                                             )
@@ -393,7 +418,7 @@ class SharedViewModel(
                                             it.copy(
                                                 current = mediaState.progress,
                                                 loading = true,
-                                                total = mediaPlayerHandler.getPlayerDuration(),
+                                                total = mediaPlayerHandler.getPlayerDuration().takeIf { d -> d > 0L } ?: it.total,
                                             )
                                         }
                                     }
@@ -421,7 +446,13 @@ class SharedViewModel(
                                     it.copy(
                                         current = mediaPlayerHandler.getProgress(),
                                         loading = false,
-                                        total = mediaState.duration,
+                                        // The player's own duration wins, but ONLY when it has one.
+                                        // ExoPlayer answers C.TIME_UNSET (a large negative, not
+                                        // null) until it has parsed the container, and Ready is
+                                        // also published from onIsLoadingChanged — which fires
+                                        // before STATE_READY. Writing that would throw away the
+                                        // metadata duration seeded on the track change above.
+                                        total = mediaState.duration.takeIf { d -> d > 0L } ?: it.total,
                                     )
                                 }
                             }
@@ -1743,6 +1774,10 @@ class SharedViewModel(
 
     fun getCustomThemeColor() = dataStoreManager.customThemeColor
 
+    fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
+
+    fun getLyricsStyle() = dataStoreManager.lyricsStyle
+
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             dataStoreManager.setThemeMode(mode)
@@ -1758,6 +1793,18 @@ class SharedViewModel(
     fun setCustomThemeColor(argbHex: String) {
         viewModelScope.launch {
             dataStoreManager.setCustomThemeColor(argbHex)
+        }
+    }
+
+    fun setNowPlayingStyle(style: String) {
+        viewModelScope.launch {
+            dataStoreManager.setNowPlayingStyle(style)
+        }
+    }
+
+    fun setLyricsStyle(style: String) {
+        viewModelScope.launch {
+            dataStoreManager.setLyricsStyle(style)
         }
     }
 
@@ -1953,6 +2000,10 @@ class SharedViewModel(
     fun shouldStopMusicService(): Boolean = runBlocking { dataStoreManager.killServiceOnExit.first() == TRUE }
 
     fun isUserLoggedIn(): Boolean = runBlocking { dataStoreManager.cookie.first().isNotEmpty() }
+
+    // Flow-based variant of [isUserLoggedIn] so composables can collect login state once
+    // instead of calling runBlocking inside composition (used by NowPlayingScreenContent).
+    fun isUserLoggedInFlow(): Flow<Boolean> = dataStoreManager.cookie.map { it.isNotEmpty() }
 
     fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
 }

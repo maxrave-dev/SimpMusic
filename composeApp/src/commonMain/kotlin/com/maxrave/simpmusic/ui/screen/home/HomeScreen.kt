@@ -44,6 +44,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,7 +69,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -98,41 +98,47 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.BlogPromoDialog
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItem
-import com.maxrave.simpmusic.ui.component.BlogPromoDialog
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
+import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
-import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
+import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
@@ -248,6 +254,17 @@ fun HomeScreen(
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val isLightTheme = backgroundColor.luminance() > 0.5f
+    // What is ACTUALLY painted behind this screen. The desktop shell wraps content in a rounded
+    // panel (App.kt: surfaceContainer on light, desktopPanelDark on dark) — deliberately not
+    // colorScheme.background — so a gradient tail aimed at colorScheme.background ends on the
+    // wrong colour and draws a seam where the first item stops. Same light check as App.kt's
+    // isLightScheme.
+    val pageBackground =
+        if (getPlatform() == Platform.Desktop) {
+            if (isLightTheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
+        } else {
+            backgroundColor
+        }
     var topHeaderColor by remember {
         mutableStateOf(backgroundColor)
     }
@@ -536,9 +553,15 @@ fun HomeScreen(
                                     Box(
                                         modifier =
                                             Modifier
-                                                .fillMaxWidth()
-                                                .height(300.dp)
-                                                .angledGradientBackground(listOf(animatedColor, backgroundColor), 25f),
+                                                // matchParentSize, not height(300.dp): 300 is the
+                                                // height of this shelf ON A PHONE. On a desktop
+                                                // window the first item is taller, the gradient
+                                                // stopped mid-item and everything below it fell
+                                                // back to the flat background — a hard colour seam
+                                                // straight across Home. Sized by the item, the
+                                                // bottom scrim always lands on the item's edge.
+                                                .matchParentSize()
+                                                .angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
                                     ) {
                                         Box(
                                             modifier =
@@ -546,7 +569,7 @@ fun HomeScreen(
                                                     .fillMaxWidth()
                                                     .height(180.dp)
                                                     .align(Alignment.BottomCenter)
-                                                    .background(artworkScrimBrush(backgroundColor)),
+                                                    .background(artworkScrimBrush(pageBackground)),
                                         )
                                     }
                                 }
@@ -884,6 +907,8 @@ fun HomeTopAppBar(navController: NavController) {
             RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(RecentlySongsDestination)
             }
+            // Fourth button, immediately before Settings — the position the design canvas fixes.
+            ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
             RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
                 navController.navigate(SettingsDestination)
             }

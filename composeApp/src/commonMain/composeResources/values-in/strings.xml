@@ -151,9 +151,6 @@
     <string name="balance_media_loudness">Menyeimbangkan suara bising media</string>
     <string name="normalize_volume">Volume Dinormalkan</string>
     <string name="audio">Suara</string>
-    <string name="no_equalizer">Perangkat kamu tidak ada equalizer</string>
-    <string name="open_system_equalizer">Buka sistem equalizer</string>
-    <string name="use_your_system_equalizer">Gunakan sistem equalizer anda</string>
     <string name="streaming_data_provider_piped">Penyedia data streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Tipe Mime</string>

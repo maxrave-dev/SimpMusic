@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">Баланс гучності медіа</string>
     <string name="normalize_volume">Нормалізувати гучність</string>
     <string name="audio">Аудіо</string>
-    <string name="no_equalizer">Ваш пристрій не має еквалайзера</string>
-    <string name="open_system_equalizer">Відкрийте системний еквалайзер</string>
-    <string name="use_your_system_equalizer">Використовуйте системний еквалайзер</string>
     <string name="streaming_data_provider_piped">Постачальник даних потоку (Piped)</string>
     <string name="itag">Теги</string>
     <string name="mime_type">Тип Mime</string>

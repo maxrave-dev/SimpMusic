@@ -413,6 +413,9 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         themeMode = themeMode,
         themeColorSource = themeColorSource,
         customThemeColor = parseThemeColorHex(customThemeColorHex),
+        // Desktop is unconditionally true — the liquid-glass setting row is Android-only, and the
+        // Desktop capsule player is glass by design. Same rule as MiniPlayer's useGlassSurface.
+        liquidGlassEnabled = isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop,
     ) {
         // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).

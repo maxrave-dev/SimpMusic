@@ -165,9 +165,6 @@
     <string name="balance_media_loudness">ปรับสมดุลความดังของสื่อ</string>
     <string name="normalize_volume">ปรับระดับเสียงให้เท่ากัน</string>
     <string name="audio">เสียง</string>
-    <string name="no_equalizer">อุปกรณ์ของคุณไม่มีอีควอไลเซอร์</string>
-    <string name="open_system_equalizer">เปิดระบบอีควอไลเซอร์</string>
-    <string name="use_your_system_equalizer">ใช้อีควอไลเซอร์ในระบบของคุณ</string>
     <string name="streaming_data_provider_piped">ผู้ให้บริการข้อมูลแบบสตรีมมิ่ง (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">ประเภท MIME</string>

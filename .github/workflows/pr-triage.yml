@@ -1,0 +1,169 @@
+# Auto-triage for unattended AI-generated pull requests.
+#
+# Three tiers, all applying ONLY to authors with no history here (everyone but
+# OWNER / MEMBER / COLLABORATOR / CONTRIBUTOR):
+#
+#   1. HARD: the title carries an unattended-agent fingerprint — an agent's name, a
+#      12+ digit session id, or a bare commit-hash — the PR is closed on sight,
+#      labelled `ai-slop`, and pointed at CONTRIBUTING.md.
+#   2. HARD: any commit in the PR carries an AI co-author trailer ("Co-Authored-By:
+#      Claude/Copilot/…"), a "Generated with …" marker, or is authored by a known
+#      coding-agent bot account. A leftover trailer is the tell that nobody proofread
+#      the output before shipping it. Closed with instructions to squash and reopen.
+#   3. SOFT: the PR template's personal-review checkbox is not ticked — the PR stays
+#      OPEN, gets `needs-template` and one comment asking to complete it. Real
+#      first-time contributors get a nudge, not a door in the face.
+#
+# STRIKES: every hard-tier close counts one strike against the author (counted live
+# from their `ai-slop`-labelled PRs, so it survives workflow restarts). At
+# STRIKE_LIMIT the author is blocked from the whole account — IF the
+# BLOCK_USERS_TOKEN secret exists. GITHUB_TOKEN cannot block users (that API is
+# account-scoped); mint a fine-grained PAT whose ONLY permission is
+# "Block another user: write" (no repository access) and store it as the
+# BLOCK_USERS_TOKEN Actions secret. Without the secret the workflow still counts
+# and announces strikes; blocking just stays manual.
+#
+# SECURITY: this workflow runs on pull_request_target, which executes with write
+# credentials against the BASE repository. It must therefore NEVER check out or
+# execute anything from the PR's head — no actions/checkout, no build steps. It
+# only ever reads PR metadata and calls the API. Keep it that way.
+name: PR triage
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+env:
+  STRIKE_LIMIT: 2
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Triage untrusted PRs
+        id: triage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const trusted = ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR'];
+            if (trusted.includes(pr.author_association)) return;
+
+            const strikeLimit = parseInt(process.env.STRIKE_LIMIT, 10);
+            // Counted from the label, not from workflow memory: issues.listForRepo is live
+            // (no search-index lag), and the count survives re-runs and workflow edits.
+            const countStrikes = async (login) => {
+              const labelled = await github.paginate(github.rest.issues.listForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: 'ai-slop',
+                state: 'all',
+                per_page: 100,
+              });
+              return labelled.filter((i) => i.pull_request && i.user?.login === login).length;
+            };
+            const closeAsSlop = async (reason) => {
+              await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop'] });
+              const strikes = await countStrikes(pr.user.login);
+              await github.rest.issues.createComment({ ...issue, body:
+                reason + `\n\n_Strike ${strikes}/${strikeLimit} for this account — at ` +
+                `${strikeLimit} it is blocked from this repository automatically._` });
+              await github.rest.issues.update({ ...issue, state: 'closed' });
+              if (strikes >= strikeLimit) {
+                core.setOutput('block_login', pr.user.login);
+                core.setOutput('block_strikes', String(strikes));
+              }
+            };
+
+            const title = pr.title || '';
+            const body = pr.body || '';
+            const issue = { owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number };
+
+            // Fingerprints unattended agents leave in titles they generate for themselves:
+            // their own product name, the huge numeric session id, or a bare commit hash
+            // ("Jules 11113139057786323252 fc35410c"). The hex pattern requires at least one
+            // digit so ordinary words spelled in a-f letters can never match.
+            const agentName = /\b(jules|devin|openhands|sweep[- ]?bot|codegen|gpt[- ]?engineer|auto[- ]?coder)\b/i;
+            const sessionId = /\b\d{12,}\b/;
+            const bareHash = /\b(?=[0-9a-f]*\d)[0-9a-f]{8,40}\b/i;
+            const looksUnattended = agentName.test(title) || sessionId.test(title) || bareHash.test(title);
+
+            if (looksUnattended) {
+              await closeAsSlop(
+                'This looks like an unattended AI-agent submission (see the title), which this ' +
+                'project does not accept — every change needs a human who wrote or personally ' +
+                'reviewed it and an accepted issue behind it. See CONTRIBUTING.md. If a person is ' +
+                'actually behind this work, please open an issue describing the change first.');
+              return;
+            }
+
+            // AI marks inside the COMMITS. Named agents only — a plain `[bot]` match would
+            // also shoot dependabot/renovate, which are welcome here. "gpt" alone is left
+            // out on purpose (it substring-matches human names); chatgpt/codex cover it.
+            const aiNames = '(claude|copilot|chatgpt|openai|gemini|jules|devin|cursor|windsurf|aider|codex|sweep|openhands|codegen|anthropic)';
+            const aiCoauthor = new RegExp('co-authored-by:[^\\n]*\\b' + aiNames + '\\b', 'i');
+            const generatedWith = new RegExp('generated (with|by)[^\\n]*\\b' + aiNames + '\\b', 'i');
+            const agentAccount = new RegExp('\\b' + aiNames + '[^\\s]*\\[bot\\]', 'i');
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const marked = commits.find((c) => {
+              const message = c.commit?.message || '';
+              const identities = [
+                c.commit?.author?.name, c.commit?.author?.email,
+                c.commit?.committer?.name, c.commit?.committer?.email,
+                c.author?.login, c.committer?.login,
+              ].filter(Boolean).join(' ');
+              return aiCoauthor.test(message) || generatedWith.test(message) || agentAccount.test(identities);
+            });
+            if (marked) {
+              await closeAsSlop(
+                'One or more commits in this PR carry an AI co-author trailer or agent marker ' +
+                '(e.g. `Co-Authored-By: Claude/Copilot/…`), which this project does not accept — ' +
+                'a leftover trailer usually means the output was never personally reviewed. If a ' +
+                'human does stand behind this change: squash your commits without the AI trailers, ' +
+                'force-push, complete the PR template, and reopen. See CONTRIBUTING.md.');
+              return;
+            }
+
+            // Must match the checkbox text in .github/PULL_REQUEST_TEMPLATE.md verbatim.
+            const reviewedByHuman = /-\s*\[x\]\s*I wrote or personally reviewed every line/i.test(body);
+            if (!reviewedByHuman) {
+              await github.rest.issues.createComment({ ...issue, body:
+                'Thanks for the PR! Please complete the pull request template — in particular the ' +
+                'checkbox confirming you wrote or personally reviewed every line, and the issue ' +
+                'this change addresses. It helps us tell real contributions from the flood of ' +
+                'auto-generated ones. Edit your PR description; no need to open a new PR.' });
+              await github.rest.issues.addLabels({ ...issue, labels: ['needs-template'] });
+            }
+
+      # Blocking needs an account-scoped token — GITHUB_TOKEN cannot do it. This step is
+      # skipped entirely until the BLOCK_USERS_TOKEN secret exists (fine-grained PAT,
+      # only permission: "Block another user: write", no repository access).
+      - name: Block repeat offender
+        if: steps.triage.outputs.block_login != ''
+        env:
+          BLOCK_USERS_TOKEN: ${{ secrets.BLOCK_USERS_TOKEN }}
+          BLOCK_LOGIN: ${{ steps.triage.outputs.block_login }}
+          BLOCK_STRIKES: ${{ steps.triage.outputs.block_strikes }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.BLOCK_USERS_TOKEN || secrets.GITHUB_TOKEN }}
+          # Values cross into the script via env, never via inline ${{ }} interpolation —
+          # interpolating into JS source is the classic script-injection foot-gun.
+          script: |
+            if (!process.env.BLOCK_USERS_TOKEN) {
+              core.notice('BLOCK_USERS_TOKEN secret not set — strike limit reached but blocking stays manual.');
+              return;
+            }
+            const login = process.env.BLOCK_LOGIN;
+            await github.request('PUT /user/blocks/{username}', { username: login });
+            core.notice(`Blocked ${login} after ${process.env.BLOCK_STRIKES} ai-slop strikes.`);

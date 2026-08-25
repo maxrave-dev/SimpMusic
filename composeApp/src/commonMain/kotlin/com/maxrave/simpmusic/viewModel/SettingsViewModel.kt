@@ -261,8 +261,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
-
     fun getData() {
         getLocation()
         getLanguage()
@@ -1691,7 +1689,25 @@ class SettingsViewModel(
     private var _equalizerPreamp: MutableStateFlow<Float> = MutableStateFlow(0f)
     val equalizerPreamp: StateFlow<Float> = _equalizerPreamp
 
+    /** Raw `"<label>\n<gains>"` of the last imported AutoEq profile; the UI decides if it still applies. */
+    private var _equalizerAutoEqProfile: MutableStateFlow<String> = MutableStateFlow("")
+    val equalizerAutoEqProfile: StateFlow<String> = _equalizerAutoEqProfile
+
+    /**
+     * Guards the collectors below against being started twice.
+     *
+     * Two callers ask for them: [getData], which every visit to the settings screen runs, and the
+     * equalizer block itself, which asks on its own so it keeps working if it is ever hosted
+     * anywhere else. Both land on this same view model, and the collectors live in
+     * [viewModelScope] rather than in a composition — so without this, toggling the switch off and
+     * on left another four behind every time, each re-reading the preference file for a value
+     * three others were already publishing.
+     */
+    private var equalizerCollectorsStarted = false
+
     fun getEqualizer() {
+        if (equalizerCollectorsStarted) return
+        equalizerCollectorsStarted = true
         viewModelScope.launch {
             launch {
                 dataStoreManager.equalizerEnabled.collect {
@@ -1711,18 +1727,41 @@ class SettingsViewModel(
             launch {
                 dataStoreManager.equalizerPreamp.collect { _equalizerPreamp.emit(it) }
             }
+            launch {
+                dataStoreManager.equalizerAutoEqProfile.collect { _equalizerAutoEqProfile.emit(it) }
+            }
         }
     }
 
-    fun setEqualizerBand(
-        index: Int,
-        gainDb: Float,
+    /**
+     * Store a whole curve at once.
+     *
+     * The whole list rather than one band at a time because a single drag sweeps across several
+     * bands, and because the per-band version had to read [_equalizerBands] to rebuild the list —
+     * a value that only updates once the write has been through storage, so two edits in quick
+     * succession could reinstate the first band's old gain.
+     */
+    fun setEqualizerBands(bandsDb: List<Float>) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerBands(bandsDb)
+        }
+    }
+
+    /**
+     * Move the curve and its preamp together.
+     *
+     * These are two separate preference keys, so the player does briefly see one of them applied
+     * against the other's old value. The preamp goes first deliberately: that way the moment in
+     * between is the new headroom under the old curve — quieter — rather than a freshly boosted
+     * curve still running on the previous preset's headroom, which is the direction that clips.
+     */
+    fun applyEqualizerPreset(
+        bandsDb: List<Float>,
+        preampDb: Float,
     ) {
         viewModelScope.launch {
-            val next = _equalizerBands.value.toMutableList()
-            if (index !in next.indices) return@launch
-            next[index] = gainDb
-            dataStoreManager.setEqualizerBands(next)
+            dataStoreManager.setEqualizerPreamp(preampDb)
+            dataStoreManager.setEqualizerBands(bandsDb)
         }
     }
 

@@ -821,7 +821,9 @@ fun MiniPlayer(
                                                 brush =
                                                     Brush.horizontalGradient(
                                                         0f to textColor.copy(alpha = 0.45f),
-                                                        0.5f to textColor,
+                                                        // The sweep head is PURE white, not the resting label colour — the label
+                                                        // colour is an adaptive grey, and a grey gleam reads as no gleam at all.
+                                                        0.5f to Color.White,
                                                         1f to textColor.copy(alpha = 0.45f),
                                                         startX = shimmerHead,
                                                         endX = shimmerHead + shimmerSpan,
@@ -869,6 +871,7 @@ fun MiniPlayer(
                     // inset itself to keep clear of them.
                     CapsuleProgress(
                         sliderValue = sliderValue,
+                        loading = loading,
                         trackHeight = if (showScrubber) 4.dp else 2.dp,
                         thumbSize = 0.dp,
                         textColor = textColor,
@@ -1130,6 +1133,7 @@ private val VOLUME_SLIDER_LENGTH = 96.dp
 @Composable
 private fun CapsuleProgress(
     sliderValue: Float,
+    loading: Boolean,
     trackHeight: Dp,
     thumbSize: Dp,
     textColor: Color,
@@ -1143,52 +1147,81 @@ private fun CapsuleProgress(
         contentAlignment = Alignment.Center,
     ) {
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            // One Slider only. A LinearProgressIndicator underneath used to draw the buffered
-            // position, but Slider reserves room for its thumb at both ends while the indicator
-            // ran fillMaxWidth edge to edge — the two tracks were different lengths and visibly
-            // out of line. Buffered position is not worth that; the inactive track carries it.
-            Slider(
-                // Fraction, not 0..100 — see the note in NowPlayingScreen: material3 alpha25
-                // drops valueRange on its binary-compatibility overload.
-                value = sliderValue / 100f,
-                onValueChange = onValueChange,
-                onValueChangeFinished = onValueChangeFinished,
-                modifier = Modifier.fillMaxWidth(),
-                track = { sliderState ->
-                    SliderDefaults.Track(
-                        modifier = Modifier.height(trackHeight),
-                        enabled = true,
-                        sliderState = sliderState,
-                        colors =
-                            SliderDefaults.colors().copy(
-                                thumbColor = progressColor,
-                                activeTrackColor = progressColor,
-                                inactiveTrackColor = textColor.copy(alpha = 0.25f),
-                            ),
-                        thumbTrackGapSize = 0.dp,
-                        drawTick = { _, _ -> },
-                        drawStopIndicator = null,
-                    )
-                },
-                thumb = {
-                    if (thumbSize > 0.dp) {
-                        SliderDefaults.Thumb(
-                            modifier = Modifier.size(thumbSize),
-                            thumbSize = DpSize(thumbSize, thumbSize),
-                            interactionSource = remember { MutableInteractionSource() },
-                            colors =
-                                SliderDefaults.colors().copy(
-                                    thumbColor = progressColor,
-                                    activeTrackColor = progressColor,
-                                    inactiveTrackColor = textColor.copy(alpha = 0.25f),
-                                ),
-                            enabled = true,
+            // Buffering turns the track into an indeterminate sweep, the same language NowPlaying's
+            // scrubber uses. It REPLACES the slider rather than sitting under it: a
+            // LinearProgressIndicator underneath was tried here once and removed, because the Slider
+            // reserves room for its thumb at both ends while the indicator runs edge to edge, and
+            // the two tracks were visibly different lengths. Only one is ever on screen.
+            //
+            // Nothing here is gated on the platform — CapsuleProgress is only ever built by the
+            // Desktop arm of MiniPlayer. The Android arm swaps its play/pause button for a spinner
+            // instead, and reads the same `loading` flag to do it.
+            Crossfade(targetState = loading, label = "capsuleProgress") { isLoading ->
+                // Both branches are boxed to the full height and centred, so the Crossfade's own
+                // Box never changes size. Its default alignment is TopStart and it measures to the
+                // tallest child currently visible — with a 2dp indicator against a Slider that is
+                // taller, the bar pins to the top of the box mid-transition and then drops to the
+                // middle when the Slider leaves composition. It reads as the track falling in.
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    if (isLoading) {
+                        LinearProgressIndicator(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(trackHeight)
+                                    .clip(RoundedCornerShape(8.dp)),
+                            // The capsule's own colours, not NowPlaying's hardcoded greys: this track
+                            // sits on liquid glass whose tone follows the artwork behind it.
+                            color = progressColor,
+                            trackColor = textColor.copy(alpha = 0.25f),
+                            strokeCap = StrokeCap.Round,
                         )
                     } else {
-                        Spacer(Modifier.size(0.dp))
+                        Slider(
+                            // Fraction, not 0..100 — see the note in NowPlayingScreen: material3 alpha25
+                            // drops valueRange on its binary-compatibility overload.
+                            value = sliderValue / 100f,
+                            onValueChange = onValueChange,
+                            onValueChangeFinished = onValueChangeFinished,
+                            modifier = Modifier.fillMaxWidth(),
+                            track = { sliderState ->
+                                SliderDefaults.Track(
+                                    modifier = Modifier.height(trackHeight),
+                                    enabled = true,
+                                    sliderState = sliderState,
+                                    colors =
+                                        SliderDefaults.colors().copy(
+                                            thumbColor = progressColor,
+                                            activeTrackColor = progressColor,
+                                            inactiveTrackColor = textColor.copy(alpha = 0.25f),
+                                        ),
+                                    thumbTrackGapSize = 0.dp,
+                                    drawTick = { _, _ -> },
+                                    drawStopIndicator = null,
+                                )
+                            },
+                            thumb = {
+                                if (thumbSize > 0.dp) {
+                                    SliderDefaults.Thumb(
+                                        modifier = Modifier.size(thumbSize),
+                                        thumbSize = DpSize(thumbSize, thumbSize),
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        colors =
+                                            SliderDefaults.colors().copy(
+                                                thumbColor = progressColor,
+                                                activeTrackColor = progressColor,
+                                                inactiveTrackColor = textColor.copy(alpha = 0.25f),
+                                            ),
+                                        enabled = true,
+                                    )
+                                } else {
+                                    Spacer(Modifier.size(0.dp))
+                                }
+                            },
+                        )
                     }
-                },
-            )
+                }
+            }
         }
     }
 }
