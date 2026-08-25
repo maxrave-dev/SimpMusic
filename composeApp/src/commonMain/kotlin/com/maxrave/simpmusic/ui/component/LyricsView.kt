@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -22,9 +23,13 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -67,21 +72,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import org.koin.compose.koinInject
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -91,6 +102,7 @@ import coil3.request.crossfade
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
+import com.maxrave.simpmusic.extension.animateScrollAndAnchorItemTop
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.hsvToColor
@@ -116,12 +128,68 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.min
+import kotlin.math.max
 
 private const val TAG = "LyricsView"
 
 // Minimum wipe animation duration. Words shorter than this still wipe over MIN_WIPE_MS so the
 // motion stays perceivable; the snap-to-1f on isPast catches up at the actual word end.
 private const val MIN_WIPE_MS = 150
+
+// Emphasis maths ported from AMLL (applemusic-like-lyrics),
+// packages/core/src/lyric-player/dom/lyric-line.ts -> initEmphasizeAnimation. Kept to its exact
+// constants rather than re-derived: the shape of these curves IS the effect.
+//
+// The key part is the exponent switch. Below the reference duration the strength is CUBED, so a
+// half-second word gets almost nothing; above it the strength is a SQUARE ROOT, so a very long
+// note grows but flattens out. A linear ramp — which is what a first guess produces — makes every
+// ordinary word shimmer and every held note underwhelming, i.e. exactly backwards.
+private const val EMP_AMOUNT_REF_MS = 2000f
+private const val EMP_BLUR_REF_MS = 3000f
+private const val EMP_MIN_DURATION_MS = 1000f
+private const val EMP_AMOUNT_GAIN = 0.6f
+private const val EMP_BLUR_GAIN = 0.5f
+private const val EMP_AMOUNT_CAP = 1.2f
+private const val EMP_BLUR_CAP = 0.8f
+// AMLL leans on the LAST word of a line — that is where a singer holds, so it earns extra.
+private const val EMP_LAST_WORD_AMOUNT = 1.6f
+private const val EMP_LAST_WORD_BLUR = 1.5f
+// Both are fractions of the font size (AMLL expresses them in `em`), never fixed dp.
+private const val EMP_SCALE_EM = 0.1f
+private const val EMP_RISE_EM = 0.025f
+private const val EMP_GLOW_RADIUS_EM = 0.3f
+
+// The bloom every sung word carries; a held word replaces this with AMLL's larger emphasis glow.
+// The flare on the word currently being sung. Bright, because it marks one word out of a line
+// rather than washing over the whole sung half.
+// The provider caption under the lyrics: quiet enough to sit beneath them, still readable on
+// purpose — it is dimmed, never blurred.
+// How far the travelling glow reaches, in characters. Below ~1 the light goes out between
+// characters; far above it the whole word lifts at once.
+private const val FLARE_REACH_CHARS = 1.5f
+
+// The gutter this sheet has always used for its lyrics column.
+private val FULLSCREEN_LYRICS_GUTTER = 50.dp
+
+private const val FOOTER_ALPHA = 0.45f
+
+private const val SUNG_BASE_GLOW_ALPHA = 0.75f
+private const val SUNG_BASE_GLOW_EM = 0.26f
+
+
+// makeEmpEasing(0.5): bezIn up to the midpoint, then 1 - bezOut back down — a bump that rises
+// faster than it falls, which is why it reads as a voice pushing rather than a sine wobble.
+private val EmpBezIn = CubicBezierEasing(0.2f, 0.4f, 0.58f, 1f)
+private val EmpBezOut = CubicBezierEasing(0.3f, 0f, 0.58f, 1f)
+
+private fun empEasing(x: Float): Float =
+    if (x < 0.5f) {
+        EmpBezIn.transform((x / 0.5f).coerceIn(0f, 1f))
+    } else {
+        1f - EmpBezOut.transform(((x - 0.5f) / 0.5f).coerceIn(0f, 1f))
+    }
 
 // Repeated lyrics palette tokens hoisted to file scope: avoids re-allocating
 // the same Color() objects on every recomposition of every line item.
@@ -246,9 +314,30 @@ fun LyricsView(
     // the lyrics instead of sitting anchored below them. Null by default: every existing caller
     // renders exactly as before.
     footerContent: (@Composable () -> Unit)? = null,
+    dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val listState = rememberLazyListState()
+    // AMLL drops blur to zero while the user is scrolling by hand (resolveBlurLevel:
+    // `if (this.scrollState.isTouchScrolled || isFocused) return 0`) — you are reading ahead at
+    // that moment, and out-of-focus text is not readable. Dragged, not isScrollInProgress: the
+    // latter is also true for the player's own animated scroll, which must stay blurred.
+    val isDragging by listState.interactionSource.collectIsDraggedAsState()
     val current by timeLine.collectAsStateWithLifecycle()
+
+    // Read here rather than taken as a parameter: all four call sites (the fullscreen sheet and
+    // the three player styles) want the user's one choice, so making them each thread it through
+    // would be four copies of the same lookup. Re-checked against isLyricsBlurSupported() even
+    // though Settings hides the option below Android 12 — a DataStore restored from a backup, or
+    // carried to another device, can still hold APPLE_MUSIC on a phone that cannot draw it.
+    val lyricsStyle by dataStoreManager.lyricsStyle.collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val appleStyle = lyricsStyle == DataStoreManager.LYRICS_STYLE_APPLE_MUSIC && isLyricsBlurSupported()
+
+    // One text row plus the padding that separates two lyric items — the exact amount of the
+    // previous line that stays on screen above the sung one.
+    val exposedRowPx =
+        with(LocalDensity.current) {
+            AppleMusicLyricLineHeight.toPx() + AppleMusicLyricGap.toPx()
+        }
 
     val timedLineIndexes =
         remember(lyricsData.lyrics.lines) {
@@ -277,18 +366,34 @@ fun LyricsView(
                 thresholdMs = 1000L,
             )
         }
-    LaunchedEffect(currentLineIndex, lyricsData.lyrics.syncType) {
+    LaunchedEffect(currentLineIndex, lyricsData.lyrics.syncType, appleStyle) {
         if (currentLineIndex > -1 &&
             (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
         ) {
-            listState.animateScrollAndCentralizeItem(currentLineIndex)
+            if (appleStyle) {
+                // NEAR the top, not against it: Apple leaves exactly ONE physical row of the
+                // previous lyric visible above the line being sung. Scrolling to `index - 1`
+                // instead — which is what this did first — anchors the whole previous ITEM, and a
+                // lyric that wraps is one item spanning two or three rows, so the entire wrapped
+                // block hung above the sung line. Anchoring the sung line itself and backing off by
+                // one row's height is row-accurate no matter how the previous line wrapped.
+                listState.animateScrollAndAnchorItemTop(currentLineIndex, -exposedRowPx)
+            } else {
+                listState.animateScrollAndCentralizeItem(currentLineIndex)
+            }
         }
     }
 
-    Box(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier) {
+        // Apple keeps the sung line at the TOP even when it is the last line of the song — which
+        // is only possible if there is empty space below it to scroll into. Without this tail the
+        // list simply runs out of content and the closing lines pile up against the bottom edge,
+        // so the final third of every song reads bottom-anchored instead of top-anchored.
+        val tailPadding = if (appleStyle) maxHeight * 0.72f else 0.dp
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = tailPadding),
         ) {
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
@@ -305,62 +410,187 @@ fun LyricsView(
                     }
 
                 line?.words?.let { words ->
-                    when {
-                        // Rich sync: parse and use RichSyncLyricsLineItem
-                        lyricsData.lyrics.syncType == "RICH_SYNCED" -> {
-                            val parsedLine =
-                                remember(words, line.startTimeMs, line.endTimeMs) {
-                                    val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
-                                    result
-                                }
+                    // Signed distance from the line being sung. The shell is the only place that
+                    // knows it, and it is the ONLY extra input the Apple Music renderer needs —
+                    // which is why the split lives here and not inside the line items.
+                    val distanceFromCurrent = if (currentLineIndex < 0) 0 else index - currentLineIndex
 
-                            if (parsedLine != null) {
-                                RichSyncLyricsLineItem(
-                                    parsedLine = parsedLine,
-                                    translatedWords = translatedWords,
-                                    currentTimeMs = current.current,
-                                    isCurrent = index == currentLineIndex,
-                                    modifier =
-                                        Modifier
-                                            .clickable {
-                                                onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                    val renderLine: @Composable () -> Unit = {
+                        when {
+                            // Rich sync: parse and use RichSyncLyricsLineItem
+                            lyricsData.lyrics.syncType == "RICH_SYNCED" -> {
+                                val parsedLine =
+                                    remember(words, line.startTimeMs, line.endTimeMs) {
+                                        val result = parseRichSyncWords(words, line.startTimeMs, line.endTimeMs)
+                                        result
+                                    }
+
+                                if (parsedLine != null) {
+                                    // Reused verbatim by BOTH styles: word-by-word highlighting is
+                                    // already what Apple does with a rich-synced line, so there is
+                                    // nothing to re-implement — only the focus treatment differs,
+                                    // and that is applied by the wrapper below.
+                                    RichSyncLyricsLineItem(
+                                        parsedLine = parsedLine,
+                                        translatedWords = translatedWords,
+                                        currentTimeMs = current.current,
+                                        isCurrent = index == currentLineIndex,
+                                        customFontSize = if (appleStyle) AppleMusicLyricFontSize else null,
+                                        glow = if (appleStyle && index == currentLineIndex) AppleMusicActiveLineGlow else null,
+                                        pendingColorOverride = if (appleStyle) AppleMusicPendingWordColor else null,
+                                        translatedColorOverride = if (appleStyle) AppleMusicTranslatedColor else null,
+                                        translatedStyleOverride =
+                                            if (appleStyle) {
+                                                typo().bodyMedium.copy(
+                                                    fontSize = AppleMusicSubLineFontSize,
+                                                    lineHeight = AppleMusicSubLineHeight,
+                                                )
+                                            } else {
+                                                null
                                             },
+                                        customPadding = if (appleStyle) AppleMusicLyricGap else 12.dp,
+                                        wrappedLineSpacing = if (appleStyle) AppleMusicWrappedLineSpacing else 0.dp,
+                                        // Apple takes its click from the wrapper Column below, which
+                                        // covers the translation too; a click here as well would put
+                                        // a second, smaller target on top of it.
+                                        modifier =
+                                            if (appleStyle) {
+                                                Modifier
+                                            } else {
+                                                Modifier.clickable {
+                                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                                }
+                                            },
+                                    )
+                                } else if (appleStyle) {
+                                    // Parsing failed — fall back to a plain line, but still the
+                                    // Apple-shaped one, or a single unparsable line would render
+                                    // at a different size than every line around it.
+                                    AppleMusicLyricsLineItem(
+                                        originalWords = words,
+                                        translatedWords = translatedWords,
+                                        isCurrent = index == currentLineIndex,
+                                    )
+                                } else {
+                                    // Fallback to regular line item if parsing fails
+                                    LyricsLineItem(
+                                        originalWords = words,
+                                        translatedWords = translatedWords,
+                                        isBold = index <= currentLineIndex,
+                                        isCurrent = index == currentLineIndex,
+                                        modifier =
+                                            Modifier
+                                                .clickable {
+                                                    onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                                },
+                                    )
+                                }
+                            }
+
+                            // Line sync or unsynced
+                            appleStyle -> {
+                                AppleMusicLyricsLineItem(
+                                    originalWords = words,
+                                    translatedWords = translatedWords,
+                                    // Strictly the sung line — NOT Classic's `|| syncType != LINE_SYNCED`.
+                                    // That clause exists so an unsynced lyric sheet renders every line
+                                    // bold instead of every line dimmed. Carried over here it makes
+                                    // EVERY line "current": white, glowing, unblurred — which is why
+                                    // two lines showed lit at once. An unsynced sheet has no sung line,
+                                    // and this style says so by leaving them all grey.
+                                    isCurrent = index == currentLineIndex,
                                 )
-                            } else {
-                                // Fallback to regular line item if parsing fails
+                            }
+
+                            // Line sync or unsynced: use existing LyricsLineItem
+                            else -> {
                                 LyricsLineItem(
                                     originalWords = words,
                                     translatedWords = translatedWords,
-                                    isBold = index <= currentLineIndex,
-                                    isCurrent = index == currentLineIndex,
+                                    isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
+                                    isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
                                     modifier =
                                         Modifier
-                                            .clickable {
+                                            .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
                                                 onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
                                             },
                                 )
                             }
                         }
+                    }
 
-                        // Line sync or unsynced: use existing LyricsLineItem
-                        else -> {
-                            LyricsLineItem(
-                                originalWords = words,
-                                translatedWords = translatedWords,
-                                isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
-                                isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
+                    if (appleStyle) {
+                        // The whole wrapper is the tap target — original line AND translation — the
+                        // way AMLL's .lyricLineWrapper is, rather than each Text separately. The
+                        // press shows as a tinted rounded panel; indication is null because a
+                        // ripple centred on the finger reads as a button, and these are lyrics.
+                        val lineInteraction = remember { MutableInteractionSource() }
+                        val linePressed by lineInteraction.collectIsPressedAsState()
+                        Column(
+                            modifier =
+                                Modifier
+                                    // background(colour, shape), NOT clip(shape) + background().
+                                    // clip() cuts everything that leaves this line's box — which is
+                                    // exactly what blur and glow are supposed to do. It sliced the
+                                    // blur off square at the left edge and erased the bloom around
+                                    // the sung line entirely. background() with a shape paints the
+                                    // rounded press panel without clipping any of the content.
+                                    .background(
+                                        color = if (linePressed) AppleMusicLyricPressedBackground else Color.Transparent,
+                                        shape = RoundedCornerShape(AppleMusicLyricCornerRadius),
+                                    ).clickable(
+                                        interactionSource = lineInteraction,
+                                        indication = null,
+                                        enabled = lyricsData.lyrics.syncType == "LINE_SYNCED" ||
+                                            lyricsData.lyrics.syncType == "RICH_SYNCED",
+                                    ) {
+                                        onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
+                                    },
+                        ) {
+                            // Blur spans the FULL width; the gutter is applied inside it. Ordered
+                            // the other way — gutter outside, blur around the text — the blurred
+                            // box begins exactly where the glyphs begin, so there is no margin for
+                            // the softened edge to spill into and it comes out sliced flat down the
+                            // left. This is the same problem AMLL solves with `margin: -1em;
+                            // padding: 1em`, which widens the painted area without moving the
+                            // layout; Compose has no negative padding, so the equivalent is to blur
+                            // the wide box and inset the content within it.
+                            Box(
                                 modifier =
                                     Modifier
-                                        .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
-                                            onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
-                                        },
-                            )
+                                        .fillMaxWidth()
+                                        .appleMusicLyricFocus(distanceFromCurrent, blurEnabled = !isDragging),
+                            ) {
+                                Box(modifier = Modifier.padding(horizontal = AppleMusicLyricPaddingX)) {
+                                    renderLine()
+                                }
+                            }
                         }
+                    } else {
+                        renderLine()
                     }
                 }
             }
             footerContent?.let { footer ->
-                item { footer() }
+                item {
+                    if (appleStyle) {
+                        // Same gutter as the lyrics, and dimmed — but NOT blurred. Blur means
+                        // "further away in the song"; the caption is not part of the song at all,
+                        // it is a note about where the words came from. Blurring it made it look
+                        // like a lyric line the reader had lost, and it is meant to stay legible
+                        // when someone actually goes looking for it.
+                        Box(
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = AppleMusicLyricPaddingX)
+                                    .alpha(FOOTER_ALPHA),
+                        ) {
+                            footer()
+                        }
+                    } else {
+                        footer()
+                    }
+                }
             }
         }
     }
@@ -427,6 +657,23 @@ fun RichSyncLyricsLineItem(
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
     customPadding: Dp = 12.dp,
+    // Null for the Classic renderer, so nothing about it changes. The Apple Music style passes a
+    // bloom here for the line being sung — applied per WORD rather than per line, because in a
+    // rich-synced line only the words already sung are lit.
+    glow: Shadow? = null,
+    pendingColorOverride: Color? = null,
+    // Same deal: null keeps Classic's yellow (and its dimmed variant) exactly as it was. Apple
+    // renders translations in white, and this is a SHARED composable — hardcoding white here
+    // would repaint the Classic style too.
+    translatedColorOverride: Color? = null,
+    // Null / 1f keep Classic's bodyMedium at full opacity. Apple Music passes AMLL's sub-line
+    // ratios (0.5em, 1.5em leading, 0.3 opacity) — again as parameters, because this composable is
+    // shared and hardcoding them would resize Classic's translations too.
+    translatedStyleOverride: TextStyle? = null,
+    // Zero keeps FlowRow's original Arrangement.Center, so Classic wraps exactly as it always has.
+    // Apple Music passes real spacing because its lines are large enough to wrap often, and
+    // FlowRow ignores the lineHeight that spaces the non-wrapped renderer's lines.
+    wrappedLineSpacing: Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
     val currentWordIndex by remember(currentTimeMs, parsedLine.words) {
@@ -444,7 +691,8 @@ fun RichSyncLyricsLineItem(
         // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement =
+                if (wrappedLineSpacing > 0.dp) Arrangement.spacedBy(wrappedLineSpacing) else Arrangement.Center,
         ) {
             parsedLine.words.forEachIndexed { index, wordTiming ->
                 // Calculate word end time (start time of next word or line end time)
@@ -473,6 +721,9 @@ fun RichSyncLyricsLineItem(
                     isPast = isCurrent && index < currentWordIndex,
                     isCurrent = isCurrent,
                     customFontSize = customFontSize,
+                    glow = glow,
+                    isLastWord = index == parsedLine.words.lastIndex,
+                    pendingColorOverride = pendingColorOverride,
                 )
             }
         }
@@ -481,8 +732,8 @@ fun RichSyncLyricsLineItem(
         if (translatedWords != null) {
             Text(
                 text = translatedWords,
-                style = typo().bodyMedium,
-                color = if (isCurrent) Color.Yellow else DimTranslatedColor,
+                style = translatedStyleOverride ?: typo().bodyMedium,
+                color = translatedColorOverride ?: if (isCurrent) Color.Yellow else DimTranslatedColor,
             )
         }
 
@@ -501,6 +752,11 @@ private fun AnimatedWord(
     isPast: Boolean,
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
+    glow: Shadow? = null,
+    // AMLL emphasises the closing word of a line more than the rest — that is where a singer holds.
+    isLastWord: Boolean = false,
+    // Null keeps Classic's DimRichPendingColor untouched.
+    pendingColorOverride: Color? = null,
 ) {
     val style =
         typo().headlineLarge.copy(
@@ -508,7 +764,7 @@ private fun AnimatedWord(
         )
 
     if (!isCurrent) {
-        Text(text = word, style = style, color = DimOriginalColor)
+        Text(text = word, style = style, color = pendingColorOverride ?: DimOriginalColor)
         return
     }
 
@@ -550,21 +806,125 @@ private fun AnimatedWord(
 
     val progress = anim.value
 
-    Box {
-        // Bottom layer: dimmed pending color, drawn for the whole word.
-        Text(text = word, style = style, color = DimRichPendingColor)
-        // Top layer: white, clipped horizontally so only the wiped portion shows.
-        Text(
-            text = word,
-            style = style,
-            color = Color.White,
-            modifier =
-                Modifier.drawWithContent {
-                    clipRect(right = size.width * progress) {
-                        this@drawWithContent.drawContent()
+    // The word's position, resolved by STATE rather than read raw. The Animatable is what carries
+    // the 100ms timeline ticks at frame rate — it snaps to the real position and then animates to
+    // the end of the word in wall-clock time, so the wipe keeps moving between ticks instead of
+    // stepping ten times a second.
+    //
+    // But it is only ever snapped on the isActive and isPast branches. A word that has not started
+    // holds whatever it was constructed with, which is why reading it directly lit the first letter
+    // of every upcoming word. Deciding 0 / anim / 1 from the state fixes that without giving up the
+    // interpolation.
+    val wordProgress =
+        when {
+            isPast -> 1f
+            isActive -> progress
+            else -> 0f
+        }
+
+    // AMLL's emphasis strengths, derived from the word's OWN duration.
+    val emphasisDurationMs = max(EMP_MIN_DURATION_MS, wordDurationMs.toFloat())
+    val amount =
+        if (glow == null) {
+            0f
+        } else {
+            val raw = emphasisDurationMs / EMP_AMOUNT_REF_MS
+            val shaped = if (raw > 1f) sqrt(raw) else raw * raw * raw
+            min(EMP_AMOUNT_CAP, shaped * EMP_AMOUNT_GAIN * if (isLastWord) EMP_LAST_WORD_AMOUNT else 1f)
+        }
+    val blurAmount =
+        if (glow == null) {
+            0f
+        } else {
+            val raw = emphasisDurationMs / EMP_BLUR_REF_MS
+            val shaped = if (raw > 1f) sqrt(raw) else raw * raw * raw
+            min(EMP_BLUR_CAP, shaped * EMP_BLUR_GAIN * if (isLastWord) EMP_LAST_WORD_BLUR else 1f)
+        }
+    val eased = if (amount <= 0f && blurAmount <= 0f) 0f else empEasing(wordProgress)
+    val fontPx = with(LocalDensity.current) { style.fontSize.toPx() }
+    val heldGlow =
+        if (eased * blurAmount <= 0.01f) {
+            null
+        } else {
+            glow?.copy(
+                color = glow.color.copy(alpha = (eased * blurAmount).coerceIn(0f, 1f)),
+                blurRadius = min(EMP_GLOW_RADIUS_EM, blurAmount * EMP_GLOW_RADIUS_EM) * fontPx,
+            )
+        }
+
+    Box(
+        modifier =
+            Modifier.graphicsLayer {
+                val scale = 1f + eased * EMP_SCALE_EM * amount
+                scaleX = scale
+                scaleY = scale
+                // Rises slightly as it swells — AMLL's offsetY. Negative is upward.
+                translationY = -eased * EMP_RISE_EM * amount * fontPx
+            },
+    ) {
+        val chars = word.toCharArray()
+        val charCount = chars.size.coerceAtLeast(1)
+        Row {
+            chars.forEachIndexed { charIndex, ch ->
+                val charFrom = charIndex.toFloat() / charCount
+                val charTo = (charIndex + 1).toFloat() / charCount
+                val charProgress = ((wordProgress - charFrom) / (charTo - charFrom)).coerceIn(0f, 1f)
+                val charPast = wordProgress >= charTo
+                val charActive = isActive && wordProgress >= charFrom && wordProgress < charTo
+                // The flare is a CONTINUOUS falloff from the playhead, not an on/off per character:
+                // switching per character killed the light at every boundary and lit it again on the
+                // next one, which read as flicker. Fading by distance lets the brightness hand over
+                // between neighbours, so one travelling point of light moves across the word.
+                val charCenter = (charFrom + charTo) / 2f
+                val reach = (FLARE_REACH_CHARS / charCount).coerceAtLeast(0.0001f)
+                val charFlare =
+                    if (!isActive || glow == null) {
+                        0f
+                    } else {
+                        (1f - abs(wordProgress - charCenter) / reach).coerceIn(0f, 1f)
                     }
-                },
-        )
+                val restingColor = pendingColorOverride ?: DimRichPendingColor
+                Box {
+                    // Glow: transparent ink, so only the Shadow lands and it follows the glyph
+                    // outline instead of boxing the character.
+                    //
+                    val glowShadow = heldGlow ?: glow?.copy(blurRadius = SUNG_BASE_GLOW_EM * fontPx)
+                    if (glowShadow != null) {
+                        Text(
+                            text = ch.toString(),
+                            // Intensity goes into the Shadow's own alpha. NOT graphicsLayer.alpha:
+                            // any alpha below 1 forces Compose to render the node into an offscreen
+                            // layer first, and that layer is only as big as the Text's bounds — so
+                            // the bloom, which by definition spills outside them, comes back sliced
+                            // into a rectangle.
+                            //
+                            // The node is still composed unconditionally, at alpha 0 when the
+                            // playhead is far away. That is what stops the hand-over from
+                            // flickering: A fades down and B fades up, neither is ever added to or
+                            // removed from the tree.
+                            style =
+                                style.copy(
+                                    shadow =
+                                        glowShadow.copy(
+                                            color = glowShadow.color.copy(alpha = SUNG_BASE_GLOW_ALPHA * charFlare),
+                                        ),
+                                ),
+                            color = Color.Transparent,
+                        )
+                    }
+                    Text(
+                        text = ch.toString(),
+                        style = style,
+                        color =
+                            when {
+                                charPast -> Color.White
+                                charActive -> lerp(restingColor, Color.White, charProgress)
+                                else -> restingColor
+                            },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -577,6 +937,14 @@ fun FullscreenLyricsSheet(
     color: Color = Color(0xFF242424),
     onDismiss: () -> Unit,
 ) {
+    // The Apple Music renderer applies its own gutter inside LyricsView — it has to, because the
+    // blur needs margin of its own to spill into and a caller-side gutter leaves it sliced flat at
+    // the edge. This sheet's own 50dp then stacked on top of it, insetting the text by 70dp.
+    val fullscreenLyricsStyle by sharedViewModel
+        .getLyricsStyle()
+        .collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val fullscreenAppleLyrics =
+        fullscreenLyricsStyle == DataStoreManager.LYRICS_STYLE_APPLE_MUSIC && isLyricsBlurSupported()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -912,7 +1280,20 @@ fun FullscreenLyricsSheet(
                         Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            .padding(horizontal = 50.dp),
+                            // Same TOTAL gutter either way, just split differently. The Apple
+                            // renderer applies AppleMusicLyricPaddingX itself so its blur has
+                            // margin to spill into, so the sheet contributes the remainder — the
+                            // text still lines up with this screen's header and slider. Dropping
+                            // the sheet's side to zero (which this did for one revision) left the
+                            // lyrics sitting further out than everything else on the page.
+                            .padding(
+                                horizontal =
+                                    if (fullscreenAppleLyrics) {
+                                        FULLSCREEN_LYRICS_GUTTER - AppleMusicLyricPaddingX
+                                    } else {
+                                        FULLSCREEN_LYRICS_GUTTER
+                                    },
+                            ),
                 ) {
                     Crossfade(
                         targetState = screenDataState.lyricsData != null,

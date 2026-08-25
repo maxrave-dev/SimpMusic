@@ -108,6 +108,7 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
+import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
@@ -158,9 +159,6 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -297,6 +295,9 @@ import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_style
+import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
+import simpmusic.composeapp.generated.resources.lyrics_style_classic
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.maxrave_dev
@@ -391,6 +392,9 @@ import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
 import simpmusic.composeapp.generated.resources.youtube_transcript
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -525,6 +529,7 @@ fun SettingScreen(
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
     val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
+    val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
@@ -681,6 +686,39 @@ fun SettingScreen(
                         )
                     },
                 )
+                // Hidden outright below Android 12 rather than offered with one option: the Apple
+                // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
+                // the choice would be between Classic and a broken-looking Classic.
+                if (isLyricsBlurSupported()) {
+                    val lyricsStyleLabels =
+                        listOf(
+                            DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
+                            DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to stringResource(Res.string.lyrics_style_apple_music),
+                        )
+                    SettingItem(
+                        title = stringResource(Res.string.lyrics_style),
+                        subtitle = lyricsStyleLabels.firstOrNull { it.first == lyricsStyle }?.second ?: "",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.lyrics_style) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect = lyricsStyleLabels.map { (it.first == lyricsStyle) to it.second },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            val selected = state.selectOne?.getSelected()
+                                            lyricsStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                sharedViewModel.setLyricsStyle(it)
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                }
                 val colorSourceLabels =
                     buildList {
                         add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
