@@ -617,7 +617,11 @@ fun NowPlayingScreenContent(
             mainScrollState = mainScrollState,
             isExpanded = isExpanded,
             dismissIcon = dismissIcon,
-            audioCodecLabel = formatState?.mimeType.toAudioCodecLabel(),
+            // codecs, NOT mimeType. StreamRepositoryImpl splits YouTube's
+            // `audio/webm; codecs="opus"` with a regex and stores the two halves in SEPARATE
+            // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
+            // codec therefore never matched anything and the badge never rendered, on any track.
+            audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
         )
     val actions =
         NowPlayingContentActions(
