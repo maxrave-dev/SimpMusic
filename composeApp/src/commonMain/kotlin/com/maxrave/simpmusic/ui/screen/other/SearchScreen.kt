@@ -302,16 +302,17 @@ fun SearchScreen(
             }
     }
 
-    //On search icon click while on search screen, open keyboard.
-    val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(reloadDestination) {
-        if (!selectionState.isActive && reloadDestination == SearchDestination::class) {
-            isExpanded = true
-            focusRequester.requestFocus()
-            keyboardController?.show()
-            sharedViewModel.reloadDestinationDone()
+    //On search icon click while on search screen, open keyboard. Android only feature
+    if (getPlatform() == Platform.Android) {
+        val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
+        val keyboardController = LocalSoftwareKeyboardController.current
+        LaunchedEffect(reloadDestination) {
+            if (!selectionState.isActive && reloadDestination == SearchDestination::class) {
+                isExpanded = true
+                focusRequester.requestFocus()
+                keyboardController?.show()
+                sharedViewModel.reloadDestinationDone()
+            }
         }
     }
 
