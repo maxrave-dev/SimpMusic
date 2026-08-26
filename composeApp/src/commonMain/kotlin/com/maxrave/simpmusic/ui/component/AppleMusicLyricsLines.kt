@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlin.math.abs
 
@@ -201,12 +203,24 @@ fun Modifier.appleMusicLyricFocus(
         .alpha(lineAlpha)
         .then(
             if (blurRadius > 0.dp) {
-                // Unbounded, NOT the default. blur(radius) alone uses BlurredEdgeTreatment
-                // .Rectangle, which clips the blur to the line's own bounds — so the softened
-                // glyphs get sliced off square at the edges and the line reads as a smudged block
-                // rather than an out-of-focus word. Unbounded lets the blur bleed past the bounds,
-                // which is what makes it look like depth of field.
-                Modifier.blur(blurRadius, BlurredEdgeTreatment.Unbounded)
+                // Unbounded, NOT the default, on Android. blur(radius) alone uses
+                // BlurredEdgeTreatment.Rectangle, which clips the blur to the line's own bounds —
+                // so the softened glyphs get sliced off square at the edges and the line reads as a
+                // smudged block rather than an out-of-focus word. Unbounded lets the blur bleed
+                // past the bounds, which is what makes it look like depth of field.
+                //
+                // Desktop cannot have that. Each line is a LazyColumn item and skiko clips an item
+                // to its own bounds, so the part Unbounded deliberately paints outside gets sliced
+                // off at the item boundary — a hard horizontal tear across the line below the one
+                // being sung. Rectangle keeps every pixel inside the item, which is what that clip
+                // wants. The trade is softer-looking edges, only on lines already out of focus.
+                val edge =
+                    if (getPlatform() == Platform.Desktop) {
+                        BlurredEdgeTreatment.Rectangle
+                    } else {
+                        BlurredEdgeTreatment.Unbounded
+                    }
+                Modifier.blur(blurRadius, edge)
             } else {
                 Modifier
             },

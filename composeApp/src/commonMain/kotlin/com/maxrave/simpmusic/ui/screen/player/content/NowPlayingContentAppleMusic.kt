@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -63,23 +62,27 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import coil3.request.SuccessResult
 import coil3.request.crossfade
+import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.mediaservice.handler.RepeatState
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
+import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicBottomCluster
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicHeaderActions
@@ -154,34 +157,16 @@ fun NowPlayingContentAppleMusic(
     }
 
     // The artwork bitmap feeds BOTH the frosted backdrop below and the palette every colour on
-    // this page is derived from — and the ONLY thing that ever supplied it is the AsyncImage
-    // inside the artwork pager, which lives in MAIN. The Crossfade composes exactly one body, so
-    // on QUEUE or LYRICS that pager does not exist: changing track there (tapping a queue row is
-    // precisely that) fed nothing, and the page stayed painted from the PREVIOUS song's cover
-    // until the user happened to walk back to MAIN. The other two styles never showed this
-    // because their artwork is always composed — this style is the only one with tabs.
+    // this page is derived from. The only thing that ever supplied it is the AsyncImage inside the
+    // artwork pager, which lives in MAIN — and the Crossfade composes exactly one body, so on
+    // QUEUE or LYRICS that pager does not exist. Changing track there fed nothing, and the page
+    // fell back to a flat gradient.
     //
-    // Decoding it here, OUTSIDE the Crossfade, covers every body. It runs only while MAIN is away
-    // so it never races the pager's own request: two bitmaps for one track would decode twice and
-    // generate the palette twice for no gain. Same disk-cache key as the pager, so whichever one
-    // ran first has already paid for the download.
-    val platformContext = LocalPlatformContext.current
-    LaunchedEffect(state.screenData.thumbnailURL, viewState, platformContext) {
-        if (viewState == AppleMusicView.MAIN) return@LaunchedEffect
-        val url = state.screenData.thumbnailURL?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
-        val result =
-            SingletonImageLoader.get(platformContext).execute(
-                ImageRequest
-                    .Builder(platformContext)
-                    .data(url)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .diskCacheKey(url + "BIGGER")
-                    .build(),
-            )
-        if (result is SuccessResult) {
-            actions.onArtworkBitmap(result.image.toImageBitmap())
-        }
-    }
+    // The loader below sits OUTSIDE the Crossfade so it covers every body, and it is an AsyncImage
+    // rather than an imperative ImageLoader.execute(): the pager's AsyncImage demonstrably loads
+    // this exact url while the execute() call did not, so this uses the path already proven to
+    // work rather than a second one that has to be kept working.
+    var backdropUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
 
     val paletteColor = state.startColor.value
     val seedColor = if (paletteColor == Color.Black) seed else paletteColor
@@ -220,39 +205,61 @@ fun NowPlayingContentAppleMusic(
         label = "appleMusicCanvasBackdrop",
     )
 
+    // Backdrop source for the Desktop dismiss button below. The glass layers MUST be a sibling of
+    // the button, never its parent: nesting the button inside the source is the render-feedback
+    // loop that crashes the RuntimeShader.
+    val panelBackdrop = rememberBackdrop(Color.Black)
+
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        // Apple frosts the COVER ART into the page background — the colour and the soft blotches of
-        // the artwork stay visible through it. A flat tinted gradient, which is what this used to
-        // be, gets the hue right and loses everything else: the page reads as a solid colour swatch
-        // rather than as the record it belongs to.
-        //
-        // The heavy radius is safe here because the whole style is gated behind Android 12 for
-        // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
-        // scaled up far past its own resolution — at this blur that costs nothing visually.
-        // The SAME bitmap the palette is generated from (NowPlayingScreen feeds
-        // screenDataState.bitmap into paletteState.generate). That is the whole point of using it
-        // here rather than thumbnailURL: the url updates the moment the track changes, the bitmap
-        // arrives later, and the tint on top of this is derived from the bitmap — so sourcing the
-        // two differently meant the frosted art was already the new record while the colour over
-        // it still belonged to the old one. An orange cover came up tinted the previous track's
-        // blue. Sharing one source makes them incapable of disagreeing.
-        state.screenData.bitmap?.let { artworkBitmap ->
-            Image(
-                bitmap = artworkBitmap,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
-            )
-        }
-        // The tint still rides on top, but as a translucent wash rather than the whole background:
-        // it keeps the vertical darkening that makes the controls readable at the bottom, while the
-        // frosted artwork shows through it.
-        Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
-        // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
-        // turns the bars above and below it into dead black slabs — keep the artwork-tinted
-        // gradient there.
-        if (canvasBackdropAlpha > 0f) {
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = canvasBackdropAlpha)))
+        Box(modifier = Modifier.matchParentSize().layerBackdrop(panelBackdrop)) {
+            // Apple frosts the COVER ART into the page background — the colour and the soft blotches
+            // of the artwork stay visible through it. A flat tinted gradient, which is what this used
+            // to be, gets the hue right and loses everything else: the page reads as a solid colour
+            // swatch rather than as the record it belongs to.
+            //
+            // Loaded straight from the url by AsyncImage rather than through the screen state's
+            // decoded bitmap. The background IS an image, so there is no reason to route it through a
+            // bitmap someone else has to remember to fill in — which is exactly what broke: the only
+            // thing feeding that bitmap was the artwork pager inside MAIN, so on QUEUE or LYRICS a
+            // track change left it null and the page fell back to a bare gradient.
+            //
+            // The palette still needs a bitmap, and it comes off this same load. One source, so the
+            // frosted art and the tint over it cannot end up belonging to different songs.
+            //
+            // The heavy blur radius is safe because the whole style is gated behind Android 12 for
+            // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
+            // scaled far past its own resolution — at this blur that costs nothing visually.
+            if (!backdropUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model =
+                        ImageRequest
+                            .Builder(LocalPlatformContext.current)
+                            .data(backdropUrl)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .diskCacheKey(backdropUrl + "BIGGER")
+                            .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+                    // Same fallback the artwork pager carries: maxresdefault is missing for plenty of
+                    // videos, and without this the page would simply stay black.
+                    onError = {
+                        val fallback = backdropUrl?.replace("maxresdefault", "hqdefault")
+                        if (fallback != null && fallback != backdropUrl) backdropUrl = fallback
+                    },
+                    modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
+                )
+            }
+            // The tint still rides on top, but as a translucent wash rather than the whole background:
+            // it keeps the vertical darkening that makes the controls readable at the bottom, while the
+            // frosted artwork shows through it.
+            Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
+            // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
+            // turns the bars above and below it into dead black slabs — keep the artwork-tinted
+            // gradient there.
+            if (canvasBackdropAlpha > 0f) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = canvasBackdropAlpha)))
+            }
         }
         Crossfade(targetState = viewState, animationSpec = tween(300), label = "appleMusicView") { view ->
             when (view) {
@@ -295,28 +302,57 @@ fun NowPlayingContentAppleMusic(
             }
         }
 
-        // Grabber. It sits ABOVE the Crossfade, not inside a view, so it stays put across a tab
-        // switch instead of fading with the body — and so Queue/Lyrics get it too. The shell's
-        // ModalBottomSheet passes dragHandle = {} for every style, so nothing above this draws one.
-        Box(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
-                    .size(width = 64.dp, height = 28.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                    ) { actions.onDismiss() },
-            contentAlignment = Alignment.Center,
-        ) {
+        // How the page is dismissed, and it differs by platform because the page itself does.
+        //
+        // On Android this is a bottom sheet, so a grabber is the native way out and tapping it
+        // dismisses. On Desktop the same content is a side panel that never slides anywhere — a
+        // grabber there is a handle for a gesture that does not exist, which is why this style
+        // shipped with no visible way to close the panel at all while Classic and M3 Expressive
+        // both draw state.dismissIcon in their top bar.
+        // MAIN only: Queue and Lyrics each have their own header, and a floating button over
+        // those reads as belonging to the list rather than to the panel.
+        if (getPlatform() == Platform.Desktop) {
+            if (viewState == AppleMusicView.MAIN) {
+                LiquidGlassIconButton(
+                    backdrop = panelBackdrop,
+                    imageVector = state.dismissIcon,
+                    shape = RoundedCornerShape(24.dp),
+                    // Same as AnalyticsScreen's back button: a 48dp circle catches only a short arc
+                    // of the default directional sweep and reads as rimless. 1.dp is the smallest
+                    // step that stays visible without looking like a plain border.
+                    highlight = Highlight(width = 1.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                            .size(48.dp),
+                    onClick = { actions.onDismiss() },
+                )
+            }
+        } else {
+            // Grabber. It sits ABOVE the Crossfade, not inside a view, so it stays put across a tab
+            // switch instead of fading with the body — and so Queue/Lyrics get it too. The shell's
+            // ModalBottomSheet passes dragHandle = {} for every style, so nothing above this draws one.
             Box(
                 modifier =
                     Modifier
-                        .size(width = 36.dp, height = 5.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(Color.White.copy(alpha = 0.35f)),
-            )
+                        .align(Alignment.TopCenter)
+                        .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
+                        .size(width = 64.dp, height = 28.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { actions.onDismiss() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(width = 36.dp, height = 5.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White.copy(alpha = 0.35f)),
+                )
+            }
         }
     }
 }
@@ -405,13 +441,26 @@ private fun AppleMusicMainView(
             )
         }
 
-        // Top scrim while canvas/video plays — the mock has one; without it the status bar and
-        // grabber float unreadably on a bright canvas.
-        if (showCanvasBackdrop) {
+        // Top scrim, CANVAS ONLY — same rule the flat black backdrop above follows: a canvas
+        // replaces the whole page, so the status bar and grabber would otherwise float on raw
+        // picture; a video letterboxes and the strip around it is still the artwork gradient,
+        // which is exactly what a plain-artwork track's controls already sit on. Painting these
+        // over a video only dimmed the picture — measured on a 480x830 panel, the top 25% of the
+        // 16:9 frame under up to 0.20 black and the bottom 20% under up to 0.22.
+        //
+        // Rides controlsAlpha, like the scrim below it. A scrim is an accessory of the CONTROLS,
+        // not of the canvas: gating it on showCanvasBackdrop alone left both scrims painted at full
+        // strength after the controls auto-hid, so 82% of the screen height stayed covered — 0.55
+        // black down to y=22%, then 0.45 at y=53% ramping to 0.97 at the bottom — with nothing left
+        // underneath them to make readable. That is the whole of "đen thui cả canvas". The idle
+        // overlay that replaces the controls carries its own page-tint scrim, so the bottom stays
+        // readable without these.
+        if (showCanvasBackdrop && !isVideoBackdrop && controlsAlpha > 0f) {
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
+                        .alpha(controlsAlpha)
                         .fillMaxWidth()
                         .fillMaxHeight(0.22f)
                         .background(
@@ -424,14 +473,16 @@ private fun AppleMusicMainView(
         }
 
         // Owner's spec, verbatim: a BLACK→TRANSPARENT gradient under the title row + cluster
-        // while canvas/video plays — solid black at the very bottom, fading out upward.
+        // while a canvas plays — solid black at the very bottom, fading out upward.
         // Height is a FRACTION of this Box, never a dp computed from screenInfo: a zero/stale
         // hDP silently collapsed this scrim to nothing, which is why it kept "not existing".
-        if (showCanvasBackdrop) {
+        // Canvas only, for the reason spelled out on the top scrim.
+        if (showCanvasBackdrop && !isVideoBackdrop && controlsAlpha > 0f) {
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
+                        .alpha(controlsAlpha)
                         .fillMaxWidth()
                         .fillMaxHeight(0.6f)
                         .background(
