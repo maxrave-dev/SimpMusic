@@ -745,4 +745,18 @@
     <string name="lt_waiting_approval">Waiting for the host</string>
     <string name="lt_waiting_approval_desc">They need to let you in. If the code is wrong you will get an error instead.</string>
     <string name="lt_cancel_join">Cancel</string>
+    <string name="share_lyrics">Share lyrics</string>
+    <string name="share_lyrics_select_title">Select lines</string>
+    <string name="share_lyrics_selected_count">%1$d lines selected</string>
+    <string name="share_lyrics_continue">Continue</string>
+    <string name="share_lyrics_max_reached">You can share up to %1$d lines</string>
+    <string name="share_lyrics_save">Save image</string>
+    <string name="share_lyrics_share_action">Share</string>
+    <string name="share_lyrics_saved">Saved to your photos</string>
+    <string name="share_lyrics_saved_desktop">Saved to your downloads folder</string>
+    <string name="share_lyrics_save_failed">Could not save the image</string>
+    <string name="share_lyrics_share_failed">Could not share the image</string>
+    <string name="share_lyrics_background">Background</string>
+    <string name="share_lyrics_permission_denied">Storage permission is needed to save the image</string>
+    <string name="share_lyrics_no_lyrics">This song has no lyrics to share</string>
 </resources>

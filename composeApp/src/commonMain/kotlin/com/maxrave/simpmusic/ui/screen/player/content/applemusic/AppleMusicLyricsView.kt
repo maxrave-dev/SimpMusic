@@ -47,7 +47,10 @@ import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
 import com.maxrave.simpmusic.ui.component.LyricsView
+import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
+import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.icon.OpenInFull
+import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
@@ -105,6 +108,7 @@ internal fun AppleMusicLyricsView(
     // back the moment you touch it again. rememberSaveable so a rotation does not yank the
     // controls back into view.
     var showCluster by rememberSaveable { mutableStateOf(true) }
+    var showShareSheet by rememberSaveable { mutableStateOf(false) }
     // Bumped on every interaction, and keyed into the timer below, so ANY touch restarts the
     // countdown. Without it a scroll while the cluster is already shown leaves showCluster
     // unchanged, the LaunchedEffect never restarts, and the controls vanish mid-gesture.
@@ -253,10 +257,25 @@ internal fun AppleMusicLyricsView(
                         if (lyricsData.canVote()) {
                             AppleMusicFloatingCircleButton(icon = SimpIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
                         }
+                        AppleMusicFloatingCircleButton(icon = SimpIcons.Share, onClick = { showShareSheet = true })
                         AppleMusicFloatingCircleButton(icon = SimpIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }
                 }
             }
+        }
+
+        if (showShareSheet && lyricsData != null) {
+            ShareLyricsSheet(
+                lines = lyricsData.toShareLyricsLines(),
+                songTitle = state.screenData.nowPlayingTitle,
+                artistName = state.screenData.artistName,
+                // The track's already-decoded artwork. A URL would still be loading at the moment
+                // the card is captured, and would come out blank.
+                artwork = state.screenData.bitmap,
+                seedColor = state.startColor.value,
+                initialLineIndex = state.currentLyricLineIndex,
+                onDismiss = { showShareSheet = false },
+            )
         }
 
         // expand/shrink, not just fade: the Box above holds weight(1f), so removing the cluster

@@ -94,6 +94,9 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
+import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
+import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
 import org.koin.compose.koinInject
 import androidx.navigation.NavController
@@ -126,6 +129,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.share_lyrics
 import simpmusic.composeapp.generated.resources.unavailable
 import kotlin.math.PI
 import kotlin.math.abs
@@ -1147,6 +1151,24 @@ fun FullscreenLyricsSheet(
         mutableStateOf(false)
     }
 
+    var showShareLyricsSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    // This sheet renders lyrics through LyricsView, which computes the sung line internally and
+    // keeps it to itself. The share sheet needs the same number to open on that line, so it is
+    // recomputed here from the same two inputs, using the same helper.
+    val shareTimedLineIndexes =
+        remember(screenDataState.lyricsData?.lyrics?.lines) {
+            screenDataState.lyricsData
+                ?.lyrics
+                ?.lines
+                .orEmpty()
+                .mapIndexedNotNull { index, line ->
+                    line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
+                }.sortedBy { it.startTimeMs }
+        }
+
     ModalBottomSheet(
         onDismissRequest = {
             onDismiss()
@@ -1337,6 +1359,19 @@ fun FullscreenLyricsSheet(
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
+
+                    // Share lyrics — only when there are lyrics to share.
+                    if (screenDataState.lyricsData != null) {
+                        IconButton(
+                            onClick = { showShareLyricsSheet = true },
+                        ) {
+                            Icon(
+                                imageVector = SimpIcons.Share,
+                                contentDescription = stringResource(Res.string.share_lyrics),
+                                tint = Color.White,
+                            )
+                        }
+                    }
 
                     // Three Dot Menu
                     IconButton(
@@ -1681,5 +1716,19 @@ fun FullscreenLyricsSheet(
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
         )
+    }
+
+    screenDataState.lyricsData?.let { lyricsData ->
+        if (showShareLyricsSheet) {
+            ShareLyricsSheet(
+                lines = lyricsData.toShareLyricsLines(),
+                songTitle = screenDataState.nowPlayingTitle,
+                artistName = screenDataState.artistName,
+                artwork = screenDataState.bitmap,
+                seedColor = color,
+                initialLineIndex = shareTimedLineIndexes.activeIndexAt(timelineState.current),
+                onDismiss = { showShareLyricsSheet = false },
+            )
+        }
     }
 }

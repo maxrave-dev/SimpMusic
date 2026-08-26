@@ -14,5 +14,10 @@ actual fun ImageBitmap.toByteArray(): ByteArray? {
     return bytesArray
 }
 
+actual fun ImageBitmap.toPngByteArray(): ByteArray? {
+    val image = Image.makeFromBitmap(this.asSkiaBitmap())
+    return image.encodeToData(EncodedImageFormat.PNG)?.bytes
+}
+
 actual fun coil3.Image.toImageBitmap(): ImageBitmap =
     this.toBitmap().asComposeImageBitmap()

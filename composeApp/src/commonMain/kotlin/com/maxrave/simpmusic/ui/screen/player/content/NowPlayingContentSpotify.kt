@@ -127,6 +127,8 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
+import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
+import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
@@ -137,6 +139,7 @@ import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Replay5
+import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Subtitles
 import com.maxrave.simpmusic.ui.icon.SubtitlesOff
@@ -169,6 +172,7 @@ import simpmusic.composeapp.generated.resources.playing_on_device
 import simpmusic.composeapp.generated.resources.published_at
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
+import simpmusic.composeapp.generated.resources.share_lyrics
 import simpmusic.composeapp.generated.resources.show
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
@@ -194,6 +198,8 @@ fun NowPlayingContentSpotify(
     val uriHandler = LocalUriHandler.current
 
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
+
+    var showShareLyricsSheet by rememberSaveable { mutableStateOf(false) }
 
     // Height
     var topAppBarHeightDp by rememberSaveable {
@@ -1449,6 +1455,19 @@ fun NowPlayingContentSpotify(
                                             Spacer(modifier = Modifier.width(8.dp))
                                         }
                                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                            IconButton(
+                                                onClick = { showShareLyricsSheet = true },
+                                            ) {
+                                                Icon(
+                                                    imageVector = SimpIcons.Share,
+                                                    contentDescription = stringResource(Res.string.share_lyrics),
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(16.dp),
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                             TextButton(
                                                 onClick = {
                                                     actions.onShowFullscreenLyrics()
@@ -1844,6 +1863,20 @@ fun NowPlayingContentSpotify(
                     }
                 }
             }
+        }
+    }
+
+    state.screenData.lyricsData?.let { lyricsData ->
+        if (showShareLyricsSheet) {
+            ShareLyricsSheet(
+                lines = lyricsData.toShareLyricsLines(),
+                songTitle = state.screenData.nowPlayingTitle,
+                artistName = state.screenData.artistName,
+                artwork = state.screenData.bitmap,
+                seedColor = state.startColor.value,
+                initialLineIndex = state.currentLyricLineIndex,
+                onDismiss = { showShareLyricsSheet = false },
+            )
         }
     }
 }
