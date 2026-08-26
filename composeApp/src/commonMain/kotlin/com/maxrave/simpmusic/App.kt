@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -155,9 +156,21 @@ fun App(viewModel: SharedViewModel = koinInject()) {
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
-    // MiniPlayer visibility logic
-    var isShowMiniPlayer by rememberSaveable {
-        mutableStateOf(true)
+    // MiniPlayer visibility: derived, never stored.
+    //
+    // This used to be a rememberSaveable Boolean written by a LaunchedEffect. Two things went
+    // wrong with that. The effect only runs AFTER the first composition, so the first frame drew
+    // whatever the initial value said — and rememberSaveable RESTORES a previously saved value,
+    // so flipping that initial value from true to false changed nothing on a process that had
+    // already saved true. The bar therefore showed, hid, and showed again on every start.
+    //
+    // Reading it straight from nowPlayingData removes both failure modes: there is no first-frame
+    // guess to be wrong, and no saved copy to disagree with the source.
+    val isShowMiniPlayer by remember {
+        derivedStateOf {
+            val item = nowPlayingData?.mediaItem
+            item != null && item != GenericMediaItem.EMPTY
+        }
     }
 
     // Now playing screen
@@ -182,10 +195,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         rememberHazeState(
             blurEnabled = true,
         )
-
-    LaunchedEffect(nowPlayingData) {
-        isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
-    }
 
     LaunchedEffect(intent) {
         val intent = intent ?: return@LaunchedEffect
