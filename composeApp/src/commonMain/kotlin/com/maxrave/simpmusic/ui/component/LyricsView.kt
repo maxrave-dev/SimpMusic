@@ -91,7 +91,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
+import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
 import org.koin.compose.koinInject
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -195,6 +198,12 @@ private fun empEasing(x: Float): Float =
 // the same Color() objects on every recomposition of every line item.
 private val DimOriginalColor = Color.LightGray.copy(alpha = 0.35f)
 private val DimTranslatedColor = Color(0xFF97971A).copy(alpha = 0.3f)
+
+// A pronunciation guide sits BETWEEN the original and its translation in meaning, so it does the
+// same visually: neutral grey rather than the translation's yellow, dimmer than the original it
+// belongs to. Two values because the sung line lifts everything on it.
+private val DimRomanizedCurrentColor = Color.White.copy(alpha = 0.7f)
+private val DimRomanizedColor = Color.LightGray.copy(alpha = 0.3f)
 private val DimRichPendingColor = Color.LightGray.copy(alpha = 0.6f)
 
 private data class TimedLineIndex(
@@ -315,6 +324,7 @@ fun LyricsView(
     // renders exactly as before.
     footerContent: (@Composable () -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject(),
+    romanizer: LyricsRomanizerRepository = koinInject(),
 ) {
     val listState = rememberLazyListState()
     // AMLL drops blur to zero while the user is scrolling by hand (resolveBlurLevel:
@@ -331,6 +341,14 @@ fun LyricsView(
     // carried to another device, can still hold APPLE_MUSIC on a phone that cannot draw it.
     val lyricsStyle by dataStoreManager.lyricsStyle.collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
     val appleStyle = lyricsStyle == DataStoreManager.LYRICS_STYLE_APPLE_MUSIC && isLyricsBlurSupported()
+
+    // Read here for the same reason the style is: all four call sites want the user's one choice,
+    // so threading it through each of them would be four copies of the same lookup. The stored
+    // value is a comma-separated list of enum names; parsing it per RECOMPOSITION would rebuild the
+    // set on every frame of the sung-line animation, hence the remember on the raw string.
+    val romanizationStored by dataStoreManager.romanizationLanguages.collectAsStateWithLifecycle("")
+    val romanizationLanguages =
+        remember(romanizationStored) { RomanizationLanguage.parse(romanizationStored) }
 
     // One text row plus the padding that separates two lyric items — the exact amount of the
     // previous line that stays on screen above the sung one.
@@ -415,6 +433,24 @@ fun LyricsView(
                     // which is why the split lives here and not inside the line items.
                     val distanceFromCurrent = if (currentLineIndex < 0) 0 else index - currentLineIndex
 
+                    // Romanization is its OWN row, between the original and the translation, so the
+                    // reader can follow the original script and still know how to pronounce it.
+                    //
+                    // Being a separate row is also what makes rich sync painless: the original
+                    // keeps its <mm:ss.xx> markers untouched and goes on lighting up word by word,
+                    // while this row is plain static text. It only has to have the markers STRIPPED
+                    // before romanizing, or the timestamps themselves would be transliterated.
+                    val romanizedWords =
+                        if (romanizationLanguages.isEmpty()) {
+                            null
+                        } else {
+                            remember(words, romanizationLanguages) {
+                                val source =
+                                    if (lyricsData.lyrics.syncType == "RICH_SYNCED") words.stripRichSyncTimestamps() else words
+                                romanizer.romanize(source, romanizationLanguages)
+                            }
+                        }
+
                     val renderLine: @Composable () -> Unit = {
                         when {
                             // Rich sync: parse and use RichSyncLyricsLineItem
@@ -433,6 +469,7 @@ fun LyricsView(
                                     RichSyncLyricsLineItem(
                                         parsedLine = parsedLine,
                                         translatedWords = translatedWords,
+                                        romanizedWords = romanizedWords,
                                         currentTimeMs = current.current,
                                         isCurrent = index == currentLineIndex,
                                         customFontSize = if (appleStyle) AppleMusicLyricFontSize else null,
@@ -470,6 +507,7 @@ fun LyricsView(
                                         originalWords = words,
                                         translatedWords = translatedWords,
                                         isCurrent = index == currentLineIndex,
+                                        romanizedWords = romanizedWords,
                                     )
                                 } else {
                                     // Fallback to regular line item if parsing fails
@@ -478,6 +516,7 @@ fun LyricsView(
                                         translatedWords = translatedWords,
                                         isBold = index <= currentLineIndex,
                                         isCurrent = index == currentLineIndex,
+                                        romanizedWords = romanizedWords,
                                         modifier =
                                             Modifier
                                                 .clickable {
@@ -492,6 +531,7 @@ fun LyricsView(
                                 AppleMusicLyricsLineItem(
                                     originalWords = words,
                                     translatedWords = translatedWords,
+                                    romanizedWords = romanizedWords,
                                     // Strictly the sung line — NOT Classic's `|| syncType != LINE_SYNCED`.
                                     // That clause exists so an unsynced lyric sheet renders every line
                                     // bold instead of every line dimmed. Carried over here it makes
@@ -507,6 +547,7 @@ fun LyricsView(
                                 LyricsLineItem(
                                     originalWords = words,
                                     translatedWords = translatedWords,
+                                    romanizedWords = romanizedWords,
                                     isBold = index <= currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
                                     isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
                                     modifier =
@@ -559,7 +600,11 @@ fun LyricsView(
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .appleMusicLyricFocus(distanceFromCurrent, blurEnabled = !isDragging),
+                                        .appleMusicLyricFocus(
+                                            distanceFromCurrent,
+                                            blurEnabled = !isDragging,
+                                            hasActiveLine = currentLineIndex >= 0,
+                                        ),
                             ) {
                                 Box(modifier = Modifier.padding(horizontal = AppleMusicLyricPaddingX)) {
                                     renderLine()
@@ -602,6 +647,9 @@ fun LyricsLineItem(
     translatedWords: String?,
     isBold: Boolean,
     isCurrent: Boolean = false,
+    // Between the original and the translation, never in place of either: the point is to read the
+    // original script AND know how to say it. Null when romanization is off for this language.
+    romanizedWords: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Crossfade(targetState = isBold) {
@@ -615,6 +663,16 @@ fun LyricsLineItem(
                     style = typo().headlineLarge,
                     color = if (isCurrent) Color.White else DimOriginalColor,
                 )
+                if (romanizedWords != null) {
+                    Text(
+                        text = romanizedWords,
+                        style = typo().bodyMedium,
+                        // Neither the original's white nor the translation's yellow: a reading is a
+                        // third KIND of thing, and giving it the translation's colour would read as
+                        // two translations stacked.
+                        color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
+                    )
+                }
                 if (translatedWords != null) {
                     Text(
                         text = translatedWords,
@@ -636,6 +694,13 @@ fun LyricsLineItem(
                 style = typo().headlineMedium,
                 color = DimOriginalColor,
             )
+            if (romanizedWords != null) {
+                Text(
+                    text = romanizedWords,
+                    style = typo().bodyMedium,
+                    color = DimRomanizedColor,
+                )
+            }
             if (translatedWords != null) {
                 Text(
                     text = translatedWords,
@@ -653,6 +718,9 @@ fun LyricsLineItem(
 fun RichSyncLyricsLineItem(
     parsedLine: ParsedRichSyncLine,
     translatedWords: String?,
+    // Static text under a line that lights up word by word. Keeping it out of the FlowRow above is
+    // deliberate: the wipe is driven by per-word timings this row does not have and must not fake.
+    romanizedWords: String? = null,
     currentTimeMs: Long,
     isCurrent: Boolean,
     customFontSize: TextUnit? = null,
@@ -726,6 +794,14 @@ fun RichSyncLyricsLineItem(
                     pendingColorOverride = pendingColorOverride,
                 )
             }
+        }
+
+        if (romanizedWords != null) {
+            Text(
+                text = romanizedWords,
+                style = translatedStyleOverride ?: typo().bodyMedium,
+                color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
+            )
         }
 
         // Translated lyrics (line-level, no word sync)

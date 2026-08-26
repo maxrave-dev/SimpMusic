@@ -101,6 +101,7 @@ import com.maxrave.common.SUPPORTED_LOCATION
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
+import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.ImportProgress
@@ -296,6 +297,20 @@ import simpmusic.composeapp.generated.resources.logged_in_as
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_style
+import simpmusic.composeapp.generated.resources.lyrics_romanization
+import simpmusic.composeapp.generated.resources.lyrics_romanization_description
+import simpmusic.composeapp.generated.resources.romanization_belarusian
+import simpmusic.composeapp.generated.resources.romanization_bulgarian
+import simpmusic.composeapp.generated.resources.romanization_chinese
+import simpmusic.composeapp.generated.resources.romanization_hindi
+import simpmusic.composeapp.generated.resources.romanization_japanese
+import simpmusic.composeapp.generated.resources.romanization_korean
+import simpmusic.composeapp.generated.resources.romanization_kyrgyz
+import simpmusic.composeapp.generated.resources.romanization_macedonian
+import simpmusic.composeapp.generated.resources.romanization_punjabi
+import simpmusic.composeapp.generated.resources.romanization_russian
+import simpmusic.composeapp.generated.resources.romanization_serbian
+import simpmusic.composeapp.generated.resources.romanization_ukrainian
 import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
 import simpmusic.composeapp.generated.resources.lyrics_style_classic
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
@@ -333,6 +348,7 @@ import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
 import simpmusic.composeapp.generated.resources.radio_audio_only
 import simpmusic.composeapp.generated.resources.radio_audio_only_description
+import simpmusic.composeapp.generated.resources.requires_android_12
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
 import simpmusic.composeapp.generated.resources.rich_presence_info
@@ -530,6 +546,7 @@ fun SettingScreen(
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
     val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
     val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
@@ -657,11 +674,18 @@ fun SettingScreen(
                         )
                     },
                 )
+                // The Apple Music treatments ARE the blur — the frosted page behind the player, and
+                // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
+                // Android 12, so on an older device they render as a flat, wrong-looking version of
+                // themselves. The requirement is spelled out on the option itself rather than left
+                // for the user to discover after switching.
+                val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
                 val nowPlayingStyleLabels =
                     listOf(
                         DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
                         DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
-                        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to stringResource(Res.string.now_playing_style_apple_music),
+                        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
+                            stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
                     )
                 SettingItem(
                     title = stringResource(Res.string.now_playing_style),
@@ -693,7 +717,8 @@ fun SettingScreen(
                     val lyricsStyleLabels =
                         listOf(
                             DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
-                            DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to stringResource(Res.string.lyrics_style_apple_music),
+                            DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to
+                                stringResource(Res.string.lyrics_style_apple_music) + requiresAndroid12,
                         )
                     SettingItem(
                         title = stringResource(Res.string.lyrics_style),
@@ -719,6 +744,67 @@ fun SettingScreen(
                         },
                     )
                 }
+
+                // Independent of BOTH style settings, and not gated on Android 12: this changes
+                // what the words SAY, not how they are drawn, so it applies to every style on
+                // every version. Sits next to them because a user looking for "something about
+                // lyrics" looks in one place.
+                val romanizationLabels =
+                    listOf(
+                        RomanizationLanguage.JAPANESE to stringResource(Res.string.romanization_japanese),
+                        RomanizationLanguage.KOREAN to stringResource(Res.string.romanization_korean),
+                        RomanizationLanguage.CHINESE to stringResource(Res.string.romanization_chinese),
+                        RomanizationLanguage.HINDI to stringResource(Res.string.romanization_hindi),
+                        RomanizationLanguage.PUNJABI to stringResource(Res.string.romanization_punjabi),
+                        RomanizationLanguage.RUSSIAN to stringResource(Res.string.romanization_russian),
+                        RomanizationLanguage.UKRAINIAN to stringResource(Res.string.romanization_ukrainian),
+                        RomanizationLanguage.SERBIAN to stringResource(Res.string.romanization_serbian),
+                        RomanizationLanguage.BULGARIAN to stringResource(Res.string.romanization_bulgarian),
+                        RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
+                        RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
+                        RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
+                    )
+                val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
+                SettingItem(
+                    title = stringResource(Res.string.lyrics_romanization),
+                    // Two different jobs for one line. Off, the row has to explain what the
+                    // feature IS — nobody guesses "romanization" from the title alone. On, the only
+                    // question worth answering at a glance is which of the twelve are picked, and
+                    // the explanation has served its purpose.
+                    subtitle =
+                        if (romanizationSelected.isEmpty()) {
+                            stringResource(Res.string.lyrics_romanization_description)
+                        } else {
+                            romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                        },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.lyrics_romanization) },
+                                // NO `message` here, deliberately. The dialog picks its body with
+                                // an if/else-if chain that tests `message` FIRST, and that branch
+                                // renders only the text and an optional textField — a multipleSelect
+                                // passed alongside it is never reached, so the dialog came up with
+                                // the description and no languages at all.
+                                multipleSelect =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            romanizationLabels.map { (language, label) ->
+                                                (language in romanizationSelected) to label
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.save) } to { state ->
+                                        val chosen = state.multipleSelect?.getListSelected().orEmpty()
+                                        sharedViewModel.setRomanizationLanguages(
+                                            romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet(),
+                                        )
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
                 val colorSourceLabels =
                     buildList {
                         add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))

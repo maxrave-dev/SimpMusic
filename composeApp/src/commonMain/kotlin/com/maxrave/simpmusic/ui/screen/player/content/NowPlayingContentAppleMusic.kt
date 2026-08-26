@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,15 +63,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.SuccessResult
 import coil3.request.crossfade
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.mediaservice.handler.RepeatState
-import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
@@ -99,8 +98,10 @@ import com.maxrave.simpmusic.ui.screen.player.content.applemusic.appleMusicVerti
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 
 /**
  * The Apple Music Now Playing style: a style-internal dock (Lyrics · Cast · Queue) swaps the
@@ -115,21 +116,71 @@ fun NowPlayingContentAppleMusic(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
 ) {
-    var viewState by rememberSaveable { mutableStateOf(AppleMusicView.MAIN) }
+    // Seeded from the view model, not from MAIN: this player lives in a ModalBottomSheet, so
+    // dismissing it disposes the tree and rememberSaveable dies with it. rememberSaveable is still
+    // the right holder WITHIN a session (it survives rotation without a round trip), the view model
+    // just supplies where the user was last.
+    val sharedViewModel: SharedViewModel = koinInject()
+    var viewState by rememberSaveable {
+        mutableStateOf(
+            sharedViewModel.lastPlayerViewTab.value
+                ?.let { saved -> AppleMusicView.entries.firstOrNull { it.name == saved } }
+                ?: AppleMusicView.MAIN,
+        )
+    }
+    LaunchedEffect(viewState) { sharedViewModel.setLastPlayerViewTab(viewState.name) }
 
-    // Lyrics can disappear mid-session (provider swap gone offline, track change while on this
-    // tab) — fall back to MAIN rather than stranding the user on an empty body, matching the
-    // dock's own disabled-Lyrics-button gate.
-    LaunchedEffect(state.screenData.lyricsData) {
-        if (viewState == AppleMusicView.LYRICS && state.screenData.lyricsData == null) {
-            viewState = AppleMusicView.MAIN
-        }
+    // Lyrics can disappear mid-session (provider swap gone offline, a track that simply has none)
+    // — fall back to MAIN rather than stranding the user on an empty body, matching the dock's own
+    // disabled-Lyrics-button gate.
+    //
+    // The wait is the whole point. Every track change rebuilds NowPlayingScreenData from scratch
+    // with lyricsData = null and only THEN fetches (SharedViewModel.kt:342), so "null" is the
+    // normal state of every song for as long as the request takes. Reacting to it immediately —
+    // which is what this did — threw the user out of the lyrics tab on every single skip, even
+    // when the incoming track had lyrics arriving a moment later. Lyrics landing restarts this
+    // effect and cancels the wait, so the fallback only ever fires for a track that really has
+    // none.
+    LaunchedEffect(state.screenData.lyricsData, viewState) {
+        if (viewState != AppleMusicView.LYRICS || state.screenData.lyricsData != null) return@LaunchedEffect
+        delay(LYRICS_ABSENCE_GRACE_MS)
+        viewState = AppleMusicView.MAIN
     }
 
     // This style has no scroll and no collapsed toolbar (unlike Classic/M3E); park the shared
     // toolbar-visibility flag at false so a style switch mid-session can't leave it stuck shown.
     LaunchedEffect(Unit) {
         actions.onToolbarVisibilityChange(false)
+    }
+
+    // The artwork bitmap feeds BOTH the frosted backdrop below and the palette every colour on
+    // this page is derived from — and the ONLY thing that ever supplied it is the AsyncImage
+    // inside the artwork pager, which lives in MAIN. The Crossfade composes exactly one body, so
+    // on QUEUE or LYRICS that pager does not exist: changing track there (tapping a queue row is
+    // precisely that) fed nothing, and the page stayed painted from the PREVIOUS song's cover
+    // until the user happened to walk back to MAIN. The other two styles never showed this
+    // because their artwork is always composed — this style is the only one with tabs.
+    //
+    // Decoding it here, OUTSIDE the Crossfade, covers every body. It runs only while MAIN is away
+    // so it never races the pager's own request: two bitmaps for one track would decode twice and
+    // generate the palette twice for no gain. Same disk-cache key as the pager, so whichever one
+    // ran first has already paid for the download.
+    val platformContext = LocalPlatformContext.current
+    LaunchedEffect(state.screenData.thumbnailURL, viewState, platformContext) {
+        if (viewState == AppleMusicView.MAIN) return@LaunchedEffect
+        val url = state.screenData.thumbnailURL?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        val result =
+            SingletonImageLoader.get(platformContext).execute(
+                ImageRequest
+                    .Builder(platformContext)
+                    .data(url)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(url + "BIGGER")
+                    .build(),
+            )
+        if (result is SuccessResult) {
+            actions.onArtworkBitmap(result.image.toImageBitmap())
+        }
     }
 
     val paletteColor = state.startColor.value
@@ -807,22 +858,22 @@ private fun AppleMusicArtworkPage(
                     Crossfade(targetState = state.screenData.canvasData?.isVideo, label = "appleMusicCanvasKind") { isVideo ->
                         if (isVideo == true) {
                             state.screenData.canvasData?.url?.let { url ->
-                                // Default style's canvas modifiers, verbatim (fill the height,
-                                // let the width overflow centred — no stretching).
+                                // cropToBounds, NOT the default style's fill-height-and-overflow
+                                // modifiers. Those drive MediaPlayerView's legacy path, which sizes
+                                // the surface from a `widthPx` seeded to the SCREEN width and only
+                                // corrects it once onVideoSizeChanged reports the real aspect ratio.
+                                // For a 9:16 canvas the true width is far wider than the screen, so
+                                // the first frame renders fitted and the next one jumps to cropped —
+                                // the sideways flash when returning from the Lyrics tab, where the
+                                // Crossfade had disposed this whole subtree and every remember with
+                                // it. The crop path takes its size from Media3's own
+                                // presentationState instead, so there is no wrong guess to correct,
+                                // and it holds a shutter over the surface until the first frame is
+                                // actually ready.
                                 MediaPlayerView(
                                     url = url,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxHeight()
-                                            .then(
-                                                if (getPlatform() == Platform.Desktop) {
-                                                    Modifier
-                                                } else {
-                                                    Modifier
-                                                        .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
-                                                        .align(Alignment.Center)
-                                                },
-                                            ),
+                                    cropToBounds = true,
+                                    modifier = Modifier.fillMaxSize(),
                                 )
                             }
                         } else if (isVideo == false) {
@@ -895,3 +946,9 @@ private val BACKDROP_BLUR_RADIUS = 80.dp
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.
 private const val BACKDROP_TINT_ALPHA = 0.62f
+
+// How long the LYRICS tab waits for a track's lyrics before deciding the track has none. Long
+// enough to cover a normal fetch on a normal connection, short enough that a song with no lyrics
+// does not leave the user staring at an empty page. Not a fixed budget for the request itself:
+// lyrics arriving at any point cancel the wait outright.
+private const val LYRICS_ABSENCE_GRACE_MS = 2_500L

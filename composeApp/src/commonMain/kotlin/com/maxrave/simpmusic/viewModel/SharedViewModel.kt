@@ -33,6 +33,7 @@ import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
 import com.maxrave.domain.extension.toGenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.mediaservice.handler.ControlState
@@ -204,6 +205,23 @@ class SharedViewModel(
 
     private var _likeStatus = MutableStateFlow<Boolean>(false)
     val likeStatus: StateFlow<Boolean> = _likeStatus
+
+    /**
+     * Which body of the Apple Music player was open last — held by ENUM NAME so this class stays
+     * ignorant of the UI enum, which is internal to the player package.
+     *
+     * It cannot live in the composable: that player is inside a ModalBottomSheet, so dismissing
+     * the sheet disposes the whole tree and takes any rememberSaveable with it — the tab snapped
+     * back to the artwork every single time it was reopened. This class is a Koin `single`, so it
+     * outlives the sheet while still resetting on app restart, which is the right lifetime for
+     * "where I was a moment ago".
+     */
+    private val _lastPlayerViewTab = MutableStateFlow<String?>(null)
+    val lastPlayerViewTab: StateFlow<String?> = _lastPlayerViewTab
+
+    fun setLastPlayerViewTab(tabName: String) {
+        _lastPlayerViewTab.value = tabName
+    }
 
     val openAppTime: StateFlow<Int> = dataStoreManager.openAppTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
     private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -1805,6 +1823,17 @@ class SharedViewModel(
     fun setLyricsStyle(style: String) {
         viewModelScope.launch {
             dataStoreManager.setLyricsStyle(style)
+        }
+    }
+
+    fun getRomanizationLanguages() = dataStoreManager.romanizationLanguages
+
+    fun setRomanizationLanguages(languages: Set<RomanizationLanguage>) {
+        viewModelScope.launch {
+            // Sorted by name so the stored string is stable: an unsorted Set writes a different
+            // value for the same selection depending on iteration order, which makes the DataStore
+            // flow emit on a change that did not happen.
+            dataStoreManager.setRomanizationLanguages(languages.map { it.name }.sorted().joinToString(","))
         }
     }
 

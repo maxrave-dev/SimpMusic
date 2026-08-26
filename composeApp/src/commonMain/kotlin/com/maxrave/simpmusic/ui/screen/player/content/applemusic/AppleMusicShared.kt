@@ -10,8 +10,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -49,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -481,6 +480,15 @@ internal fun AppleMusicTimesRow(
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Left,
         )
+        // ONE slot holding two alternatives — and both of them stay composed, swapping on alpha
+        // rather than on presence. AnimatedVisibility removes its content from the LAYOUT, so this
+        // Box took the height of whichever state was up: the codec pill is a 15dp icon wrapped in
+        // 4dp of vertical padding, "Crossfading" is bare text at the times style, and with NEITHER
+        // showing (no codec, not crossfading) the Box collapsed to nothing at all. Every swap
+        // therefore resized this row and shoved the whole transport below it up or down. Holding
+        // both means the slot is always as tall as the tallest one, at any type scale, with no
+        // measured constant to keep in sync. The cross-fade looks identical — alpha is what
+        // fadeIn/fadeOut animated anyway.
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             // Sweep head for the "Crossfading" shimmer, 0..1. Runs UNCONDITIONALLY — put behind the
             // crossfade check it would restart from zero every time the label appears, which is the
@@ -496,11 +504,16 @@ internal fun AppleMusicTimesRow(
                     ),
                 label = "appleMusicSweepHead",
             )
-            androidx.compose.animation.AnimatedVisibility(
-                enter = fadeIn(),
-                exit = fadeOut(),
-                visible = state.timelineState.isCrossfading,
-            ) {
+            val codec = state.audioCodecLabel
+            val crossfadeLabelAlpha by animateFloatAsState(
+                targetValue = if (state.timelineState.isCrossfading) 1f else 0f,
+                label = "appleMusicCrossfadeLabelAlpha",
+            )
+            val codecBadgeAlpha by animateFloatAsState(
+                targetValue = if (!state.timelineState.isCrossfading && codec != null) 1f else 0f,
+                label = "appleMusicCodecBadgeAlpha",
+            )
+            Box(modifier = Modifier.alpha(crossfadeLabelAlpha)) {
                 // Identical treatment to Classic and M3 Expressive: a highlight swept through the
                 // glyphs with a text brush — no overlay, no clipping.
                 val shimmerSpan = 140f
@@ -525,16 +538,10 @@ internal fun AppleMusicTimesRow(
                     textAlign = TextAlign.Center,
                 )
             }
-            val codec = state.audioCodecLabel
-            // The badge and the label share one slot, so the badge steps aside rather than stacking
-            // under it. AnimatedVisibility on both makes the handover a cross-fade instead of a cut.
-            androidx.compose.animation.AnimatedVisibility(
-                enter = fadeIn(),
-                exit = fadeOut(),
-                visible = !state.timelineState.isCrossfading && codec != null,
-            ) {
-                // A PILL, like the mock's badge (and Apple's "Lossless"): translucent rounded
-                // background, not bare text floating between the two times.
+            // A PILL, like the mock's badge (and Apple's "Lossless"): translucent rounded
+            // background, not bare text floating between the two times. It is the TALLER of the two
+            // states, so it is what the slot's height ends up being — see the note above.
+            Box(modifier = Modifier.alpha(codecBadgeAlpha)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
@@ -550,8 +557,9 @@ internal fun AppleMusicTimesRow(
                         modifier = Modifier.size(15.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    // orEmpty(), not codec!!: the null check lives in `visible` above, which is an
-                    // argument rather than a branch, so the compiler cannot smart-cast it here.
+                    // orEmpty(), not codec!!: the null check drives the alpha above rather than
+                    // guarding this branch, so there is nothing here for the compiler to
+                    // smart-cast. It also renders while alpha is 0, which is the point.
                     Text(text = codec.orEmpty(), style = typography.badge.copy(color = Color.White.copy(alpha = 0.9f)))
                 }
             }

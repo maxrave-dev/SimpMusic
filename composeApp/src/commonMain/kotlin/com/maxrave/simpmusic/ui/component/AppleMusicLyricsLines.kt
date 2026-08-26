@@ -63,6 +63,14 @@ private const val ACTIVE_LINE_ALPHA = 1f
 private const val ALPHA_FALLOFF_PER_LINE = 0.25f
 private const val MIN_LINE_ALPHA = 0.25f
 
+// Before the FIRST line is due — an intro, a long instrumental opening — there is no sung line for
+// anything to be near, so distance is meaningless and every line is equally "not yet". They are
+// dimmed uniformly and NOT blurred: blur means "far from where we are in the song", and during an
+// intro nowhere is where we are. It also has to stay readable, since this is exactly when someone
+// glances down to see what is coming. One flat value, deliberately not the distance falloff, or
+// the top of the sheet would read as the active line by being the brightest thing on it.
+private const val PRE_ROLL_LINE_ALPHA = 0.6f
+
 // The unsung REMAINDER of the line currently being sung — "ce" in "dan|ce". It has to be clearly
 // grey against the white of what has already been sung, or the wipe carries no contrast and the
 // line never reads as lighting up. Classic's DimRichPendingColor is LightGray at 60%, far too
@@ -97,7 +105,7 @@ internal val AppleMusicLyricGap = 20.dp
 // line's own colour instead: white-ish while sung, grey with the rest.
 internal val AppleMusicSubLineFontSize = 14.sp
 internal val AppleMusicSubLineHeight = 21.sp
-internal val AppleMusicMainToSubGap = 8.dp
+internal val AppleMusicMainToSubGap = 12.dp
 
 // .lyricLineWrapper { border-radius: 0.25em } plus its :hover / :active background. There is no
 // hover on a phone, so the press state takes the more visible of the two (#fff1). Note it is a
@@ -123,6 +131,10 @@ internal val AppleMusicWrappedLineSpacing = 2.dp
 // White, like Apple — NOT the Classic renderer's yellow. Slightly under full opacity so the
 // translation still reads as secondary to the line it translates.
 internal val AppleMusicTranslatedColor = Color.White.copy(alpha = 0.78f)
+
+// A shade under the translation's: on a line carrying original + reading + translation, the
+// reading is the one you stop needing once you know the song, so it recedes first.
+internal val AppleMusicRomanizedColor = Color.White.copy(alpha = 0.62f)
 
 // The line NOT being sung is grey, full stop — white at reduced opacity is still white on a dark
 // page, which is why every line looked equally lit no matter how the alpha was tuned. This is the
@@ -154,6 +166,7 @@ internal val AppleMusicActiveLineGlow = Shadow(color = Color.White, offset = Off
 fun Modifier.appleMusicLyricFocus(
     distanceFromCurrent: Int,
     blurEnabled: Boolean,
+    hasActiveLine: Boolean = true,
 ): Modifier {
     // Signed: negative means this line has already been sung. AMLL adds one to that side so the
     // page behind the singer recedes faster than the page ahead of it.
@@ -164,16 +177,19 @@ fun Modifier.appleMusicLyricFocus(
         }
     val fontSizeDp = with(LocalDensity.current) { AppleMusicLyricFontSize.toDp() }
     val targetBlur: Dp =
-        if (!blurEnabled || distanceFromCurrent == 0) {
+        if (!blurEnabled || !hasActiveLine || distanceFromCurrent == 0) {
             0.dp
         } else {
             fontSizeDp * (distance * BLUR_PER_LINE_EM).coerceAtMost(BLUR_MAX_EM)
         }
     val targetAlpha =
-        if (distanceFromCurrent == 0) {
-            ACTIVE_LINE_ALPHA
-        } else {
-            (1f - distance * ALPHA_FALLOFF_PER_LINE).coerceAtLeast(MIN_LINE_ALPHA)
+        when {
+            // Checked FIRST: the caller passes distance 0 for every line while no line is active,
+            // and 0 otherwise means "this is the sung line". Read in the other order, the whole
+            // sheet would take the sung line's full opacity during an intro.
+            !hasActiveLine -> PRE_ROLL_LINE_ALPHA
+            distanceFromCurrent == 0 -> ACTIVE_LINE_ALPHA
+            else -> (1f - distance * ALPHA_FALLOFF_PER_LINE).coerceAtLeast(MIN_LINE_ALPHA)
         }
 
     val blurRadius by animateDpAsState(targetValue = targetBlur, animationSpec = tween(400), label = "appleMusicLyricBlur")
@@ -208,6 +224,10 @@ fun AppleMusicLyricsLineItem(
     originalWords: String,
     translatedWords: String?,
     isCurrent: Boolean,
+    // Sits between the original and the translation. Shares the sub-line type scale with the
+    // translation, since both are secondary to the lyric itself and a second size at this scale
+    // would just look like a mistake.
+    romanizedWords: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -225,6 +245,22 @@ fun AppleMusicLyricsLineItem(
                     lineHeight = AppleMusicLyricLineHeight,
                 ),
         )
+        if (romanizedWords != null) {
+            Spacer(modifier = Modifier.height(AppleMusicMainToSubGap))
+            Text(
+                text = romanizedWords,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start,
+                style =
+                    typo().bodyMedium.copy(
+                        fontSize = AppleMusicSubLineFontSize,
+                        lineHeight = AppleMusicSubLineHeight,
+                    ),
+                // Follows the line's own state exactly as the translation does: readable white-ish
+                // on the sung line, the same grey as the lyric everywhere else.
+                color = if (isCurrent) AppleMusicRomanizedColor else AppleMusicInactiveLineColor,
+            )
+        }
         if (translatedWords != null) {
             Spacer(modifier = Modifier.height(AppleMusicMainToSubGap))
             Text(
