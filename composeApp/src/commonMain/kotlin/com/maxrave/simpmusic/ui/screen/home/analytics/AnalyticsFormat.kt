@@ -4,11 +4,24 @@ import androidx.compose.runtime.Composable
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.listening_time_hours_minutes
 import simpmusic.composeapp.generated.resources.listening_time_minutes
 import simpmusic.composeapp.generated.resources.listening_time_seconds
+import simpmusic.composeapp.generated.resources.month_full_apr
+import simpmusic.composeapp.generated.resources.month_full_aug
+import simpmusic.composeapp.generated.resources.month_full_dec
+import simpmusic.composeapp.generated.resources.month_full_feb
+import simpmusic.composeapp.generated.resources.month_full_jan
+import simpmusic.composeapp.generated.resources.month_full_jul
+import simpmusic.composeapp.generated.resources.month_full_jun
+import simpmusic.composeapp.generated.resources.month_full_mar
+import simpmusic.composeapp.generated.resources.month_full_may
+import simpmusic.composeapp.generated.resources.month_full_nov
+import simpmusic.composeapp.generated.resources.month_full_oct
+import simpmusic.composeapp.generated.resources.month_full_sep
 import simpmusic.composeapp.generated.resources.month_short_apr
 import simpmusic.composeapp.generated.resources.month_short_aug
 import simpmusic.composeapp.generated.resources.month_short_dec
@@ -69,6 +82,41 @@ fun monthShortName(month: Month): String =
             else -> Res.string.month_short_jan
         },
     )
+
+/**
+ * The full month name's resource, resolved by whoever needs it.
+ *
+ * Returned unresolved rather than as a `String` because the two callers read it from opposite
+ * sides: the recap header resolves it with `stringResource` inside composition, while
+ * [com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel] resolves the same twelve names
+ * with a suspending `getString` when it names a queue. One table, two ways in — a `@Composable`
+ * spelling alone would leave the view model with a second copy of the mapping to drift from.
+ */
+fun monthFullNameResource(month: Month): StringResource =
+    when (month) {
+        Month.JANUARY -> Res.string.month_full_jan
+        Month.FEBRUARY -> Res.string.month_full_feb
+        Month.MARCH -> Res.string.month_full_mar
+        Month.APRIL -> Res.string.month_full_apr
+        Month.MAY -> Res.string.month_full_may
+        Month.JUNE -> Res.string.month_full_jun
+        Month.JULY -> Res.string.month_full_jul
+        Month.AUGUST -> Res.string.month_full_aug
+        Month.SEPTEMBER -> Res.string.month_full_sep
+        Month.OCTOBER -> Res.string.month_full_oct
+        Month.NOVEMBER -> Res.string.month_full_nov
+        Month.DECEMBER -> Res.string.month_full_dec
+        else -> Res.string.month_full_jan
+    }
+
+/**
+ * `January` — the register a playlist title needs.
+ *
+ * [monthShortName] is the abbreviation the charts' label columns are sized for; "Recap Jan" reads
+ * like a column header rather than the name of something you press play on.
+ */
+@Composable
+fun monthFullName(month: Month): String = stringResource(monthFullNameResource(month))
 
 /** `22 Aug 2026` — the chart's day bucket. */
 @Composable

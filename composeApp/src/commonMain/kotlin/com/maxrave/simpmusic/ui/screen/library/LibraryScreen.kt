@@ -114,6 +114,7 @@ import simpmusic.composeapp.generated.resources.no_playlists_downloaded
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
 import simpmusic.composeapp.generated.resources.simpmusic_charts
+import simpmusic.composeapp.generated.resources.wrapped
 import simpmusic.composeapp.generated.resources.your_library
 import simpmusic.composeapp.generated.resources.your_playlists
 import simpmusic.composeapp.generated.resources.your_youtube_playlists
@@ -129,6 +130,10 @@ fun LibraryScreen(
     val density = LocalDensity.current
 
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
+    // Wrapped and its recaps are built entirely from playback_event, so the chip follows the same
+    // setting the Analytics tab does.
+    val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val monthlyRecaps by viewModel.monthlyRecaps.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
     val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
@@ -202,6 +207,10 @@ fun LibraryScreen(
                 if (chartPlaylists.data.isNullOrEmpty()) {
                     viewModel.getChartPlaylists()
                 }
+            }
+
+            LibraryChipType.WRAPPED -> {
+                viewModel.getMonthlyRecaps()
             }
         }
     }
@@ -346,6 +355,17 @@ fun LibraryScreen(
                     onScrolling = onScrolling,
                 ) {
                     viewModel.getChartPlaylists()
+                }
+            }
+
+            LibraryChipType.WRAPPED -> {
+                LibraryWrappedTab(
+                    navController = navController,
+                    contentPadding = innerPadding.copy(top = topAppBarHeight),
+                    recaps = monthlyRecaps,
+                    onScrolling = onScrolling,
+                ) {
+                    viewModel.getMonthlyRecaps()
                 }
             }
         }
@@ -517,6 +537,11 @@ fun LibraryScreen(
                 if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
                     return@forEach
                 }
+                // Nothing to recap without the plays — gated exactly as the YouTube chip above
+                // is gated on being logged in.
+                if (type == LibraryChipType.WRAPPED && !localTrackingEnabled) {
+                    return@forEach
+                }
                 Chip(
                     isAnimated = false,
                     isSelected = type == currentFilter,
@@ -530,6 +555,7 @@ fun LibraryScreen(
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
                             LibraryChipType.CHART -> stringResource(Res.string.simpmusic_charts)
+                            LibraryChipType.WRAPPED -> stringResource(Res.string.wrapped)
                         },
                 ) {
                     viewModel.setCurrentScreen(type)

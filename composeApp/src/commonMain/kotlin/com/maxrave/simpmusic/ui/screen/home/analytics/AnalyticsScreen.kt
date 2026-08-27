@@ -94,6 +94,7 @@ import com.maxrave.simpmusic.ui.component.ImageData
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.WrappedEntryCard
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
@@ -102,6 +103,7 @@ import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -112,6 +114,8 @@ import com.maxrave.simpmusic.viewModel.AnalyticsUiState
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
+import com.maxrave.simpmusic.viewModel.WrappedUiState
+import com.maxrave.simpmusic.viewModel.WrappedViewModel
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -165,10 +169,15 @@ fun AnalyticsScreen(
     innerPadding: PaddingValues,
     navController: NavController,
     analyticsViewModel: AnalyticsViewModel = koinViewModel(),
+    wrappedViewModel: WrappedViewModel = koinViewModel(),
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val screenSizeInfo = getScreenSizeInfo()
     val uiState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
+    // Held only to decide whether the Wrapped banner has anything to point at. The entry needs
+    // this year's own figures to say what is waiting, so there is no cheaper question to ask —
+    // and the banner must be absent, not empty, when the year is too thin to fill a reel.
+    val wrappedState by wrappedViewModel.uiState.collectAsStateWithLifecycle()
     val playingTrack by sharedViewModel.nowPlayingState.map { it?.track?.videoId }.collectAsState(null)
 
     // Which header is used depends on the window's aspect ratio alone, exactly as on Album and
@@ -316,6 +325,21 @@ fun AnalyticsScreen(
                             HeadlineCount(uiState, CONTENT_INSET)
                         }
                     }
+                }
+            }
+
+            // Declared outside `item` on purpose: an item that renders nothing is still an item,
+            // and the list's 32dp SECTION_GAP would leave a hole where the banner is not shown.
+            (wrappedState as? WrappedUiState.Ready)?.let { ready ->
+                item {
+                    WrappedEntryCard(
+                        wrapped = ready.wrapped,
+                        onClick = { navController.navigate(WrappedDestination) },
+                        modifier =
+                            Modifier.padding(
+                                horizontal = if (isPortrait) CONTENT_INSET else LANDSCAPE_GUTTER + CONTENT_INSET,
+                            ),
+                    )
                 }
             }
 

@@ -43,6 +43,7 @@ import androidx.navigation.NavController
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.LocalResource
@@ -69,6 +70,7 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullName
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
@@ -79,6 +81,7 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.datetime.Month
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -93,6 +96,10 @@ import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.seconds
+import simpmusic.composeapp.generated.resources.wrapped
+import simpmusic.composeapp.generated.resources.wrapped_recap_month
+import simpmusic.composeapp.generated.resources.wrapped_recap_month_year
+import simpmusic.composeapp.generated.resources.wrapped_recap_subtitle
 import simpmusic.composeapp.generated.resources.your_top_albums
 import simpmusic.composeapp.generated.resources.your_top_artists
 import simpmusic.composeapp.generated.resources.your_top_tracks
@@ -128,6 +135,8 @@ fun LibraryDynamicPlaylistScreen(
     var tempMostPlayed by remember { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
     var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
+    val monthlyRecap by viewModel.listMonthlyRecapSong.collectAsStateWithLifecycle()
+    var tempMonthlyRecap by remember { mutableStateOf(emptyList<SongEntity>()) }
     val analyticsUIState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
     var tempTopTracks by remember { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
     var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
@@ -137,11 +146,21 @@ fun LibraryDynamicPlaylistScreen(
             blurEnabled = true,
         )
 
+    // The other lists are observed from the database and are already loaded by the time this
+    // screen opens; a recap is one month's ranking, so it can only be fetched once the route says
+    // which month. Keyed on the route argument rather than the parsed type so re-entering the same
+    // month does not re-query.
+    LaunchedEffect(type) {
+        (LibraryDynamicPlaylistType.toType(type) as? LibraryDynamicPlaylistType.MonthlyRecap)
+            ?.let { viewModel.getMonthlyRecapSong(it) }
+    }
+
     LaunchedEffect(query) {
         tempFavorite = favorite.filter { it.matches(query) }
         tempFollowed = followed.filter { it.name.contains(query, ignoreCase = true) }
         tempMostPlayed = mostPlayed.filter { it.matches(query) }
         tempDownloaded = downloaded.filter { it.matches(query) }
+        tempMonthlyRecap = monthlyRecap.filter { it.matches(query) }
         tempTopTracks =
             analyticsUIState.topTracks.data
                 ?.filter { it.second.matches(query) }
@@ -356,6 +375,18 @@ fun LibraryDynamicPlaylistScreen(
                             mostPlayed
                         }
                     }
+
+                    // Kept as an explicit branch rather than an `else`: the three cases above are
+                    // reachable only because the `if` chain around this block has already ruled
+                    // out every other object, and an `else` here would silently swallow the next
+                    // case someone adds to the sealed class.
+                    is LibraryDynamicPlaylistType.MonthlyRecap -> {
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempMonthlyRecap
+                        } else {
+                            monthlyRecap
+                        }
+                    }
                 },
                 key = { it.hashCode() },
             ) { song ->
@@ -455,6 +486,8 @@ fun LibraryDynamicPlaylistScreen(
                     stringResource(Res.string.album_length, downloaded.size.toString(), "")
                 LibraryDynamicPlaylistType.Followed ->
                     "${followed.size} ${stringResource(Res.string.artists)}"
+                is LibraryDynamicPlaylistType.MonthlyRecap ->
+                    stringResource(Res.string.wrapped_recap_subtitle)
                 else -> null
             }
         Box {
@@ -462,10 +495,7 @@ fun LibraryDynamicPlaylistScreen(
                 title = {
                     Column {
                         Text(
-                            text =
-                                stringResource(
-                                    type.name(),
-                                ),
+                            text = type.title(),
                             style = typo().titleMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -672,6 +702,30 @@ sealed class LibraryDynamicPlaylistType {
 
     data object TopAlbums : LibraryDynamicPlaylistType()
 
+    /**
+     * One calendar month's top songs — the Wrapped tab's "Recap January".
+     *
+     * The only case carrying data, which is the whole reason [title] exists: every other entry
+     * names itself with a fixed [StringResource], and a month cannot.
+     *
+     * [month] is 1..12, matching `kotlinx.datetime.Month.number`, so the round trip stays readable
+     * in a URL and needs no enum lookup to serialise.
+     */
+    data class MonthlyRecap(
+        val year: Int,
+        val month: Int,
+    ) : LibraryDynamicPlaylistType()
+
+    /**
+     * The fixed name, for the callers that resolve a resource without composition.
+     *
+     * [MonthlyRecap] has no honest answer here — its name is assembled from a month and sometimes
+     * a year — so it falls back to the tab it belongs to. Nothing renders that fallback as a
+     * heading: the screen prints [title], which knows the month. It exists because the `when` must
+     * cover the sealed hierarchy, and because
+     * [com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel] still needs *some* answer
+     * on the path where it names a queue — that view model resolves the recap's real name itself.
+     */
     fun name(): StringResource =
         when (this) {
             Favorite -> Res.string.favorite
@@ -681,6 +735,32 @@ sealed class LibraryDynamicPlaylistType {
             TopAlbums -> Res.string.your_top_albums
             TopArtists -> Res.string.your_top_artists
             TopTracks -> Res.string.your_top_tracks
+            is MonthlyRecap -> Res.string.wrapped
+        }
+
+    /**
+     * What the header actually shows.
+     *
+     * A `@Composable` rather than a [StringResource] because "Recap January" is a format string
+     * plus an argument, and a resource reference cannot carry the argument. The year is printed
+     * only when it is not the current one — two Januaries a year apart would otherwise be the same
+     * playlist as far as the reader can tell.
+     */
+    @Composable
+    fun title(): String =
+        when (this) {
+            is MonthlyRecap ->
+                if (year == now().date.year) {
+                    stringResource(Res.string.wrapped_recap_month, monthFullName(Month(month)))
+                } else {
+                    stringResource(
+                        Res.string.wrapped_recap_month_year,
+                        monthFullName(Month(month)),
+                        year.toString(),
+                    )
+                }
+
+            else -> stringResource(name())
         }
 
     // For serialization and navigation
@@ -693,9 +773,14 @@ sealed class LibraryDynamicPlaylistType {
             TopAlbums -> "top_albums"
             TopArtists -> "top_artists"
             TopTracks -> "top_tracks"
+            // Zero-padded so the strings sort the way the months do, which makes a list of these
+            // readable in a log or a deep link without parsing it back.
+            is MonthlyRecap -> "${RECAP_PREFIX}${year}_${month.toString().padStart(2, '0')}"
         }
 
     companion object {
+        private const val RECAP_PREFIX = "recap_"
+
         fun toType(input: String): LibraryDynamicPlaylistType =
             when (input) {
                 "favorite" -> Favorite
@@ -705,8 +790,24 @@ sealed class LibraryDynamicPlaylistType {
                 "top_albums" -> TopAlbums
                 "top_artists" -> TopArtists
                 "top_tracks" -> TopTracks
-                else -> throw IllegalArgumentException("Unknown type: $this")
+                else -> parseMonthlyRecap(input) ?: throw IllegalArgumentException("Unknown type: $input")
             }
+
+        /**
+         * `recap_2026_01` back into a [MonthlyRecap], or null for anything else.
+         *
+         * Validated rather than trusted: this arrives from a persisted navigation argument and,
+         * through the `simpmusic://library?type=` deep link, from outside the app entirely. A month
+         * of 0 or 13 would reach `Month(month)` and throw somewhere far away from here.
+         */
+        private fun parseMonthlyRecap(input: String): MonthlyRecap? {
+            if (!input.startsWith(RECAP_PREFIX)) return null
+            val parts = input.removePrefix(RECAP_PREFIX).split("_")
+            if (parts.size != 2) return null
+            val year = parts[0].toIntOrNull() ?: return null
+            val month = parts[1].toIntOrNull()?.takeIf { it in 1..12 } ?: return null
+            return MonthlyRecap(year = year, month = month)
+        }
     }
 }
 
