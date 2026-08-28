@@ -1,0 +1,10 @@
+- Three Now Playing styles, including Apple Music
+- Ten-band equalizer with AutoEq headphone profiles
+- Wrapped: your year in music and monthly recaps
+- Lyrics romanization, word glow and share as image
+- Redesigned Analytics with charts and history
+- New turntable, playlist and insight widgets
+- Multi-select songs and search in your playlists
+- More reliable streaming with a local decoder
+- Listen Together: play music in sync with friends
+- Desktop: floating capsule player and glass UI

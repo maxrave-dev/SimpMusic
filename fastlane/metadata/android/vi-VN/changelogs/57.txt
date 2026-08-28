@@ -1,0 +1,10 @@
+- Ba kiểu màn Đang phát, có kiểu Apple Music
+- Bộ chỉnh âm 10 băng tần với profile tai nghe AutoEq
+- Wrapped: nhìn lại năm nghe nhạc và tổng kết từng tháng
+- Phiên âm lời bài hát, chữ phát sáng, chia sẻ lời thành ảnh
+- Làm mới màn Thống kê với biểu đồ và lịch sử
+- Widget mới: đĩa than, playlist và thống kê
+- Chọn nhiều bài, tìm kiếm trong playlist của bạn
+- Phát nhạc ổn định hơn, giải mã stream ngay trên máy
+- Nghe cùng nhau: phát nhạc đồng bộ với bạn bè
+- Desktop: trình phát nổi dạng capsule và giao diện kính
