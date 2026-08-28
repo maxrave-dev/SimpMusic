@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">미디어 음량 균형 맞추기</string>
     <string name="normalize_volume">음량 평준화</string>
     <string name="audio">오디오</string>
-    <string name="no_equalizer">기기에 이퀄라이저 없음</string>
-    <string name="open_system_equalizer">시스템 이퀄라이저 열기</string>
-    <string name="use_your_system_equalizer">시스템 이퀄라이저 사용</string>
     <string name="streaming_data_provider_piped">스트리밍 데이터 제공자 (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime 유형</string>

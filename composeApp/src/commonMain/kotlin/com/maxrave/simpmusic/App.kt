@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,7 +74,13 @@ import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
@@ -83,8 +91,11 @@ import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreenContent
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
-import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
+import com.maxrave.simpmusic.ui.theme.desktopPanelDark
+import com.maxrave.simpmusic.ui.theme.desktopWindowDark
+import com.maxrave.simpmusic.ui.theme.desktopWindowLight
 import com.maxrave.simpmusic.ui.theme.fontFamily
+import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -125,6 +136,7 @@ import kotlin.time.ExperimentalTime
 fun App(viewModel: SharedViewModel = koinInject()) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
+    val isDesktopShell = getPlatform() == Platform.Desktop
 
     val sleepTimerState by viewModel.sleepTimerState.collectAsStateWithLifecycle()
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
@@ -134,13 +146,32 @@ fun App(viewModel: SharedViewModel = koinInject()) {
 
     val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    // Analytics only makes sense with local tracking on, so its tab follows that setting.
+    val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val showAnalyticsTab = isLocalTrackingEnabled == TRUE
+    // Mix for you comes from the signed-in YouTube account, so its tab follows the session — the
+    // same condition that used to hide the chip inside Library.
+    val isYouTubeLoggedIn by viewModel.getYouTubeLoggedIn().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val showMixForYouTab = isYouTubeLoggedIn == TRUE
 
     val themeMode by viewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by viewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by viewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
-    // MiniPlayer visibility logic
-    var isShowMiniPlayer by rememberSaveable {
-        mutableStateOf(true)
+    // MiniPlayer visibility: derived, never stored.
+    //
+    // This used to be a rememberSaveable Boolean written by a LaunchedEffect. Two things went
+    // wrong with that. The effect only runs AFTER the first composition, so the first frame drew
+    // whatever the initial value said — and rememberSaveable RESTORES a previously saved value,
+    // so flipping that initial value from true to false changed nothing on a process that had
+    // already saved true. The bar therefore showed, hid, and showed again on every start.
+    //
+    // Reading it straight from nowPlayingData removes both failure modes: there is no first-frame
+    // guess to be wrong, and no saved copy to disagree with the source.
+    val isShowMiniPlayer by remember {
+        derivedStateOf {
+            val item = nowPlayingData?.mediaItem
+            item != null && item != GenericMediaItem.EMPTY
+        }
     }
 
     // Now playing screen
@@ -165,10 +196,6 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         rememberHazeState(
             blurEnabled = true,
         )
-
-    LaunchedEffect(nowPlayingData) {
-        isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
-    }
 
     LaunchedEffect(intent) {
         val intent = intent ?: return@LaunchedEffect
@@ -250,6 +277,19 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                     "album" -> {
                         data.getQueryParameter("id")?.let { albumId ->
                             navController.navigate(AlbumDestination(browseId = albumId))
+                        }
+                    }
+
+                    // simpmusic://library                     → the Library tab
+                    // simpmusic://library?type=favorite       → one of its collections
+                    // Added for the Playlists widget, whose shortcuts have to reach these
+                    // screens from the home screen without the app already running.
+                    "library" -> {
+                        val type = data.getQueryParameter("type")
+                        if (type.isNullOrBlank()) {
+                            navController.navigate(LibraryDestination)
+                        } else {
+                            navController.navigate(LibraryDynamicPlaylistDestination(type = type))
                         }
                     }
 
@@ -335,9 +375,46 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         if (navBackStackEntry?.destination?.route?.contains("FullscreenDestination") == true) {
             isShowNowPlaylistScreen = false
         }
+        // Wrapped counts as fullscreen for the same reason the video player does: it is a
+        // full-bleed reel, and the rail and the mini player would sit on top of the card the user
+        // is meant to be reading — and on top of every card captured as a share image.
         isInFullscreen = navBackStackEntry?.destination?.hierarchy?.any {
-            it.hasRoute(FullscreenDestination::class)
+            it.hasRoute(FullscreenDestination::class) || it.hasRoute(WrappedDestination::class)
         } == true
+    }
+    LaunchedEffect(showAnalyticsTab) {
+        // Turning tracking off removes the Analytics tab, so leaving the user standing on it would
+        // strand them on a screen no tab points at anymore.
+        if (!showAnalyticsTab &&
+            navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(AnalyticsDestination::class)
+            } == true
+        ) {
+            navController.navigate(HomeDestination) {
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+    LaunchedEffect(showMixForYouTab) {
+        // Same for signing out of YouTube: the Mix for you tab goes away, so nobody may be left
+        // standing on a screen that has no mixes to show and no tab pointing at it.
+        if (!showMixForYouTab &&
+            navBackStackEntry?.destination?.hierarchy?.any {
+                it.hasRoute(MixForYouDestination::class)
+            } == true
+        ) {
+            navController.navigate(HomeDestination) {
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
     }
     var isScrolledToTop by rememberSaveable {
         mutableStateOf(false)
@@ -349,14 +426,24 @@ fun App(viewModel: SharedViewModel = koinInject()) {
         themeMode = themeMode,
         themeColorSource = themeColorSource,
         customThemeColor = parseThemeColorHex(customThemeColorHex),
+        // Desktop is unconditionally true — the liquid-glass setting row is Android-only, and the
+        // Desktop capsule player is glass by design. Same rule as MiniPlayer's useGlassSurface.
+        liquidGlassEnabled = isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop,
     ) {
         // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
-        val backdrop =
-            rememberBackdrop(
-                if (MaterialTheme.colorScheme.background.luminance() > 0.5f) Color.White else Color.Black,
-            )
+        val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
+        val backdrop = rememberBackdrop(if (isLightScheme) Color.White else Color.Black)
+
+        // The desktop shell is a window colour with panels floating on it. The two schemes mirror
+        // each other: the window takes the extreme (pure black / pure white) and the panel steps
+        // one shade back towards the middle, so the panels read as raised either way.
+        val desktopWindow = if (isLightScheme) desktopWindowLight else desktopWindowDark
+        val desktopPanel =
+            if (isLightScheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
         Scaffold(
+            containerColor =
+                if (isDesktopShell) desktopWindow else MaterialTheme.colorScheme.background,
             bottomBar = {
                 if (!isTablet) {
                     AnimatedVisibility(
@@ -396,6 +483,8 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                     viewModel = viewModel,
                                     onOpenNowPlaying = { isShowNowPlaylistScreen = true },
                                     isScrolledToTop = isScrolledToTop,
+                                    showAnalyticsTab = showAnalyticsTab,
+                                    showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -403,6 +492,8 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                 AppBottomNavigationBar(
                                     navController = navController,
                                     isTranslucentBackground = isTranslucentBottomBar == TRUE,
+                                    showAnalyticsTab = showAnalyticsTab,
+                                    showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
@@ -429,20 +520,44 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                         if (isTablet && !isInFullscreen) {
                             AppNavigationRail(
                                 navController = navController,
+                                showAnalyticsTab = showAnalyticsTab,
+                                showMixForYouTab = showMixForYouTab,
                             ) { klass ->
                                 viewModel.reloadDestination(klass)
                             }
                         }
+                        // Desktop only: the content sits in its own rounded panel floating on a
+                        // pure black window, Spotify style, while the rail stays flat black
+                        // outside it. Phones keep one continuous surface — the inset only reads
+                        // as deliberate when there is a window frame around it.
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .weight(1f),
+                                .weight(1f)
+                                .then(
+                                    if (isDesktopShell) {
+                                        Modifier
+                                            .padding(8.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(desktopPanel)
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
                         ) {
                             Box(
                                 Modifier
                                     .fillMaxSize()
                                     .then(
-                                        if (isLiquidGlassEnabled == TRUE && isTablet && !isInFullscreen) {
+                                        // Desktop is unconditional: the floating capsule player is ALWAYS
+                                        // liquid glass there, and glass with no recorded source draws as
+                                        // plain transparency. Gating the source on the setting while the
+                                        // capsule ignored it was exactly the nested-flag split that kept
+                                        // the capsule see-through.
+                                        if ((isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop) &&
+                                            isTablet &&
+                                            !isInFullscreen
+                                        ) {
                                             Modifier.layerBackdrop(backdrop)
                                         } else {
                                             Modifier
@@ -486,13 +601,21 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                 bottom = 4.dp,
                                             )
                                     } else {
+                                        // Floating capsule, Apple Music style: a fixed size so it never
+                                        // stretches to the window width, and no haze at all — the capsule
+                                        // paints its own liquid glass. Layering haze underneath blurs the
+                                        // same pixels twice and reads as a dark smear, not glass.
+                                        // padding BEFORE height: the other way round the bottom margin
+                                        // eats into the 72dp and the capsule ends up 52dp tall.
+                                        // 60dp is the floor for this layout: the content row is centred
+                                        // on the capsule's axis and the 16dp progress box hangs off the
+                                        // bottom, so the height has to cover the taller of the artwork
+                                        // (32dp) and the two text lines (~33dp), plus that 16dp, plus a
+                                        // gap. Going lower means shrinking the artwork again.
                                         Modifier
-                                            .fillMaxWidth()
-                                            .height(84.dp)
-                                            .background(Color.Transparent)
-                                            .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                                                blurEnabled = true
-                                            }
+                                            .wrapContentWidth()
+                                            .padding(bottom = 20.dp)
+                                            .height(60.dp)
                                     },
                                     backdrop = backdrop,
                                     onClick = {
@@ -525,8 +648,23 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                                                     top = 0.dp,
                                                     bottom = 0.dp,
                                                 ),
+                                            ).then(
+                                                // Matches the inset of the content panel so the two
+                                                // read as a pair of floating cards, not one panel
+                                                // with a seam down the middle.
+                                                if (isDesktopShell) {
+                                                    Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp)
+                                                } else {
+                                                    Modifier
+                                                },
                                             ).clip(
                                                 RoundedCornerShape(12.dp),
+                                            ).then(
+                                                if (isDesktopShell) {
+                                                    Modifier.background(desktopPanel)
+                                                } else {
+                                                    Modifier
+                                                },
                                             ),
                                     ) {
                                         ForceDarkContent {

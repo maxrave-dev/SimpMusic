@@ -152,9 +152,6 @@
     <string name="balance_media_loudness">توازن شدة الصوت في الوسائط</string>
     <string name="normalize_volume">ضبط الصوت</string>
     <string name="audio">الصوت</string>
-    <string name="no_equalizer">جهازك ليس لديه معادل صوت</string>
-    <string name="open_system_equalizer">فتح معادل الصوت الخاص بالنظام</string>
-    <string name="use_your_system_equalizer">استخدم معادل الصوت الخاص بالنظام</string>
     <string name="streaming_data_provider_piped">مزود بيانات البث (Piped)</string>
     <string name="itag">الوسم</string>
     <string name="mime_type">نوع تنسيق الملف</string>

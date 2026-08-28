@@ -74,6 +74,7 @@ import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.HomeContentType
+import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.connectArtists
@@ -100,6 +101,7 @@ import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.subscribers
+import simpmusic.composeapp.generated.resources.wrapped_recap_subtitle
 import simpmusic.composeapp.generated.resources.you
 
 @Composable
@@ -130,6 +132,7 @@ fun HomeItem(
                 if (channelId != null) {
                     Modifier
                         .focusable(true)
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable {
                             navController.navigate(
                                 ArtistDestination(
@@ -315,6 +318,7 @@ fun HomeItemContentPlaylist(
         Modifier
             .wrapContentSize()
             .focusable(true)
+            .clip(RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             },
@@ -340,6 +344,12 @@ fun HomeItemContentPlaylist(
                     is ResultPlaylist -> data.thumbnails.lastOrNull()?.url
                     is PodcastsEntity -> data.thumbnail
                     is AlbumsResult -> data.thumbnails.lastOrNull()?.url
+                    // A recap owns no artwork; it borrows the month's own top song's, resolved
+                    // where the recap itself is (LibraryViewModel.getMonthlyRecaps).
+                    // Deliberately null: a recap has no artwork of its own, so it falls to
+                    // the title placeholder below — the same tile a local playlist without
+                    // a thumbnail gets. Same reason ChartItem above is null.
+                    is MonthlyRecapItem -> null
                     else -> null
                 }
             AsyncImage(
@@ -369,6 +379,17 @@ fun HomeItemContentPlaylist(
                             )
                         }
 
+                        // A month whose top song has no artwork still has a name, and the
+                        // deterministic title tile reads as a playlist where the grey holder
+                        // reads as a failed load.
+                        is MonthlyRecapItem -> {
+                            painterPlaylistThumbnail(
+                                data.title,
+                                style = typo().bodySmall,
+                                thumbSize * 0.9f to thumbSize * 0.9f,
+                            )
+                        }
+
                         else -> {
                             rememberHolderPainter()
                         }
@@ -386,6 +407,17 @@ fun HomeItemContentPlaylist(
                         is ChartItem -> {
                             painterPlaylistThumbnail(
                                 data.name,
+                                style = typo().bodySmall,
+                                thumbSize * 0.9f to thumbSize * 0.9f,
+                            )
+                        }
+
+                        // A month whose top song has no artwork still has a name, and the
+                        // deterministic title tile reads as a playlist where the grey holder
+                        // reads as a failed load.
+                        is MonthlyRecapItem -> {
+                            painterPlaylistThumbnail(
+                                data.title,
                                 style = typo().bodySmall,
                                 thumbSize * 0.9f to thumbSize * 0.9f,
                             )
@@ -421,6 +453,7 @@ fun HomeItemContentPlaylist(
                         is ResultPlaylist -> data.title
                         is PodcastsEntity -> data.title
                         is AlbumsResult -> data.title
+                        is MonthlyRecapItem -> data.title
                         else -> ""
                     },
                 style = typo().titleSmall,
@@ -497,6 +530,10 @@ fun HomeItemContentPlaylist(
                             data.authorName
                         }
 
+                        is MonthlyRecapItem -> {
+                            stringResource(Res.string.wrapped_recap_subtitle)
+                        }
+
                         is AlbumsResult -> {
                             data.year
                         }
@@ -538,6 +575,7 @@ fun QuickPicksItem(
                 .wrapContentHeight()
                 .width(widthDp - 30.dp)
                 .focusable(true)
+                .clip(RoundedCornerShape(8.dp))
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
@@ -646,9 +684,8 @@ fun HomeItemSong(
             Modifier
                 .fillMaxSize()
                 .focusable(true)
-                .clickable {
-                    onClick()
-                }.combinedClickable(
+                .clip(RoundedCornerShape(8.dp))
+                .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
                 ),
@@ -750,9 +787,8 @@ fun HomeItemVideo(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable {
-                onClick()
-            }.combinedClickable(
+            .clip(RoundedCornerShape(8.dp))
+            .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
@@ -836,6 +872,7 @@ fun HomeItemArtist(
         Modifier
             .fillMaxSize()
             .focusable(true)
+            .clip(RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             },
@@ -956,6 +993,7 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
+            .clip(RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             },
@@ -1051,6 +1089,7 @@ fun ItemArtistChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
+            .clip(RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             },
@@ -1154,6 +1193,7 @@ fun ItemTrackChart(
             Modifier
                 .wrapContentSize()
                 .focusable(true)
+                .clip(RoundedCornerShape(8.dp))
                 .clickable {
                     onClick()
                 },

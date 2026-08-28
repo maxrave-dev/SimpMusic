@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +47,7 @@ import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.PodcastsEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
+import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
@@ -57,6 +59,8 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
@@ -71,12 +75,20 @@ internal inline fun <reified T> GridLibraryPlaylist(
     contentPadding: PaddingValues,
     data: LocalResource<List<T>>,
     emptyText: StringResource,
+    // Hoisted so a caller can read the scroll position itself — Mix for you derives its
+    // top-bar frost from `index == 0 && offset == 0`, which the coarse onScrolling below
+    // cannot say.
+    state: LazyGridState = rememberLazyGridState(),
     noinline onScrolling: (onTop: Boolean) -> Unit = { _ -> },
+    // A full-width block above the tiles, as a real grid item spanning every column — the same
+    // mechanism the create tile and the chart button below already use. A caller drawing it in a
+    // Box over the grid instead has to reserve its height in contentPadding and translate it by
+    // the scroll offset by hand, which is what left a screen-tall hole above the Wrapped tab.
+    noinline header: (@Composable () -> Unit)? = null,
     noinline createNewPlaylist: (() -> Unit)? = null,
     noinline onReload: () -> Unit,
 ) {
     Logger.w("GridLibraryPlaylist", "Generic Type: ${T::class.simpleName}")
-    val state = rememberLazyGridState()
     val isScrollingUp by state.isScrollingUp()
 
     LaunchedEffect(state) {
@@ -113,13 +125,20 @@ internal inline fun <reified T> GridLibraryPlaylist(
     ) {
         Crossfade(targetState = data) { data ->
             val list = (data as? LocalResource.Success)?.data ?: emptyList()
-            if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null) {
+            // A header counts as content: a tab whose list is empty but whose header is the
+            // point of the tab must not fall through to the empty text and hide it.
+            if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null || header != null) {
                 LazyVerticalGrid(
                     columns = GridCells.FixedSize(size = 132.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     contentPadding = contentPadding,
                     state = state,
                 ) {
+                    if (header != null) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            header()
+                        }
+                    }
                     if (createNewPlaylist != null) {
                         item {
                             Box(
@@ -230,6 +249,22 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                         navController.navigate(
                                             PodcastDestination(
                                                 podcastId = item.podcastId,
+                                            ),
+                                        )
+                                    }
+
+                                    // The recap is not a stored playlist — it is a query over
+                                    // `playback_event` — so it opens the dynamic playlist screen,
+                                    // which rebuilds it from the year and month carried here.
+                                    is MonthlyRecapItem -> {
+                                        navController.navigate(
+                                            LibraryDynamicPlaylistDestination(
+                                                type =
+                                                    LibraryDynamicPlaylistType
+                                                        .MonthlyRecap(
+                                                            year = item.year,
+                                                            month = item.month,
+                                                        ).toStringParams(),
                                             ),
                                         )
                                     }

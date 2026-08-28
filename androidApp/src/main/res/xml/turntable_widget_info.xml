@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis is 0, not a period: the widget re-renders from controllerState and
+  nowPlayingScreenData as they change. Anything under 30 minutes is clamped up to 30 minutes
+  anyway, so the 30000 that used to sit here never once fired at the rate it claimed.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_turntable_description"
+    android:previewImage="@drawable/widget_preview_img_turntable"
+    android:previewLayout="@layout/widget_preview_turntable"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

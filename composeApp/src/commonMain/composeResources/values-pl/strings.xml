@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">Wyrównaj głośność mediów</string>
     <string name="normalize_volume">Normalizuj głośność</string>
     <string name="audio">Dźwięk</string>
-    <string name="no_equalizer">Twoje urządzenie nie posiada korektora</string>
-    <string name="open_system_equalizer">Otwórz korektor systemu</string>
-    <string name="use_your_system_equalizer">Użyj korektora systemowego</string>
     <string name="streaming_data_provider_piped">Dostawca danych streamingu (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Typ Mime</string>

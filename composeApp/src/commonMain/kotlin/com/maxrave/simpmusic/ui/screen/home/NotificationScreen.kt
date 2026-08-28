@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -9,6 +14,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +27,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,13 +35,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,11 +62,13 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.entities.NotificationEntity
-import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.formatTimeAgo
+import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.rememberNowPlayingGlowTint
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.RssFeed
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -59,8 +76,13 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
-import org.jetbrains.compose.resources.painterResource
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
@@ -74,25 +96,34 @@ import simpmusic.composeapp.generated.resources.singles
 fun NotificationScreen(
     navController: NavController,
     viewModel: NotificationViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val listNotification by viewModel.listNotification.collectAsStateWithLifecycle()
-    Column {
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(Res.string.notification),
-                    style = typo().titleMedium,
-                )
+    val glowNowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+    val density = LocalDensity.current
+    val hazeState = rememberHazeState(blurEnabled = true)
+    var topAppBarHeight by remember { mutableStateOf(0.dp) }
+    // Home's rule: transparent only while pixel-0 is on screen; the frost itself stays light.
+    val isAtTop by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 }
+    }
+
+    // Home-family ambient ground — scrolls away with the list (see SettingScreen's note on the
+    // draw-phase translation).
+    AmbientThemeGlow(
+        tint = rememberNowPlayingGlowTint(glowNowPlaying?.songEntity?.thumbnails),
+        modifier =
+            Modifier.graphicsLayer {
+                translationY =
+                    if (listState.firstVisibleItemIndex == 0) {
+                        -listState.firstVisibleItemScrollOffset.toFloat()
+                    } else {
+                        -size.height
+                    }
             },
-            navigationIcon = {
-                RippleIconButton(
-                    imageVector = SimpIcons.ArrowBackIosNew,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                ) {
-                    navController.navigateUp()
-                }
-            },
-        )
+    )
+    Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
         Crossfade(targetState = listNotification) {
             if (it == null) {
                 Box(
@@ -101,8 +132,17 @@ fun NotificationScreen(
                     CenterLoadingBox(modifier = Modifier.align(Alignment.Center))
                 }
             } else if (it.isNotEmpty()) {
+                // contentPadding, not Modifier.padding: the bar floats now, and the list has to
+                // slide UNDER it for the frost to have anything to frost.
                 LazyColumn(
-                    modifier = Modifier.padding(15.dp),
+                    state = listState,
+                    contentPadding =
+                        PaddingValues(
+                            start = 15.dp,
+                            end = 15.dp,
+                            top = topAppBarHeight + 15.dp,
+                            bottom = 15.dp,
+                        ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(it) { notification ->
@@ -127,6 +167,59 @@ fun NotificationScreen(
                     )
                 }
             }
+        }
+    }
+    // The bar FLOATS over the list, Home style. It used to sit in-flow above the list, so once the
+    // glow scrolled away the transparent bar stood over nothing but the black window — which is
+    // exactly what "not transparent at all" looks like. Floating gives the list something to slide
+    // under and the frost something to frost.
+    val barTint = MaterialTheme.colorScheme.background
+    AnimatedContent(
+        targetState = isAtTop,
+        transitionSpec = {
+            fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
+        },
+    ) { atTop ->
+        Column(
+            Modifier
+                .then(
+                    if (atTop) {
+                        Modifier
+                    } else {
+                        // AlbumScreen's bar recipe, thinned to 0.3 — see SettingScreen.
+                        Modifier.hazeEffect(hazeState) {
+                            blurEnabled = true
+                            blurRadius = 24.dp
+                            backgroundColor = barTint
+                            tints = listOf(HazeTint(barTint.copy(alpha = 0.3f)))
+                        }
+                    },
+                ).onGloballyPositioned { coordinates ->
+                    topAppBarHeight = with(density) { coordinates.size.height.toDp() }
+                },
+        ) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.notification),
+                        style = typo().titleMedium,
+                    )
+                },
+                navigationIcon = {
+                    RippleIconButton(
+                        imageVector = SimpIcons.ArrowBackIosNew,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        navController.navigateUp()
+                    }
+                },
+                // Transparent, or the default surface container paints an opaque strip over the
+                // very top of AmbientThemeGlow — the one part of it that actually carries colour.
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                    ),
+            )
         }
     }
 }

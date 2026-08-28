@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,8 +49,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.MixForYouDestination
 import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
@@ -70,6 +75,8 @@ actual fun LiquidGlassAppBottomNavigationBar(
     backdrop: PlatformBackdrop,
     viewModel: SharedViewModel,
     isScrolledToTop: Boolean,
+    showAnalyticsTab: Boolean,
+    showMixForYouTab: Boolean,
     onOpenNowPlaying: () -> Unit,
     reloadDestinationIfNeeded: (KClass<*>) -> Unit,
 ) {
@@ -112,22 +119,40 @@ actual fun LiquidGlassAppBottomNavigationBar(
     }
 
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
-    // MiniPlayer visibility logic
-    var isShowMiniPlayer by rememberSaveable {
-        mutableStateOf(true)
+    // MiniPlayer visibility: derived, never stored.
+    //
+    // This is a second copy of the rule App.kt applies to the plain bottom bar, and it carried the
+    // same two faults. rememberSaveable(true) makes the first composition assert "a track is
+    // playing" before anything knows — nowPlayingState starts null and only fills in once the
+    // service has connected and the queue has been restored — and the LaunchedEffect that
+    // corrected it could only run AFTER that frame had already been drawn. So the bar laid itself
+    // out with the mini player, dropped it, then brought it back, animating each step through
+    // decoupledConstraints.
+    //
+    // Fixing the copy in App.kt did nothing here, because with liquid glass on it is THIS file
+    // that draws the mini player.
+    val isShowMiniPlayer by remember {
+        derivedStateOf {
+            val item = nowPlayingData?.mediaItem
+            item != null && item != GenericMediaItem.EMPTY
+        }
     }
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val bottomNavScreens =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
-            BottomNavScreen.Search,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
+            BottomNavScreen.Search,
         )
     // Tabs shown in the sliding bar (Apple Music style); Search lives in its own FAB.
     val barTabs =
-        listOf(
+        listOfNotNull(
             BottomNavScreen.Home,
+            BottomNavScreen.MixForYou.takeIf { showMixForYouTab },
+            BottomNavScreen.Analytics.takeIf { showAnalyticsTab },
             BottomNavScreen.Library,
         )
     var selectedIndex by rememberSaveable {
@@ -136,9 +161,21 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 is HomeDestination -> BottomNavScreen.Home.ordinal
                 is SearchDestination -> BottomNavScreen.Search.ordinal
                 is LibraryDestination -> BottomNavScreen.Library.ordinal
+                is AnalyticsDestination -> BottomNavScreen.Analytics.ordinal
+                is MixForYouDestination -> BottomNavScreen.MixForYou.ordinal
                 else -> BottomNavScreen.Home.ordinal // Default to Home if not recognized
             },
         )
+    }
+    // A tab can disappear from the bar under the user: tracking gets turned off while Analytics is
+    // selected, or the YouTube session ends while Mix for you is. Fall back to Home in both cases so
+    // nothing is left highlighted.
+    LaunchedEffect(showAnalyticsTab, showMixForYouTab) {
+        if ((!showAnalyticsTab && selectedIndex == BottomNavScreen.Analytics.ordinal) ||
+            (!showMixForYouTab && selectedIndex == BottomNavScreen.MixForYou.ordinal)
+        ) {
+            selectedIndex = BottomNavScreen.Home.ordinal
+        }
     }
     var isExpanded by rememberSaveable {
         mutableStateOf(true)
@@ -146,10 +183,6 @@ actual fun LiquidGlassAppBottomNavigationBar(
 
     var isInSearchDestination by remember {
         mutableStateOf(false)
-    }
-
-    LaunchedEffect(nowPlayingData) {
-        isShowMiniPlayer = !(nowPlayingData?.mediaItem == null || nowPlayingData?.mediaItem == GenericMediaItem.EMPTY)
     }
 
     LaunchedEffect(currentBackStackEntry) {
@@ -232,22 +265,48 @@ actual fun LiquidGlassAppBottomNavigationBar(
          */
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            // Center the WHOLE cluster — capsule, gap, FAB — as one unit. With four tabs the
+            // capsule fills every dp it is offered and this is a no-op; with two it is the
+            // difference between one centred cluster and a capsule floating mid-screen while the
+            // search FAB clings to the right edge on its own.
+            horizontalArrangement = Arrangement.Center,
             modifier =
                 Modifier
-                    .padding(start = 16.dp)
-                    .wrapContentSize()
-                    .layoutId("toolbar")
+                    .then(
+                        // Expanded: the row spans the screen so the capsule can be told how much
+                        // room is left once the FAB has taken its 56dp. Collapsed it is just a
+                        // single pill sitting next to the mini player, so it stays wrap-content.
+                        if (isExpanded) {
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                        } else {
+                            Modifier.padding(start = 16.dp).wrapContentSize()
+                        },
+                    ).layoutId("toolbar")
                     .onGloballyPositioned { updateConstraints = true },
         ) {
             if (isExpanded) {
-                LiquidGlassTabBar(
-                    tabs = barTabs,
-                    selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
-                    backdrop = backdrop,
-                    layer = layer,
-                    luminance = luminanceAnimation.value,
-                    onTabSelected = { position -> selectTab(barTabs[position].ordinal) },
-                )
+                // The FAB keeps its own slot beside the capsule — overlapping it reads fine on a
+                // bar whose last item is decorative, but here the last item is the Library tab and
+                // the FAB covered it. weight(1f) hands the capsule exactly what is left after the
+                // gap and the FAB, and BoxWithConstraints reports that as its budget.
+                //
+                // fill = false is what keeps the FAB NEXT TO the capsule instead of pinned to the
+                // right edge: tab width is capped at TabWidth, so with two tabs (Mix and Analytics
+                // both gated off) the capsule measures far narrower than its budget — a filled
+                // slot would still swallow the leftover and hold the FAB at the corner, while a
+                // wrapped one lets the Row's Arrangement.Center treat capsule + gap + FAB as one
+                // cluster.
+                BoxWithConstraints(Modifier.weight(1f, fill = false)) {
+                    LiquidGlassTabBar(
+                        tabs = barTabs,
+                        selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
+                        backdrop = backdrop,
+                        layer = layer,
+                        luminance = luminanceAnimation.value,
+                        availableWidth = maxWidth,
+                        onTabSelected = { position -> selectTab(barTabs[position].ordinal) },
+                    )
+                }
                 Spacer(Modifier.size(12.dp))
                 // Search lives in its own circular glass FAB (Apple Music style).
                 Box(
@@ -313,11 +372,14 @@ private fun decoupledConstraints(
         val toolbar = createRefFor("toolbar")
         constrain(toolbar) {
             bottom.linkTo(parent.bottom)
-            width = Dimension.wrapContent
             height = Dimension.wrapContent
             if (!isExpanded) {
+                width = Dimension.wrapContent
                 start.linkTo(parent.start)
             } else {
+                // fillToConstraints, not wrapContent: wrap let the row size itself to its content
+                // and simply overflow the screen when a tab was added, taking the FAB with it.
+                width = Dimension.fillToConstraints
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }

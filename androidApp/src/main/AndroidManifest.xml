@@ -10,7 +10,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Only Android 9 and older need this: there MediaStore still writes through shared
+         storage. From Android 10 an app writing its own new image needs no permission, and
+         SaveImagePermission grants without asking — so the declaration stops at 28 to match. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" />
 
     <uses-feature
@@ -274,14 +279,38 @@
             android:name="io.sentry.auto-init"
             android:value="false" />
 
-        <receiver android:name=".ui.widget.AppWidgetReceiver"
+
+        <receiver android:name=".ui.widget.TurntableWidgetReceiver"
+            android:label="@string/widget_turntable_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/new_app_widget_info" />
+                android:resource="@xml/turntable_widget_info" />
+        </receiver>
+
+        <receiver android:name=".ui.widget.PlaylistsWidgetReceiver"
+            android:label="@string/widget_playlists_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/playlists_widget_info" />
+        </receiver>
+
+        <receiver android:name=".ui.widget.ListeningInsightsWidgetReceiver"
+            android:label="@string/widget_insights_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/insights_widget_info" />
         </receiver>
     </application>
 

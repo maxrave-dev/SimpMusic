@@ -1,11 +1,12 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -71,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -99,6 +101,8 @@ import com.maxrave.common.SUPPORTED_LOCATION
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
+import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
+import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.ImportProgress
@@ -106,18 +110,21 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
+import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
-import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ActionButton
+import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.component.rememberNowPlayingGlowTint
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Error
@@ -149,10 +156,10 @@ import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
+import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -163,7 +170,6 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -181,6 +187,8 @@ import simpmusic.composeapp.generated.resources.auto_backup
 import simpmusic.composeapp.generated.resources.auto_backup_description
 import simpmusic.composeapp.generated.resources.auto_check_for_update
 import simpmusic.composeapp.generated.resources.auto_check_for_update_description
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs
+import simpmusic.composeapp.generated.resources.auto_download_liked_songs_description
 import simpmusic.composeapp.generated.resources.backup
 import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
@@ -200,6 +208,9 @@ import simpmusic.composeapp.generated.resources.checking
 import simpmusic.composeapp.generated.resources.clear
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
+import simpmusic.composeapp.generated.resources.clear_listening_history
+import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
+import simpmusic.composeapp.generated.resources.clear_listening_history_description
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -212,6 +223,8 @@ import simpmusic.composeapp.generated.resources.crossfade_description
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode
 import simpmusic.composeapp.generated.resources.crossfade_dj_mode_description
 import simpmusic.composeapp.generated.resources.crossfade_duration
+import simpmusic.composeapp.generated.resources.crossfade_skip_album
+import simpmusic.composeapp.generated.resources.crossfade_skip_album_description
 import simpmusic.composeapp.generated.resources.custom_ai_model_id
 import simpmusic.composeapp.generated.resources.custom_color
 import simpmusic.composeapp.generated.resources.custom_model_id_messages
@@ -229,8 +242,11 @@ import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
+import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
+import simpmusic.composeapp.generated.resources.equalizer
+import simpmusic.composeapp.generated.resources.equalizer_description
 import simpmusic.composeapp.generated.resources.free_space
 import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
@@ -245,13 +261,8 @@ import simpmusic.composeapp.generated.resources.import_progress_songs
 import simpmusic.composeapp.generated.resources.import_reading_file
 import simpmusic.composeapp.generated.resources.import_result
 import simpmusic.composeapp.generated.resources.import_result_skipped
-import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.intro_login_to_discord
 import simpmusic.composeapp.generated.resources.intro_login_to_lastfm
-import simpmusic.composeapp.generated.resources.lastfm_integration
-import simpmusic.composeapp.generated.resources.log_in_to_lastfm
-import simpmusic.composeapp.generated.resources.logged_in_as
-import simpmusic.composeapp.generated.resources.scrobbling_info
 import simpmusic.composeapp.generated.resources.intro_login_to_spotify
 import simpmusic.composeapp.generated.resources.invalid
 import simpmusic.composeapp.generated.resources.invalid_api_key
@@ -269,10 +280,13 @@ import simpmusic.composeapp.generated.resources.kill_service_on_exit_description
 import simpmusic.composeapp.generated.resources.language
 import simpmusic.composeapp.generated.resources.last_backup
 import simpmusic.composeapp.generated.resources.last_checked_at
+import simpmusic.composeapp.generated.resources.lastfm_integration
 import simpmusic.composeapp.generated.resources.limit_player_cache
+import simpmusic.composeapp.generated.resources.listening_history
 import simpmusic.composeapp.generated.resources.local_tracking_description
 import simpmusic.composeapp.generated.resources.local_tracking_title
 import simpmusic.composeapp.generated.resources.log_in_to_discord
+import simpmusic.composeapp.generated.resources.log_in_to_lastfm
 import simpmusic.composeapp.generated.resources.log_in_to_spotify
 import simpmusic.composeapp.generated.resources.log_out
 import simpmusic.composeapp.generated.resources.log_out_from_discord
@@ -280,8 +294,28 @@ import simpmusic.composeapp.generated.resources.log_out_from_lastfm
 import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
+import simpmusic.composeapp.generated.resources.logged_in_as
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_style
+import simpmusic.composeapp.generated.resources.lyrics_romanization
+import simpmusic.composeapp.generated.resources.lyrics_romanization_description
+import simpmusic.composeapp.generated.resources.romanization_belarusian
+import simpmusic.composeapp.generated.resources.romanization_bulgarian
+import simpmusic.composeapp.generated.resources.romanization_chinese
+import simpmusic.composeapp.generated.resources.romanization_hindi
+import simpmusic.composeapp.generated.resources.romanization_japanese
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_downloading
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_failed
+import simpmusic.composeapp.generated.resources.romanization_korean
+import simpmusic.composeapp.generated.resources.romanization_kyrgyz
+import simpmusic.composeapp.generated.resources.romanization_macedonian
+import simpmusic.composeapp.generated.resources.romanization_punjabi
+import simpmusic.composeapp.generated.resources.romanization_russian
+import simpmusic.composeapp.generated.resources.romanization_serbian
+import simpmusic.composeapp.generated.resources.romanization_ukrainian
+import simpmusic.composeapp.generated.resources.lyrics_style_apple_music
+import simpmusic.composeapp.generated.resources.lyrics_style_classic
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.manage_your_youtube_accounts
 import simpmusic.composeapp.generated.resources.maxrave_dev
@@ -290,8 +324,11 @@ import simpmusic.composeapp.generated.resources.never
 import simpmusic.composeapp.generated.resources.no_account
 import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
+import simpmusic.composeapp.generated.resources.now_playing_style
+import simpmusic.composeapp.generated.resources.now_playing_style_apple_music
+import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
+import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
-import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.other_app
@@ -312,6 +349,9 @@ import simpmusic.composeapp.generated.resources.proxy_type
 import simpmusic.composeapp.generated.resources.proxy_username
 import simpmusic.composeapp.generated.resources.proxy_username_message
 import simpmusic.composeapp.generated.resources.quality
+import simpmusic.composeapp.generated.resources.radio_audio_only
+import simpmusic.composeapp.generated.resources.radio_audio_only_description
+import simpmusic.composeapp.generated.resources.requires_android_12
 import simpmusic.composeapp.generated.resources.restore_your_data
 import simpmusic.composeapp.generated.resources.restore_your_saved_data
 import simpmusic.composeapp.generated.resources.rich_presence_info
@@ -321,6 +361,7 @@ import simpmusic.composeapp.generated.resources.save_last_played
 import simpmusic.composeapp.generated.resources.save_last_played_track_and_queue
 import simpmusic.composeapp.generated.resources.save_playback_state
 import simpmusic.composeapp.generated.resources.save_shuffle_and_repeat_mode
+import simpmusic.composeapp.generated.resources.scrobbling_info
 import simpmusic.composeapp.generated.resources.send_back_listening_data_to_google
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.settings
@@ -337,6 +378,8 @@ import simpmusic.composeapp.generated.resources.spotify_canvas_cache
 import simpmusic.composeapp.generated.resources.spotify_lyrícs_info
 import simpmusic.composeapp.generated.resources.storage
 import simpmusic.composeapp.generated.resources.such_as_music_video_lyrics_video_podcasts_and_more
+import simpmusic.composeapp.generated.resources.sync_follow_to_youtube
+import simpmusic.composeapp.generated.resources.sync_follow_to_youtube_description
 import simpmusic.composeapp.generated.resources.theme
 import simpmusic.composeapp.generated.resources.theme_color
 import simpmusic.composeapp.generated.resources.theme_color_custom
@@ -355,7 +398,6 @@ import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_ai_translation
 import simpmusic.composeapp.generated.resources.use_ai_translation_description
-import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
 import simpmusic.composeapp.generated.resources.version_format
@@ -444,20 +486,19 @@ fun SettingScreen(
             }
         }
 
-    // Open equalizer
-    val resultLauncher = openEqResult(viewModel.getAudioSessionId())
-
     val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
     val videoDownloadQuality by viewModel.videoDownloadQuality.collectAsStateWithLifecycle()
     val keepYoutubePlaylistOffline by viewModel.keepYouTubePlaylistOffline.collectAsStateWithLifecycle()
     val localTrackingEnabled by viewModel.localTrackingEnabled.collectAsStateWithLifecycle(initialValue = false)
     val blogNotificationEnabled by viewModel.blogNotificationEnabled.collectAsStateWithLifecycle()
     val combineLocalAndYouTubeLiked by viewModel.combineLocalAndYouTubeLiked.collectAsStateWithLifecycle()
     val playVideo by remember { viewModel.playVideoInsteadOfAudio.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
+    val radioAudioOnly by remember { viewModel.radioAudioOnly.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val videoQuality by viewModel.videoQuality.collectAsStateWithLifecycle()
     val sendData by remember { viewModel.sendBackToGoogle.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val normalizeVolume by remember { viewModel.normalizeVolume.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
@@ -506,8 +547,15 @@ fun SettingScreen(
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
+    val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
+    val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
+    val japaneseDictionaryState by viewModel.japaneseDictionaryState.collectAsStateWithLifecycle()
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
+    val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
+    val syncFollowToYouTube by viewModel.syncFollowToYouTube.collectAsStateWithLifecycle()
+    val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
@@ -517,6 +565,7 @@ fun SettingScreen(
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
     val crossfadeDjMode by viewModel.crossfadeDjMode.collectAsStateWithLifecycle()
+    val crossfadeSkipAlbum by viewModel.crossfadeSkipAlbum.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
 
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
@@ -560,18 +609,44 @@ fun SettingScreen(
         viewModel.getThumbCacheSize(platformContext)
     }
 
+    val settingListState = rememberLazyListState()
+    // Home's rule: transparent only while pixel-0 is on screen. The frost itself is kept LIGHT
+    // (below) so frosting over the glow reads as a veil, not a lid.
+    val isAtTop by remember {
+        derivedStateOf { settingListState.firstVisibleItemIndex == 0 && settingListState.firstVisibleItemScrollOffset == 0 }
+    }
+    // Home-family ambient ground, and like Home's it SCROLLS AWAY with the content instead of
+    // hanging off the ceiling. Still a sibling (so it sits behind the floating bar), but its draw
+    // rides the list: exact tracking while item 0 is on screen, parked off-screen after. Item 0 is
+    // taller than the glow, so the glow has fully left before the branch ever switches — no jump.
+    // graphicsLayer reads the state in the DRAW phase, so scrolling redraws without recomposing.
+    val glowNowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    AmbientThemeGlow(
+        tint = rememberNowPlayingGlowTint(glowNowPlaying?.songEntity?.thumbnails),
+        modifier =
+            Modifier.graphicsLayer {
+                translationY =
+                    if (settingListState.firstVisibleItemIndex == 0) {
+                        -settingListState.firstVisibleItemScrollOffset.toFloat()
+                    } else {
+                        -size.height
+                    }
+            },
+    )
     LazyColumn(
+        state = settingListState,
         contentPadding = innerPadding,
         modifier =
             Modifier
                 .padding(horizontal = 16.dp)
                 .hazeSource(hazeState),
     ) {
-        item {
-            Spacer(Modifier.height(64.dp))
-        }
         item(key = "user_interface") {
             Column {
+                // Was its own item. Folded in so item 0 is taller than the glow — the glow's
+                // translation tracks item 0's offset exactly and parks once it scrolls past, and a
+                // 64dp item 0 would have switched branches while the glow was still half-visible.
+                Spacer(Modifier.height(64.dp))
                 Spacer(Modifier.height(16.dp))
                 Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
                 val themeModeLabels =
@@ -596,6 +671,155 @@ fun SettingScreen(
                                         val selected = state.selectOne?.getSelected()
                                         themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
                                             sharedViewModel.setThemeMode(it)
+                                        }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                // The Apple Music treatments ARE the blur — the frosted page behind the player, and
+                // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
+                // Android 12, so on an older device they render as a flat, wrong-looking version of
+                // themselves. The requirement is spelled out on the option itself rather than left
+                // for the user to discover after switching.
+                val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
+                val nowPlayingStyleLabels =
+                    listOf(
+                        DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
+                        DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
+                        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
+                            stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
+                    )
+                SettingItem(
+                    title = stringResource(Res.string.now_playing_style),
+                    subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.now_playing_style) },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        val selected = state.selectOne?.getSelected()
+                                        nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                            sharedViewModel.setNowPlayingStyle(it)
+                                        }
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                // Hidden outright below Android 12 rather than offered with one option: the Apple
+                // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
+                // the choice would be between Classic and a broken-looking Classic.
+                if (isLyricsBlurSupported()) {
+                    val lyricsStyleLabels =
+                        listOf(
+                            DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
+                            DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to
+                                stringResource(Res.string.lyrics_style_apple_music) + requiresAndroid12,
+                        )
+                    SettingItem(
+                        title = stringResource(Res.string.lyrics_style),
+                        subtitle = lyricsStyleLabels.firstOrNull { it.first == lyricsStyle }?.second ?: "",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.lyrics_style) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect = lyricsStyleLabels.map { (it.first == lyricsStyle) to it.second },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            val selected = state.selectOne?.getSelected()
+                                            lyricsStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                sharedViewModel.setLyricsStyle(it)
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                }
+
+                // Independent of BOTH style settings, and not gated on Android 12: this changes
+                // what the words SAY, not how they are drawn, so it applies to every style on
+                // every version. Sits next to them because a user looking for "something about
+                // lyrics" looks in one place.
+                val romanizationLabels =
+                    listOf(
+                        RomanizationLanguage.JAPANESE to stringResource(Res.string.romanization_japanese),
+                        RomanizationLanguage.KOREAN to stringResource(Res.string.romanization_korean),
+                        RomanizationLanguage.CHINESE to stringResource(Res.string.romanization_chinese),
+                        RomanizationLanguage.HINDI to stringResource(Res.string.romanization_hindi),
+                        RomanizationLanguage.PUNJABI to stringResource(Res.string.romanization_punjabi),
+                        RomanizationLanguage.RUSSIAN to stringResource(Res.string.romanization_russian),
+                        RomanizationLanguage.UKRAINIAN to stringResource(Res.string.romanization_ukrainian),
+                        RomanizationLanguage.SERBIAN to stringResource(Res.string.romanization_serbian),
+                        RomanizationLanguage.BULGARIAN to stringResource(Res.string.romanization_bulgarian),
+                        RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
+                        RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
+                        RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
+                    )
+                val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
+                SettingItem(
+                    title = stringResource(Res.string.lyrics_romanization),
+                    // Two different jobs for one line. Off, the row has to explain what the
+                    // feature IS — nobody guesses "romanization" from the title alone. On, the only
+                    // question worth answering at a glance is which of the twelve are picked, and
+                    // the explanation has served its purpose.
+                    subtitle =
+                        if (romanizationSelected.isEmpty()) {
+                            stringResource(Res.string.lyrics_romanization_description)
+                        } else {
+                            val selectedNames =
+                                romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                            // Japanese is the one language with a dictionary pack to fetch; while
+                            // that is in flight — or has failed — the row says so, instead of
+                            // listing Japanese as if it were already live.
+                            when {
+                                RomanizationLanguage.JAPANESE !in romanizationSelected -> selectedNames
+                                japaneseDictionaryState == RomanizationDictionaryState.DOWNLOADING ->
+                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_downloading)}"
+                                japaneseDictionaryState == RomanizationDictionaryState.FAILED ->
+                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_failed)}"
+                                else -> selectedNames
+                            }
+                        },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.lyrics_romanization) },
+                                // NO `message` here, deliberately. The dialog picks its body with
+                                // an if/else-if chain that tests `message` FIRST, and that branch
+                                // renders only the text and an optional textField — a multipleSelect
+                                // passed alongside it is never reached, so the dialog came up with
+                                // the description and no languages at all.
+                                multipleSelect =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            romanizationLabels.map { (language, label) ->
+                                                (language in romanizationSelected) to label
+                                            },
+                                    ),
+                                confirm =
+                                    runBlocking { getString(Res.string.save) } to { state ->
+                                        val chosen = state.multipleSelect?.getListSelected().orEmpty()
+                                        val languages =
+                                            romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet()
+                                        sharedViewModel.setRomanizationLanguages(languages)
+                                        // Japanese needs its dictionary pack on disk. A no-op when
+                                        // it is already there (or bundled, as on Desktop) — and the
+                                        // retry after a FAILED attempt is simply confirming again.
+                                        if (RomanizationLanguage.JAPANESE in languages) {
+                                            viewModel.downloadJapaneseDictionaryIfNeeded()
                                         }
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
@@ -788,12 +1012,6 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
-                    title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
-                    subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
-                    smallSubtitle = true,
-                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
-                )
-                SettingItem(
                     title = stringResource(Res.string.video_quality),
                     subtitle = videoQuality ?: "",
                     onClick = {
@@ -840,6 +1058,36 @@ fun SettingScreen(
                     },
                 )
                 SettingItem(
+                    title = stringResource(Res.string.auto_download_liked_songs),
+                    subtitle = stringResource(Res.string.auto_download_liked_songs_description),
+                    smallSubtitle = true,
+                    switch = (autoDownloadLikedSongs to { viewModel.setAutoDownloadLikedSongs(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.play_video_for_video_track_instead_of_audio_only),
+                    subtitle = stringResource(Res.string.such_as_music_video_lyrics_video_podcasts_and_more),
+                    smallSubtitle = true,
+                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.radio_audio_only),
+                    subtitle = stringResource(Res.string.radio_audio_only_description),
+                    smallSubtitle = true,
+                    switch = (radioAudioOnly to { viewModel.setRadioAudioOnly(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.sync_follow_to_youtube),
+                    subtitle = stringResource(Res.string.sync_follow_to_youtube_description),
+                    smallSubtitle = true,
+                    switch = (syncFollowToYouTube to { viewModel.setSyncFollowToYouTube(it) }),
+                    // Writing to someone's YouTube account needs a session, so the row is dead
+                    // while signed out. onDisable turns the stored flag back off when that
+                    // happens: SettingItem keys its LaunchedEffect on isEnable, so signing out
+                    // mid-session clears it too, not just a cold start in the signed-out state.
+                    isEnable = loggedIn == DataStoreManager.TRUE,
+                    onDisable = { viewModel.setSyncFollowToYouTube(false) },
+                )
+                SettingItem(
                     title = stringResource(Res.string.send_back_listening_data_to_google),
                     subtitle =
                         stringResource(
@@ -858,11 +1106,6 @@ fun SettingScreen(
                     title = stringResource(Res.string.keep_your_youtube_playlist_offline),
                     subtitle = stringResource(Res.string.keep_your_youtube_playlist_offline_description),
                     switch = (keepYoutubePlaylistOffline to { viewModel.setKeepYouTubePlaylistOffline(it) }),
-                )
-                SettingItem(
-                    title = stringResource(Res.string.local_tracking_title),
-                    subtitle = stringResource(Res.string.local_tracking_description),
-                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
                 )
                 /*
                 SettingItem(
@@ -1060,21 +1303,6 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.skip_no_music_part),
                         switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                     )
-                    SettingItem(
-                        title = stringResource(Res.string.open_system_equalizer),
-                        subtitle =
-                            if (castState.isRemote) {
-                                stringResource(Res.string.not_available_while_casting)
-                            } else {
-                                stringResource(Res.string.use_your_system_equalizer)
-                            },
-                        isEnable = !castState.isRemote,
-                        onClick = {
-                            coroutineScope.launch {
-                                resultLauncher.launch()
-                            }
-                        },
-                    )
                 }
             }
         }
@@ -1086,6 +1314,22 @@ fun SettingScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
+                // Under Playback rather than Audio because that whole group sits inside an
+                // Android-only branch — "Open system equalizer" is an Android feature — and this
+                // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
+                // Media3 sink on Android, driven from the same stored curve.
+                SettingItem(
+                    title = stringResource(Res.string.equalizer),
+                    subtitle = stringResource(Res.string.equalizer_description),
+                    smallSubtitle = true,
+                    switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                )
+                // Only while on. A curve that visibly does nothing is worse than no curve —
+                // and the stored bands survive the switch, so turning it back on returns to
+                // the shape the user built rather than to flat.
+                AnimatedVisibility(visible = equalizerEnabled) {
+                    EqualizerSection()
+                }
                 SettingItem(
                     title = stringResource(Res.string.save_playback_state),
                     subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),
@@ -1202,9 +1446,56 @@ fun SettingScreen(
                             switch = ((crossfadeDjMode) to { viewModel.setCrossfadeDjMode(it) }),
                             isEnable = !castState.isRemote,
                         )
+                        SettingItem(
+                            title = stringResource(Res.string.crossfade_skip_album),
+                            subtitle =
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else {
+                                    stringResource(Res.string.crossfade_skip_album_description)
+                                },
+                            smallSubtitle = true,
+                            switch = ((crossfadeSkipAlbum) to { viewModel.setCrossfadeSkipAlbum(it) }),
+                            isEnable = !castState.isRemote,
+                        )
 //                        }
                     }
                 }
+            }
+        }
+        // Deliberately not part of "storage" further down, which is Android-only: tracking and the
+        // rows it leaves behind exist on Desktop just the same. The switch that produces the history
+        // and the button that erases it belong together.
+        item(key = "listening_history") {
+            Column {
+                Text(
+                    text = stringResource(Res.string.listening_history),
+                    style = typo().labelMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.local_tracking_title),
+                    subtitle = stringResource(Res.string.local_tracking_description),
+                    switch = (localTrackingEnabled to { viewModel.setLocalTrackingEnabled(it) }),
+                )
+                SettingItem(
+                    title = stringResource(Res.string.clear_listening_history),
+                    subtitle = stringResource(Res.string.clear_listening_history_description),
+                    onClick = {
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = runBlocking { getString(Res.string.clear_listening_history) },
+                                message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                confirm =
+                                    runBlocking { getString(Res.string.clear) } to {
+                                        viewModel.clearListeningHistory()
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
             }
         }
         item(key = "lyrics") {
@@ -2368,6 +2659,13 @@ fun SettingScreen(
             onDismiss = importViewModel::dismiss,
         )
     }
+    val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
+    if (showLoadingDialog.first) {
+        LoadingDialog(
+            true,
+            showLoadingDialog.second,
+        )
+    }
     val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
     if (basisAlertData != null) {
         val alertBasicState = basisAlertData ?: return
@@ -2924,39 +3222,64 @@ fun SettingScreen(
         }
     }
 
-    TopAppBar(
-        title = {
-            Text(
-                text =
-                    stringResource(
-                        Res.string.settings,
-                    ),
-                style = typo().titleMedium,
-            )
+    // Transparent while the list sits at the top — an always-on frost dimmed the glow behind the
+    // bar into a black band, which is exactly where the glow carries its colour. Same crossfade
+    // Home, Search and Mix run on their bars.
+    // Captured outside the haze scope — HazeEffectScope is not composable (same move as
+    // AlbumScreen's mutedPaletteBg capture).
+    val settingBarTint = MaterialTheme.colorScheme.background
+    AnimatedContent(
+        targetState = isAtTop,
+        transitionSpec = {
+            fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
         },
-        navigationIcon = {
-            Box(Modifier.padding(horizontal = 5.dp)) {
-                RippleIconButton(
-                    SimpIcons.ArrowBackIosNew,
-                    Modifier
-                        .size(32.dp),
-                    true,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                ) {
-                    navController.navigateUp()
+    ) { atTop ->
+        TopAppBar(
+            title = {
+                Text(
+                    text =
+                        stringResource(
+                            Res.string.settings,
+                        ),
+                    style = typo().titleMedium,
+                )
+            },
+            navigationIcon = {
+                Box(Modifier.padding(horizontal = 5.dp)) {
+                    RippleIconButton(
+                        SimpIcons.ArrowBackIosNew,
+                        Modifier
+                            .size(32.dp),
+                        true,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        navController.navigateUp()
+                    }
                 }
-            }
-        },
-        modifier =
-            Modifier
-                .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                    blurEnabled = true
-                },
-        colors =
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-            ),
-    )
+            },
+            modifier =
+                Modifier
+                    .then(
+                        if (atTop) {
+                            Modifier
+                        } else {
+                            // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in
+                            // tint stacked on this page's dark ground read as a solid lid. 0.3 keeps
+                            // the blur doing the work and the tint only settling legibility.
+                            Modifier.hazeEffect(hazeState) {
+                                blurEnabled = true
+                                blurRadius = 24.dp
+                                backgroundColor = settingBarTint
+                                tints = listOf(HazeTint(settingBarTint.copy(alpha = 0.3f)))
+                            }
+                        },
+                    ),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
+        )
+    }
 }
 
 /**

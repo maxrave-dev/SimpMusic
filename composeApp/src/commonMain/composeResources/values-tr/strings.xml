@@ -158,9 +158,6 @@
     <string name="balance_media_loudness">Medya ses yüksekliğini dengeleyin</string>
     <string name="normalize_volume">Sesi Normalleştir</string>
     <string name="audio">Ses</string>
-    <string name="no_equalizer">Cihazınızda ekolayzır yok</string>
-    <string name="open_system_equalizer">Sistem ekolayzırı açık</string>
-    <string name="use_your_system_equalizer">Sistem ekolayzırını kullan</string>
     <string name="streaming_data_provider_piped">Veri akışı sağlayıcısı (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime türü</string>

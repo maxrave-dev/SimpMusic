@@ -37,9 +37,13 @@ plugins {
     alias(libs.plugins.conveyor)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.hotReload)
 }
 
-version = libs.versions.version.name.get().removeSuffix("-hf")
+version =
+    libs.versions.version.name
+        .get()
+        .removeSuffix("-hf")
 
 kotlin {
     // 21 matches :media-jvm-ui (requires 21+).
@@ -238,15 +242,24 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
+        // A native crash (SIGSEGV) leaves no Kotlin stack trace; the hs_err file is the only thing
+        // that names the library that died. Without an explicit path the JVM writes it to whatever
+        // directory the daemon happened to start in, where it is effectively lost.
+        jvmArgs("-XX:ErrorFile=${rootProject.layout.buildDirectory.get().asFile}/hs_err_pid%p.log")
+
         // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
         val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =
             when {
-                System.getProperty("os.name").contains("Mac") ->
+                System.getProperty("os.name").contains("Mac") -> {
                     if (osArch.contains("aarch64")) "macos-arm64" else "macos-x64"
-                System.getProperty("os.name").contains("Win") ->
+                }
+                System.getProperty("os.name").contains("Win") -> {
                     if (osArch.contains("aarch64")) "windows-arm64" else "windows-x64"
-                else -> "linux-x64"
+                }
+                else -> {
+                    "linux-x64"
+                }
             }
         // libmpv is staged by `./gradlew :composeApp:mpvSetupAll`.
         // MpvLibrary reads this property and feeds it to jna.library.path.
@@ -273,7 +286,6 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
         }
     }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -291,19 +303,21 @@ afterEvaluate {
 // produce ./output (the relocatable linux-app directory tree).
 // Conveyor 2.0 prompts once for a root-key passphrase on first run; press
 // Enter to use no passphrase. Subsequent runs are fully non-interactive.
-val conveyorMakeLinuxApp = tasks.register<Exec>("conveyorMakeLinuxApp") {
-    group = "distribution"
-    description = "Run `conveyor make linux-app` for Linux x86_64 (glibc)."
-    dependsOn(":composeApp:mpvSetupAll")
-    workingDir = rootDir
-    commandLine(
-        "conveyor",
-        "--agree-to-license=1",
-        "-Kapp.machines=linux.amd64.glibc",
-        "make", "linux-app",
-    )
-    standardInput = System.`in`
-}
+val conveyorMakeLinuxApp =
+    tasks.register<Exec>("conveyorMakeLinuxApp") {
+        group = "distribution"
+        description = "Run `conveyor make linux-app` for Linux x86_64 (glibc)."
+        dependsOn(":composeApp:mpvSetupAll")
+        workingDir = rootDir
+        commandLine(
+            "conveyor",
+            "--agree-to-license=1",
+            "-Kapp.machines=linux.amd64.glibc",
+            "make",
+            "linux-app",
+        )
+        standardInput = System.`in`
+    }
 
 tasks.register("packageConveyorAppImage") {
     group = "distribution"
@@ -314,7 +328,7 @@ tasks.register("packageConveyorAppImage") {
     // task invoked after `conveyor make linux-app`, not part of the
     // critical CI path, so opting out is acceptable.
     notCompatibleWithConfigurationCache(
-        "Reads project/layout/libs from within doLast to compute appimage paths."
+        "Reads project/layout/libs from within doLast to compute appimage paths.",
     )
 
     doLast {
@@ -368,7 +382,9 @@ tasks.register("packageConveyorAppImage") {
             FileUtils.copyFile(iconSrc, iconDst)
         }
 
-        val versionName = libs.versions.version.name.get()
+        val versionName =
+            libs.versions.version.name
+                .get()
         val desktopFile = appDir.resolve("simpmusic.desktop")
         // This file, not Conveyor's, is what actually reaches the user: AppRun installs it into
         // ~/.local/share/applications and runs update-desktop-database. So every scheme listed in
@@ -473,33 +489,37 @@ tasks.register("buildLinuxAppImage") {
 // from Linux works but the app won't be signed.
 //
 // Run via: `./gradlew :desktopApp:buildMacZipAmd64 --no-configuration-cache`
-val conveyorMakeMacZipAmd64 = tasks.register<Exec>("conveyorMakeMacZipAmd64") {
-    group = "distribution"
-    description = "Run `conveyor make unnotarized-mac-zip` for macOS Intel."
-    dependsOn(":composeApp:mpvSetupAll")
-    workingDir = rootDir
-    commandLine(
-        "conveyor",
-        "--agree-to-license=1",
-        "-Kapp.machines=mac.amd64",
-        "make", "unnotarized-mac-zip",
-    )
-    standardInput = System.`in`
-}
+val conveyorMakeMacZipAmd64 =
+    tasks.register<Exec>("conveyorMakeMacZipAmd64") {
+        group = "distribution"
+        description = "Run `conveyor make unnotarized-mac-zip` for macOS Intel."
+        dependsOn(":composeApp:mpvSetupAll")
+        workingDir = rootDir
+        commandLine(
+            "conveyor",
+            "--agree-to-license=1",
+            "-Kapp.machines=mac.amd64",
+            "make",
+            "unnotarized-mac-zip",
+        )
+        standardInput = System.`in`
+    }
 
-val conveyorMakeMacZipAarch64 = tasks.register<Exec>("conveyorMakeMacZipAarch64") {
-    group = "distribution"
-    description = "Run `conveyor make unnotarized-mac-zip` for macOS Apple Silicon."
-    dependsOn(":composeApp:mpvSetupAll")
-    workingDir = rootDir
-    commandLine(
-        "conveyor",
-        "--agree-to-license=1",
-        "-Kapp.machines=mac.aarch64",
-        "make", "unnotarized-mac-zip",
-    )
-    standardInput = System.`in`
-}
+val conveyorMakeMacZipAarch64 =
+    tasks.register<Exec>("conveyorMakeMacZipAarch64") {
+        group = "distribution"
+        description = "Run `conveyor make unnotarized-mac-zip` for macOS Apple Silicon."
+        dependsOn(":composeApp:mpvSetupAll")
+        workingDir = rootDir
+        commandLine(
+            "conveyor",
+            "--agree-to-license=1",
+            "-Kapp.machines=mac.aarch64",
+            "make",
+            "unnotarized-mac-zip",
+        )
+        standardInput = System.`in`
+    }
 
 tasks.register("buildMacZipAmd64") {
     group = "distribution"
@@ -517,19 +537,21 @@ tasks.register("buildMacZipAarch64") {
 // NOTE: Unsigned .msix has rough UX (users must enable sideloading +
 // install certificate). Recommended path long-term: code-sign with an
 // EV cert OR switch to Inno Setup `.exe` wrap if signing budget unavailable.
-val conveyorMakeWindowsMsix = tasks.register<Exec>("conveyorMakeWindowsMsix") {
-    group = "distribution"
-    description = "Run `conveyor make windows-msix` for Windows x86_64."
-    dependsOn(":composeApp:mpvSetupAll")
-    workingDir = rootDir
-    commandLine(
-        "conveyor",
-        "--agree-to-license=1",
-        "-Kapp.machines=windows.amd64",
-        "make", "windows-msix",
-    )
-    standardInput = System.`in`
-}
+val conveyorMakeWindowsMsix =
+    tasks.register<Exec>("conveyorMakeWindowsMsix") {
+        group = "distribution"
+        description = "Run `conveyor make windows-msix` for Windows x86_64."
+        dependsOn(":composeApp:mpvSetupAll")
+        workingDir = rootDir
+        commandLine(
+            "conveyor",
+            "--agree-to-license=1",
+            "-Kapp.machines=windows.amd64",
+            "make",
+            "windows-msix",
+        )
+        standardInput = System.`in`
+    }
 
 tasks.register("buildWindowsMsix") {
     group = "distribution"

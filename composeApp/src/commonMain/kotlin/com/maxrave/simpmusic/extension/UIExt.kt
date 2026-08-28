@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.extension
 
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -345,6 +346,46 @@ fun NonLazyGrid(
             }
         }
     }
+}
+
+/**
+ * Scrolls [index] to the TOP edge of the viewport, the counterpart to
+ * [animateScrollAndCentralizeItem]. Used by the Apple Music lyrics style, which anchors the page
+ * near the top rather than around the middle.
+ *
+ * Gentler than the centralising version on purpose: that one repositions a list the user is
+ * reading, while this one runs on every lyric line — a fixed 300ms step reads as a jolt once per
+ * line, where a spring reads as the page drifting with the song. The one-frame wait and the
+ * jump-if-offscreen guard are kept verbatim; both are needed for layoutInfo to hold the target
+ * item before its offset is measured.
+ */
+suspend fun LazyListState.animateScrollAndAnchorItemTop(
+    index: Int,
+    /**
+     * Extra pixels added to the scroll. Negative leaves that much of the PREVIOUS content visible
+     * above [index] — used to expose exactly one physical text row, which is not the same as
+     * scrolling to the previous item: a lyric line that wraps is one item but several rows.
+     */
+    extraOffsetPx: Float = 0f,
+) {
+    if (index < 0) return
+    val initiallyVisible = this.layoutInfo.visibleItemsInfo.any { it.index == index }
+    if (!initiallyVisible) {
+        this.scrollToItem(index)
+    }
+    withFrameNanos { }
+    val itemInfo =
+        this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index } ?: return
+    this.animateScrollBy(
+        value = (itemInfo.offset - this.layoutInfo.viewportStartOffset).toFloat() + extraOffsetPx,
+        // A spring, not a tween. A tween covers a fixed distance in a fixed time, so a one-line
+        // step and a six-line jump after a seek both take 650ms — the short one crawls, the long
+        // one races. A spring is driven by the distance itself, which is why Apple's page settles
+        // the same way whether it moved a little or a lot. Damping just under 1 keeps it soft
+        // without bouncing, and low stiffness is what makes it read as gliding rather than
+        // snapping into place.
+        animationSpec = spring(dampingRatio = 0.9f, stiffness = 180f),
+    )
 }
 
 suspend fun LazyListState.animateScrollAndCentralizeItem(index: Int) {

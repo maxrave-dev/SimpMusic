@@ -163,12 +163,10 @@
     <string name="balance_media_loudness">Balance media loudness</string>
     <string name="normalize_volume">Normalize Volume</string>
     <string name="audio">Audio</string>
-    <string name="no_equalizer">Your device doesn't have equalizer</string>
-    <string name="open_system_equalizer">Open system equalizer</string>
-    <string name="use_your_system_equalizer">Use your system equalizer</string>
     <string name="version_format" translatable="false">v%1$s</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
+    <string name="extract_source">Extract source</string>
     <string name="mime_type">Mime Type</string>
     <string name="bitrate">Bitrate</string>
     <string name="warning">Warning</string>
@@ -292,6 +290,8 @@
     <string name="audio_quality">Audio quality</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Such as Music Video, Lyrics Video, Podcasts, and more</string>
+    <string name="radio_audio_only">Keep radio audio-only</string>
+    <string name="radio_audio_only_description">Skip music videos, remixes and mashups that YouTube mixes into a radio. Playlists and albums are not affected</string>
     <string name="video_quality">Video Quality</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
@@ -308,6 +308,24 @@
     <string name="your_music_is_always_up_to_date">YOUR MUSIC IS ALWAYS UP-TO-DATE</string>
     <string name="youtube_account">YouTube Account</string>
     <string name="manage_your_youtube_accounts">Manage your YouTube Accounts</string>
+    <string name="sync_follow_to_youtube">Sync Follow with YouTube</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="equalizer_description">Shape the sound with a ten-band curve</string>
+    <string name="equalizer_preamp">Preamp</string>
+    <string name="equalizer_presets">Presets</string>
+    <string name="equalizer_preset_custom">Custom</string>
+    <string name="equalizer_reset">Reset</string>
+    <string name="equalizer_autoeq" translatable="false">AutoEq</string>
+    <string name="equalizer_autoeq_choose">Choose headphone</string>
+    <string name="equalizer_autoeq_search">Headphone model</string>
+    <string name="equalizer_autoeq_downloading">Downloading the AutoEq profile list…</string>
+    <string name="equalizer_autoeq_unavailable">Couldn't reach AutoEq. Check your connection and try again.</string>
+    <string name="equalizer_autoeq_empty">No headphone matches that name</string>
+    <string name="equalizer_autoeq_failed">Couldn't load that profile — it needs a connection the first time</string>
+    <string name="sync_follow_to_youtube_description">Following an artist in SimpMusic also subscribes to their channel on your YouTube account</string>
+    <string name="sync_follow_failed">Couldn't update your YouTube subscription</string>
+    <string name="subscribed_on_youtube">Subscribed on YouTube</string>
+    <string name="unsubscribed_on_youtube">Unsubscribed on YouTube</string>
     <string name="no_account">No account</string>
     <string name="add_an_account">Add an account</string>
     <string name="signed_in">Signed in</string>
@@ -358,6 +376,32 @@
     <string name="theme_mode_system">System default</string>
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_light">Light</string>
+    <string name="now_playing_style">Now Playing style</string>
+    <string name="now_playing_style_spotify">Classic</string>
+    <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
+    <string name="now_playing_style_apple_music" translatable="false">Apple Music</string>
+    <string name="ai_translated">AI translated</string>
+    <string name="lyrics_style">Lyrics style</string>
+    <string name="lyrics_style_classic">Classic</string>
+    <string name="lyrics_style_apple_music" translatable="false">Apple Music</string>
+    <string name="requires_android_12" translatable="false">Android 12+</string>
+    <string name="lyrics_romanization">Lyrics romanization</string>
+    <string name="lyrics_romanization_description">Show lyrics in Latin script for the languages you pick</string>
+    <string name="romanization_japanese" translatable="false">Japanese</string>
+    <string name="romanization_korean" translatable="false">Korean</string>
+    <string name="romanization_chinese" translatable="false">Chinese</string>
+    <string name="romanization_hindi" translatable="false">Hindi</string>
+    <string name="romanization_punjabi" translatable="false">Punjabi</string>
+    <string name="romanization_russian" translatable="false">Russian</string>
+    <string name="romanization_ukrainian" translatable="false">Ukrainian</string>
+    <string name="romanization_serbian" translatable="false">Serbian</string>
+    <string name="romanization_bulgarian" translatable="false">Bulgarian</string>
+    <string name="romanization_belarusian" translatable="false">Belarusian</string>
+    <string name="romanization_kyrgyz" translatable="false">Kyrgyz</string>
+    <string name="romanization_macedonian" translatable="false">Macedonian</string>
+    <string name="romanization_japanese_dict_downloading">Downloading the Japanese dictionary…</string>
+    <string name="romanization_japanese_dict_ready">Japanese dictionary downloaded</string>
+    <string name="romanization_japanese_dict_failed">Couldn't download the Japanese dictionary. Check your connection and select Japanese again to retry.</string>
     <string name="theme_color">Theme color</string>
     <string name="theme_color_default">Default</string>
     <string name="theme_color_wallpaper">Wallpaper</string>
@@ -386,6 +430,11 @@
     <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can't work too. You should log in to YouTube to get better experience with SimpMusic.</string>
     <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
     <string name="clear_canvas_cache">Clear canvas cache</string>
+    <string name="listening_history">Listening history</string>
+    <string name="clear_listening_history">Clear listening history</string>
+    <string name="clear_listening_history_description">Erase your local listening statistics and remove songs that nothing else in the app refers to</string>
+    <string name="clear_listening_history_confirm">Your listening statistics and unused resources will be cleaned. This cannot be undone — please back up first.</string>
+    <string name="clear_listening_history_done">Listening history cleared, %1$d songs removed</string>
     <string name="proxy">Proxy</string>
     <string name="proxy_description">Using Proxy to bypass country content blocking</string>
     <string name="proxy_type">Proxy type</string>
@@ -407,6 +456,9 @@
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>
+    <string name="continue_playing">Continue Playing</string>
+    <string name="continue_playing_endless_subtitle">Automatically adds similar songs when the queue ends</string>
+    <string name="lyrics_sync_provider_footer" translatable="false">%1$s • %2$s</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="auto_check_for_update">Automatic check for update</string>
     <string name="auto_check_for_update_description">Checking for update when you open app</string>
@@ -473,6 +525,11 @@
     <string name="crossfade_auto_description">Automatically calculate duration based on BPM (requires 320kbps stream with BPM data)</string>
     <string name="crossfade_dj_mode">DJ-Style Transition</string>
     <string name="crossfade_dj_mode_description">Apply low-pass and high-pass filter sweeps during crossfade for a smoother, DJ-like transition (similar to Apple Music Automix).</string>
+    <string name="auto_download_liked_songs">Download songs you like</string>
+    <string name="auto_download_liked_songs_description">Automatically download a song for offline playback when you add it to Favorites, using your download quality setting. Turning this on also downloads the songs you already liked. Removing a like never deletes a download.</string>
+    <string name="downloading_liked_songs">Downloading %1$d liked songs</string>
+    <string name="crossfade_skip_album">Keep albums continuous</string>
+    <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
     <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
     <string name="use_anonymous">Use anonymous name to contribute</string>
@@ -508,6 +565,7 @@
     <string name="play_explicit_content_description">Enable to play explicit content</string>
     <string name="explicit_content_blocked">Explicit content is skipped</string>
     <string name="mix_for_you">Mix for you</string>
+    <string name="mix">Mix</string>
     <string name="no_mixes_found">No mixes found</string>
     <string name="no_charts_found">No charts found</string>
     <string name="desktop_webview_description">Because of the limitations of Compose Multiplatform, I can not implement WebView on desktop.\nRead this to learn more how to log in in desktop:\n</string>
@@ -549,6 +607,46 @@
     <string name="songs_played">Songs played</string>
     <string name="total_listened_time">Total listened time</string>
     <string name="seconds">seconds</string>
+    <string name="listening_time_hours_minutes">%1$d h %2$d min</string>
+    <string name="listening_time_minutes">%1$d min</string>
+    <string name="listening_time_seconds">%1$d sec</string>
+    <string name="listened_time">Listened time</string>
+    <string name="month_short_jan">Jan</string>
+    <string name="month_short_feb">Feb</string>
+    <string name="month_short_mar">Mar</string>
+    <string name="month_short_apr">Apr</string>
+    <string name="month_short_may">May</string>
+    <string name="month_short_jun">Jun</string>
+    <string name="month_short_jul">Jul</string>
+    <string name="month_short_aug">Aug</string>
+    <string name="month_short_sep">Sep</string>
+    <string name="month_short_oct">Oct</string>
+    <string name="month_short_nov">Nov</string>
+    <string name="month_short_dec">Dec</string>
+    <string name="analytics_quick_facts">Quick facts</string>
+    <string name="analytics_music_ratio">Music ratio</string>
+    <string name="analytics_fingerprint">Listening fingerprint</string>
+    <string name="analytics_listening_clock">Listening clock</string>
+    <string name="analytics_by_decade">Music by decade</string>
+    <string name="analytics_vs_previous">vs previous period</string>
+    <string name="analytics_no_previous">no previous period</string>
+    <string name="analytics_previous_was">previously %1$s</string>
+    <string name="analytics_avg_per_day">Average per day</string>
+    <string name="analytics_busiest_day">Most active day</string>
+    <string name="analytics_busiest_hour">Busiest hour</string>
+    <string name="analytics_plays_in_hour">Plays in that hour</string>
+    <string name="analytics_no_data_period">No listening in this period. Use the arrows to look at another one.</string>
+    <string name="analytics_hour_span" translatable="false">%1$s – %2$s</string>
+    <string name="analytics_songs">Songs</string>
+    <string name="analytics_this_period">This period</string>
+    <string name="analytics_previous_period">Previous period</string>
+    <string name="analytics_decade_coverage">Based on the %1$s of plays that carry album information — songs played from radio or as standalone videos have no release year.</string>
+    <string name="analytics_decade_pre">Before %1$d</string>
+    <string name="analytics_axis_consistency">Consistency</string>
+    <string name="analytics_axis_discovery">Discovery</string>
+    <string name="analytics_axis_diversity">Diversity</string>
+    <string name="analytics_axis_concentration">Concentration</string>
+    <string name="analytics_axis_replay">Replay</string>
     <string name="your_recently_played">Your recently played</string>
     <string name="your_top_artists">Your top artists</string>
     <string name="your_top_albums">Your top albums</string>
@@ -593,4 +691,145 @@
     <string name="import_result_skipped">%1$d entries were skipped because their song was missing from the file.</string>
     <string name="import_failed">Import failed</string>
     <string name="import_invalid_file">This file is not a valid SimpMusic import file. Convert your library at simpmusic.org first.</string>
+    <string name="analytics">Analytics</string>
+    <string name="select_all">Select all</string>
+    <string name="n_selected">%1$d selected</string>
+    <string name="n_songs_selected">%1$d songs selected</string>
+    <string name="max_selection_reached">You can select up to %1$d songs at a time</string>
+    <string name="exit_selection">Exit selection</string>
+    <string name="remove_from_playlist">Remove from playlist</string>
+    <!-- Listen Together -->
+    <string name="listen_together">Listen Together</string>
+    <string name="lt_tagline">One song, one position, together. Create a room and share the code with friends.</string>
+    <string name="lt_not_connected">Not connected</string>
+    <string name="lt_connected">Connected</string>
+    <string name="lt_connecting">Connecting…</string>
+    <string name="lt_connect">Connect</string>
+    <string name="lt_display_name">Display name</string>
+    <string name="lt_display_name_hint">The name everyone in the room sees</string>
+    <string name="lt_create_room">Create room</string>
+    <string name="lt_or_join_with_code">or join with a code</string>
+    <string name="lt_join_room">Join room</string>
+    <string name="lt_background_warning">Leaving the app or switching away for too long will disconnect you from the room.</string>
+    <string name="lt_disconnect">Disconnect</string>
+    <string name="lt_room_code">Room code</string>
+    <string name="lt_in_room">In the room</string>
+    <string name="lt_host_badge">host</string>
+    <string name="lt_you">you</string>
+    <string name="lt_join_requests">Asking to join</string>
+    <string name="lt_just_asked">just asked to join</string>
+    <string name="lt_suggestions">Suggested tracks</string>
+    <string name="lt_leave_room">Leave room</string>
+    <string name="lt_credit_protocol">Listen Together protocol by Metrolist</string>
+    <string name="lt_credit_compatible">Rooms are compatible with Metrolist clients</string>
+    <string name="lt_server">Server</string>
+    <string name="lt_default_server_name" translatable="false">The Meowery</string>
+    <string name="lt_default_server_location" translatable="false">Poland · run by Nyx</string>
+    <string name="lt_custom_server">Custom server</string>
+    <string name="lt_custom_server_desc">Enter your own wss:// address</string>
+    <string name="lt_save_server">Save server</string>
+    <string name="lt_as_host">When you host</string>
+    <string name="lt_auto_approve_joins">Auto-approve joins</string>
+    <string name="lt_auto_approve_joins_desc">Anyone with the code gets in without asking</string>
+    <string name="lt_blocked">Blocked</string>
+    <string name="lt_blocked_empty">Nobody is blocked</string>
+    <string name="lt_unblock">Unblock</string>
+    <string name="lt_transfer_host">Make host</string>
+    <string name="lt_transfer_host_desc">They will control playback</string>
+    <string name="lt_kick">Remove from room</string>
+    <string name="lt_kick_desc">They can rejoin with the code</string>
+    <string name="lt_block">Block permanently</string>
+    <string name="lt_block_desc">They cannot rejoin, even with the code</string>
+    <string name="lt_waiting_approval">Waiting for the host</string>
+    <string name="lt_waiting_approval_desc">They need to let you in. If the code is wrong you will get an error instead.</string>
+    <string name="lt_cancel_join">Cancel</string>
+    <string name="share_lyrics">Share lyrics</string>
+    <string name="share_lyrics_select_title">Select lines</string>
+    <string name="share_lyrics_selected_count">%1$d lines selected</string>
+    <string name="share_lyrics_continue">Continue</string>
+    <string name="share_lyrics_max_reached">You can share up to %1$d lines</string>
+    <string name="share_lyrics_save">Save image</string>
+    <string name="share_lyrics_share_action">Share</string>
+    <string name="share_lyrics_saved">Saved to your photos</string>
+    <string name="share_lyrics_saved_desktop">Saved to your downloads folder</string>
+    <string name="share_lyrics_save_failed">Could not save the image</string>
+    <string name="share_lyrics_share_failed">Could not share the image</string>
+    <string name="share_lyrics_background">Background</string>
+    <string name="share_lyrics_permission_denied">Storage permission is needed to save the image</string>
+    <string name="share_lyrics_no_lyrics">This song has no lyrics to share</string>
+    <string name="wrapped" translatable="false">Wrapped</string>
+    <string name="wrapped_year" translatable="false">Wrapped %1$s</string>
+    <string name="wrapped_tap_to_begin">Tap to begin</string>
+    <string name="wrapped_tap_to_continue">Tap to continue</string>
+    <string name="wrapped_share">Share</string>
+    <string name="wrapped_save">Save</string>
+    <string name="wrapped_opening_title">Your year in music</string>
+    <string name="wrapped_opening_lead">You opened SimpMusic on</string>
+    <string name="wrapped_opening_days">%1$s of %2$s days</string>
+    <string name="wrapped_opening_tracks">%1$s tracks went past.</string>
+    <string name="wrapped_minutes_title">You spent this much of the year listening</string>
+    <string name="wrapped_minutes_unit">MINUTES</string>
+    <string name="wrapped_minutes_whole_days">%1$s whole days.</string>
+    <string name="wrapped_minutes_caption">Anything you left before the first fifth does not count — this is time you actually stayed for.</string>
+    <string name="wrapped_tracks_title">The five you could not leave alone</string>
+    <string name="wrapped_plays">%1$s plays</string>
+    <string name="wrapped_artists_title">Your number one, by a distance</string>
+    <string name="wrapped_artists_two_years">top artist two years running</string>
+    <string name="wrapped_albums_title">The records you kept going back to</string>
+    <string name="wrapped_clock_title">When the music actually happened</string>
+    <string name="wrapped_clock_peak_hour">PEAK HOUR</string>
+    <string name="wrapped_clock_you_are">You are</string>
+    <string name="wrapped_clock_band_night">a night listener</string>
+    <string name="wrapped_clock_band_morning">a morning listener</string>
+    <string name="wrapped_clock_band_afternoon">an afternoon listener</string>
+    <string name="wrapped_clock_band_evening">an evening listener</string>
+    <string name="wrapped_clock_caption">%1$s of everything you played landed between %2$s and %3$s.</string>
+    <string name="wrapped_biggest_day_title">One day beat all the others</string>
+    <string name="wrapped_biggest_day_plays">plays — against a typical %1$s</string>
+    <string name="wrapped_biggest_day_caption">You played %1$s %2$s times that day.</string>
+    <string name="wrapped_type_title">Five readings of how you listen</string>
+    <string name="wrapped_type_the">THE</string>
+    <string name="wrapped_archetype_regular">REGULAR</string>
+    <string name="wrapped_archetype_explorer">EXPLORER</string>
+    <string name="wrapped_archetype_omnivore">OMNIVORE</string>
+    <string name="wrapped_archetype_devotee">DEVOTEE</string>
+    <string name="wrapped_archetype_deep_diver">DEEP DIVER</string>
+    <string name="wrapped_archetype_regular_desc">%1$s of the year had music in it. You do not binge — you keep it on.</string>
+    <string name="wrapped_archetype_explorer_desc">%1$s of the artists you heard were new to you. You kept walking.</string>
+    <string name="wrapped_archetype_omnivore_desc">Your plays spread across %1$s artists, none of them in charge.</string>
+    <string name="wrapped_archetype_devotee_desc">%1$s of your year went to five artists. You know exactly what you like.</string>
+    <string name="wrapped_archetype_deep_diver_desc">You replayed on %1$s of your plays. You find a song and you stay.</string>
+    <string name="wrapped_decades_title">How far back you went</string>
+    <string name="wrapped_decades_caption">Drawn from the %1$s of plays whose album carried a year. Radio and standalone videos carry none, so they are not in here.</string>
+    <string name="wrapped_share_title">The whole year, one image</string>
+    <string name="wrapped_share_card_title">My year in music</string>
+    <string name="wrapped_share_top_tracks">TOP TRACKS</string>
+    <string name="wrapped_share_top_artists">TOP ARTISTS</string>
+    <string name="wrapped_share_top_album">TOP ALBUM</string>
+    <string name="wrapped_share_minutes">MINUTES</string>
+    <string name="wrapped_share_artists">ARTISTS</string>
+    <string name="wrapped_share_days">DAYS</string>
+    <string name="wrapped_entry_title">Your %1$s Wrapped is ready</string>
+    <string name="wrapped_entry_subtitle">%1$s minutes, %2$s artists, and one very obvious favourite.</string>
+    <string name="wrapped_not_enough_title">Not enough of the year yet</string>
+    <string name="wrapped_not_enough_body">Wrapped needs about a month of listening before it says anything true. You have %1$s so far.</string>
+    <string name="wrapped_not_enough_days">%1$s days</string>
+    <string name="wrapped_not_enough_progress">%1$s of %2$s days</string>
+    <string name="wrapped_open_analytics">Open Analytics instead</string>
+    <string name="wrapped_recap_month">Recap %1$s</string>
+    <string name="wrapped_recap_month_year">Recap %1$s %2$s</string>
+    <string name="wrapped_recap_subtitle">Your top songs that month</string>
+    <string name="wrapped_recap_empty">No month has enough listening yet</string>
+    <string name="month_full_jan">January</string>
+    <string name="month_full_feb">February</string>
+    <string name="month_full_mar">March</string>
+    <string name="month_full_apr">April</string>
+    <string name="month_full_may">May</string>
+    <string name="month_full_jun">June</string>
+    <string name="month_full_jul">July</string>
+    <string name="month_full_aug">August</string>
+    <string name="month_full_sep">September</string>
+    <string name="month_full_oct">October</string>
+    <string name="month_full_nov">November</string>
+    <string name="month_full_dec">December</string>
 </resources>

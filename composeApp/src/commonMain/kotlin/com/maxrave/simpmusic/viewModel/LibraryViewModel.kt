@@ -9,10 +9,13 @@ import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
+import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.data.type.RecentlyType
+import com.maxrave.domain.extension.now
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.domain.repository.AnalyticsRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.PlaylistRepository
@@ -21,6 +24,8 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioPlaylistId
+import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullNameResource
+import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,17 +36,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.datetime.atTime
+import kotlinx.datetime.minus
+import kotlinx.datetime.number
+import kotlinx.datetime.plus
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_local_playlist
+import simpmusic.composeapp.generated.resources.wrapped_recap_month
+import simpmusic.composeapp.generated.resources.wrapped_recap_month_year
 import simpmusic.composeapp.generated.resources.youtube_liked_music
 
 class LibraryViewModel(
     private val dataStoreManager: DataStoreManager,
+    private val analyticsRepository: AnalyticsRepository,
     private val songRepository: SongRepository,
     private val commonRepository: CommonRepository,
     private val playlistRepository: PlaylistRepository,
@@ -87,11 +103,33 @@ class LibraryViewModel(
         MutableStateFlow(LocalResource.Loading())
     val listCanvasSong: StateFlow<LocalResource<List<SongEntity>>> get() = _listCanvasSong.asStateFlow()
 
+    /**
+     * The months the Wrapped tab offers a recap for, newest first.
+     *
+     * A [MonthlyRecapItem] rather than the destination's own
+     * [LibraryDynamicPlaylistType.MonthlyRecap]: the tab draws these through the shared
+     * `GridLibraryPlaylist`, which renders only [PlaylistType]s, and a tile needs a title and a
+     * cover on top of the year and month the destination carries. The destination is rebuilt from
+     * the year and month when a tile is tapped.
+     */
+    private val _monthlyRecaps: MutableStateFlow<LocalResource<List<MonthlyRecapItem>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val monthlyRecaps: StateFlow<LocalResource<List<MonthlyRecapItem>>> get() = _monthlyRecaps.asStateFlow()
+
     private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
     val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
+
+    /**
+     * Whether the Wrapped chip has anything behind it.
+     *
+     * The same setting the Analytics tab follows, read the same way — Wrapped and the recaps are
+     * built entirely from `playback_event`, which local tracking is what fills.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val localTrackingEnabled = dataStoreManager.localTrackingEnabled.mapLatest { it == DataStoreManager.TRUE }
 
     init {
         viewModelScope.launch {
@@ -247,6 +285,75 @@ class LibraryViewModel(
         }
     }
 
+    /**
+     * Which of the last twelve months the user actually listened in, and what each tile shows.
+     *
+     * A month with no plays is left out rather than shown empty: a "Recap March" that opens onto
+     * nothing is worse than no row at all. Twelve is a cap, not a quota — a new install shows one
+     * row, or none.
+     *
+     * The count comes first and gates everything after it: twelve `COUNT`s over an indexed
+     * timestamp range are cheap, so the months with nothing in them are dropped before anything
+     * asks them for a ranking. Only the survivors pay for a cover.
+     *
+     * Title and cover are resolved here rather than in the tile, which cannot suspend: the title
+     * needs a month name out of a string resource with a format argument, and the cover needs a
+     * ranking query followed by a song lookup.
+     */
+    fun getMonthlyRecaps() {
+        _monthlyRecaps.value = LocalResource.Loading()
+        viewModelScope.launch {
+            val today = now().date
+            val thisMonth = LocalDate(today.year, today.month, 1)
+            val months =
+                (0 until MONTHS_OF_RECAP)
+                    .map { thisMonth.minus(it, DateTimeUnit.MONTH) }
+                    .mapNotNull { firstDay ->
+                        val lastDay = firstDay.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+                        val start = firstDay.atTime(0, 0)
+                        val end = lastDay.atTime(23, 59, 59)
+                        val plays =
+                            analyticsRepository
+                                .getPlaybackEventCountInRange(
+                                    startTimestamp = start,
+                                    endTimestamp = end,
+                                ).firstOrNull() ?: 0L
+                        if (plays <= 0L) return@mapNotNull null
+                        MonthlyRecapItem(
+                            year = firstDay.year,
+                            month = firstDay.month.number,
+                            title = recapTitle(firstDay.year, firstDay.month, today.year),
+                        )
+                    }
+            _monthlyRecaps.value = LocalResource.Success(months)
+        }
+    }
+
+    /**
+     * "Recap January", or "Recap January 2025" once the year stops being obvious.
+     *
+     * The same rule and the same two format strings as the header the tile opens — see
+     * [LibraryDynamicPlaylistType.title]. Fully qualified because [BaseViewModel] has a `getString`
+     * of its own that takes no format argument and wraps `runBlocking`, which has no business
+     * running inside a coroutine that is already suspended here.
+     */
+    private suspend fun recapTitle(
+        year: Int,
+        month: Month,
+        currentYear: Int,
+    ): String {
+        val monthName =
+            org.jetbrains.compose.resources
+                .getString(monthFullNameResource(month))
+        return if (year == currentYear) {
+            org.jetbrains.compose.resources
+                .getString(Res.string.wrapped_recap_month, monthName)
+        } else {
+            org.jetbrains.compose.resources
+                .getString(Res.string.wrapped_recap_month_year, monthName, year.toString())
+        }
+    }
+
     fun getChartPlaylists() {
         _chartPlaylists.value = LocalResource.Loading()
         viewModelScope.launch {
@@ -282,5 +389,10 @@ class LibraryViewModel(
             delay(500) // Wait for the database to update
             getRecentlyAdded()
         }
+    }
+
+    companion object {
+        /** How far back the Wrapped tab offers recaps, counting the current month as the first. */
+        private const val MONTHS_OF_RECAP = 12
     }
 }

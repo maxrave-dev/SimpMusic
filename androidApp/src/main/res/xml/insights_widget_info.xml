@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis is a real interval here, unlike the playback widgets which push their own
+  updates on state change. The numbers come from scanning playback_event, so half an hour is
+  plenty fresh and keeps the query off the battery budget. (The system clamps anything under
+  30 minutes to 30 minutes anyway.)
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_insights_description"
+    android:previewImage="@drawable/widget_preview_img_insights"
+    android:previewLayout="@layout/widget_preview_insights"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

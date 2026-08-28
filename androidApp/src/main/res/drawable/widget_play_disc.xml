@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same grey as the bar, just denser — play reads as the primary control by being more
+     opaque than the bar around it, not by being a different colour. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#732E2E2E" />
+</shape>

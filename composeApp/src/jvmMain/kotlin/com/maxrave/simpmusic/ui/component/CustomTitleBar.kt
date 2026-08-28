@@ -34,12 +34,19 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
+import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Remove
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.UnfoldLess
 import com.maxrave.simpmusic.ui.icon.UnfoldMore
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.ui.theme.windowCloseButton
+import com.maxrave.simpmusic.ui.theme.windowCloseButtonHover
+import com.maxrave.simpmusic.ui.theme.windowMaximiseButton
+import com.maxrave.simpmusic.ui.theme.windowMaximiseButtonHover
+import com.maxrave.simpmusic.ui.theme.windowMinimiseButton
+import com.maxrave.simpmusic.ui.theme.windowMinimiseButtonHover
 import java.awt.MouseInfo
 import java.awt.Window
 
@@ -55,6 +62,10 @@ fun CustomTitleBar(
     window: Window,
     onCloseRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    // Passed in rather than read from MaterialTheme: this bar is drawn outside AppTheme, so
+    // MaterialTheme here would hand back the default light scheme no matter what the user picked.
+    containerColor: Color = Color.Black,
+    titleColor: Color = Color.White,
 ) {
     var isMaximized by remember { mutableStateOf(windowState.placement == WindowPlacement.Maximized) }
 
@@ -71,8 +82,8 @@ fun CustomTitleBar(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(40.dp)
-                .background(Color.Black)
+                .height(DesktopWindowChrome.TITLE_BAR_HEIGHT_DP.dp)
+                .background(containerColor)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
@@ -124,8 +135,8 @@ fun CustomTitleBar(
                 // Close button
                 WindowControlButton(
                     onClick = onCloseRequest,
-                    backgroundColor = Color(0xFFFF605C),
-                    hoverColor = Color(0xFFE54942),
+                    backgroundColor = windowCloseButton,
+                    hoverColor = windowCloseButtonHover,
                     icon = WindowControlIcon.Close,
                 )
                 
@@ -136,8 +147,8 @@ fun CustomTitleBar(
                     onClick = {
                         windowState.isMinimized = true
                     },
-                    backgroundColor = Color(0xFFFFBD44),
-                    hoverColor = Color(0xFFE5A93D),
+                    backgroundColor = windowMinimiseButton,
+                    hoverColor = windowMinimiseButtonHover,
                     icon = WindowControlIcon.Minimize,
                 )
 
@@ -152,8 +163,8 @@ fun CustomTitleBar(
                             windowState.placement = WindowPlacement.Maximized
                         }
                     },
-                    backgroundColor = Color(0xFF00CA4E),
-                    hoverColor = Color(0xFF00B344),
+                    backgroundColor = windowMaximiseButton,
+                    hoverColor = windowMaximiseButtonHover,
                     icon = if (isMaximized) WindowControlIcon.Restore else WindowControlIcon.Maximize,
                 )
             }
@@ -162,7 +173,7 @@ fun CustomTitleBar(
             Text(
                 text = title,
                 style = typo().labelSmall,
-                color = Color.White,
+                color = titleColor,
             )
             Spacer(modifier = Modifier.weight(1f))
         }
