@@ -11,6 +11,7 @@ import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
+import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.player.GenericCastState
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
@@ -19,6 +20,7 @@ import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
+import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.LogLevel
@@ -60,6 +62,8 @@ import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_failed
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_ready
 import simpmusic.composeapp.generated.resources.warning
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -70,11 +74,16 @@ class SettingsViewModel(
     private val accountRepository: AccountRepository,
     private val cacheRepository: CacheRepository,
     private val artistRepository: ArtistRepository,
+    private val lyricsRomanizerRepository: LyricsRomanizerRepository,
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
 
     val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
+
+    /** READY everywhere the dictionary is bundled (Desktop), so only Android ever leaves it. */
+    val japaneseDictionaryState: StateFlow<RomanizationDictionaryState> =
+        lyricsRomanizerRepository.japaneseDictionaryState
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -1049,6 +1058,30 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setLyricsProvider(provider)
             getLyricsProvider()
+        }
+    }
+
+    /**
+     * Fetches the Japanese romanization dictionary if this platform needs one and does not have
+     * it yet. Called from the settings screen every time a saved selection includes Japanese, so
+     * a FAILED attempt is retried by simply confirming the dialog again; READY and an already
+     * running download make this a no-op. Progress and outcome live in [japaneseDictionaryState],
+     * which the romanization row's subtitle watches.
+     */
+    fun downloadJapaneseDictionaryIfNeeded() {
+        val state = japaneseDictionaryState.value
+        if (state == RomanizationDictionaryState.READY || state == RomanizationDictionaryState.DOWNLOADING) return
+        viewModelScope.launch {
+            lyricsRomanizerRepository.downloadJapaneseDictionary()
+            // The repository settles the state before returning, so reading it back here is the
+            // completion signal — no separate callback needed for the two toasts.
+            when (japaneseDictionaryState.value) {
+                RomanizationDictionaryState.READY ->
+                    makeToast(getString(Res.string.romanization_japanese_dict_ready))
+                RomanizationDictionaryState.FAILED ->
+                    makeToast(getString(Res.string.romanization_japanese_dict_failed))
+                else -> {}
+            }
         }
     }
 

@@ -315,7 +315,7 @@
     <string name="equalizer_presets">Presets</string>
     <string name="equalizer_preset_custom">Custom</string>
     <string name="equalizer_reset">Reset</string>
-    <string name="equalizer_autoeq">AutoEq</string>
+    <string name="equalizer_autoeq" translatable="false">AutoEq</string>
     <string name="equalizer_autoeq_choose">Choose headphone</string>
     <string name="equalizer_autoeq_search">Headphone model</string>
     <string name="equalizer_autoeq_downloading">Downloading the AutoEq profile list…</string>
@@ -378,27 +378,30 @@
     <string name="theme_mode_light">Light</string>
     <string name="now_playing_style">Now Playing style</string>
     <string name="now_playing_style_spotify">Classic</string>
-    <string name="now_playing_style_m3_expressive">Material 3 Expressive</string>
-    <string name="now_playing_style_apple_music">Apple Music</string>
+    <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
+    <string name="now_playing_style_apple_music" translatable="false">Apple Music</string>
     <string name="ai_translated">AI translated</string>
     <string name="lyrics_style">Lyrics style</string>
     <string name="lyrics_style_classic">Classic</string>
-    <string name="lyrics_style_apple_music">Apple Music</string>
-    <string name="requires_android_12">Android 12+</string>
+    <string name="lyrics_style_apple_music" translatable="false">Apple Music</string>
+    <string name="requires_android_12" translatable="false">Android 12+</string>
     <string name="lyrics_romanization">Lyrics romanization</string>
     <string name="lyrics_romanization_description">Show lyrics in Latin script for the languages you pick</string>
-    <string name="romanization_japanese">Japanese</string>
-    <string name="romanization_korean">Korean</string>
-    <string name="romanization_chinese">Chinese</string>
-    <string name="romanization_hindi">Hindi</string>
-    <string name="romanization_punjabi">Punjabi</string>
-    <string name="romanization_russian">Russian</string>
-    <string name="romanization_ukrainian">Ukrainian</string>
-    <string name="romanization_serbian">Serbian</string>
-    <string name="romanization_bulgarian">Bulgarian</string>
-    <string name="romanization_belarusian">Belarusian</string>
-    <string name="romanization_kyrgyz">Kyrgyz</string>
-    <string name="romanization_macedonian">Macedonian</string>
+    <string name="romanization_japanese" translatable="false">Japanese</string>
+    <string name="romanization_korean" translatable="false">Korean</string>
+    <string name="romanization_chinese" translatable="false">Chinese</string>
+    <string name="romanization_hindi" translatable="false">Hindi</string>
+    <string name="romanization_punjabi" translatable="false">Punjabi</string>
+    <string name="romanization_russian" translatable="false">Russian</string>
+    <string name="romanization_ukrainian" translatable="false">Ukrainian</string>
+    <string name="romanization_serbian" translatable="false">Serbian</string>
+    <string name="romanization_bulgarian" translatable="false">Bulgarian</string>
+    <string name="romanization_belarusian" translatable="false">Belarusian</string>
+    <string name="romanization_kyrgyz" translatable="false">Kyrgyz</string>
+    <string name="romanization_macedonian" translatable="false">Macedonian</string>
+    <string name="romanization_japanese_dict_downloading">Downloading the Japanese dictionary…</string>
+    <string name="romanization_japanese_dict_ready">Japanese dictionary downloaded</string>
+    <string name="romanization_japanese_dict_failed">Couldn't download the Japanese dictionary. Check your connection and select Japanese again to retry.</string>
     <string name="theme_color">Theme color</string>
     <string name="theme_color_default">Default</string>
     <string name="theme_color_wallpaper">Wallpaper</string>
@@ -455,7 +458,7 @@
     <string name="endless_queue">Endless queue</string>
     <string name="continue_playing">Continue Playing</string>
     <string name="continue_playing_endless_subtitle">Automatically adds similar songs when the queue ends</string>
-    <string name="lyrics_sync_provider_footer">%1$s • %2$s</string>
+    <string name="lyrics_sync_provider_footer" translatable="false">%1$s • %2$s</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="auto_check_for_update">Automatic check for update</string>
     <string name="auto_check_for_update_description">Checking for update when you open app</string>
@@ -633,7 +636,7 @@
     <string name="analytics_busiest_hour">Busiest hour</string>
     <string name="analytics_plays_in_hour">Plays in that hour</string>
     <string name="analytics_no_data_period">No listening in this period. Use the arrows to look at another one.</string>
-    <string name="analytics_hour_span">%1$s – %2$s</string>
+    <string name="analytics_hour_span" translatable="false">%1$s – %2$s</string>
     <string name="analytics_songs">Songs</string>
     <string name="analytics_this_period">This period</string>
     <string name="analytics_previous_period">Previous period</string>
@@ -721,7 +724,7 @@
     <string name="lt_credit_protocol">Listen Together protocol by Metrolist</string>
     <string name="lt_credit_compatible">Rooms are compatible with Metrolist clients</string>
     <string name="lt_server">Server</string>
-    <string name="lt_default_server_name">The Meowery</string>
+    <string name="lt_default_server_name" translatable="false">The Meowery</string>
     <string name="lt_default_server_location">Poland · run by Nyx</string>
     <string name="lt_custom_server">Custom server</string>
     <string name="lt_custom_server_desc">Enter your own wss:// address</string>
@@ -760,8 +763,8 @@
     <string name="share_lyrics_background">Background</string>
     <string name="share_lyrics_permission_denied">Storage permission is needed to save the image</string>
     <string name="share_lyrics_no_lyrics">This song has no lyrics to share</string>
-    <string name="wrapped">Wrapped</string>
-    <string name="wrapped_year">Wrapped %1$s</string>
+    <string name="wrapped" translatable="false">Wrapped</string>
+    <string name="wrapped_year" translatable="false">Wrapped %1$s</string>
     <string name="wrapped_tap_to_begin">Tap to begin</string>
     <string name="wrapped_tap_to_continue">Tap to continue</string>
     <string name="wrapped_share">Share</string>

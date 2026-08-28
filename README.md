@@ -20,26 +20,33 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
   
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background
-- High quality up-to 256kbps stream for YouTube Music Premium users (NEW)
+- Three Now Playing styles: Classic, Material 3 Expressive and Apple Music (NEW)
+- Ten-band equalizer with presets and AutoEq headphone profiles (NEW)
+- SimpMusic Wrapped: your year in music, plus monthly recap playlists (NEW)
+- On-device listening analytics: charts, period history, listening clock (NEW)
+- Word-by-word Apple Music-style lyrics, romanization for 12 languages, share lyrics as an image (NEW)
+- Home screen widgets: turntable, playlists and listening insights (NEW)
+- High quality up-to 256kbps stream (Opus or AAC) for YouTube Music Premium users
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
-- Analyze your playing data, create custom playlists, and sync with YouTube Music...    
 - Spotify Canvas supported    
 - Power your experience with SimpMusic Chart (https://chart.simpmusic.org/)
 - Play 1080p video option with subtitle    
 - AI song suggestions    
+- Import playlists converted from Spotify and other apps
 - Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
 - Caching and offline playback support    
-- Crossfade with DJ-style like Apple Music (NEW)
-- Customizing THEME (Light, Dark, Color, etc) (NEW)
+- Crossfade with DJ-style like Apple Music
+- Customizing THEME (Light, Dark, Color, etc)
 - Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
-- Local "scrobble" like Last.fm (NEW)
+- Last.fm scrobbling (Full version)
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
-- Android Auto with online content, feature rich UI/UX (NEW)
+- Android Auto with online content, feature rich UI/UX
 - Discord Rich Presence support
+- Listen Together: shared rooms that play in sync with friends, compatible with Metrolist (NEW)
 - And many more!    
   
 > (\*) Use your OpenAI or Gemini API key    

@@ -101,6 +101,7 @@ import com.maxrave.common.SUPPORTED_LOCATION
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
+import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
@@ -304,6 +305,8 @@ import simpmusic.composeapp.generated.resources.romanization_bulgarian
 import simpmusic.composeapp.generated.resources.romanization_chinese
 import simpmusic.composeapp.generated.resources.romanization_hindi
 import simpmusic.composeapp.generated.resources.romanization_japanese
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_downloading
+import simpmusic.composeapp.generated.resources.romanization_japanese_dict_failed
 import simpmusic.composeapp.generated.resources.romanization_korean
 import simpmusic.composeapp.generated.resources.romanization_kyrgyz
 import simpmusic.composeapp.generated.resources.romanization_macedonian
@@ -547,6 +550,7 @@ fun SettingScreen(
     val nowPlayingStyle by sharedViewModel.getNowPlayingStyle().collectAsStateWithLifecycle(DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY)
     val lyricsStyle by sharedViewModel.getLyricsStyle().collectAsStateWithLifecycle(DataStoreManager.LYRICS_STYLE_CLASSIC)
     val romanizationStored by sharedViewModel.getRomanizationLanguages().collectAsStateWithLifecycle("")
+    val japaneseDictionaryState by viewModel.japaneseDictionaryState.collectAsStateWithLifecycle()
     var showColorPickerDialog by rememberSaveable { mutableStateOf(false) }
     val discordLoggedIn by viewModel.discordLoggedIn.collectAsStateWithLifecycle()
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
@@ -775,7 +779,19 @@ fun SettingScreen(
                         if (romanizationSelected.isEmpty()) {
                             stringResource(Res.string.lyrics_romanization_description)
                         } else {
-                            romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                            val selectedNames =
+                                romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                            // Japanese is the one language with a dictionary pack to fetch; while
+                            // that is in flight — or has failed — the row says so, instead of
+                            // listing Japanese as if it were already live.
+                            when {
+                                RomanizationLanguage.JAPANESE !in romanizationSelected -> selectedNames
+                                japaneseDictionaryState == RomanizationDictionaryState.DOWNLOADING ->
+                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_downloading)}"
+                                japaneseDictionaryState == RomanizationDictionaryState.FAILED ->
+                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_failed)}"
+                                else -> selectedNames
+                            }
                         },
                     onClick = {
                         viewModel.setAlertData(
@@ -796,9 +812,15 @@ fun SettingScreen(
                                 confirm =
                                     runBlocking { getString(Res.string.save) } to { state ->
                                         val chosen = state.multipleSelect?.getListSelected().orEmpty()
-                                        sharedViewModel.setRomanizationLanguages(
-                                            romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet(),
-                                        )
+                                        val languages =
+                                            romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet()
+                                        sharedViewModel.setRomanizationLanguages(languages)
+                                        // Japanese needs its dictionary pack on disk. A no-op when
+                                        // it is already there (or bundled, as on Desktop) — and the
+                                        // retry after a FAILED attempt is simply confirming again.
+                                        if (RomanizationLanguage.JAPANESE in languages) {
+                                            viewModel.downloadJapaneseDictionaryIfNeeded()
+                                        }
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
                             ),
