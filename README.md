@@ -1,4 +1,4 @@
-<div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/main/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
+<div align="center"> <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/dev/fastlane/metadata/android/en-US/images/featureGraphic.png"> <h1>SimpMusic</h1>  
 A FOSS YouTube Music client for Android and Desktop with many features from<br>Spotify, SponsorBlock, ReturnYouTubeDislike using Compose Multiplatform to develop.
 <br> 
 <br>
