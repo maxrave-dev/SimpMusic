@@ -24,7 +24,9 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -130,6 +132,13 @@ private data class ArtistTile(
 class ListeningInsightsWidget :
     GlanceAppWidget(),
     KoinComponent {
+    // Exact, not the default Single: with Single the composition is laid out against the
+    // XML min sizes and the launcher then squeezes that rendering into whatever cells it
+    // actually granted — non-uniformly on grids whose cells have a different aspect, which
+    // is how every square in these widgets came out a rectangle on some launchers. Exact
+    // re-composes per granted size, so the layout works with the truth.
+    override val sizeMode: SizeMode = SizeMode.Exact
+
     private val analyticsRepository by inject<AnalyticsRepository>()
     private val songRepository by inject<SongRepository>()
     private val artistRepository by inject<ArtistRepository>()
@@ -275,6 +284,11 @@ class ListeningInsightsWidget :
 
                     if (topSongs.isNotEmpty()) {
                         SectionLabel(context.getString(R.string.widget_insights_top_songs))
+                        // Shrink-only: five fixed squares plus the container's 24.dp of padding
+                        // can outgrow a narrow cell (5 × 58 = 290.dp against a 250.dp widget),
+                        // which used to push the fifth tile past the edge. Growing stays the
+                        // spacers' job, so wide cells keep square tiles with wider gaps.
+                        val songSide = minOf(SONG_TILE_SIZE, (LocalSize.current.width - 36.dp) / 5)
                         // Weighted spacers between fixed-size tiles, never weighted tiles: in
                         // Glance defaultWeight() takes its width from the row while the height
                         // stays as declared, which turns a square cover into a rectangle.
@@ -282,7 +296,7 @@ class ListeningInsightsWidget :
                             topSongs.forEachIndexed { index, tile ->
                                 if (index > 0) Spacer(GlanceModifier.defaultWeight())
                                 Box(contentAlignment = Alignment.BottomStart) {
-                                    Cover(tile.artwork, tile.title, SONG_TILE_SIZE, 8.dp)
+                                    Cover(tile.artwork, tile.title, songSide, 8.dp)
                                     Text(
                                         text = "${index + 1}",
                                         style =
@@ -304,6 +318,7 @@ class ListeningInsightsWidget :
 
                     if (topArtists.isNotEmpty()) {
                         SectionLabel(context.getString(R.string.widget_insights_top_artists))
+                        val artistSide = minOf(ARTIST_TILE_SIZE, (LocalSize.current.width - 36.dp) / 5)
                         Row(modifier = GlanceModifier.fillMaxWidth()) {
                             topArtists.forEachIndexed { index, tile ->
                                 if (index > 0) Spacer(GlanceModifier.defaultWeight())
@@ -314,8 +329,8 @@ class ListeningInsightsWidget :
                                     Cover(
                                         artwork = tile.artwork,
                                         description = tile.name,
-                                        side = ARTIST_TILE_SIZE,
-                                        radius = ARTIST_TILE_SIZE / 2,
+                                        side = artistSide,
+                                        radius = artistSide / 2,
                                         fallbackInitial = tile.name.firstOrNull()?.uppercase(),
                                     )
                                     Spacer(GlanceModifier.height(3.dp))
@@ -328,7 +343,7 @@ class ListeningInsightsWidget :
                                                 fontSize = 10.sp,
                                                 textAlign = TextAlign.Center,
                                             ),
-                                        modifier = GlanceModifier.width(ARTIST_TILE_SIZE + 14.dp),
+                                        modifier = GlanceModifier.width(artistSide + 14.dp),
                                     )
                                 }
                             }

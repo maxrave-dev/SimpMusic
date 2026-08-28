@@ -711,7 +711,6 @@
     <string name="lt_or_join_with_code">or join with a code</string>
     <string name="lt_join_room">Join room</string>
     <string name="lt_background_warning">Leaving the app or switching away for too long will disconnect you from the room.</string>
-    <string name="lt_settings_subtitle">Server, auto-approve, blocklist</string>
     <string name="lt_disconnect">Disconnect</string>
     <string name="lt_room_code">Room code</string>
     <string name="lt_in_room">In the room</string>
@@ -725,18 +724,13 @@
     <string name="lt_credit_compatible">Rooms are compatible with Metrolist clients</string>
     <string name="lt_server">Server</string>
     <string name="lt_default_server_name" translatable="false">The Meowery</string>
-    <string name="lt_default_server_location">Poland · run by Nyx</string>
+    <string name="lt_default_server_location" translatable="false">Poland · run by Nyx</string>
     <string name="lt_custom_server">Custom server</string>
     <string name="lt_custom_server_desc">Enter your own wss:// address</string>
     <string name="lt_save_server">Save server</string>
     <string name="lt_as_host">When you host</string>
     <string name="lt_auto_approve_joins">Auto-approve joins</string>
     <string name="lt_auto_approve_joins_desc">Anyone with the code gets in without asking</string>
-    <string name="lt_auto_approve_suggestions">Auto-approve suggestions</string>
-    <string name="lt_auto_approve_suggestions_desc">Suggested tracks go straight into the queue</string>
-    <string name="lt_as_guest">When you are a guest</string>
-    <string name="lt_follow_host_volume">Follow the host's volume</string>
-    <string name="lt_follow_host_volume_desc">On by default each time you join a room</string>
     <string name="lt_blocked">Blocked</string>
     <string name="lt_blocked_empty">Nobody is blocked</string>
     <string name="lt_unblock">Unblock</string>

@@ -25,7 +25,9 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
+import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.action.actionStartActivity
@@ -106,6 +108,13 @@ private const val TILE_DECODE_PX = 256
 class PlaylistsWidget :
     GlanceAppWidget(),
     KoinComponent {
+    // Exact, not the default Single: with Single the composition is laid out against the
+    // XML min sizes and the launcher then squeezes that rendering into whatever cells it
+    // actually granted — non-uniformly on grids whose cells have a different aspect, which
+    // is how every square in these widgets came out a rectangle on some launchers. Exact
+    // re-composes per granted size, so the layout works with the truth.
+    override val sizeMode: SizeMode = SizeMode.Exact
+
     private val sharedViewModel by inject<SharedViewModel>()
     private val commonRepository by inject<CommonRepository>()
     private val serviceScope by inject<CoroutineScope>(named(Config.SERVICE_SCOPE))
@@ -314,10 +323,13 @@ class PlaylistsWidget :
                         // given defaultWeight() takes its width from the row and keeps its fixed
                         // height — which is how these came out rectangular before. Weighted
                         // spacers spread the row instead, leaving every cover square at any width.
+                        // Shrink-only, same arithmetic as the insights rows: five 64.dp
+                        // squares need 320.dp, more than the 250.dp a 4-cell widget may get.
+                        val tileSide = minOf(PLAYLIST_TILE_SIZE, (LocalSize.current.width - 36.dp) / 5)
                         Row(modifier = GlanceModifier.fillMaxWidth()) {
                             tiles.forEachIndexed { index, tile ->
                                 if (index > 0) Spacer(GlanceModifier.defaultWeight())
-                                PlaylistCover(context, tile) { song ->
+                                PlaylistCover(context, tile, tileSide) { song ->
                                     sharedViewModel.loadMediaItemFromTrack(
                                         song.toTrack(),
                                         Config.SONG_CLICK,
@@ -406,13 +418,14 @@ private suspend fun RecentlyType.toTile(context: Context): PlaylistTile? =
 private fun PlaylistCover(
     context: Context,
     tile: PlaylistTile,
+    side: androidx.compose.ui.unit.Dp,
     onPlay: (SongEntity) -> Unit,
 ) {
     val song = tile.song
     Box(
         modifier =
             GlanceModifier
-                .size(PLAYLIST_TILE_SIZE)
+                .size(side)
                 .background(ImageProvider(R.drawable.widget_shortcut_tile))
                 .let { base ->
                     if (song != null) {

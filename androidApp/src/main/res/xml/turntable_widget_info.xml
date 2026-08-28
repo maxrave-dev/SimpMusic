@@ -8,10 +8,12 @@
     android:description="@string/widget_turntable_description"
     android:previewImage="@drawable/widget_preview_img_turntable"
     android:previewLayout="@layout/widget_preview_turntable"
-    android:resizeMode="none"
+    android:resizeMode="horizontal|vertical"
     android:targetCellWidth="2"
     android:targetCellHeight="2"
     android:minWidth="110dp"
     android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

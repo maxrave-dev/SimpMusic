@@ -23,6 +23,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -72,6 +73,13 @@ import org.koin.core.qualifier.named
 class TurntableWidget :
     GlanceAppWidget(),
     KoinComponent {
+    // Exact, not the default Single: with Single the composition is laid out against the
+    // XML min sizes and the launcher then squeezes that rendering into whatever cells it
+    // actually granted — non-uniformly on grids whose cells have a different aspect, which
+    // is how every square in these widgets came out a rectangle on some launchers. Exact
+    // re-composes per granted size, so the layout works with the truth.
+    override val sizeMode: SizeMode = SizeMode.Exact
+
     private val sharedViewModel by inject<SharedViewModel>()
     private val serviceScope by inject<CoroutineScope>(named(Config.SERVICE_SCOPE))
 
