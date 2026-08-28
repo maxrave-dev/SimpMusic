@@ -242,6 +242,11 @@ afterEvaluate {
         jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED")
         jvmArgs("--add-opens", "java.base/java.nio=ALL-UNNAMED")
 
+        // A native crash (SIGSEGV) leaves no Kotlin stack trace; the hs_err file is the only thing
+        // that names the library that died. Without an explicit path the JVM writes it to whatever
+        // directory the daemon happened to start in, where it is effectively lost.
+        jvmArgs("-XX:ErrorFile=${rootProject.layout.buildDirectory.get().asFile}/hs_err_pid%p.log")
+
         // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
         val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =

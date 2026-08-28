@@ -64,7 +64,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -91,7 +90,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -128,13 +126,11 @@ import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
-import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
@@ -175,8 +171,6 @@ import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -193,7 +187,6 @@ import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
-import simpmusic.composeapp.generated.resources.baseline_downloaded
 import simpmusic.composeapp.generated.resources.baseline_favorite_24
 import simpmusic.composeapp.generated.resources.better_lyrics
 import simpmusic.composeapp.generated.resources.bitrate
@@ -217,6 +210,7 @@ import simpmusic.composeapp.generated.resources.edit_thumbnail
 import simpmusic.composeapp.generated.resources.edit_title
 import simpmusic.composeapp.generated.resources.endless_queue
 import simpmusic.composeapp.generated.resources.error_occurred
+import simpmusic.composeapp.generated.resources.extract_source
 import simpmusic.composeapp.generated.resources.itag
 import simpmusic.composeapp.generated.resources.key
 import simpmusic.composeapp.generated.resources.like
@@ -303,6 +297,7 @@ fun InfoPlayerBottomSheet(
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
     val format by sharedViewModel.format.collectAsState(null)
+    val extractSource by sharedViewModel.extractSource.collectAsState()
     val downloadProgress by sharedViewModel.downloadFileProgress.collectAsStateWithLifecycle()
 
     if (downloadProgress != DownloadProgress.INIT) {
@@ -752,6 +747,32 @@ fun InfoPlayerBottomSheet(
                 )
                 Text(
                     text = format?.keyScale ?: stringResource(Res.string.unknown),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable()
+                            .padding(horizontal = 10.dp),
+                    style = typo().bodyMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+
+                Text(
+                    text = stringResource(Res.string.extract_source),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                    textAlign = TextAlign.Center,
+                    style = typo().labelMedium,
+                    color = rememberSurfaceDarkColors().content,
+                )
+                Text(
+                    text = extractSource ?: stringResource(Res.string.unknown),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -1808,10 +1829,15 @@ fun NowPlayingBottomSheet(
                         text =
                             when {
                                 uiState.songUIState.album == null -> Res.string.no_album
-                                uiState.songUIState.album?.name.isNullOrBlank() -> Res.string.album
+                                uiState.songUIState.album
+                                    ?.name
+                                    .isNullOrBlank() -> Res.string.album
                                 else -> null
                             },
-                        textString = uiState.songUIState.album?.name?.takeIf { it.isNotBlank() },
+                        textString =
+                            uiState.songUIState.album
+                                ?.name
+                                ?.takeIf { it.isNotBlank() },
                         enable = uiState.songUIState.album != null,
                     ) {
                         uiState.songUIState.album?.id?.let { id ->
@@ -2652,7 +2678,14 @@ fun AddToPlaylistModalBottomSheet(
                                                 Text(
                                                     text = playlist.title,
                                                     style = typo().labelSmall,
-                                                    color = if (playlist.tracks?.contains(videoId) == true) rememberSurfaceDarkColors().disabled else rememberSurfaceDarkColors().content,
+                                                    color =
+                                                        if (playlist.tracks?.contains(videoId) ==
+                                                            true
+                                                        ) {
+                                                            rememberSurfaceDarkColors().disabled
+                                                        } else {
+                                                            rememberSurfaceDarkColors().content
+                                                        },
                                                 )
                                             }
                                         }

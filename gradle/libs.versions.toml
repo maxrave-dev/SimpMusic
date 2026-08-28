@@ -64,6 +64,8 @@ brave-newpipe = "0fcaf19ecc"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
 pipepipe = "f8982ca9e7"
+# QuickJS binding for KMP — runs YouTube's player JS to solve sig/n challenges locally.
+quickjs = "1.0.14"
 webkit = "1.17.0"
 kermit = "2.1.0"
 paging-common = "3.5.1"
@@ -194,6 +196,7 @@ newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", versio
 brave-extractor = { module = "com.github.maxrave-dev:BravePipeExtractor", version.ref = "brave-newpipe" }
 org-json = { module = "org.json:json", version.ref = "org-json" }
 pipepipe-extractor = { module = "com.github.maxrave-dev:PipePipeExtractor", version.ref = "pipepipe" }
+quickjs = { module = "io.github.dokar3:quickjs-kt", version.ref = "quickjs" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }

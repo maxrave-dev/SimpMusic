@@ -140,10 +140,18 @@ class SharedViewModel(
 
     private var regionCode: String? = null
     private var language: String? = null
-    private var quality: String? = null
 
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
+
+    /**
+     * Which extractor and cipher decoder produced the current track's URLs, shown in the info sheet.
+     *
+     * Read alongside the format rather than stored with it: the format row is cached and reused,
+     * while this describes the extraction that happened in this run of the app.
+     */
+    private val _extractSource: MutableStateFlow<String?> = MutableStateFlow(null)
+    val extractSource: StateFlow<String?> = _extractSource.asStateFlow()
 
     private var _canvas: MutableStateFlow<CanvasResult?> = MutableStateFlow(null)
     val canvas: StateFlow<CanvasResult?> = _canvas
@@ -780,7 +788,6 @@ class SharedViewModel(
         type: String,
         index: Int? = null,
     ) {
-        quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             mediaPlayerHandler.clearMediaItems()
             songRepository.insertSong(track.toSongEntity()).lastOrNull()?.let {
@@ -916,7 +923,6 @@ class SharedViewModel(
 
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
-        quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
@@ -976,6 +982,7 @@ class SharedViewModel(
     private fun getFormat(mediaId: String?) {
         if (mediaId != _format.value?.videoId && !mediaId.isNullOrEmpty()) {
             _format.value = null
+            _extractSource.value = streamRepository.getExtractSource(mediaId)
             getFormatFlowJob?.cancel()
             getFormatFlowJob =
                 viewModelScope.launch {
@@ -986,6 +993,9 @@ class SharedViewModel(
                         } else {
                             _format.emit(null)
                         }
+                        // Re-read on every emission: the first one usually lands before the
+                        // extractor has finished, so the source is only known on a later pass.
+                        _extractSource.value = streamRepository.getExtractSource(mediaId)
                     }
                 }
         }
