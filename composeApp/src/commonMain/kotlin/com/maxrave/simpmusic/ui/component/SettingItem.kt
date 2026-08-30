@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,17 +28,18 @@ fun SettingItem(
     isEnable: Boolean = true,
     onClick: (() -> Unit)? = null,
     switch: Pair<Boolean, ((Boolean) -> Unit)>? = null,
-    onDisable: (() -> Unit)? = null, // Callback when the item is disabled, switch off settings
     otherView: @Composable (() -> Unit)? = null,
 ) {
-    // Key on isEnable (not Unit) so the auto-disable fires whenever the gate flips to false mid-session
-    // (e.g. the user logs out while Settings is open), not only on first composition. Without this, any
-    // child flag gated behind a login stays stuck ON until Settings is reopened (issues #2157, #2064).
-    LaunchedEffect(isEnable) {
-        if (!isEnable && onDisable != null) {
-            onDisable.invoke()
-        }
-    }
+    // isEnable only greys the row out; it deliberately writes nothing.
+    //
+    // There used to be an onDisable callback fired from a LaunchedEffect(isEnable) here, to clear a
+    // login-gated child flag when its gate went false (#2157, #2064). It was wrong twice over. The
+    // gate is a StateFlow filled asynchronously from DataStore, so the FIRST composition always sees
+    // its "not loaded yet" value and read it as "signed out" — sync_follow_to_youtube was erased on
+    // every visit to Settings. And it only ever ran if the user opened Settings and scrolled to the
+    // row at all, so it could not do the job it existed for. Clearing a child flag now belongs to the
+    // logout that invalidates it (SettingsViewModel: setSpotifyLogIn, logOutDiscord, logOutLastfm,
+    // setUsedAccount, logOutAllYouTube, setAIApiKey), which is a real event and cannot misfire.
     Box(
         Modifier
             .then(

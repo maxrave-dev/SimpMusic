@@ -1081,11 +1081,10 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (syncFollowToYouTube to { viewModel.setSyncFollowToYouTube(it) }),
                     // Writing to someone's YouTube account needs a session, so the row is dead
-                    // while signed out. onDisable turns the stored flag back off when that
-                    // happens: SettingItem keys its LaunchedEffect on isEnable, so signing out
-                    // mid-session clears it too, not just a cold start in the signed-out state.
+                    // while signed out. Clearing the stored flag is NOT done from here: the reset
+                    // belongs to the logout itself (SettingsViewModel.setUsedAccount /
+                    // logOutAllYouTube), which runs whether or not Settings is ever opened.
                     isEnable = loggedIn == DataStoreManager.TRUE,
-                    onDisable = { viewModel.setSyncFollowToYouTube(false) },
                 )
                 SettingItem(
                     title = stringResource(Res.string.send_back_listening_data_to_google),
@@ -1837,11 +1836,6 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.use_ai_translation_description),
                     switch = (useAITranslation to { viewModel.setAITranslation(it) }),
                     isEnable = isHasApiKey,
-                    onDisable = {
-                        if (useAITranslation) {
-                            viewModel.setAITranslation(false)
-                        }
-                    },
                 )
             }
         }
@@ -1883,22 +1877,12 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.spotify_lyrícs_info),
                     switch = (spotifyLyrics to { viewModel.setSpotifyLyrics(it) }),
                     isEnable = spotifyLoggedIn,
-                    onDisable = {
-                        if (spotifyLyrics) {
-                            viewModel.setSpotifyLyrics(false)
-                        }
-                    },
                 )
                 SettingItem(
                     title = stringResource(Res.string.enable_canvas),
                     subtitle = stringResource(Res.string.canvas_info),
                     switch = (spotifyCanvas to { viewModel.setSpotifyCanvas(it) }),
                     isEnable = spotifyLoggedIn,
-                    onDisable = {
-                        if (spotifyCanvas) {
-                            viewModel.setSpotifyCanvas(false)
-                        }
-                    },
                 )
             }
         }
@@ -1938,11 +1922,6 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.rich_presence_info),
                     switch = (richPresenceEnabled to { viewModel.setDiscordRichPresenceEnabled(it) }),
                     isEnable = discordLoggedIn,
-                    onDisable = {
-                        if (discordLoggedIn) {
-                            viewModel.setDiscordRichPresenceEnabled(false)
-                        }
-                    },
                 )
             }
         }
@@ -1985,11 +1964,6 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.scrobbling_info),
                         switch = (lastfmScrobbleEnabled to { viewModel.setLastfmScrobbleEnabled(it) }),
                         isEnable = lastfmLoggedIn,
-                        onDisable = {
-                            if (lastfmScrobbleEnabled) {
-                                viewModel.setLastfmScrobbleEnabled(false)
-                            }
-                        },
                     )
                 }
             }

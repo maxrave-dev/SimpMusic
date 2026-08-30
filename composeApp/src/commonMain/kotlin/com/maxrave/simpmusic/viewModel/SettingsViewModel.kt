@@ -564,6 +564,10 @@ class SettingsViewModel(
     fun logOutLastfm() {
         viewModelScope.launch {
             dataStoreManager.setLastfmSession(sessionKey = "", username = "")
+            // Scrobbling is gated on the session, so logging out must clear it here — the same
+            // teardown setSpotifyLogIn and logOutDiscord already do. Doing it from the Settings
+            // row instead only works if the user happens to open Settings and scroll to that row.
+            dataStoreManager.setLastfmScrobbleEnabled(false)
         }
     }
 
@@ -838,6 +842,11 @@ class SettingsViewModel(
     fun setAIApiKey(apiKey: String) {
         viewModelScope.launch {
             dataStoreManager.setAIApiKey(apiKey)
+            // An empty key IS the sign-out here — isHasApiKey is derived from aiApiKey.isNotEmpty()
+            // — so AI translation, which is gated on it, has to come off with it.
+            if (apiKey.isEmpty()) {
+                dataStoreManager.setUseAITranslation(false)
+            }
             getAIApiKey()
         }
     }
@@ -1633,6 +1642,10 @@ class SettingsViewModel(
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("", null)
+                // Mirroring follows needs a session to write to, so signing out clears the flag
+                // here rather than from the Settings row — same teardown as setSpotifyLogIn and
+                // logOutDiscord. Only this branch: acc != null is switching account, not logout.
+                dataStoreManager.setSyncFollowToYouTube(false)
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -1649,6 +1662,7 @@ class SettingsViewModel(
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("", null)
+            dataStoreManager.setSyncFollowToYouTube(false)
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()
