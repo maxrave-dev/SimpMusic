@@ -219,7 +219,15 @@ fun NowPlayingScreenContent(
     }
 
     // ① Player → Pager: animate to new track when player advances.
-    LaunchedEffect(currentOrderIndex, artworkQueue.size) {
+    //
+    // Keyed on the track ALONE. It used to be keyed on the queue SIZE as well, and a changing key
+    // cancels the running effect — including the animateScrollToPage in flight. A cancelled scroll
+    // simply stops where it is; nothing snaps it to a page afterwards, because snapping belongs to
+    // the gesture path, not to a programmatic scroll. Turning on the radio appends to the queue
+    // repeatedly, so the size changed again and again and cut the animation short each time,
+    // leaving the pager parked between two pages. The size is still read below — just as a value,
+    // not as a trigger; ③ handles the case where the queue shrinks under the current page.
+    LaunchedEffect(currentOrderIndex) {
         val target = currentOrderIndex
         if (!isUserDraggingActive &&
             artworkQueue.isNotEmpty() &&
