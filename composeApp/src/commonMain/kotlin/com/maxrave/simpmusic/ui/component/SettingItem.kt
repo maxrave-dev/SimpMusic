@@ -91,7 +91,12 @@ fun SettingItem(
                                 if (!isEnable) it.greyScale() else it
                             }
                         },
-                    maxLines = 2,
+                    // No maxLines: with a cap and no overflow set, Compose defaults to Clip and cut
+                    // the second line through the middle of the glyphs, with no ellipsis to show
+                    // anything was missing. A settings list scrolls vertically anyway, and these
+                    // descriptions are translated — German and Vietnamese run longer than the
+                    // English they were sized against, so any fixed cap just moves the problem to
+                    // another language.
                 )
 
                 otherView?.let {

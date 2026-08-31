@@ -298,6 +298,7 @@ class SettingsViewModel(
         getSyncFollowToYouTube()
         getEqualizer()
         getSpotifyCanvas()
+        getAMAnimatedArtwork()
         getUsingProxy()
         getCanvasCache()
         getTranslucentBottomBar()
@@ -1850,6 +1851,9 @@ class SettingsViewModel(
     private var _spotifyCanvas: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val spotifyCanvas: StateFlow<Boolean> = _spotifyCanvas
 
+    private var _amAnimatedArtwork: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val amAnimatedArtwork: StateFlow<Boolean> = _amAnimatedArtwork
+
     fun getSpotifyLyrics() {
         viewModelScope.launch {
             dataStoreManager.spotifyLyrics.collect {
@@ -1885,6 +1889,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSpotifyCanvas(loggedIn)
             getSpotifyCanvas()
+        }
+    }
+
+    fun getAMAnimatedArtwork() {
+        viewModelScope.launch {
+            dataStoreManager.amAnimatedArtwork.collect {
+                _amAnimatedArtwork.emit(it == DataStoreManager.TRUE)
+            }
+        }
+    }
+
+    fun setAMAnimatedArtwork(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setAMAnimatedArtwork(enabled)
+            getAMAnimatedArtwork()
         }
     }
 

@@ -582,41 +582,58 @@ class SharedViewModel(
         Logger.w(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
-            if (dataStoreManager.spotifyCanvas.first() == TRUE) {
-                lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration).cancellable().collect { response ->
-                    val data = response.data
-                    when (response) {
-                        is Resource.Success if (data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) -> {
-                            _canvas.value = data
-                            _nowPlayingScreenData.update {
-                                it.copy(
-                                    canvasData =
-                                        NowPlayingScreenData.CanvasData(
-                                            isVideo = data.isVideo,
-                                            url = data.canvasUrl,
-                                        ),
-                                )
-                            }
-                            // Save canvas video url
-                            if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
-                            // Save canvas thumb url
-                            data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
-                        }
+            // Both sources fill the same slot, so they are tried in order rather than raced:
+            // animated artwork first, and a Spotify canvas only if that found nothing AND the user
+            // has that switch on too. Neither switch touches the other — a track with no animated
+            // artwork still gets its canvas, and turning Spotify off still means no canvas at all.
+            val sources =
+                buildList {
+                    if (dataStoreManager.amAnimatedArtwork.first() == TRUE) {
+                        add(lyricsCanvasRepository.getAMAnimatedArtwork(videoId))
+                    }
+                    if (dataStoreManager.spotifyCanvas.first() == TRUE) {
+                        add(lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration))
+                    }
+                }
+            if (sources.isEmpty()) return@launch
 
-                        else -> {
-                            log("Get canvas error: ${response.message}", LogLevel.WARN)
-                            nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
-                                _nowPlayingScreenData.update {
-                                    it.copy(
-                                        canvasData =
-                                            NowPlayingScreenData.CanvasData(
-                                                isVideo = url.contains(".mp4"),
-                                                url = url,
-                                            ),
-                                    )
-                                }
-                            }
+            var resolved = false
+            for (source in sources) {
+                if (resolved) break
+                source.cancellable().collect { response ->
+                    val data = response.data
+                    if (response is Resource.Success && data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        resolved = true
+                        _canvas.value = data
+                        _nowPlayingScreenData.update {
+                            it.copy(
+                                canvasData =
+                                    NowPlayingScreenData.CanvasData(
+                                        isVideo = data.isVideo,
+                                        url = data.canvasUrl,
+                                    ),
+                            )
                         }
+                        // Save canvas video url
+                        if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
+                        // Save canvas thumb url
+                        data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
+                    } else {
+                        log("Get canvas miss from a source: ${response.message}", LogLevel.WARN)
+                    }
+                }
+            }
+
+            if (!resolved) {
+                nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
+                    _nowPlayingScreenData.update {
+                        it.copy(
+                            canvasData =
+                                NowPlayingScreenData.CanvasData(
+                                    isVideo = url.isCanvasVideoUrl(),
+                                    url = url,
+                                ),
+                        )
                     }
                 }
             }
@@ -2156,3 +2173,14 @@ sealed class VoteState {
         val message: String,
     ) : VoteState()
 }
+
+/**
+ * Whether a stored canvas url points at something a player should open rather than an image.
+ *
+ * The column holds whatever the active source wrote: a Spotify canvas is an `.mp4`, while AM
+ * animated artwork is an HLS `.m3u8` master playlist. Testing only for `.mp4` — as this did before
+ * AM existed — sends every AM artwork down the still-image branch, and because the branch that
+ * reads this is the one that restores a *cached* url, the failure only appears from the second play
+ * of a track onwards.
+ */
+private fun String.isCanvasVideoUrl(): Boolean = contains(".mp4") || contains(".m3u8")

@@ -113,6 +113,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kyant.backdrop.highlight.Highlight
+import com.maxrave.data.io.readLocalImageBytes
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -129,6 +130,7 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
+import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
@@ -198,6 +200,7 @@ import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.cast_to
+import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.delete
@@ -2967,10 +2970,39 @@ fun LocalPlaylistBottomSheet(
                 onDismiss()
             }
         }
+    // The picked file is cropped before it is used. A cover slot is square, so an uncropped 16:9
+    // photo would be squashed to fit — which is what it used to do.
+    var imageAwaitingCrop by remember { mutableStateOf<ByteArray?>(null) }
     val resultLauncher =
-        photoPickerResult {
-            it?.let { onEditThumbnail(it) }
+        photoPickerResult { pickedUri ->
+            pickedUri?.let { uri ->
+                coroutineScope.launch { imageAwaitingCrop = readLocalImageBytes(uri) }
+            }
         }
+    imageAwaitingCrop?.let { bytes ->
+        ImageCropperDialog(
+            imageBytes = bytes,
+            titleText = stringResource(Res.string.crop_cover),
+            confirmText = stringResource(Res.string.save),
+            cancelText = stringResource(Res.string.cancel),
+            onDismiss = { imageAwaitingCrop = null },
+            onCropped = { cropped ->
+                imageAwaitingCrop = null
+                coroutineScope.launch {
+                    // Written into the app's own storage, NOT reused from the picker's uri: that
+                    // one still points at the original uncropped file, and on Android the read
+                    // permission granted for it does not outlive the process.
+                    // Named after the CONTENT, not the clock. A fixed name would be overwritten
+                    // in place and Coil, which caches by url, would keep showing the previous
+                    // cover; a timestamp would leave a new file behind every time the user
+                    // re-picked the same picture. Hashing gives a fresh name for a new image and
+                    // the same name for the same one.
+                    persistPickedImage(cropped, "cover_${cropped.contentHashCode().toUInt()}.jpg")
+                        ?.let(onEditThumbnail)
+                }
+            },
+        )
+    }
     if (showEditTitle) {
         var newTitle by remember { mutableStateOf(title) }
         val showEditTitleSheetState =

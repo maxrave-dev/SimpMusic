@@ -363,11 +363,28 @@ fun LyricsView(
 
     val timedLineIndexes =
         remember(lyricsData.lyrics.lines) {
-            lyricsData.lyrics.lines
-                .orEmpty()
-                .mapIndexedNotNull { index, line ->
-                    line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
-                }.sortedBy { it.startTimeMs }
+            val timed =
+                lyricsData.lyrics.lines
+                    .orEmpty()
+                    .mapIndexedNotNull { index, line ->
+                        line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
+                    }
+            // An unsynced sheet still carries a startTimeMs on every line — the literal "0", on all
+            // 307 unsynced rows of the author's own library. Those parse perfectly well, so this
+            // list came out full of zeros and [activeIndexAt], asked for "the last line at or before
+            // now", answered with the LAST LINE OF THE SONG from the first second onward. Every
+            // other line then sat at a huge distance from it and blurred to maximum: the whole
+            // sheet unreadable, with the one sharp line parked off the bottom of the screen.
+            //
+            // Tested on the timestamps rather than on syncType because it is the timestamps the
+            // search actually reads: one distinct value cannot order anything, whatever the sheet
+            // calls itself. With the list empty, currentLineIndex stays -1, and the renderer's
+            // no-active-line branch dims every line uniformly and blurs none of them.
+            if (timed.distinctBy { it.startTimeMs }.size <= 1) {
+                emptyList()
+            } else {
+                timed.sortedBy { it.startTimeMs }
+            }
         }
 
     val currentLineIndex by remember(timedLineIndexes) {

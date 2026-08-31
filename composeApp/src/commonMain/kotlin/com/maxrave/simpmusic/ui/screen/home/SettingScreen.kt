@@ -199,6 +199,7 @@ import simpmusic.composeapp.generated.resources.blog_notification_description
 import simpmusic.composeapp.generated.resources.blog_notification_title
 import simpmusic.composeapp.generated.resources.buy_me_a_coffee
 import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.animated_artwork_info
 import simpmusic.composeapp.generated.resources.canvas_info
 import simpmusic.composeapp.generated.resources.categories_sponsor_block
 import simpmusic.composeapp.generated.resources.change
@@ -238,6 +239,7 @@ import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
+import simpmusic.composeapp.generated.resources.enable_animated_artwork
 import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
@@ -511,6 +513,7 @@ fun SettingScreen(
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
+    val amAnimatedArtwork by viewModel.amAnimatedArtwork.collectAsStateWithLifecycle()
     val enableSponsorBlock by remember { viewModel.sponsorBlockEnabled.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val skipSegments by viewModel.sponsorBlockCategories.collectAsStateWithLifecycle()
     val playerCache by viewModel.cacheSize.collectAsStateWithLifecycle()
@@ -1883,6 +1886,14 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.canvas_info),
                     switch = (spotifyCanvas to { viewModel.setSpotifyCanvas(it) }),
                     isEnable = spotifyLoggedIn,
+                )
+                // Sits with the canvas because it replaces it, but carries no isEnable: the two
+                // rows above need a Spotify session and this one needs no account at all, so
+                // gating it on spotifyLoggedIn would lock it away from the users it works for.
+                SettingItem(
+                    title = stringResource(Res.string.enable_animated_artwork),
+                    subtitle = stringResource(Res.string.animated_artwork_info),
+                    switch = (amAnimatedArtwork to { viewModel.setAMAnimatedArtwork(it) }),
                 )
             }
         }
