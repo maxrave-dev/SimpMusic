@@ -344,6 +344,8 @@
     <string name="spotify_lyrícs_info">More lyrics without translation</string>
     <string name="enable_canvas">Enable Canvas</string>
     <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
+    <string name="enable_animated_artwork">Animated artwork</string>
+    <string name="animated_artwork_info">Play the album's animated cover instead of a Canvas. No account needed. Albums without one keep the still cover.</string>
     <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
