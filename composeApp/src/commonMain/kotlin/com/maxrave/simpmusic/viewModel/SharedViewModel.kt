@@ -84,6 +84,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.lastOrNull
@@ -97,6 +98,8 @@ import org.jetbrains.compose.resources.getString
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
+import simpmusic.composeapp.generated.resources.added_to_playlist
+import simpmusic.composeapp.generated.resources.added_to_youtube_playlist
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
@@ -1735,6 +1738,37 @@ class SharedViewModel(
 
     fun activityRecreate() {
         _recreateActivity.value = true
+    }
+
+    fun saveQueueToLocalPlaylist(playlistId: Long, tracks: List<Track>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            tracks.forEach { track ->
+                localPlaylistRepository.addTrackToLocalPlaylist(
+                    id = playlistId,
+                    song = track.toSongEntity(),
+                    successMessage = getString(Res.string.added_to_playlist),
+                    updatedYtMessage = getString(Res.string.added_to_youtube_playlist),
+                    errorMessage = getString(Res.string.error)
+                ).collect {}
+            }
+            withContext(Dispatchers.Main) {
+                makeToast(getString(Res.string.added_to_playlist))
+            }
+        }
+    }
+
+    fun saveQueueToYouTubePlaylist(browseId: String, tracks: List<Track>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            tracks.forEach { track ->
+                localPlaylistRepository.addYouTubePlaylistItem(
+                    youtubePlaylistId = browseId,
+                    videoId = track.videoId
+                ).collect {}
+            }
+            withContext(Dispatchers.Main) {
+                makeToast(getString(Res.string.added_to_youtube_playlist))
+            }
+        }
     }
 
     fun activityRecreateDone() {
