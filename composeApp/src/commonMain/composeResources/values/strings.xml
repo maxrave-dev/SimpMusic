@@ -202,6 +202,7 @@
     <string name="categories_sponsor_block">Select skip-segment behavior</string>
     <string name="what_segments_will_be_skipped">What segments will be skipped</string>
     <string name="save">Save</string>
+    <string name="crop_cover">Crop cover</string>
     <string name="saved">Saved</string>
     <string name="sponsor_block_intro">SponsorBlock is a crowd-sourced system for skipping annoying parts of YouTube videos.\nMore information: https://sponsor.ajay.app/\nIn SimpMusic, SponsorBlock is only available when the device is online</string>
     <string name="skip_sponsor_part_of_video">Skip sponsor part of video</string>
