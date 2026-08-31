@@ -112,6 +112,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
@@ -129,6 +130,8 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
+import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.icon.AccessAlarm
@@ -158,6 +161,7 @@ import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Speed
+import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
 import com.maxrave.simpmusic.ui.icon.Tune
@@ -193,10 +197,13 @@ import simpmusic.composeapp.generated.resources.bitrate
 import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.cast_to
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.delete
 import simpmusic.composeapp.generated.resources.delete_playlist
+import simpmusic.composeapp.generated.resources.disconnect_cast
+import simpmusic.composeapp.generated.resources.no_devices_found
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.download
@@ -3344,4 +3351,197 @@ sealed class DevLogInType {
             is YouTube -> getString(Res.string.your_youtube_cookie)
             is Discord -> getString(Res.string.your_discord_token)
         }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CastDevicePickerBottomSheet(
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val colors = rememberSurfaceDarkColors()
+    var devices by remember { mutableStateOf(emptyList<com.maxrave.simpmusic.expect.ui.CastDevice>()) }
+    var activeDeviceId by remember { mutableStateOf<String?>(null) }
+    var connectingDeviceId by remember { mutableStateOf<String?>(null) }
+
+    // Discover routes
+    com.maxrave.simpmusic.expect.ui.rememberCastRouteDiscovery {
+        devices = com.maxrave.simpmusic.expect.ui.getAvailableCastDevices()
+        val newActive = devices.firstOrNull { it.isActive }?.id
+        // If the device we're connecting to became active, dismiss
+        if (connectingDeviceId != null && newActive != null) {
+            connectingDeviceId = null
+            onDismiss()
+        }
+        activeDeviceId = newActive
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() },
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = {},
+        scrimColor = Color.Black.copy(alpha = .5f),
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        val backdrop = com.maxrave.simpmusic.expect.ui.rememberBackdrop(Color.Black.copy(alpha = 0.85f))
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Backdrop source
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .layerBackdrop(backdrop),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.85f)),
+                )
+            }
+
+            // Entire sheet as one liquid glass surface
+            LiquidGlassContainer(
+                backdrop = backdrop,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                highlight = Highlight(width = 1.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Drag handle
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .size(width = 60.dp, height = 4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(colors.handle),
+                    )
+
+                    // Title
+                    Text(
+                        text = stringResource(Res.string.cast_to),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colors.content,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                    )
+
+                    if (devices.isEmpty()) {
+                        Text(
+                            text = stringResource(Res.string.no_devices_found),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.disabled,
+                            modifier = Modifier.padding(vertical = 24.dp),
+                        )
+                    } else {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            devices.forEach { device ->
+                                LiquidGlassContainer(
+                                    backdrop = backdrop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    highlight = Highlight(width = 1.dp),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable {
+                                                if (!device.isActive && connectingDeviceId == null) {
+                                                    connectingDeviceId = device.id
+                                                    com.maxrave.simpmusic.expect.ui.selectCastDevice(device.id)
+                                                }
+                                            }
+                                            .padding(horizontal = 16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        if (connectingDeviceId == device.id) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                strokeWidth = 2.dp,
+                                                color = seed,
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = SimpIcons.Sensors,
+                                                contentDescription = null,
+                                                tint = if (device.isActive) seed else colors.content,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = device.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = if (device.isActive) seed else colors.content,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        if (device.isActive) {
+                                            Icon(
+                                                imageVector = SimpIcons.CheckCircle,
+                                                contentDescription = null,
+                                                tint = seed,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (activeDeviceId != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                LiquidGlassContainer(
+                                    backdrop = backdrop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    highlight = Highlight(width = 1.dp),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable {
+                                                com.maxrave.simpmusic.expect.ui.disconnectFromCast()
+                                                onDismiss()
+                                            }
+                                            .padding(horizontal = 16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.SyncDisabled,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = stringResource(Res.string.disconnect_cast),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.ui.screen.player.content.applemusic
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
@@ -45,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -78,6 +84,7 @@ import com.maxrave.simpmusic.expect.ui.PlatformCastButton
 import com.maxrave.simpmusic.expect.ui.isPlatformCastAvailable
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.CastDevicePickerBottomSheet
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
@@ -104,6 +111,7 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.playing_on_device
 import kotlin.math.roundToLong
 
 /** Which body the dock is currently showing. Held by the top-level Apple Music composable. */
@@ -638,8 +646,10 @@ internal fun AppleMusicTransportRow(
 
 @Composable
 internal fun AppleMusicVolumeRow(
-    controller: DeviceVolumeController,
+    controller: DeviceVolumeController?,
     modifier: Modifier = Modifier,
+    castVolume: Float = controller?.volumeFraction ?: 0f,
+    onCastVolumeChange: (Float) -> Unit = { controller?.setVolumeFraction(it) },
 ) {
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -651,9 +661,9 @@ internal fun AppleMusicVolumeRow(
         Spacer(modifier = Modifier.width(12.dp))
         Box(modifier = Modifier.weight(1f).height(18.dp), contentAlignment = Alignment.Center) {
             AppleMusicThinSlider(
-                value = controller.volumeFraction,
+                value = castVolume,
                 activeColor = AppleMusicTrackActive,
-                onValueChange = { controller.setVolumeFraction(it) },
+                onValueChange = onCastVolumeChange,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -717,6 +727,8 @@ internal fun AppleMusicDock(
     activeContentColor: Color,
     modifier: Modifier = Modifier,
 ) {
+    var showCastPicker by rememberSaveable { mutableStateOf(false) }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -738,6 +750,7 @@ internal fun AppleMusicDock(
                 PlatformCastButton(
                     modifier = Modifier.size(22.dp),
                     tint = if (castState.isRemote) activeColor else Color.White,
+                    onShowPicker = { showCastPicker = true },
                 )
             }
         }
@@ -749,6 +762,12 @@ internal fun AppleMusicDock(
             onClick = {
                 onSelectView(if (viewState == AppleMusicView.QUEUE) AppleMusicView.MAIN else AppleMusicView.QUEUE)
             },
+        )
+    }
+
+    if (showCastPicker) {
+        CastDevicePickerBottomSheet(
+            onDismiss = { showCastPicker = false },
         )
     }
 }
@@ -792,8 +811,19 @@ internal fun AppleMusicBottomCluster(
                 onUIEvent = actions.onUIEvent,
             )
             Spacer(modifier = Modifier.height(14.dp))
+            val isCastConnected = state.castState.isRemote
             deviceVolumeController?.let { controller ->
-                AppleMusicVolumeRow(controller = controller)
+                AppleMusicVolumeRow(
+                    controller = if (isCastConnected) null else controller,
+                    castVolume = if (isCastConnected) state.controllerState.volume else controller.volumeFraction,
+                    onCastVolumeChange = { newVolume ->
+                        if (isCastConnected) {
+                            actions.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                        } else {
+                            controller.setVolumeFraction(newVolume)
+                        }
+                    },
+                )
                 Spacer(modifier = Modifier.height(14.dp))
             }
         } else {
@@ -807,6 +837,21 @@ internal fun AppleMusicBottomCluster(
             activeColor = activePillContainer,
             activeContentColor = activePillContent,
         )
+        AnimatedVisibility(
+            visible = state.castState.isRemote,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            Text(
+                text = stringResource(Res.string.playing_on_device, state.castState.deviceName ?: "Cast"),
+                style = typo().bodySmall,
+                color = activePillContainer.copy(alpha = 0.7f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                textAlign = TextAlign.Center,
+            )
+        }
         Spacer(
             modifier =
                 Modifier.height(

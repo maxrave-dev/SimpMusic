@@ -65,6 +65,7 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.ui.toByteArray
+import com.maxrave.simpmusic.expect.ui.disconnectFromCast
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -97,6 +98,7 @@ import org.jetbrains.compose.resources.getString
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
+import simpmusic.composeapp.generated.resources.cast_disconnected
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
@@ -294,6 +296,18 @@ class SharedViewModel(
                         _shareSavedLyrics.value = it == TRUE
                     }
                 }
+            val castDisconnectJob =
+                launch {
+                    var wasRemote = false
+                    mediaPlayerHandler.castState
+                        .distinctUntilChangedBy { it.isRemote }
+                        .collectLatest { state ->
+                            if (wasRemote && !state.isRemote) {
+                                makeToast(getString(Res.string.cast_disconnected))
+                            }
+                            wasRemote = state.isRemote
+                        }
+                }
 //            val controllerStateJob =
 //                launch {
 //                    controllerState.map { it.isLiked }.distinctUntilChanged().collectLatest {
@@ -308,6 +322,7 @@ class SharedViewModel(
             checkGetVideoJob.join()
             lyricsProviderJob.join()
             shareSavedLyricsJob.join()
+            castDisconnectJob.join()
 //            controllerStateJob.join()
         }
 
@@ -324,9 +339,7 @@ class SharedViewModel(
         }
         viewModelScope.launch {
             mediaPlayerHandler.nowPlayingState
-                .distinctUntilChangedBy {
-                    it.songEntity?.videoId
-                }.collectLatest { state ->
+                .collectLatest { state ->
                     Logger.w(tag, "NowPlayingState is $state")
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
@@ -354,45 +367,33 @@ class SharedViewModel(
                             ?: mediaPlayerHandler.getPlayerDuration().takeIf { it > 0L }
                             ?: -1L
                     _timeline.update { it.copy(total = seededTotal) }
-                    state.songEntity?.let { track ->
-                        _nowPlayingScreenData.value =
-                            NowPlayingScreenData(
-                                nowPlayingTitle = track.title,
-                                artistName =
-                                    track
-                                        .artistName
-                                        ?.joinToString(", ") ?: "",
-                                isVideo = false,
-                                thumbnailURL = null,
-                                canvasData = null,
-                                lyricsData = null,
-                                songInfoData = null,
-                                playlistName =
-                                    mediaPlayerHandler.queueData.value
-                                        ?.data
-                                        ?.playlistName ?: "",
-                            )
-                    }
-                    state.mediaItem.let { now ->
-                        _canvas.value = null
-                        getLikeStatus(now.mediaId)
-                        getSongInfo(now.mediaId)
-                        getFormat(now.mediaId)
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                thumbnailURL = now.metadata.artworkUri,
-                                isVideo = now.isVideo(),
-                            )
-                        }
-                    }
-                    state.songEntity?.let { song ->
-                        _liked.value = song.liked == true
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                isExplicit = song.isExplicit,
-                            )
-                        }
-                    }
+                    // When songEntity is null (track just changed, DB query in progress), fall
+                    // back to mediaItem metadata so the UI never shows stale title/artist from
+                    // the previous track. The correct songEntity arrives ~50ms later.
+                    val song = state.songEntity
+                    val now = state.mediaItem
+                    _nowPlayingScreenData.value =
+                        NowPlayingScreenData(
+                            nowPlayingTitle = song?.title ?: now.metadata.title ?: "",
+                            artistName =
+                                song?.artistName?.joinToString(", ")
+                                    ?: now.metadata.artist ?: "",
+                            isVideo = now.isVideo(),
+                            thumbnailURL = now.metadata.artworkUri,
+                            canvasData = null,
+                            lyricsData = null,
+                            songInfoData = null,
+                            isExplicit = song?.isExplicit == true,
+                            playlistName =
+                                mediaPlayerHandler.queueData.value
+                                    ?.data
+                                    ?.playlistName ?: "",
+                        )
+                    _canvas.value = null
+                    getLikeStatus(now.mediaId)
+                    getSongInfo(now.mediaId)
+                    getFormat(now.mediaId)
+                    _liked.value = song?.liked == true
                 }
         }
         viewModelScope.launch {
@@ -905,6 +906,10 @@ class SharedViewModel(
                 UIEvent.ToggleLike -> {
                     Logger.w(tag, "ToggleLike")
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.ToggleLike)
+                }
+
+                UIEvent.DisconnectCast -> {
+                    disconnectFromCast()
                 }
 
                 is UIEvent.UpdateVolume -> {
@@ -2080,6 +2085,8 @@ sealed class UIEvent {
     ) : UIEvent()
 
     data object ToggleLike : UIEvent()
+
+    data object DisconnectCast : UIEvent()
 }
 
 enum class LyricsProvider {
