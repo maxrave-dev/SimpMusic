@@ -581,22 +581,28 @@ class SharedViewModel(
         Logger.w(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
-            // The two sources fill the same slot, so AM wins outright rather than racing: asking
-            // Spotify for a canvas that would be discarded costs a login-gated round trip on every
-            // track. The Spotify switch itself is deliberately left alone — it stays where the user
-            // put it and simply stops being consulted while AM is on.
-            val canvasSource =
-                when {
-                    dataStoreManager.amAnimatedArtwork.first() == TRUE ->
-                        lyricsCanvasRepository.getAMAnimatedArtwork(videoId)
-                    dataStoreManager.spotifyCanvas.first() == TRUE ->
-                        lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration)
-                    else -> return@launch
+            // Both sources fill the same slot, so they are tried in order rather than raced:
+            // animated artwork first, and a Spotify canvas only if that found nothing AND the user
+            // has that switch on too. Neither switch touches the other — a track with no animated
+            // artwork still gets its canvas, and turning Spotify off still means no canvas at all.
+            val sources =
+                buildList {
+                    if (dataStoreManager.amAnimatedArtwork.first() == TRUE) {
+                        add(lyricsCanvasRepository.getAMAnimatedArtwork(videoId))
+                    }
+                    if (dataStoreManager.spotifyCanvas.first() == TRUE) {
+                        add(lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration))
+                    }
                 }
-            canvasSource.cancellable().collect { response ->
-                val data = response.data
-                when (response) {
-                    is Resource.Success if (data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) -> {
+            if (sources.isEmpty()) return@launch
+
+            var resolved = false
+            for (source in sources) {
+                if (resolved) break
+                source.cancellable().collect { response ->
+                    val data = response.data
+                    if (response is Resource.Success && data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        resolved = true
                         _canvas.value = data
                         _nowPlayingScreenData.update {
                             it.copy(
@@ -611,21 +617,22 @@ class SharedViewModel(
                         if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
                         // Save canvas thumb url
                         data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
+                    } else {
+                        log("Get canvas miss from a source: ${response.message}", LogLevel.WARN)
                     }
+                }
+            }
 
-                    else -> {
-                        log("Get canvas error: ${response.message}", LogLevel.WARN)
-                        nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
-                            _nowPlayingScreenData.update {
-                                it.copy(
-                                    canvasData =
-                                        NowPlayingScreenData.CanvasData(
-                                            isVideo = url.isCanvasVideoUrl(),
-                                            url = url,
-                                        ),
-                                )
-                            }
-                        }
+            if (!resolved) {
+                nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
+                    _nowPlayingScreenData.update {
+                        it.copy(
+                            canvasData =
+                                NowPlayingScreenData.CanvasData(
+                                    isVideo = url.isCanvasVideoUrl(),
+                                    url = url,
+                                ),
+                        )
                     }
                 }
             }
