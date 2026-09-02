@@ -307,7 +307,7 @@ fun SearchScreen(
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
         val keyboardController = LocalSoftwareKeyboardController.current
         LaunchedEffect(reloadDestination) {
-            if (!selectionState.isActive && reloadDestination == SearchDestination::class) {
+            if (!selectionState.isActive && searchUIType == SearchUIType.EMPTY && reloadDestination == SearchDestination::class) {
                 isExpanded = true
                 focusRequester.requestFocus()
                 keyboardController?.show()
