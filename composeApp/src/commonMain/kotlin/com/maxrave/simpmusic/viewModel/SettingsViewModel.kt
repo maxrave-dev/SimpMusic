@@ -13,6 +13,7 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.GoogleAccountEntity
 import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.player.GenericCastState
+import com.maxrave.domain.data.player.ReverbPreset
 import com.maxrave.domain.extension.toNetScapeString
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
@@ -297,6 +298,7 @@ class SettingsViewModel(
         getSpotifyLyrics()
         getSyncFollowToYouTube()
         getEqualizer()
+        getAudioEffects()
         getSpotifyCanvas()
         getAMAnimatedArtwork()
         getUsingProxy()
@@ -1818,6 +1820,107 @@ class SettingsViewModel(
         }
     }
 
+    private var _delayEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val delayEnabled: StateFlow<Boolean> = _delayEnabled
+
+    private var _delayTimeMs: MutableStateFlow<Int> = MutableStateFlow(DEFAULT_DELAY_TIME_MS)
+    val delayTimeMs: StateFlow<Int> = _delayTimeMs
+
+    private var _delayFeedback: MutableStateFlow<Float> = MutableStateFlow(DEFAULT_DELAY_FEEDBACK)
+    val delayFeedback: StateFlow<Float> = _delayFeedback
+
+    private var _delayMix: MutableStateFlow<Float> = MutableStateFlow(DEFAULT_DELAY_MIX)
+    val delayMix: StateFlow<Float> = _delayMix
+
+    private var _reverbEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val reverbEnabled: StateFlow<Boolean> = _reverbEnabled
+
+    private var _reverbPreset: MutableStateFlow<ReverbPreset> = MutableStateFlow(ReverbPreset.HALL)
+    val reverbPreset: StateFlow<ReverbPreset> = _reverbPreset
+
+    private var _reverbMix: MutableStateFlow<Float> = MutableStateFlow(DEFAULT_REVERB_MIX)
+    val reverbMix: StateFlow<Float> = _reverbMix
+
+    /**
+     * Guards the effect collectors the same way [equalizerCollectorsStarted] guards the curve's.
+     *
+     * Same two callers, same trap: [getData] runs on every visit to the settings screen and the two
+     * effect blocks ask on their own so they keep working if they are ever hosted elsewhere. The
+     * collectors live in [viewModelScope] rather than in a composition, so without this every
+     * toggle of the switch would leave another seven behind.
+     */
+    private var audioEffectCollectorsStarted = false
+
+    fun getAudioEffects() {
+        if (audioEffectCollectorsStarted) return
+        audioEffectCollectorsStarted = true
+        viewModelScope.launch {
+            launch { dataStoreManager.delayEnabled.collect { _delayEnabled.emit(it == DataStoreManager.TRUE) } }
+            launch { dataStoreManager.delayTimeMs.collect { _delayTimeMs.emit(it) } }
+            launch { dataStoreManager.delayFeedback.collect { _delayFeedback.emit(it) } }
+            launch { dataStoreManager.delayMix.collect { _delayMix.emit(it) } }
+            launch { dataStoreManager.reverbEnabled.collect { _reverbEnabled.emit(it == DataStoreManager.TRUE) } }
+            launch {
+                dataStoreManager.reverbPreset.collect { stored ->
+                    // The store hands the name back unresolved on purpose, so the fallback lives
+                    // here: a room named by a build newer than this one has to land on something
+                    // playable rather than throw out of a collector and kill the whole block.
+                    _reverbPreset.emit(runCatching { ReverbPreset.valueOf(stored) }.getOrDefault(ReverbPreset.HALL))
+                }
+            }
+            launch { dataStoreManager.reverbMix.collect { _reverbMix.emit(it) } }
+        }
+    }
+
+    fun setDelayEnabled(enabled: Boolean) {
+        viewModelScope.launch { dataStoreManager.setDelayEnabled(enabled) }
+    }
+
+    fun setDelayTimeMs(timeMs: Int) {
+        viewModelScope.launch { dataStoreManager.setDelayTimeMs(timeMs) }
+    }
+
+    fun setDelayFeedback(feedback: Float) {
+        viewModelScope.launch { dataStoreManager.setDelayFeedback(feedback) }
+    }
+
+    fun setDelayMix(mix: Float) {
+        viewModelScope.launch { dataStoreManager.setDelayMix(mix) }
+    }
+
+    fun setReverbEnabled(enabled: Boolean) {
+        viewModelScope.launch { dataStoreManager.setReverbEnabled(enabled) }
+    }
+
+    fun setReverbPreset(preset: ReverbPreset) {
+        viewModelScope.launch { dataStoreManager.setReverbPreset(preset) }
+    }
+
+    fun setReverbMix(mix: Float) {
+        viewModelScope.launch { dataStoreManager.setReverbMix(mix) }
+    }
+
+    /**
+     * Move all three delay values together, in one coroutine.
+     *
+     * Three separate preference keys, so the player does briefly see one of them applied against
+     * the others' old values — the same seam [applyEqualizerPreset] has. Writing them from one
+     * launch at least keeps that window to a single pass instead of three racing ones, and no
+     * ordering of these three is dangerous the way the equalizer's preamp is: an echo caught
+     * mid-change is a wrong echo for a few milliseconds, never a clipped one.
+     */
+    fun applyDelayPreset(
+        timeMs: Int,
+        feedback: Float,
+        mix: Float,
+    ) {
+        viewModelScope.launch {
+            dataStoreManager.setDelayTimeMs(timeMs)
+            dataStoreManager.setDelayFeedback(feedback)
+            dataStoreManager.setDelayMix(mix)
+        }
+    }
+
     private var _syncFollowToYouTube: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val syncFollowToYouTube: StateFlow<Boolean> = _syncFollowToYouTube
 
@@ -2025,3 +2128,20 @@ const val EQUALIZER_BAND_COUNT = 10
 
 /** Band centre labels, for display only — the backend owns the actual frequencies. */
 val EQUALIZER_BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
+
+// The three delay defaults and the reverb mix repeat what DataStoreManagerImpl falls back to. They
+// exist here so the StateFlows start on the stored default rather than on a placeholder the
+// collector then corrects — otherwise the sliders draw once at 0 and visibly jump the moment the
+// preference file is read, which reads as the app losing the user's settings.
+
+/** Quarter-note-ish spacing at 150 bpm; see `DataStoreManagerImpl.delayTimeMs`. */
+const val DEFAULT_DELAY_TIME_MS = 400
+
+/** See `DataStoreManagerImpl.delayFeedback`. */
+const val DEFAULT_DELAY_FEEDBACK = 0.45f
+
+/** See `DataStoreManagerImpl.delayMix`. */
+const val DEFAULT_DELAY_MIX = 0.3f
+
+/** See `DataStoreManagerImpl.reverbMix`. */
+const val DEFAULT_REVERB_MIX = 0.35f

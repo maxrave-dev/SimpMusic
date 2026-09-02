@@ -182,6 +182,10 @@ import simpmusic.composeapp.generated.resources.ai_provider
 import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.audio
+import simpmusic.composeapp.generated.resources.audio_delay
+import simpmusic.composeapp.generated.resources.audio_delay_description
+import simpmusic.composeapp.generated.resources.audio_reverb
+import simpmusic.composeapp.generated.resources.audio_reverb_description
 import simpmusic.composeapp.generated.resources.author
 import simpmusic.composeapp.generated.resources.auto_backup
 import simpmusic.composeapp.generated.resources.auto_backup_description
@@ -559,6 +563,8 @@ fun SettingScreen(
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
     val syncFollowToYouTube by viewModel.syncFollowToYouTube.collectAsStateWithLifecycle()
     val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
+    val delayEnabled by viewModel.delayEnabled.collectAsStateWithLifecycle()
+    val reverbEnabled by viewModel.reverbEnabled.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
@@ -1331,6 +1337,31 @@ fun SettingScreen(
                 // the shape the user built rather than to flat.
                 AnimatedVisibility(visible = equalizerEnabled) {
                     EqualizerSection()
+                }
+                // Beside the equalizer rather than in its own group: all three are the same kind of
+                // thing — one stored setting reshaping the audio on both backends — and a user
+                // hunting for "reverb" looks wherever the sound settings are, not under a heading
+                // they have to guess.
+                SettingItem(
+                    title = stringResource(Res.string.audio_delay),
+                    subtitle = stringResource(Res.string.audio_delay_description),
+                    smallSubtitle = true,
+                    switch = (delayEnabled to { viewModel.setDelayEnabled(it) }),
+                )
+                // Only while on, like the curve — and the three values survive the switch, so
+                // turning it back on returns to the echo the user dialled in.
+                AnimatedVisibility(visible = delayEnabled) {
+                    DelaySection()
+                }
+                SettingItem(
+                    title = stringResource(Res.string.audio_reverb),
+                    subtitle = stringResource(Res.string.audio_reverb_description),
+                    smallSubtitle = true,
+                    switch = (reverbEnabled to { viewModel.setReverbEnabled(it) }),
+                )
+                // Same again: the room and the wet level outlive the switch.
+                AnimatedVisibility(visible = reverbEnabled) {
+                    ReverbSection()
                 }
                 SettingItem(
                     title = stringResource(Res.string.save_playback_state),
