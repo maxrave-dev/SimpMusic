@@ -90,6 +90,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.CastDevicePickerBottomSheet
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
@@ -117,6 +118,7 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.playing_on_device
 
 /**
  * The Material 3 Expressive ("Tonal pills") Now Playing style.
@@ -592,6 +594,21 @@ private fun NowPlayingM3ExpressiveLayout(
                                 }
                                 Spacer(Modifier.height(12.dp))
                                 ExpressiveConnectedGroup(state = state, actions = actions)
+                                AnimatedVisibility(
+                                    visible = state.castState.isRemote,
+                                    enter = fadeIn() + expandVertically(),
+                                    exit = fadeOut() + shrinkVertically(),
+                                ) {
+                                    Text(
+                                        text = stringResource(Res.string.playing_on_device, state.castState.deviceName ?: "Cast"),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colorScheme.onSurfaceVariant,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp, vertical = 4.dp),
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
                             }
                             // Canvas-unfocused overlay — Classic verbatim: covers the info
                             // area, a tap re-shows the controls, and the metadata row (plus
@@ -870,6 +887,7 @@ private fun ExpressiveConnectedGroup(
     actions: NowPlayingContentActions,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    var showCastPicker by rememberSaveable { mutableStateOf(false) }
     val startCap = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 24.dp)
     val endCap = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomEnd = 24.dp, bottomStart = 6.dp)
     val middle = RoundedCornerShape(6.dp)
@@ -904,6 +922,7 @@ private fun ExpressiveConnectedGroup(
                 PlatformCastButton(
                     modifier = Modifier.size(24.dp),
                     tint = if (state.castState.isRemote) colorScheme.primary else colorScheme.onSurfaceVariant,
+                    onShowPicker = { showCastPicker = true },
                 )
             }
         }
@@ -979,6 +998,12 @@ private fun ExpressiveConnectedGroup(
                 modifier = Modifier.size(22.dp),
             )
         }
+    }
+
+    if (showCastPicker) {
+        CastDevicePickerBottomSheet(
+            onDismiss = { showCastPicker = false },
+        )
     }
 }
 

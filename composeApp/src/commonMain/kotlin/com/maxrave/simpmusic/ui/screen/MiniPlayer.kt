@@ -128,6 +128,7 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.GraphicEq
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -149,6 +150,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.playing_on_device
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.seconds
@@ -167,6 +169,7 @@ fun MiniPlayer(
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
 
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -532,6 +535,27 @@ fun MiniPlayer(
                                                             animationMode = MarqueeAnimationMode.Immediately,
                                                         ).focusable(),
                                             )
+                                        }
+                                        AnimatedVisibility(visible = castState.isRemote) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(top = 2.dp),
+                                            ) {
+                                                Icon(
+                                                    imageVector = SimpIcons.GraphicEq,
+                                                    contentDescription = null,
+                                                    tint = textColor.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(12.dp),
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = stringResource(Res.string.playing_on_device, castState.deviceName ?: "Cast"),
+                                                    style = typo().bodySmall,
+                                                    color = textColor.copy(alpha = 0.7f),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                            }
                                         }
                                     }
                                 }

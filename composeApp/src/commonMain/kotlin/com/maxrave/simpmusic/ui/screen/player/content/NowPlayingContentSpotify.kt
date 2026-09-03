@@ -112,6 +112,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.expect.ui.PlatformCastButton
+import com.maxrave.simpmusic.expect.ui.isPlatformCastAvailable
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
@@ -121,6 +122,7 @@ import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AIBadge
+import com.maxrave.simpmusic.ui.component.CastDevicePickerBottomSheet
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -200,6 +202,7 @@ fun NowPlayingContentSpotify(
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
 
     var showShareLyricsSheet by rememberSaveable { mutableStateOf(false) }
+    var showCastPicker by rememberSaveable { mutableStateOf(false) }
 
     // Height
     var topAppBarHeightDp by rememberSaveable {
@@ -1225,22 +1228,39 @@ fun NowPlayingContentSpotify(
                                             // Cyan rather than colorScheme.primary: this screen is force-dark whatever
                                             // the app theme is, so a light-theme primary would sink into the black
                                             // backdrop. Mirrors the `if (forceDark) Color.Cyan` rule in FullWidthItems.
-                                            PlatformCastButton(
-                                                modifier = Modifier.size(24.dp),
-                                                tint = if (state.castState.isRemote) Color.Cyan else Color.White,
-                                            )
-                                            AnimatedVisibility(visible = state.castState.isRemote) {
-                                                Text(
-                                                    text =
-                                                        stringResource(
-                                                            Res.string.playing_on_device,
-                                                            state.castState.deviceName ?: "Cast",
-                                                        ),
-                                                    style = typo().bodySmall,
-                                                    color = Color.Cyan,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
+                                            if (isPlatformCastAvailable()) {
+                                                val castTint by rememberInfiniteTransition(label = "castPulse").animateFloat(
+                                                    initialValue = 1f,
+                                                    targetValue = 0.4f,
+                                                    animationSpec = infiniteRepeatable(
+                                                        animation = tween(800, easing = LinearEasing),
+                                                        repeatMode = RepeatMode.Reverse,
+                                                    ),
+                                                    label = "castAlpha",
                                                 )
+                                                val currentTint = when {
+                                                    state.castState.isRemote -> Color.Cyan
+                                                    state.castState.isConnecting -> Color.Cyan.copy(alpha = castTint)
+                                                    else -> Color.White
+                                                }
+                                                PlatformCastButton(
+                                                    modifier = Modifier.size(24.dp),
+                                                    tint = currentTint,
+                                                    onShowPicker = { showCastPicker = true },
+                                                )
+                                                AnimatedVisibility(visible = state.castState.isRemote) {
+                                                    Text(
+                                                        text =
+                                                            stringResource(
+                                                                Res.string.playing_on_device,
+                                                                state.castState.deviceName ?: "Cast",
+                                                            ),
+                                                        style = typo().bodySmall,
+                                                        color = Color.Cyan,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                    )
+                                                }
                                             }
                                         }
 
@@ -1878,6 +1898,12 @@ fun NowPlayingContentSpotify(
                 onDismiss = { showShareLyricsSheet = false },
             )
         }
+    }
+
+    if (showCastPicker) {
+        CastDevicePickerBottomSheet(
+            onDismiss = { showCastPicker = false },
+        )
     }
 }
 

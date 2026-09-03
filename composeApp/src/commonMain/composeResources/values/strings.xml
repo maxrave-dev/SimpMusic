@@ -712,6 +712,7 @@
     <string name="listen_to_downloaded">Listen to downloaded music</string>
     <string name="playing_on_device">Playing on %1$s</string>
     <string name="not_available_while_casting">Not available while casting</string>
+    <string name="cast_disconnected">Cast disconnected — playing locally</string>
     <string name="import_data">Import playlists</string>
     <string name="import_playlists_from_other_apps">Import playlists from another app</string>
     <string name="import_data_intro">Import brings in playlists converted from Spotify or another YT Music client app.\nConverting tool: https://www.simpmusic.org/tools\nIn SimpMusic, only playlist files in our own format can be imported</string>
@@ -862,4 +863,7 @@
     <string name="month_full_oct">October</string>
     <string name="month_full_nov">November</string>
     <string name="month_full_dec">December</string>
+    <string name="cast_to">Cast to…</string>
+    <string name="no_devices_found">No devices found</string>
+    <string name="disconnect_cast">Disconnect</string>
 </resources>
