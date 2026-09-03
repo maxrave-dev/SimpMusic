@@ -53,6 +53,22 @@ fun InfiniteBorderAnimationView(
     oneCircleDurationMillis: Int = 3000,
     content: @Composable () -> Unit,
 ) {
+    if (!isAnimated) {
+        Surface(
+            modifier = Modifier.padding(borderWidth),
+            color = backgroundColor,
+            shape = shape,
+        ) {
+            Box(
+                modifier = Modifier.background(backgroundColor).padding(contentPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                content()
+            }
+        }
+        return
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "Infinite Color Animation")
     val degrees by infiniteTransition.animateFloat(
         initialValue = 90f,
@@ -65,7 +81,7 @@ fun InfiniteBorderAnimationView(
         label = "Infinite Colors",
     )
     val scaleAnimationValue by animateFloatAsState(
-        if (isAnimated) 1f else 0f,
+        1f,
         tween(800),
     )
     Surface(
@@ -94,7 +110,7 @@ fun InfiniteBorderAnimationView(
             modifier =
                 Modifier
                     .background(
-                        color = if (isAnimated) Color.Black else backgroundColor,
+                        color = Color.Black,
                     ).padding(
                         contentPadding,
                     ),
