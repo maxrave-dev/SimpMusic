@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ninja-build nasm yasm patchelf \
         libass-dev libfreetype6-dev libfribidi-dev libharfbuzz-dev \
         libfontconfig1-dev \
-        libasound2-dev libpulse-dev \
+        libasound2-dev libpulse-dev librubberband-dev \
         libxml2-dev zlib1g-dev libbz2-dev liblzma-dev \
         libssl-dev \
         libdav1d-dev \
@@ -104,7 +104,7 @@ RUN git clone --depth 1 --branch v0.41.0 https://github.com/mpv-player/mpv.git &
         -Dlua=disabled -Djavascript=disabled \
         -Dlibarchive=disabled -Dlibbluray=disabled -Ddvdnav=disabled \
         -Dcdda=disabled -Duchardet=disabled \
-        -Drubberband=disabled -Dzimg=disabled \
+        -Drubberband=enabled -Dzimg=disabled \
         -Dmanpage-build=disabled && \
     ninja -C build -j$(nproc) && ninja -C build install
 
