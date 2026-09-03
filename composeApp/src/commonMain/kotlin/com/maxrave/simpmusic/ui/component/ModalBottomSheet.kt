@@ -2612,7 +2612,10 @@ fun AddToPlaylistModalBottomSheet(
                         Crossfade(isYouTubePlaylistClicked) { clicked ->
                             if (clicked) {
                                 LazyColumn {
-                                    items(listYouTubePlaylist) { playlist ->
+                                    items(
+                                        items = listYouTubePlaylist,
+                                        key = { it.browseId },
+                                    ) { playlist ->
                                         Box(
                                             modifier =
                                                 Modifier
@@ -2644,7 +2647,10 @@ fun AddToPlaylistModalBottomSheet(
                                 }
                             } else {
                                 LazyColumn {
-                                    items(listLocalPlaylist) { playlist ->
+                                    items(
+                                        items = listLocalPlaylist,
+                                        key = { it.id },
+                                    ) { playlist ->
                                         Box(
                                             modifier =
                                                 Modifier
@@ -2747,7 +2753,10 @@ fun ArtistModalBottomSheet(
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
                     LazyColumn {
-                        items(artists) { artist ->
+                        items(
+                            items = artists,
+                            key = { it.id ?: it.name },
+                        ) { artist ->
                             Box(
                                 modifier =
                                     Modifier

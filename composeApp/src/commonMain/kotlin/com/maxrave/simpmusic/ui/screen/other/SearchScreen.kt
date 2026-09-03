@@ -372,7 +372,10 @@ fun SearchScreen(
                         state = suggestionsState,
                         contentPadding = PaddingValues(top = searchBarHeight, bottom = 10.dp),
                     ) {
-                        items(searchScreenState.suggestYTItems) { item ->
+                        items(
+                            items = searchScreenState.suggestYTItems,
+                            key = { it.hashCode() },
+                        ) { item ->
                             SuggestItemRow(
                                 searchResult = item,
                                 onItemClick = { item ->
@@ -415,7 +418,10 @@ fun SearchScreen(
                                 },
                             )
                         }
-                        items(searchScreenState.suggestQueries) { suggestion ->
+                        items(
+                            items = searchScreenState.suggestQueries,
+                            key = { it },
+                        ) { suggestion ->
                             Row(
                                 modifier =
                                     Modifier
@@ -505,7 +511,10 @@ fun SearchScreen(
                                     }
                                 }
                             }
-                            items(searchHistory) { historyItem ->
+                            items(
+                                items = searchHistory,
+                                key = { it },
+                            ) { historyItem ->
                                 Row(
                                     modifier =
                                         Modifier

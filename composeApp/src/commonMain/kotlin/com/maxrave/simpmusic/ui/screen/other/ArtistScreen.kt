@@ -816,7 +816,10 @@ private fun ArtistSections(
                     item {
                         Spacer(Modifier.size(10.dp))
                     }
-                    items(state.data.singles?.results ?: emptyList()) { single ->
+                    items(
+                        items = state.data.singles?.results ?: emptyList(),
+                        key = { it.browseId ?: it.hashCode() },
+                    ) { single ->
                         HomeItemContentPlaylist(
                             forceDark = true,                            onClick = {
                                 navController.navigate(
@@ -884,7 +887,10 @@ private fun ArtistSections(
                     item {
                         Spacer(Modifier.size(10.dp))
                     }
-                    items(state.data.albums?.results ?: emptyList()) { album ->
+                    items(
+                        items = state.data.albums?.results ?: emptyList(),
+                        key = { it.browseId ?: it.hashCode() },
+                    ) { album ->
                         HomeItemContentPlaylist(
                             forceDark = true,                            onClick = {
                                 navController.navigate(
@@ -951,7 +957,10 @@ private fun ArtistSections(
                     item {
                         Spacer(Modifier.size(10.dp))
                     }
-                    items(state.data.video?.video ?: emptyList()) { video ->
+                    items(
+                        items = state.data.video?.video ?: emptyList(),
+                        key = { it.videoId ?: it.hashCode() },
+                    ) { video ->
                         HomeItemVideo(
                             forceDark = true,                            onClick = {
                                 val firstQueue: Track = video

@@ -434,7 +434,10 @@ fun LyricsView(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = if (appleStyle) 8.dp else 0.dp, bottom = tailPadding),
         ) {
-            items(lyricsData.lyrics.lines?.size ?: 0) { index ->
+            items(
+                count = lyricsData.lyrics.lines?.size ?: 0,
+                key = { index -> lyricsData.lyrics.lines?.getOrNull(index)?.startTimeMs ?: index },
+            ) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
                 // Translated lyrics: synced -> precomputed map by line index, unsynced -> by index.
                 val translatedWords =
