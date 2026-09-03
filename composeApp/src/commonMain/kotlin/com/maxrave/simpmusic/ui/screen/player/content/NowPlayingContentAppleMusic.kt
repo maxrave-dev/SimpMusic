@@ -992,7 +992,7 @@ private fun AppleMusicArtworkPage(
 // Radius of the frosted cover art behind the page. Large enough that no detail of the artwork
 // survives as a shape — what is left is its colour and its broad light and dark areas, which is
 // precisely what Apple's background is.
-private val BACKDROP_BLUR_RADIUS = 80.dp
+private val BACKDROP_BLUR_RADIUS = 60.dp
 
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.

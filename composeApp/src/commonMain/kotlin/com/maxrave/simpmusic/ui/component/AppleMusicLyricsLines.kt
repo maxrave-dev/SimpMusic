@@ -182,7 +182,9 @@ fun Modifier.appleMusicLyricFocus(
         if (!blurEnabled || !hasActiveLine || distanceFromCurrent == 0) {
             0.dp
         } else {
-            fontSizeDp * (distance * BLUR_PER_LINE_EM).coerceAtMost(BLUR_MAX_EM)
+            // Cap at 3 lines out to avoid redundant blur shaders for offscreen/far items
+            val clampedDist = distance.coerceAtMost(3)
+            fontSizeDp * (clampedDist * BLUR_PER_LINE_EM).coerceAtMost(BLUR_MAX_EM)
         }
     val targetAlpha =
         when {
