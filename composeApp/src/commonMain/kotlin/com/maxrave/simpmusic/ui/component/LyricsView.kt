@@ -432,7 +432,7 @@ fun LyricsView(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = tailPadding),
+            contentPadding = PaddingValues(top = if (appleStyle) 8.dp else 0.dp, bottom = tailPadding),
         ) {
             items(lyricsData.lyrics.lines?.size ?: 0) { index ->
                 val line = lyricsData.lyrics.lines?.getOrNull(index)
