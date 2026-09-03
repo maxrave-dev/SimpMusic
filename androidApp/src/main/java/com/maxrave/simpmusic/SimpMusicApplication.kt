@@ -12,6 +12,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
@@ -90,7 +91,7 @@ class SimpMusicApplication :
         @SuppressLint("DiscouragedPrivateApi")
         val field: Field = CursorWindow::class.java.getDeclaredField("sCursorWindowSize")
         field.isAccessible = true
-        val expectSize = 100 * 1024 * 1024
+        val expectSize = 32 * 1024 * 1024
         field.set(null, expectSize)
 
         AppContext.apply {
@@ -115,6 +116,11 @@ class SimpMusicApplication :
                         },
                     ),
                 )
+            }.memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(context, 0.20)
+                    .strongReferencesEnabled(true)
+                    .build()
             }.diskCachePolicy(CachePolicy.ENABLED)
             .networkCachePolicy(CachePolicy.ENABLED)
             .diskCache(
