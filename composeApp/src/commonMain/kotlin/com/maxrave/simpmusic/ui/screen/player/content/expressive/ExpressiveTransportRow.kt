@@ -148,10 +148,11 @@ fun ExpressiveTransportRow(
                     targetState = loading,
                     animationSpec = motionScheme.fastEffectsSpec(),
                     label = "playLoading",
+                    modifier = Modifier.fillMaxSize(),
                 ) { isLoading ->
                     if (isLoading) {
                         Box(
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
                             CircularProgressIndicator(
@@ -165,6 +166,7 @@ fun ExpressiveTransportRow(
                             targetState = controllerState.isPlaying,
                             animationSpec = motionScheme.fastEffectsSpec(),
                             label = "playPauseIcon",
+                            modifier = Modifier.fillMaxSize(),
                         ) { isPlaying ->
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                 Icon(
