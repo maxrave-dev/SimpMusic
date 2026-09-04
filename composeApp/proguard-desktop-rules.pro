@@ -16,6 +16,14 @@
     native <methods>;
 }
 
+# Nucleus notification backends call these Kotlin entry points from JNI by their exact class and
+# method names. Keeping only classes that declare native methods preserves the outward JNI calls,
+# but ProGuard still removes callbacks such as onNotificationSettings/onAuthorizationResult and
+# strips their model accessors. The permission state then remains CHECKING and every notification
+# stays queued forever in release builds.
+-keep class dev.nucleusframework.notification.** { *; }
+-dontwarn dev.nucleusframework.notification.**
+
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.Structure {
