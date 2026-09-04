@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
+import com.maxrave.domain.notification.DesktopNotificationManager
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
@@ -42,6 +44,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -220,6 +224,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     // Register simpmusic:// protocol handler on Windows (HKCU, no admin needed)
     WindowsProtocolRegistrar.register()
 
+    val desktopNotificationManager = getKoin().get<DesktopNotificationManager>()
+    desktopNotificationManager.initialize()
+
     val sharedViewModel = getKoin().get<SharedViewModel>()
     if (sharedViewModel.shouldCheckForUpdate()) {
         sharedViewModel.checkForUpdate()
@@ -237,6 +244,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
+        val showNotificationPermissionDialog by
+            desktopNotificationManager.shouldShowPermissionDialog.collectAsState()
         // The single-instance guard now runs before startKoin (top of
         // runDesktopApp). Here we only react to a restore request raised when a
         // second instance launches: bring the window back to the foreground and
@@ -372,6 +381,20 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             state = windowState,
             visible = isVisible,
         ) {
+            // Returning from macOS System Settings is the only reliable time to learn whether the
+            // user enabled notifications after denying the one-shot system prompt.
+            DisposableEffect(window) {
+                val listener =
+                    object : WindowAdapter() {
+                        override fun windowGainedFocus(event: WindowEvent) {
+                            desktopNotificationManager.refreshPermission()
+                        }
+                    }
+                window.addWindowFocusListener(listener)
+                onDispose {
+                    window.removeWindowFocusListener(listener)
+                }
+            }
             // Restore requests (Dock reopen, tray, second instance) also need a
             // z-order raise; visibility/minimized are reset by the
             // application-level collector, but toFront needs the AWT window.
@@ -435,7 +458,13 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         ).crossfade(true)
                         .build()
                 }
-                App()
+                App(
+                    showDesktopNotificationPermissionDialog = showNotificationPermissionDialog,
+                    onDismissDesktopNotificationPermissionDialog =
+                        desktopNotificationManager::dismissPermissionDialog,
+                    onOpenDesktopNotificationSettings =
+                        desktopNotificationManager::openNotificationSettings,
+                )
                 ToastHost()
             }
         }

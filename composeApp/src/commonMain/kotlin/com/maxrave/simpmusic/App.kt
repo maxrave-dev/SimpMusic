@@ -121,6 +121,7 @@ import simpmusic.composeapp.generated.resources.do_not_show_again
 import simpmusic.composeapp.generated.resources.download
 import simpmusic.composeapp.generated.resources.good_night
 import simpmusic.composeapp.generated.resources.notification
+import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.sleep_timer_off
 import simpmusic.composeapp.generated.resources.this_app_needs_to_access_your_notification
 import simpmusic.composeapp.generated.resources.this_link_is_not_supported
@@ -133,7 +134,12 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
 @Composable
-fun App(viewModel: SharedViewModel = koinInject()) {
+fun App(
+    viewModel: SharedViewModel = koinInject(),
+    showDesktopNotificationPermissionDialog: Boolean = false,
+    onDismissDesktopNotificationPermissionDialog: (doNotShowAgain: Boolean) -> Unit = {},
+    onOpenDesktopNotificationSettings: (doNotShowAgain: Boolean) -> Unit = {},
+) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
     val isDesktopShell = getPlatform() == Platform.Desktop
@@ -851,24 +857,54 @@ fun App(viewModel: SharedViewModel = koinInject()) {
                     )
                 }
 
-                if (showNotificationPermissionDialog) {
+                if (showNotificationPermissionDialog || showDesktopNotificationPermissionDialog) {
                     var doNotShowAgain by remember { mutableStateOf(false) }
+                    val dismissPermissionDialog = {
+                        if (showDesktopNotificationPermissionDialog) {
+                            onDismissDesktopNotificationPermissionDialog(doNotShowAgain)
+                        } else {
+                            viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                        }
+                    }
                     AlertDialog(
                         onDismissRequest = {
-                            viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                            dismissPermissionDialog()
                         },
                         confirmButton = {
                             TextButton(
                                 onClick = {
-                                    viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                                    if (showDesktopNotificationPermissionDialog) {
+                                        onOpenDesktopNotificationSettings(doNotShowAgain)
+                                    } else {
+                                        viewModel.dismissNotificationPermissionDialog(doNotShowAgain)
+                                    }
                                 },
                             ) {
                                 Text(
-                                    stringResource(Res.string.yes),
+                                    stringResource(
+                                        if (showDesktopNotificationPermissionDialog) {
+                                            Res.string.settings
+                                        } else {
+                                            Res.string.yes
+                                        },
+                                    ),
                                     style = typo().bodySmall,
                                 )
                             }
                         },
+                        dismissButton =
+                            if (showDesktopNotificationPermissionDialog) {
+                                {
+                                    TextButton(onClick = dismissPermissionDialog) {
+                                        Text(
+                                            stringResource(Res.string.cancel),
+                                            style = typo().bodySmall,
+                                        )
+                                    }
+                                }
+                            } else {
+                                null
+                            },
                         title = {
                             Text(
                                 stringResource(Res.string.notification),
