@@ -751,7 +751,10 @@ fun HomeItemSong(
                 Text(
                     text =
                         listOfNotNull(
-                            data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                            data.artists
+                                .toListName()
+                                .connectArtists()
+                                .takeIf { it.isNotBlank() },
                             data.album?.name?.takeIf { it.isNotBlank() },
                         ).joinToString(" • "),
                     style = typo().bodySmall,
@@ -766,8 +769,7 @@ fun HomeItemSong(
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
                                 velocity = 25.dp,
-                            )
-                            .padding(vertical = 3.dp),
+                            ).padding(vertical = 3.dp),
                 )
             }
         }
@@ -838,7 +840,10 @@ fun HomeItemVideo(
             Text(
                 text =
                     listOfNotNull(
-                        data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                        data.artists
+                            .toListName()
+                            .connectArtists()
+                            .takeIf { it.isNotBlank() },
                         data.views?.takeIf { it.isNotBlank() },
                     ).joinToString(" • "),
                 style = typo().bodySmall,
@@ -853,8 +858,7 @@ fun HomeItemVideo(
                             initialDelayMillis = 2000,
                             repeatDelayMillis = 2000,
                             velocity = 25.dp,
-                        )
-                        .padding(vertical = 2.dp),
+                        ).padding(vertical = 2.dp),
             )
         }
     }
@@ -1055,7 +1059,10 @@ fun ItemVideoChart(
                     Text(
                         text =
                             listOfNotNull(
-                                data.artists.toListName().connectArtists().takeIf { it.isNotBlank() },
+                                data.artists
+                                    .toListName()
+                                    .connectArtists()
+                                    .takeIf { it.isNotBlank() },
                                 data.views.takeIf { it.isNotBlank() },
                             ).joinToString(" • "),
                         style = typo().bodyMedium,
@@ -1070,8 +1077,7 @@ fun ItemVideoChart(
                                     initialDelayMillis = 2000,
                                     repeatDelayMillis = 2000,
                                     velocity = 25.dp,
-                                )
-                                .padding(vertical = 3.dp),
+                                ).padding(vertical = 3.dp),
                     )
                 }
             }
@@ -1143,7 +1149,7 @@ fun ItemArtistChart(
             ) {
                 Text(
                     text = data.title,
-                    style = typo().titleMedium,
+                    style = typo().titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier =
