@@ -1041,22 +1041,23 @@ class LocalPlaylistViewModel(
                 )
         } else {
             // Unsynced playlist: local only, no loading dialog needed
-            val loadedList =
-                lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
-            val fromItem = loadedList.getOrNull(from)?.first ?: return
-            val toItem = loadedList.getOrNull(to)?.first ?: return
-            val fromPosition = loadedList.getOrNull(from)?.second?.position ?: from
-            val toPosition = loadedList.getOrNull(to)?.second?.position ?: to
-            val playlistId = uiState.value.id
-
             localPlaylistRepository
-                .changePositionOfSongInPlaylist(playlistId, fromItem.videoId, toPosition)
-                .lastOrNull()
-                ?.let { log("changeLocalPlaylistItemPosition: from $it") }
-            localPlaylistRepository
-                .changePositionOfSongInPlaylist(playlistId, toItem.videoId, fromPosition)
-                .lastOrNull()
-                ?.let { log("changeLocalPlaylistItemPosition: to $it") }
+                .moveItemInLocalPlaylist(
+                    playlistId = uiState.value.id,
+                    fromIndex = from,
+                    toIndex = to,
+                ).collectResource(
+                    onLoading = {
+                        log("changeLocalPlaylistItemPosition (local): loading")
+                    },
+                    onSuccess = {
+                        log("changeLocalPlaylistItemPosition (local): success $it")
+                    },
+                    onError = { message ->
+                        log("changeLocalPlaylistItemPosition (local): error $message")
+                        makeToast(message)
+                    },
+                )
         }
     }
 }
