@@ -3,6 +3,7 @@ package com.maxrave.simpmusic
 import android.annotation.SuppressLint
 import android.app.Application
 import android.database.CursorWindow
+import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Configuration
@@ -15,6 +16,7 @@ import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
+import com.maxrave.common.AppIdentity
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.logger.Logger
@@ -55,7 +57,13 @@ class SimpMusicApplication :
         startKoin {
             androidLogger(level = Level.DEBUG)
             androidContext(this@SimpMusicApplication)
-            loadAllModules()
+            loadAllModules(
+                AppIdentity(
+                    applicationId = BuildConfig.APPLICATION_ID,
+                    versionName = BuildConfig.VERSION_NAME,
+                    platform = "Android ${Build.VERSION.RELEASE}",
+                ),
+            )
             loadKoinModules(viewModelModule)
         }
         // provide custom configuration
