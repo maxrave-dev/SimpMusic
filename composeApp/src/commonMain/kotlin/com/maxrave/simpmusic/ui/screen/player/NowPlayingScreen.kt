@@ -153,6 +153,7 @@ fun NowPlayingScreenContent(
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
     val translatedVoteState by sharedViewModel.translatedVoteState.collectAsStateWithLifecycle()
     val lyricsVoteState by sharedViewModel.lyricsVoteState.collectAsStateWithLifecycle()
+    val isTranslatingLyrics by sharedViewModel.isTranslatingLyrics.collectAsStateWithLifecycle()
     val isUserLoggedIn by sharedViewModel
         .isUserLoggedInFlow()
         .collectAsStateWithLifecycle(initialValue = false)
@@ -675,6 +676,7 @@ fun NowPlayingScreenContent(
             // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
             // codec therefore never matched anything and the badge never rendered, on any track.
             audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
+            isTranslatingLyrics = isTranslatingLyrics,
         )
     val actions =
         NowPlayingContentActions(

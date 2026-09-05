@@ -109,6 +109,7 @@ class NowPlayingContentState(
     val dismissIcon: ImageVector,
     /** Current track's audio codec ("OPUS"/"AAC"), or null while unknown — see [toAudioCodecLabel]. */
     val audioCodecLabel: String? = null,
+    val isTranslatingLyrics: Boolean = false,
 )
 
 /**
