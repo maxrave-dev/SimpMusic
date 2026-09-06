@@ -85,6 +85,7 @@ import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.toHighQualityArtworkUrl
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
@@ -173,9 +174,9 @@ fun NowPlayingContentAppleMusic(
     // work rather than a second one that has to be kept working.
     var backdropUrl by remember(state.screenData.thumbnailURL, state.screenData.amArtworkData) {
         val amData = state.screenData.amArtworkData
-        val amUrl = if (amData?.hasMotion == true) amData.staticArtworkUrl else null
+        val amUrl = amData?.staticArtworkUrl
         val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
-        mutableStateOf(url)
+        mutableStateOf(url?.toHighQualityArtworkUrl())
     }
 
     val paletteColor = state.startColor.value
@@ -183,10 +184,14 @@ fun NowPlayingContentAppleMusic(
     val activePillContainer = remember(seedColor) { lerp(seedColor, Color.White, 0.75f) }
     val activePillContent = remember(seedColor) { lerp(seedColor, Color.Black, 0.6f) }
 
+    val amData = state.screenData.amArtworkData
+    val isAmLoading = state.screenData.isAmArtworkLoading
+    val hasAmMotion = amData?.hasMotion == true && amData.bestMotionUrl != null
+    val canShowCanvas = !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val showCanvasBackdrop =
         viewState == AppleMusicView.MAIN &&
-            (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
-    val isVideoBackdropTop = showCanvasBackdrop && state.screenData.canvasData == null
+            (canShowCanvas || (state.screenData.isVideo && state.shouldShowVideo))
+    val isVideoBackdropTop = showCanvasBackdrop && !canShowCanvas
 
     // The approved mock's page gradient is THREE stops — a clearly-tinted top, ~55%-darkened by
     // mid-page (48%), warm near-black at the bottom. The first cut's two stops to near-black read
@@ -226,7 +231,7 @@ fun NowPlayingContentAppleMusic(
             // of the artwork stay visible through it.
             // When lyrics view is open, the background blur strictly follows the static album art sequence.
             val blurSourceUrl = if (viewState == AppleMusicView.LYRICS) {
-                state.screenData.thumbnailURL
+                state.screenData.thumbnailURL?.toHighQualityArtworkUrl()
             } else {
                 backdropUrl
             }
@@ -392,9 +397,13 @@ private fun AppleMusicMainView(
     val localDensity = LocalDensity.current
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
 
+    val amData = state.screenData.amArtworkData
+    val isAmLoading = state.screenData.isAmArtworkLoading
+    val hasAmMotion = amData?.hasMotion == true && amData.bestMotionUrl != null
+    val canShowCanvas = !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val showCanvasBackdrop =
-        state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo)
-    val isVideoBackdrop = showCanvasBackdrop && state.screenData.canvasData == null
+        canShowCanvas || (state.screenData.isVideo && state.shouldShowVideo)
+    val isVideoBackdrop = showCanvasBackdrop && !canShowCanvas
 
     // Same fade/half-blended-frame fix M3E uses: fast fade-in, relaxed fade-out.
     val controlsAlpha by animateFloatAsState(
@@ -654,9 +663,9 @@ private fun AppleMusicMainView(
                                     model =
                                         ImageRequest
                                             .Builder(LocalPlatformContext.current)
-                                            .data(state.screenData.thumbnailURL)
+                                            .data(state.screenData.thumbnailURL?.toHighQualityArtworkUrl())
                                             .diskCachePolicy(CachePolicy.ENABLED)
-                                            .diskCacheKey(state.screenData.thumbnailURL)
+                                            .diskCacheKey(state.screenData.thumbnailURL?.toHighQualityArtworkUrl())
                                             .crossfade(300)
                                             .build(),
                                     placeholder = rememberHolderPainter(),
@@ -768,18 +777,20 @@ private fun AppleMusicArtworkPage(
 ) {
     val pageTrack = state.artworkQueue.getOrNull(page)
     val isCurrentPage = page == state.currentOrderIndex
+    val amArtwork = state.screenData.amArtworkData
+    val isAmLoading = isCurrentPage && state.screenData.isAmArtworkLoading
+    val hasAmMotion = isCurrentPage && amArtwork?.hasMotion == true && amArtwork.bestMotionUrl != null
+    val canShowCanvas = isCurrentPage && !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val pageShowsCanvasOrVideo =
-        isCurrentPage && (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
+        canShowCanvas || (isCurrentPage && state.screenData.isVideo && state.shouldShowVideo)
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isCurrentPage) {
-            val amArtwork = state.screenData.amArtworkData
             var artworkUrl by remember(state.screenData.thumbnailURL, amArtwork?.staticArtworkUrl) {
                 val amUrl = amArtwork?.staticArtworkUrl
                 val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
-                mutableStateOf(url)
+                mutableStateOf(url?.toHighQualityArtworkUrl())
             }
-            val hasAmMotion = !pageShowsCanvasOrVideo && amArtwork?.hasMotion == true && amArtwork.bestMotionUrl != null
             val isPlaying = state.controllerState.isPlaying
 
             val staticArtworkScale by animateFloatAsState(

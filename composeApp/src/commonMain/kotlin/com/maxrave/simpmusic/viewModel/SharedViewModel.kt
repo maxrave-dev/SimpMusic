@@ -93,6 +93,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.getString
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
@@ -266,7 +267,7 @@ class SharedViewModel(
                                     Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                     getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                                 }
-                                if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.amArtworkData == null) {
+                                if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.amArtworkData == null && !nowPlayingScreenData.value.isAmArtworkLoading) {
                                     nowPlaying.songEntity?.let { song ->
                                         getAppleMusicArtwork(
                                             videoId = song.videoId,
@@ -378,11 +379,23 @@ class SharedViewModel(
                                 lyricsData = null,
                                 songInfoData = null,
                                 amArtworkData = null,
+                                isAmArtworkLoading = true,
                                 playlistName =
                                     mediaPlayerHandler.queueData.value
                                         ?.data
                                         ?.playlistName ?: "",
                             )
+                        getAppleMusicArtwork(
+                            videoId = track.videoId,
+                            title = track.title,
+                            artist = track.artistName?.joinToString(", ") ?: "",
+                            album = track.albumName,
+                        )
+                        val trackDuration = track.durationSeconds.takeIf { it > 0 }
+                            ?: (seededTotal.takeIf { it > 0L }?.div(1000)?.toInt())
+                        if (trackDuration != null && trackDuration > 0) {
+                            getCanvas(track.videoId, trackDuration)
+                        }
                     }
                     state.mediaItem.let { now ->
                         _canvas.value = null
@@ -585,10 +598,21 @@ class SharedViewModel(
         }
     }
 
+    private val canvasCache = mutableMapOf<String, NowPlayingScreenData.CanvasData?>()
+
     private fun getCanvas(
         videoId: String,
         duration: Int,
     ) {
+        if (canvasCache.containsKey(videoId)) {
+            val cached = canvasCache[videoId]
+            Logger.d(tag, "getCanvas: cache hit for $videoId")
+            if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                _nowPlayingScreenData.update { it.copy(canvasData = cached) }
+            }
+            return
+        }
+
         Logger.w(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
@@ -605,7 +629,10 @@ class SharedViewModel(
                         add(lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration))
                     }
                 }
-            if (sources.isEmpty()) return@launch
+            if (sources.isEmpty()) {
+                canvasCache[videoId] = null
+                return@launch
+            }
 
             var resolved = false
             for (source in sources) {
@@ -615,14 +642,14 @@ class SharedViewModel(
                     if (response is Resource.Success && data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
                         resolved = true
                         _canvas.value = data
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                canvasData =
-                                    NowPlayingScreenData.CanvasData(
-                                        isVideo = data.isVideo,
-                                        url = data.canvasUrl,
-                                    ),
+                        val cData =
+                            NowPlayingScreenData.CanvasData(
+                                isVideo = data.isVideo,
+                                url = data.canvasUrl,
                             )
+                        canvasCache[videoId] = cData
+                        _nowPlayingScreenData.update {
+                            it.copy(canvasData = cData)
                         }
                         // Save canvas video url
                         if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
@@ -635,22 +662,26 @@ class SharedViewModel(
             }
 
             if (!resolved) {
-                nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
-                    _nowPlayingScreenData.update {
-                        it.copy(
-                            canvasData =
-                                NowPlayingScreenData.CanvasData(
-                                    isVideo = url.isCanvasVideoUrl(),
-                                    url = url,
-                                ),
+                val dbUrl = nowPlayingState.value?.songEntity?.canvasUrl
+                if (dbUrl != null) {
+                    val cData =
+                        NowPlayingScreenData.CanvasData(
+                            isVideo = dbUrl.isCanvasVideoUrl(),
+                            url = dbUrl,
                         )
+                    canvasCache[videoId] = cData
+                    _nowPlayingScreenData.update {
+                        it.copy(canvasData = cData)
                     }
+                } else {
+                    canvasCache[videoId] = null
                 }
             }
         }
     }
 
     private var amArtworkJob: Job? = null
+    private val amArtworkCache = mutableMapOf<String, com.maxrave.domain.data.model.canvas.AppleMusicArtwork?>()
 
     private fun getAppleMusicArtwork(
         videoId: String,
@@ -658,22 +689,45 @@ class SharedViewModel(
         artist: String,
         album: String?,
     ) {
-        Logger.w(tag, "Start getAppleMusicArtwork: $videoId")
+        val cacheKey = "$title - $artist"
+        if (amArtworkCache.containsKey(cacheKey)) {
+            val cached = amArtworkCache[cacheKey]
+            Logger.d(tag, "getAppleMusicArtwork: cache hit for $cacheKey (found=${cached?.found}, motion=${cached?.hasMotion})")
+            if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                _nowPlayingScreenData.update {
+                    it.copy(amArtworkData = cached, isAmArtworkLoading = false)
+                }
+            }
+            return
+        }
+
+        Logger.w(tag, "Start getAppleMusicArtwork: $videoId ($title - $artist)")
         amArtworkJob?.cancel()
+        _nowPlayingScreenData.update { it.copy(isAmArtworkLoading = true) }
         amArtworkJob = viewModelScope.launch {
             if (dataStoreManager.nowPlayingStyle.first() == DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC) {
-                lyricsCanvasRepository.getAppleMusicSongArtwork(title, artist, album).collect { response ->
-                    val data = response.data
-                    if (response is Resource.Success && data != null && data.hasMotion && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                        _nowPlayingScreenData.update {
-                            it.copy(amArtworkData = data)
-                        }
-                    } else if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                        _nowPlayingScreenData.update {
-                            it.copy(amArtworkData = null)
+                withTimeoutOrNull(3000L) {
+                    lyricsCanvasRepository.getAppleMusicSongArtwork(title, artist, album).collect { response ->
+                        val data = response.data
+                        if (response is Resource.Success && data != null && data.found && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                            amArtworkCache[cacheKey] = data
+                            _nowPlayingScreenData.update {
+                                it.copy(amArtworkData = data, isAmArtworkLoading = false)
+                            }
+                        } else if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                            amArtworkCache[cacheKey] = null
+                            _nowPlayingScreenData.update {
+                                it.copy(amArtworkData = null, isAmArtworkLoading = false)
+                            }
                         }
                     }
+                } ?: run {
+                    if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        _nowPlayingScreenData.update { it.copy(isAmArtworkLoading = false) }
+                    }
                 }
+            } else {
+                _nowPlayingScreenData.update { it.copy(isAmArtworkLoading = false) }
             }
         }
     }
@@ -2160,6 +2214,7 @@ data class NowPlayingScreenData(
     val songInfoData: SongInfoEntity? = null,
     val bitmap: ImageBitmap? = null,
     val amArtworkData: com.maxrave.domain.data.model.canvas.AppleMusicArtwork? = null,
+    val isAmArtworkLoading: Boolean = false,
 ) {
     data class CanvasData(
         val isVideo: Boolean,
@@ -2183,6 +2238,7 @@ data class NowPlayingScreenData(
                 lyricsData = null,
                 songInfoData = null,
                 amArtworkData = null,
+                isAmArtworkLoading = false,
                 playlistName = "",
             )
     }
