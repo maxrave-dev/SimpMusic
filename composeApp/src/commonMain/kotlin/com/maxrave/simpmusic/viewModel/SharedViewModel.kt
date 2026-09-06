@@ -266,6 +266,16 @@ class SharedViewModel(
                                     Logger.w(tag, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                     getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                                 }
+                                if (nowPlaying.mediaItem.isSong() && nowPlayingScreenData.value.amArtworkData == null) {
+                                    nowPlaying.songEntity?.let { song ->
+                                        getAppleMusicArtwork(
+                                            videoId = song.videoId,
+                                            title = song.title,
+                                            artist = song.artistName?.joinToString(", ") ?: "",
+                                            album = song.albumName,
+                                        )
+                                    }
+                                }
                                 nowPlaying.songEntity?.let { song ->
                                     if (nowPlayingScreenData.value.lyricsData == null) {
                                         Logger.w(tag, "Get lyrics from format")
@@ -367,6 +377,7 @@ class SharedViewModel(
                                 canvasData = null,
                                 lyricsData = null,
                                 songInfoData = null,
+                                amArtworkData = null,
                                 playlistName =
                                     mediaPlayerHandler.queueData.value
                                         ?.data
@@ -633,6 +644,34 @@ class SharedViewModel(
                                     url = url,
                                 ),
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    private var amArtworkJob: Job? = null
+
+    private fun getAppleMusicArtwork(
+        videoId: String,
+        title: String,
+        artist: String,
+        album: String?,
+    ) {
+        Logger.w(tag, "Start getAppleMusicArtwork: $videoId")
+        amArtworkJob?.cancel()
+        amArtworkJob = viewModelScope.launch {
+            if (dataStoreManager.nowPlayingStyle.first() == DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC) {
+                lyricsCanvasRepository.getAppleMusicSongArtwork(title, artist, album).collect { response ->
+                    val data = response.data
+                    if (response is Resource.Success && data != null && data.hasMotion && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        _nowPlayingScreenData.update {
+                            it.copy(amArtworkData = data)
+                        }
+                    } else if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        _nowPlayingScreenData.update {
+                            it.copy(amArtworkData = null)
+                        }
                     }
                 }
             }
@@ -2120,6 +2159,7 @@ data class NowPlayingScreenData(
     val lyricsData: LyricsData? = null,
     val songInfoData: SongInfoEntity? = null,
     val bitmap: ImageBitmap? = null,
+    val amArtworkData: com.maxrave.domain.data.model.canvas.AppleMusicArtwork? = null,
 ) {
     data class CanvasData(
         val isVideo: Boolean,
@@ -2142,6 +2182,7 @@ data class NowPlayingScreenData(
                 canvasData = null,
                 lyricsData = null,
                 songInfoData = null,
+                amArtworkData = null,
                 playlistName = "",
             )
     }
