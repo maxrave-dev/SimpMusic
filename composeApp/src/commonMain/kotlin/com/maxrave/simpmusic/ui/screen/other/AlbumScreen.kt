@@ -77,6 +77,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.toHighQualityArtworkUrl
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -202,17 +203,16 @@ fun AlbumScreen(
     }
 
     val hasAmMotion = uiState.amArtworkData?.hasMotion == true && uiState.amArtworkData?.bestMotionUrl != null
-    val currentArtworkUrl = if (hasAmMotion && uiState.amArtworkData?.staticArtworkUrl != null) {
-        uiState.amArtworkData!!.staticArtworkUrl
-    } else {
-        uiState.thumbnail
+    val currentArtworkUrl = (uiState.amArtworkData?.staticArtworkUrl ?: uiState.thumbnail)?.toHighQualityArtworkUrl()
+    var resolvedArtworkUrl by remember(currentArtworkUrl) {
+        mutableStateOf(currentArtworkUrl)
     }
 
-    LaunchedEffect(bitmap, currentArtworkUrl) {
+    LaunchedEffect(bitmap, resolvedArtworkUrl) {
         val bm = bitmap
-        if (bm != null && paletteGeneratedFor != currentArtworkUrl) {
+        if (bm != null && paletteGeneratedFor != resolvedArtworkUrl) {
             paletteState.generate(bm)
-            paletteGeneratedFor = currentArtworkUrl
+            paletteGeneratedFor = resolvedArtworkUrl
         }
     }
 
@@ -291,17 +291,23 @@ fun AlbumScreen(
                                                         model =
                                                             ImageRequest
                                                                 .Builder(LocalPlatformContext.current)
-                                                                .data(currentArtworkUrl)
+                                                                .data(resolvedArtworkUrl)
                                                                 .diskCachePolicy(CachePolicy.ENABLED)
                                                                 .memoryCachePolicy(CachePolicy.ENABLED)
-                                                                .diskCacheKey(currentArtworkUrl)
-                                                                .memoryCacheKey(currentArtworkUrl)
+                                                                .diskCacheKey(resolvedArtworkUrl)
+                                                                .memoryCacheKey(resolvedArtworkUrl)
                                                                 .crossfade(false)
                                                                 .build(),
                                                         placeholder = rememberHolderPainter(),
                                                         error = rememberHolderPainter(),
                                                         contentDescription = null,
                                                         contentScale = ContentScale.Crop,
+                                                        onError = {
+                                                            val fallback = resolvedArtworkUrl?.replace("maxresdefault", "hqdefault")
+                                                            if (fallback != null && fallback != resolvedArtworkUrl) {
+                                                                resolvedArtworkUrl = fallback
+                                                            }
+                                                        },
                                                         onSuccess = {
                                                             bitmap = it.result.image.toImageBitmap()
                                                         },
@@ -456,17 +462,23 @@ fun AlbumScreen(
                                                             model =
                                                                 ImageRequest
                                                                     .Builder(LocalPlatformContext.current)
-                                                                    .data(currentArtworkUrl)
+                                                                    .data(resolvedArtworkUrl)
                                                                     .diskCachePolicy(CachePolicy.ENABLED)
                                                                     .memoryCachePolicy(CachePolicy.ENABLED)
-                                                                    .diskCacheKey(currentArtworkUrl)
-                                                                    .memoryCacheKey(currentArtworkUrl)
+                                                                    .diskCacheKey(resolvedArtworkUrl)
+                                                                    .memoryCacheKey(resolvedArtworkUrl)
                                                                     .crossfade(false)
                                                                     .build(),
                                                             placeholder = rememberHolderPainter(),
                                                             error = rememberHolderPainter(),
                                                             contentDescription = null,
                                                             contentScale = ContentScale.Crop,
+                                                            onError = {
+                                                                val fallback = resolvedArtworkUrl?.replace("maxresdefault", "hqdefault")
+                                                                if (fallback != null && fallback != resolvedArtworkUrl) {
+                                                                    resolvedArtworkUrl = fallback
+                                                                }
+                                                            },
                                                             onSuccess = {
                                                                 bitmap = it.result.image.toImageBitmap()
                                                             },

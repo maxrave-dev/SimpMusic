@@ -80,7 +80,7 @@ class AlbumViewModel(
                                 amArtworkJob = viewModelScope.launch {
                                     lyricsCanvasRepository.getAppleMusicAlbumArtwork(data.title, artistForSearch).collectLatest { res ->
                                         val amArtwork = res.data
-                                        if (res is Resource.Success && amArtwork != null && amArtwork.hasMotion) {
+                                        if (res is Resource.Success && amArtwork != null && amArtwork.found) {
                                             _uiState.update { it.copy(amArtworkData = amArtwork) }
                                         }
                                     }
