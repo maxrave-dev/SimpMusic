@@ -706,23 +706,36 @@ class SharedViewModel(
         _nowPlayingScreenData.update { it.copy(isAmArtworkLoading = true) }
         amArtworkJob = viewModelScope.launch {
             if (dataStoreManager.nowPlayingStyle.first() == DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC) {
-                withTimeoutOrNull(3000L) {
+                withTimeoutOrNull(8000L) {
                     lyricsCanvasRepository.getAppleMusicSongArtwork(title, artist, album).collect { response ->
                         val data = response.data
-                        if (response is Resource.Success && data != null && data.found && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                            amArtworkCache[cacheKey] = data
-                            _nowPlayingScreenData.update {
-                                it.copy(amArtworkData = data, isAmArtworkLoading = false)
+                        when (response) {
+                            is Resource.Success -> {
+                                if (data != null && data.found && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                                    amArtworkCache[cacheKey] = data
+                                    _nowPlayingScreenData.update {
+                                        it.copy(amArtworkData = data, isAmArtworkLoading = false)
+                                    }
+                                } else if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                                    amArtworkCache[cacheKey] = null
+                                    _nowPlayingScreenData.update {
+                                        it.copy(amArtworkData = null, isAmArtworkLoading = false)
+                                    }
+                                }
                             }
-                        } else if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                            amArtworkCache[cacheKey] = null
-                            _nowPlayingScreenData.update {
-                                it.copy(amArtworkData = null, isAmArtworkLoading = false)
+                            is Resource.Error -> {
+                                if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                                    amArtworkCache[cacheKey] = null
+                                    _nowPlayingScreenData.update {
+                                        it.copy(amArtworkData = null, isAmArtworkLoading = false)
+                                    }
+                                }
                             }
                         }
                     }
                 } ?: run {
                     if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        Logger.w(tag, "getAppleMusicArtwork: timed out after 8s for $cacheKey")
                         _nowPlayingScreenData.update { it.copy(isAmArtworkLoading = false) }
                     }
                 }
