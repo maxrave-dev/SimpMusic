@@ -361,29 +361,24 @@ fun LyricsView(
             AppleMusicLyricLineHeight.toPx() + AppleMusicLyricGap.toPx()
         }
 
+    val isUnsynced = lyricsData.lyrics.syncType == "UNSYNCED" || lyricsData.lyrics.syncType == null
+
     val timedLineIndexes =
-        remember(lyricsData.lyrics.lines) {
-            val timed =
-                lyricsData.lyrics.lines
-                    .orEmpty()
-                    .mapIndexedNotNull { index, line ->
-                        line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
-                    }
-            // An unsynced sheet still carries a startTimeMs on every line — the literal "0", on all
-            // 307 unsynced rows of the author's own library. Those parse perfectly well, so this
-            // list came out full of zeros and [activeIndexAt], asked for "the last line at or before
-            // now", answered with the LAST LINE OF THE SONG from the first second onward. Every
-            // other line then sat at a huge distance from it and blurred to maximum: the whole
-            // sheet unreadable, with the one sharp line parked off the bottom of the screen.
-            //
-            // Tested on the timestamps rather than on syncType because it is the timestamps the
-            // search actually reads: one distinct value cannot order anything, whatever the sheet
-            // calls itself. With the list empty, currentLineIndex stays -1, and the renderer's
-            // no-active-line branch dims every line uniformly and blurs none of them.
-            if (timed.distinctBy { it.startTimeMs }.size <= 1) {
+        remember(lyricsData.lyrics.lines, isUnsynced) {
+            if (isUnsynced) {
                 emptyList()
             } else {
-                timed.sortedBy { it.startTimeMs }
+                val timed =
+                    lyricsData.lyrics.lines
+                        .orEmpty()
+                        .mapIndexedNotNull { index, line ->
+                            line.startTimeMs.toLongOrNull()?.let { TimedLineIndex(index, it) }
+                        }
+                if (timed.distinctBy { it.startTimeMs }.size <= 1) {
+                    emptyList()
+                } else {
+                    timed.sortedBy { it.startTimeMs }
+                }
             }
         }
 
@@ -393,6 +388,9 @@ fun LyricsView(
             if (now <= 0L) -1 else timedLineIndexes.activeIndexAt(now)
         }
     }
+
+    val showTranslation by dataStoreManager.showLyricsTranslation.collectAsStateWithLifecycle(true)
+    val showOriginal by dataStoreManager.showLyricsOriginal.collectAsStateWithLifecycle(true)
 
     val syncedTranslatedWordsByLineIndex =
         remember(
@@ -410,12 +408,6 @@ fun LyricsView(
             (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
         ) {
             if (appleStyle) {
-                // NEAR the top, not against it: Apple leaves exactly ONE physical row of the
-                // previous lyric visible above the line being sung. Scrolling to `index - 1`
-                // instead — which is what this did first — anchors the whole previous ITEM, and a
-                // lyric that wraps is one item spanning two or three rows, so the entire wrapped
-                // block hung above the sung line. Anchoring the sung line itself and backing off by
-                // one row's height is row-accurate no matter how the previous line wrapped.
                 listState.animateScrollAndAnchorItemTop(currentLineIndex, -exposedRowPx)
             } else {
                 listState.animateScrollAndCentralizeItem(currentLineIndex)
@@ -424,11 +416,7 @@ fun LyricsView(
     }
 
     BoxWithConstraints(modifier = modifier) {
-        // Apple keeps the sung line at the TOP even when it is the last line of the song — which
-        // is only possible if there is empty space below it to scroll into. Without this tail the
-        // list simply runs out of content and the closing lines pile up against the bottom edge,
-        // so the final third of every song reads bottom-anchored instead of top-anchored.
-        val tailPadding = if (appleStyle) maxHeight * 0.72f else 0.dp
+        val tailPadding = if (appleStyle && !isUnsynced) maxHeight * 0.72f else 32.dp
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
@@ -581,7 +569,20 @@ fun LyricsView(
                         }
                     }
 
-                    if (appleStyle) {
+                    if (isUnsynced) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = if (appleStyle) AppleMusicLyricPaddingX else 16.dp),
+                        ) {
+                            UnsyncedLyricsLineItem(
+                                originalWords = if (!showOriginal && romanizedWords != null) romanizedWords else words,
+                                translatedWords = if (showTranslation) translatedWords else null,
+                                romanizedWords = if (showOriginal) romanizedWords else null,
+                            )
+                        }
+                    } else if (appleStyle) {
                         // The whole wrapper is the tap target — original line AND translation — the
                         // way AMLL's .lyricLineWrapper is, rather than each Text separately. The
                         // press shows as a tinted rounded panel; indication is null because a
@@ -663,6 +664,58 @@ fun LyricsView(
 }
 
 @Composable
+fun UnsyncedLyricsLineItem(
+    originalWords: String,
+    translatedWords: String?,
+    romanizedWords: String?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+    ) {
+        Text(
+            text = originalWords,
+            style = typo().headlineMedium.copy(
+                fontSize = 24.sp,
+                lineHeight = 34.sp,
+                fontWeight = FontWeight.SemiBold,
+            ),
+            color = Color.White,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (romanizedWords != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = romanizedWords,
+                style = typo().bodyMedium.copy(
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                ),
+                color = Color.White.copy(alpha = 0.7f),
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (translatedWords != null && !translatedWords.trim().equals(originalWords.trim(), ignoreCase = true)) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = translatedWords,
+                style = typo().bodyMedium.copy(
+                    fontSize = 17.sp,
+                    lineHeight = 24.sp,
+                ),
+                color = Color.White.copy(alpha = 0.85f),
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
 fun LyricsLineItem(
     originalWords: String,
     translatedWords: String?,
@@ -694,7 +747,7 @@ fun LyricsLineItem(
                         color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
                     )
                 }
-                if (translatedWords != null) {
+                if (translatedWords != null && !translatedWords.trim().equals(originalWords.trim(), ignoreCase = true)) {
                     Text(
                         text = translatedWords,
                         style = typo().bodyMedium,
@@ -722,7 +775,7 @@ fun LyricsLineItem(
                     color = DimRomanizedColor,
                 )
             }
-            if (translatedWords != null) {
+            if (translatedWords != null && !translatedWords.trim().equals(originalWords.trim(), ignoreCase = true)) {
                 Text(
                     text = translatedWords,
                     style = typo().bodyMedium,
@@ -826,7 +879,7 @@ fun RichSyncLyricsLineItem(
         }
 
         // Translated lyrics (line-level, no word sync)
-        if (translatedWords != null) {
+        if (translatedWords != null && !translatedWords.trim().equals(parsedLine.words.joinToString("") { it.text }.trim(), ignoreCase = true)) {
             Text(
                 text = translatedWords,
                 style = translatedStyleOverride ?: typo().bodyMedium,
