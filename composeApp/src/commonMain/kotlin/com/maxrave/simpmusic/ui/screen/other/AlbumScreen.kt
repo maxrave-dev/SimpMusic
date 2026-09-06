@@ -201,11 +201,18 @@ fun AlbumScreen(
         mutableStateOf<String?>(null)
     }
 
-    LaunchedEffect(bitmap) {
+    val hasAmMotion = uiState.amArtworkData?.hasMotion == true && uiState.amArtworkData?.bestMotionUrl != null
+    val currentArtworkUrl = if (hasAmMotion && uiState.amArtworkData?.staticArtworkUrl != null) {
+        uiState.amArtworkData!!.staticArtworkUrl
+    } else {
+        uiState.thumbnail
+    }
+
+    LaunchedEffect(bitmap, currentArtworkUrl) {
         val bm = bitmap
-        if (bm != null && paletteGeneratedFor != uiState.thumbnail) {
+        if (bm != null && paletteGeneratedFor != currentArtworkUrl) {
             paletteState.generate(bm)
-            paletteGeneratedFor = uiState.thumbnail
+            paletteGeneratedFor = currentArtworkUrl
         }
     }
 
@@ -255,50 +262,66 @@ fun AlbumScreen(
                                     horizontalAlignment = Alignment.Start,
                                 ) {
                                     if (isPortrait) {
-                                        // Apple Music-style: edge-to-edge artwork (taller than square,
-                                        // ~half screen height) with title overlay + liquid glass buttons.
-                                        // Glass buttons MUST be siblings of the backdrop source (not children)
-                                        // to avoid render feedback loop / RuntimeShader crash.
+                                        // Apple Music-style: edge-to-edge artwork with title overlay + liquid glass buttons.
+                                        // When animated artwork is present, header is sized 10% less than full motion height
+                                        // so that the bottom edge of the video is covered and fades into the dominant page background.
+                                        val amArtwork = uiState.amArtworkData
+                                        val hasAmMotion = amArtwork?.hasMotion == true && amArtwork.bestMotionUrl != null
+                                        val motionArtworkHeight = screenInfo.wDP * (4f / 3f)
+                                        val headerHeight = if (hasAmMotion) (motionArtworkHeight * 0.90f).dp else (screenInfo.hDP / 2).dp
+                                        val artworkHeight = if (hasAmMotion) motionArtworkHeight.dp else (screenInfo.hDP / 2).dp
+
                                         val artworkBackdrop = rememberBackdrop(Color.Black)
                                         Box(
                                             modifier =
                                                 Modifier
                                                     .fillMaxWidth()
-                                                    .height((screenInfo.hDP / 2).dp),
+                                                    .height(headerHeight),
                                         ) {
                                             // Inner Box — backdrop SOURCE (artwork + overlays only, NO glass)
                                             Box(modifier = Modifier.fillMaxSize().layerBackdrop(artworkBackdrop)) {
-                                                AsyncImage(
-                                                    model =
-                                                        ImageRequest
-                                                            .Builder(LocalPlatformContext.current)
-                                                            .data(uiState.thumbnail)
-                                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                                            .memoryCachePolicy(CachePolicy.ENABLED)
-                                                            .diskCacheKey(uiState.thumbnail)
-                                                            .memoryCacheKey(uiState.thumbnail)
-                                                            .crossfade(false)
-                                                            .build(),
-                                                    placeholder = rememberHolderPainter(),
-                                                    error = rememberHolderPainter(),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    onSuccess = {
-                                                        bitmap = it.result.image.toImageBitmap()
-                                                    },
-                                                    modifier = Modifier.fillMaxSize(),
-                                                )
-                                                // Subtle bottom gradient — keeps artwork visible behind
-                                                // the title text and blends artwork edge seamlessly into
-                                                // the muted palette page background (Apple Music style).
-                                                // Spans 70% of the artwork (not a fixed 200dp): the shorter
-                                                // the ramp, the steeper the alpha, and a steep ramp is what
-                                                // makes the fade read as an edge.
                                                 Box(
                                                     modifier =
                                                         Modifier
                                                             .fillMaxWidth()
-                                                            .height((screenInfo.hDP * 0.35f).dp)
+                                                            .height(artworkHeight)
+                                                            .align(Alignment.TopCenter),
+                                                ) {
+                                                    AsyncImage(
+                                                        model =
+                                                            ImageRequest
+                                                                .Builder(LocalPlatformContext.current)
+                                                                .data(currentArtworkUrl)
+                                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                                .diskCacheKey(currentArtworkUrl)
+                                                                .memoryCacheKey(currentArtworkUrl)
+                                                                .crossfade(false)
+                                                                .build(),
+                                                        placeholder = rememberHolderPainter(),
+                                                        error = rememberHolderPainter(),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        onSuccess = {
+                                                            bitmap = it.result.image.toImageBitmap()
+                                                        },
+                                                        modifier = Modifier.fillMaxSize(),
+                                                    )
+                                                    
+                                                    if (hasAmMotion) {
+                                                        com.maxrave.simpmusic.expect.ui.MediaPlayerView(
+                                                            url = amArtwork!!.bestMotionUrl!!,
+                                                            cropToBounds = true,
+                                                            modifier = Modifier.fillMaxSize()
+                                                        )
+                                                    }
+                                                }
+                                                // Bottom gradient — melts artwork edge seamlessly into the dominant palette background
+                                                Box(
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(if (hasAmMotion) (motionArtworkHeight * 0.40f).dp else (screenInfo.hDP * 0.35f).dp)
                                                             .align(Alignment.BottomCenter)
                                                             .background(artworkScrimBrush(mutedPaletteBg)),
                                                 )
@@ -424,29 +447,42 @@ fun AlbumScreen(
                                                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                                                     verticalAlignment = Alignment.Top,
                                                 ) {
-                                                    AsyncImage(
-                                                        model =
-                                                            ImageRequest
-                                                                .Builder(LocalPlatformContext.current)
-                                                                .data(uiState.thumbnail)
-                                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                                .memoryCachePolicy(CachePolicy.ENABLED)
-                                                                .diskCacheKey(uiState.thumbnail)
-                                                                .memoryCacheKey(uiState.thumbnail)
-                                                                .crossfade(false)
-                                                                .build(),
-                                                        placeholder = rememberHolderPainter(),
-                                                        error = rememberHolderPainter(),
-                                                        contentDescription = null,
-                                                        contentScale = ContentScale.Crop,
-                                                        onSuccess = {
-                                                            bitmap = it.result.image.toImageBitmap()
-                                                        },
-                                                        modifier =
-                                                            Modifier
-                                                                .size(280.dp)
-                                                                .clip(RoundedCornerShape(8.dp)),
-                                                    )
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(280.dp)
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                    ) {
+                                                        AsyncImage(
+                                                            model =
+                                                                ImageRequest
+                                                                    .Builder(LocalPlatformContext.current)
+                                                                    .data(currentArtworkUrl)
+                                                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                                                    .diskCacheKey(currentArtworkUrl)
+                                                                    .memoryCacheKey(currentArtworkUrl)
+                                                                    .crossfade(false)
+                                                                    .build(),
+                                                            placeholder = rememberHolderPainter(),
+                                                            error = rememberHolderPainter(),
+                                                            contentDescription = null,
+                                                            contentScale = ContentScale.Crop,
+                                                            onSuccess = {
+                                                                bitmap = it.result.image.toImageBitmap()
+                                                            },
+                                                            modifier = Modifier.fillMaxSize(),
+                                                        )
+                                                        
+                                                        val amArtwork = uiState.amArtworkData
+                                                        val hasAmMotion = amArtwork?.hasMotion == true && amArtwork.bestMotionUrl != null
+                                                        if (hasAmMotion) {
+                                                            com.maxrave.simpmusic.expect.ui.MediaPlayerView(
+                                                                url = amArtwork!!.bestMotionUrl!!,
+                                                                cropToBounds = true,
+                                                                modifier = Modifier.fillMaxSize()
+                                                            )
+                                                        }
+                                                    }
                                                     Column(
                                                         modifier = Modifier.weight(1f),
                                                     ) {

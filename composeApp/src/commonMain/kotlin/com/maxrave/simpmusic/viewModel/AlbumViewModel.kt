@@ -39,11 +39,13 @@ class AlbumViewModel(
     private val albumRepository: AlbumRepository,
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
+    private val lyricsCanvasRepository: com.maxrave.domain.repository.LyricsCanvasRepository by inject()
     private val _uiState: MutableStateFlow<AlbumUIState> = MutableStateFlow(AlbumUIState.initial())
     val uiState: StateFlow<AlbumUIState> = _uiState
 
     private var job: Job? = null
     private var collectDownloadStateJob: Job? = null
+    private var amArtworkJob: Job? = null
 
     fun updateBrowseId(browseId: String) {
         viewModelScope.launch {
@@ -71,6 +73,18 @@ class AlbumViewModel(
                                     otherVersion = data.otherVersion,
                                     loadState = LocalPlaylistState.PlaylistLoadState.Success,
                                 )
+                            }
+                            val artistForSearch = data.artists.firstOrNull()?.name ?: ""
+                            amArtworkJob?.cancel()
+                            if (artistForSearch.isNotBlank()) {
+                                amArtworkJob = viewModelScope.launch {
+                                    lyricsCanvasRepository.getAppleMusicAlbumArtwork(data.title, artistForSearch).collectLatest { res ->
+                                        val amArtwork = res.data
+                                        if (res is Resource.Success && amArtwork != null && amArtwork.hasMotion) {
+                                            _uiState.update { it.copy(amArtworkData = amArtwork) }
+                                        }
+                                    }
+                                }
                             }
                             val localAlbum = albumRepository.getAlbum(browseId).lastOrNull()
                             if (localAlbum != null) {
@@ -298,6 +312,7 @@ data class AlbumUIState(
     val listTrack: List<Track> = emptyList(),
     val otherVersion: List<ResultAlbum> = emptyList(),
     val loadState: LocalPlaylistState.PlaylistLoadState = LocalPlaylistState.PlaylistLoadState.Loading,
+    val amArtworkData: com.maxrave.domain.data.model.canvas.AppleMusicArtwork? = null,
 ) {
     companion object {
         fun initial(): AlbumUIState = AlbumUIState()
