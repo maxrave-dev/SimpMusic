@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.player.content.applemusic
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -10,7 +11,12 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -33,6 +39,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -44,6 +52,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,16 +70,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.player.GenericCastState
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
@@ -83,6 +96,7 @@ import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.FastForward
 import com.maxrave.simpmusic.ui.icon.FastRewind
@@ -101,9 +115,22 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
+import kotlinx.coroutines.launch
+import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
+import com.maxrave.simpmusic.ui.component.lyrics.accompanist.LyricsAdapter
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import androidx.compose.ui.zIndex
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.hide_original
+import simpmusic.composeapp.generated.resources.hide_romanization
+import simpmusic.composeapp.generated.resources.hide_translation
+import simpmusic.composeapp.generated.resources.ic_lyrics_translation
+import simpmusic.composeapp.generated.resources.show_original
+import simpmusic.composeapp.generated.resources.show_romanization
+import simpmusic.composeapp.generated.resources.show_translation
 import kotlin.math.roundToLong
 
 /** Which body the dock is currently showing. Held by the top-level Apple Music composable. */
@@ -769,10 +796,192 @@ internal fun AppleMusicBottomCluster(
     activePillContent: Color,
     deviceVolumeController: DeviceVolumeController?,
     modifier: Modifier = Modifier,
+    dataStoreManager: DataStoreManager = koinInject(),
+    onOptionsOpenChanged: ((Boolean) -> Unit)? = null,
+    onInteraction: () -> Unit = {},
 ) {
     val localDensity = LocalDensity.current
+    val showTranslation by dataStoreManager.showLyricsTranslation.collectAsStateWithLifecycle(true)
+    val showOriginal by dataStoreManager.showLyricsOriginal.collectAsStateWithLifecycle(true)
+    val romanizationLanguagesStr by dataStoreManager.romanizationLanguages.collectAsStateWithLifecycle("")
+    val enabledLanguages = remember(romanizationLanguagesStr) {
+        RomanizationLanguage.parse(romanizationLanguagesStr)
+    }
+    val lyricsData = state.screenData.lyricsData
+    val isNonEnglish = remember(lyricsData) {
+        LyricsAdapter.hasNonEnglishLyrics(lyricsData)
+    }
+    val hasRomanized = remember(lyricsData, enabledLanguages) {
+        LyricsAdapter.hasRomanizedLyrics(lyricsData, enabledLanguages)
+    }
+    val isTranslationAvailable = remember(lyricsData) {
+        val trans = lyricsData?.translatedLyrics?.first?.lines
+        val orig = lyricsData?.lyrics?.lines
+        if (trans.isNullOrEmpty() || orig.isNullOrEmpty()) {
+            false
+        } else {
+            val origClean = orig.map { it.words.replace(Regex("<[^>]*>"), "").trim() }.filter { it.isNotEmpty() && it != "♫" }
+            val transClean = trans.map { it.words.replace(Regex("<[^>]*>"), "").trim() }.filter { it.isNotEmpty() && it != "♫" }
+            if (origClean.isEmpty() || transClean.isEmpty()) {
+                false
+            } else {
+                val unchangedCount = origClean.zip(transClean).count { (o, t) -> o.equals(t, ignoreCase = true) }
+                unchangedCount.toFloat() / origClean.size <= 0.75f
+            }
+        }
+    }
+    val isTranslating = state.isTranslatingLyrics
+    val isMenuAvailable = isNonEnglish || hasRomanized
+
+    var showOptionsMenu by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(isMenuAvailable) {
+        if (!isMenuAvailable && showOptionsMenu) {
+            showOptionsMenu = false
+            onOptionsOpenChanged?.invoke(false)
+        }
+    }
+    val scope = rememberCoroutineScope()
+
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 8.dp)) {
         if (getPlatform() == Platform.Android) {
+            if (viewState == AppleMusicView.LYRICS && isMenuAvailable) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    Box(contentAlignment = Alignment.TopEnd) {
+                        Box(
+                            modifier = Modifier
+                                .appleMusicPressInflate()
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if ((isNonEnglish && showTranslation && isTranslationAvailable) || (hasRomanized && showOriginal)) Color.White.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.14f))
+                                .clickable {
+                                    showOptionsMenu = !showOptionsMenu
+                                    onOptionsOpenChanged?.invoke(showOptionsMenu)
+                                    onInteraction()
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_lyrics_translation),
+                                contentDescription = "Lyrics Display Options",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showOptionsMenu,
+                            enter = fadeIn(animationSpec = tween(200)) + scaleIn(initialScale = 0.9f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f)),
+                            exit = fadeOut(animationSpec = tween(150)) + scaleOut(targetScale = 0.9f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f)),
+                            modifier = Modifier
+                                .padding(top = 42.dp)
+                                .zIndex(100f),
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .width(220.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF2C2C2E).copy(alpha = 0.95f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                                    .padding(vertical = 4.dp),
+                            ) {
+                                if (isNonEnglish) {
+                                    val rowAlpha = if (isTranslationAvailable) 1f else 0.38f
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .then(
+                                                if (isTranslationAvailable) {
+                                                    Modifier.clickable {
+                                                        scope.launch {
+                                                            dataStoreManager.setShowLyricsTranslation(!showTranslation)
+                                                            onInteraction()
+                                                        }
+                                                    }
+                                                } else {
+                                                    Modifier.clickable {
+                                                        actions.onUIEvent(UIEvent.RequestTranslation)
+                                                        onInteraction()
+                                                    }
+                                                }
+                                            )
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = if (isTranslationAvailable) {
+                                                if (showTranslation) stringResource(Res.string.hide_translation) else stringResource(Res.string.show_translation)
+                                            } else {
+                                                stringResource(Res.string.show_translation)
+                                            },
+                                            style = typography.mainTitle.copy(
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                color = Color.White.copy(alpha = rowAlpha),
+                                            ),
+                                        )
+                                        if (isTranslationAvailable && showTranslation) {
+                                            Icon(
+                                                imageVector = SimpIcons.Check,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        } else if (!isTranslationAvailable && isTranslating) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(16.dp),
+                                                strokeWidth = 2.dp,
+                                                color = Color.White.copy(alpha = 0.5f),
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (isNonEnglish && hasRomanized) {
+                                    HorizontalDivider(
+                                        color = Color.White.copy(alpha = 0.12f),
+                                        thickness = 0.5.dp,
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                    )
+                                }
+
+                                if (hasRomanized) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                scope.launch {
+                                                    dataStoreManager.setShowLyricsOriginal(!showOriginal)
+                                                    onInteraction()
+                                                }
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = if (showOriginal) stringResource(Res.string.hide_original) else stringResource(Res.string.show_original),
+                                            style = typography.mainTitle.copy(fontSize = 15.sp, fontWeight = FontWeight.Normal, color = Color.White),
+                                        )
+                                        if (showOriginal) {
+                                            Icon(
+                                                imageVector = SimpIcons.Check,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Fixed 18dp shell: the track swells on touch, but inside a CONSTANT footprint —
             // otherwise the growing slider re-measures this whole column and the artwork above
             // it visibly jumps. It also gives the bar a real 18dp touch target instead of 7dp.

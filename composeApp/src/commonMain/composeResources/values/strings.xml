@@ -414,6 +414,12 @@
     <string name="lyrics_style">Lyrics style</string>
     <string name="lyrics_style_classic">Classic</string>
     <string name="lyrics_style_apple_music" translatable="false">Apple Music</string>
+    <string name="show_translation">Show Translation</string>
+    <string name="hide_translation">Hide Translation</string>
+    <string name="show_romanization">Show Romanization</string>
+    <string name="hide_romanization">Hide Romanization</string>
+    <string name="show_original">Display original text</string>
+    <string name="hide_original">Hide original text</string>
     <string name="requires_android_12" translatable="false">Android 12+</string>
     <string name="lyrics_romanization">Lyrics romanization</string>
     <string name="lyrics_romanization_description">Show lyrics in Latin script for the languages you pick</string>

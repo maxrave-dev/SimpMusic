@@ -43,6 +43,15 @@ kotlin {
         freeCompilerArgs.add("-Xmulti-dollar-interpolation")
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
+
+    sourceSets.all {
+        languageSettings.optIn("androidx.compose.animation.core.ExperimentalAnimatableApi")
+        languageSettings.optIn("androidx.compose.animation.core.ExperimentalTransitionApi")
+        languageSettings.optIn("androidx.compose.animation.ExperimentalSharedTransitionApi")
+        languageSettings.optIn("androidx.compose.animation.ExperimentalAnimationApi")
+        languageSettings.optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+        languageSettings.optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+    }
     android {
         namespace = "com.maxrave.simpmusic.composeapp"
         compileSdk = 37
@@ -114,11 +123,13 @@ kotlin {
             implementation(libs.compose.material.ripple)
 
             implementation(libs.ui.tooling.preview)
+            implementation(libs.accompanist.lyrics.core)
 
             // Other module
             api(projects.common)
             api(projects.domain)
             implementation(projects.data)
+            implementation(projects.lyricsService)
 
             // Last.fm (gated: real scrobbler for full builds, no-op stub for FOSS builds).
             // `api` rather than `implementation` so :androidApp can hand it the credentials from

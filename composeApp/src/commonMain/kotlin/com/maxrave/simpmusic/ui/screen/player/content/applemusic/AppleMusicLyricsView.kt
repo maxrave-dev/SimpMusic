@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,14 +42,25 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextMotion
+import com.maxrave.simpmusic.ui.component.AppleMusicLyricFontSize
+import com.maxrave.simpmusic.ui.component.AppleMusicLyricLineHeight
 import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
+import com.maxrave.domain.repository.LyricsRomanizerRepository
+import com.maxrave.simpmusic.ui.component.lyrics.accompanist.LyricsAdapter
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
+import com.mocharealm.accompanist.lyrics.ui.composable.lyrics.KaraokeLyricsView
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -71,8 +83,39 @@ import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
 import simpmusic.composeapp.generated.resources.lyrics_provider_youtube
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.rich_synced
+import simpmusic.composeapp.generated.resources.sf_pro
 import simpmusic.composeapp.generated.resources.spotify_lyrics_provider
 import simpmusic.composeapp.generated.resources.unsynced
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
+import org.jetbrains.compose.resources.Font
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+private fun sfProFamily(): FontFamily = FontFamily(
+    Font(
+        resource = Res.font.sf_pro,
+        weight = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Bold.weight),
+        )
+    ),
+    Font(
+        resource = Res.font.sf_pro,
+        weight = FontWeight.SemiBold,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.SemiBold.weight),
+        )
+    ),
+    Font(
+        resource = Res.font.sf_pro,
+        weight = FontWeight.Medium,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(FontWeight.Medium.weight),
+        )
+    ),
+)
 
 /**
  * The LYRICS body: compact header, the app's own [LyricsView] — the SAME renderer the other
@@ -92,6 +135,7 @@ internal fun AppleMusicLyricsView(
     deviceVolumeController: DeviceVolumeController?,
     modifier: Modifier = Modifier,
     dataStoreManager: DataStoreManager = koinInject(),
+    romanizer: LyricsRomanizerRepository = koinInject(),
 ) {
     val localDensity = LocalDensity.current
     val lyricsData = state.screenData.lyricsData
@@ -113,8 +157,9 @@ internal fun AppleMusicLyricsView(
     // countdown. Without it a scroll while the cluster is already shown leaves showCluster
     // unchanged, the LaunchedEffect never restarts, and the controls vanish mid-gesture.
     var interactionTick by remember { mutableIntStateOf(0) }
-    LaunchedEffect(showCluster, interactionTick) {
-        if (showCluster) {
+    var isOptionsMenuOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(showCluster, interactionTick, isOptionsMenuOpen) {
+        if (showCluster && !isOptionsMenuOpen) {
             delay(CLUSTER_AUTO_HIDE_MS)
             showCluster = false
         }
@@ -169,75 +214,138 @@ internal fun AppleMusicLyricsView(
                     },
         ) {
             if (lyricsData != null) {
-                // Transparent background: the page's artwork-tinted gradient is the backdrop,
-                // not LyricsView's own dark card color.
-                // The app's own renderer, with its own line sizes/animations. The provider caption
-                // rides as its LAST list item so it scrolls with the lyrics, per the owner's
-                // original spec.
-                LyricsView(
-                    lyricsData = lyricsData,
-                    timeLine = state.timelineFlow,
-                    onLineClick = { f ->
-                        actions.onUIEvent(UIEvent.UpdateProgress(f))
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            // The lines dissolve at both edges instead of being guillotined by
-                            // the header/cluster — applied from OUTSIDE the component.
-                            // Softer bottom fade than the top: a lyric line is ~54dp tall, and a
-                            // 44dp fade dissolved most of the last visible line.
-                            .appleMusicVerticalFadeEdges(topFade = 28.dp, bottomFade = 18.dp)
-                            // Zero under the Apple Music renderer, which insets its own lines so
-                            // its blur has margin to spill into; the full gutter under Classic,
-                            // which insets nothing. Applied AFTER the fade so the fade still spans
-                            // the full width.
-                            .padding(horizontal = if (rendererOwnsGutter) 0.dp else AppleMusicLyricPaddingX),
-                    backgroundColor = Color.Transparent,
-                    footerContent = {
-                        // Right-aligned, and stacked: plain text rather than the AIBadge pill the
-                        // other styles use. Classic puts that badge beside a "Lyrics" heading where
-                        // it has a row to itself; here it would sit inline with the provider
-                        // caption, which is already the quietest thing on the page — a filled pill
-                        // next to it shouts. Two right-anchored lines read as one footnote block.
-                        Column(
-                            horizontalAlignment = Alignment.End,
-                            modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
-                        ) {
-                            if (lyricsData.translatedLyrics?.second == LyricsProvider.AI) {
-                                Text(
-                                    text = stringResource(Res.string.ai_translated),
-                                    style = typography.footer,
-                                    textAlign = TextAlign.End,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                            // One line per fact, not one line joined by a bullet. "Word by word"
-                            // and "Lyrics provided by SimpMusic Lyrics" are two different things,
-                            // and glued together they make a single line long enough to run the
-                            // width of the screen.
-                            //
-                            // fillMaxWidth + TextAlign.End on each, not just the Column's
-                            // alignment: Column alignment places a whole text block, so a line that
-                            // wraps still ends up left-aligned within itself.
-                            Text(
-                                text = appleMusicLyricsSyncText(lyricsData),
-                                style = typography.footer,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            val provider = appleMusicLyricsProviderText(lyricsData)
-                            if (provider.isNotBlank()) {
-                                Text(
-                                    text = provider,
-                                    style = typography.footer,
-                                    textAlign = TextAlign.End,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
+                val showTranslation by dataStoreManager.showLyricsTranslation.collectAsStateWithLifecycle(true)
+                val showOriginal by dataStoreManager.showLyricsOriginal.collectAsStateWithLifecycle(true)
+                val romanizationLanguagesStr by dataStoreManager.romanizationLanguages.collectAsStateWithLifecycle("")
+                val enabledLanguages = remember(romanizationLanguagesStr) {
+                    com.maxrave.domain.data.model.lyrics.RomanizationLanguage.parse(romanizationLanguagesStr)
+                }
+
+                val syncedLyrics = remember(lyricsData, enabledLanguages) {
+                    LyricsAdapter.toSyncedLyrics(lyricsData, enabledLanguages)
+                }
+                val lyricsListState = rememberLazyListState()
+                // Collect the timeline as Compose state so KaraokeLyricsView's derivedStateOf
+                // correctly re-reads the current position on every frame.
+                val timeline by state.timelineFlow.collectAsStateWithLifecycle()
+                val isPlaying = state.controllerState.isPlaying
+
+                // Single Internal Clock Architecture with Monotonic Smooth Synchronization:
+                // 1. Never restarts the frame loop on 100ms poll updates (keys only on isPlaying).
+                // 2. Extrapolates frame-by-frame using real frame delta time (dt).
+                // 3. Smoothly catches up to the player without EVER snapping backwards during playback.
+                // 4. Snaps immediately on seeks/track changes (>500ms diff).
+                val synchronizedPosition = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+                
+                LaunchedEffect(isPlaying) {
+                    if (!isPlaying) {
+                        // When paused or buffering, lock exactly to the server position.
+                        synchronizedPosition.longValue = timeline.current
+                    } else {
+                        var smoothedPosition = timeline.current.toDouble()
+                        var lastFrameTimeMs = 0L
+
+                        while (true) {
+                            androidx.compose.animation.core.withInfiniteAnimationFrameMillis { frameTimeMs ->
+                                if (lastFrameTimeMs == 0L) {
+                                    lastFrameTimeMs = frameTimeMs
+                                    smoothedPosition = timeline.current.toDouble()
+                                }
+
+                                val dt = (frameTimeMs - lastFrameTimeMs).coerceIn(0L, 100L)
+                                lastFrameTimeMs = frameTimeMs
+
+                                val now = System.currentTimeMillis()
+                                val timeSinceLastUpdate = if (timeline.lastUpdateTimeMs > 0L) {
+                                    (now - timeline.lastUpdateTimeMs).coerceIn(0L, 1000L)
+                                } else {
+                                    0L
+                                }
+                                val targetPosition = (timeline.current + timeSinceLastUpdate).toDouble()
+                                val diff = targetPosition - smoothedPosition
+
+                                if (kotlin.math.abs(diff) > 500.0) {
+                                    // User seeked, skipped, or track changed -> snap immediately
+                                    smoothedPosition = targetPosition
+                                } else {
+                                    // Normal playback: advance smoothly by dt plus a gentle spring catchup (8% per frame)
+                                    val catchUp = diff * 0.08
+                                    val newPosition = smoothedPosition + dt + catchUp
+                                    // Strictly monotonic: time never moves backwards during playback
+                                    smoothedPosition = maxOf(smoothedPosition, newPosition)
+                                }
+
+                                synchronizedPosition.longValue = smoothedPosition.toLong()
                             }
                         }
-                    },
-                )
+                    }
+                }
+
+                if (syncedLyrics != null) {
+                    KaraokeLyricsView(
+                        listState = lyricsListState,
+                        lyrics = syncedLyrics,
+                        currentPosition = { synchronizedPosition.longValue.toInt() },
+                        onLineClicked = { line ->
+                            val totalDurationMs = timeline.total
+                            if (totalDurationMs > 0) {
+                                actions.onUIEvent(UIEvent.UpdateProgress((line.start.toFloat() / totalDurationMs.toFloat()) * 100f))
+                            }
+                        },
+                        onLinePressed = { _ ->
+                            showShareSheet = true
+                        },
+                        normalLineTextStyle = LocalTextStyle.current.copy(
+                            fontSize = 34.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = sfProFamily(),
+                            textMotion = TextMotion.Animated,
+                        ),
+                        accompanimentLineTextStyle = LocalTextStyle.current.copy(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = sfProFamily(),
+                            textMotion = TextMotion.Animated,
+                        ),
+                        phoneticTextStyle = LocalTextStyle.current.copy(
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = sfProFamily(),
+                            textMotion = TextMotion.Animated,
+                        ),
+                        textColor = Color.White,
+                        useBlurEffect = isLyricsBlurSupported(),
+                        showTranslation = showTranslation && lyricsData.translatedLyrics != null,
+                        showPhonetic = showOriginal,
+                        contentPadding = PaddingValues(horizontal = AppleMusicLyricPaddingX),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .appleMusicVerticalFadeEdges(topFade = 28.dp, bottomFade = 18.dp),
+                        footerContent = {
+                            LyricsFooterContent(lyricsData, typography)
+                        }
+                    )
+                } else {
+                    val isUnsynced = lyricsData.lyrics.syncType == "UNSYNCED" || lyricsData.lyrics.syncType == null
+                    LyricsView(
+                        lyricsData = lyricsData,
+                        timeLine = state.timelineFlow,
+                        onLineClick = { f ->
+                            actions.onUIEvent(UIEvent.UpdateProgress(f))
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (isUnsynced) Modifier else Modifier.appleMusicVerticalFadeEdges(topFade = 28.dp, bottomFade = 18.dp)
+                                )
+                                .padding(horizontal = if (rendererOwnsGutter && !isUnsynced) 0.dp else AppleMusicLyricPaddingX),
+                        backgroundColor = Color.Transparent,
+                        footerContent = {
+                            LyricsFooterContent(lyricsData, typography)
+                        },
+                    )
+                }
                 // Bottom-end, inside the list's own bottom fade so they sit over the dimmest
                 // lyrics rather than over a bright active line.
                 androidx.compose.animation.AnimatedVisibility(
@@ -261,6 +369,22 @@ internal fun AppleMusicLyricsView(
                         AppleMusicFloatingCircleButton(icon = SimpIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }
                 }
+            }
+
+            if (!showCluster) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .align(Alignment.BottomCenter)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) {
+                            showCluster = true
+                            interactionTick++
+                        },
+                )
             }
         }
 
@@ -295,6 +419,15 @@ internal fun AppleMusicLyricsView(
                 activePillContainer = activePillContainer,
                 activePillContent = activePillContent,
                 deviceVolumeController = deviceVolumeController,
+                onOptionsOpenChanged = { isOpen ->
+                    isOptionsMenuOpen = isOpen
+                    if (isOpen) {
+                        interactionTick++
+                    }
+                },
+                onInteraction = {
+                    interactionTick++
+                },
             )
         }
     }
@@ -347,3 +480,42 @@ private fun appleMusicLyricsProviderText(lyricsData: NowPlayingScreenData.Lyrics
         LyricsProvider.BETTER_LYRICS -> stringResource(Res.string.lyrics_provider_betterlyrics)
         LyricsProvider.AI -> ""
     }
+
+@Composable
+private fun LyricsFooterContent(
+    lyricsData: NowPlayingScreenData.LyricsData,
+    typography: AppleMusicTypography,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.End,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (lyricsData.translatedLyrics?.second == LyricsProvider.AI) {
+                Text(
+                    text = stringResource(Res.string.ai_translated),
+                    style = typography.footer,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            Text(
+                text = appleMusicLyricsSyncText(lyricsData),
+                style = typography.footer,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val provider = appleMusicLyricsProviderText(lyricsData)
+            if (provider.isNotBlank()) {
+                Text(
+                    text = provider,
+                    style = typography.footer,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
