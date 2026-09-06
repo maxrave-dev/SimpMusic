@@ -465,7 +465,7 @@ fun KaraokeLyricsView(
                             }
                         val isLineRightAligned = when (line) {
                             is KaraokeLine -> {
-                                remember { line.alignment == KaraokeAlignment.End }
+                                remember(line) { line.alignment == KaraokeAlignment.End }
                             }
 
                             else -> false

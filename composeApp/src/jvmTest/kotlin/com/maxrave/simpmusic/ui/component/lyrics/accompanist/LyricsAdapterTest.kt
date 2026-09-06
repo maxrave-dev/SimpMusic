@@ -4,6 +4,7 @@ import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
+import com.mocharealm.accompanist.lyrics.core.model.karaoke.KaraokeAlignment
 import com.mocharealm.accompanist.lyrics.core.model.karaoke.KaraokeLine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -234,6 +235,67 @@ class LyricsAdapterTest {
         // When the whole line itself is English, no phonetics should be shown below
         assertEquals(null, mainLine.phonetic)
         assertTrue(mainLine.syllables.all { it.phonetic == null })
+    }
+
+    @Test
+    fun testV1AndV2PlacementsAndPrefixParsing() {
+        val lineV1 = Line(
+            startTimeMs = "1000",
+            endTimeMs = "4000",
+            words = "[v1]<00:01.00>Main <00:02.00>vocal",
+            syllables = emptyList()
+        )
+        val lineV2 = Line(
+            startTimeMs = "5000",
+            endTimeMs = "8000",
+            words = "[v2]<00:05.00>Duet <00:06.00>partner",
+            syllables = emptyList()
+        )
+        val lineV2Bg = Line(
+            startTimeMs = "5500",
+            endTimeMs = "7500",
+            words = "[bg][v2]<00:05.50>Echo <00:06.50>duet",
+            syllables = emptyList()
+        )
+        val lineBgV2Reversed = Line(
+            startTimeMs = "5600",
+            endTimeMs = "7600",
+            words = "[v2][bg]<00:05.60>Another <00:06.60>echo",
+            syllables = emptyList()
+        )
+        val lyrics = Lyrics(
+            lines = listOf(lineV1, lineV2, lineV2Bg, lineBgV2Reversed),
+            syncType = "RICH_SYNCED"
+        )
+        val lyricsData = NowPlayingScreenData.LyricsData(
+            lyrics = lyrics,
+            lyricsProvider = LyricsProvider.SIMPMUSIC
+        )
+
+        val syncedLyrics = LyricsAdapter.toSyncedLyrics(lyricsData)
+        assertNotNull(syncedLyrics)
+        assertEquals(2, syncedLyrics.lines.size)
+
+        // lineV1 should be Unspecified alignment (left-aligned) and have [v1] stripped
+        val v1Line = syncedLyrics.lines[0] as KaraokeLine.MainKaraokeLine
+        assertEquals(KaraokeAlignment.Unspecified, v1Line.alignment)
+        assertEquals("Main ", v1Line.syllables[0].content)
+        assertEquals("vocal", v1Line.syllables[1].content)
+
+        // lineV2 should be End alignment (right-aligned) and have [v2] stripped
+        val v2Line = syncedLyrics.lines[1] as KaraokeLine.MainKaraokeLine
+        assertEquals(KaraokeAlignment.End, v2Line.alignment)
+        assertEquals("Duet ", v2Line.syllables[0].content)
+        assertEquals("partner", v2Line.syllables[1].content)
+
+        // Attached background lines for v2 should have End alignment and prefixes stripped
+        val accs = v2Line.accompanimentLines
+        assertNotNull(accs)
+        assertEquals(2, accs.size)
+        assertEquals(KaraokeAlignment.End, accs[0].alignment)
+        assertEquals("Echo ", accs[0].syllables[0].content)
+        assertEquals(KaraokeAlignment.End, accs[1].alignment)
+        assertEquals("Another ", accs[1].syllables[0].content)
     }
 }
 

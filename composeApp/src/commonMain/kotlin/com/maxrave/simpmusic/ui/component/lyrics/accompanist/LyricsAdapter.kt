@@ -151,10 +151,27 @@ object LyricsAdapter {
             val trans = translationByLineIndex[index]
 
             var words = line.words
-            var isBg = words.startsWith("[bg]") || words.startsWith("[BG]")
-            if (isBg) words = words.removePrefix("[bg]").removePrefix("[BG]").trim()
-            var isV2 = words.startsWith("[v2]") || words.startsWith("[V2]")
-            if (isV2) words = words.removePrefix("[v2]").removePrefix("[V2]").trim()
+            var isBg = false
+            var isV2 = false
+
+            while (true) {
+                val trimmed = words.trimStart()
+                when {
+                    trimmed.startsWith("[bg]", ignoreCase = true) -> {
+                        isBg = true
+                        words = trimmed.substring(4)
+                    }
+                    trimmed.startsWith("[v2]", ignoreCase = true) -> {
+                        isV2 = true
+                        words = trimmed.substring(4)
+                    }
+                    trimmed.startsWith("[v1]", ignoreCase = true) -> {
+                        words = trimmed.substring(4)
+                    }
+                    else -> break
+                }
+            }
+            words = words.trim()
 
             // Let BiniLyrics parser determine isBg explicitly via [bg] tags.
             // Do not assume parentheses mean background lyrics, as many main lyrics use them.
