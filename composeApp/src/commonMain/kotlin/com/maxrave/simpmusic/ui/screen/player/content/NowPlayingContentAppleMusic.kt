@@ -53,6 +53,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -166,17 +171,26 @@ fun NowPlayingContentAppleMusic(
     // rather than an imperative ImageLoader.execute(): the pager's AsyncImage demonstrably loads
     // this exact url while the execute() call did not, so this uses the path already proven to
     // work rather than a second one that has to be kept working.
-    var backdropUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+    var backdropUrl by remember(state.screenData.thumbnailURL, state.screenData.amArtworkData) {
+        val amData = state.screenData.amArtworkData
+        val amUrl = amData?.staticArtworkUrl
+        val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
+        mutableStateOf(url)
+    }
 
     val paletteColor = state.startColor.value
     val seedColor = if (paletteColor == Color.Black) seed else paletteColor
     val activePillContainer = remember(seedColor) { lerp(seedColor, Color.White, 0.75f) }
     val activePillContent = remember(seedColor) { lerp(seedColor, Color.Black, 0.6f) }
 
+    val amData = state.screenData.amArtworkData
+    val isAmLoading = state.screenData.isAmArtworkLoading
+    val hasAmMotion = amData?.hasMotion == true && amData.bestMotionUrl != null
+    val canShowCanvas = !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val showCanvasBackdrop =
         viewState == AppleMusicView.MAIN &&
-            (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
-    val isVideoBackdropTop = showCanvasBackdrop && state.screenData.canvasData == null
+            (canShowCanvas || (state.screenData.isVideo && state.shouldShowVideo))
+    val isVideoBackdropTop = showCanvasBackdrop && !canShowCanvas
 
     // The approved mock's page gradient is THREE stops — a clearly-tinted top, ~55%-darkened by
     // mid-page (48%), warm near-black at the bottom. The first cut's two stops to near-black read
@@ -213,30 +227,22 @@ fun NowPlayingContentAppleMusic(
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Box(modifier = Modifier.matchParentSize().layerBackdrop(panelBackdrop)) {
             // Apple frosts the COVER ART into the page background — the colour and the soft blotches
-            // of the artwork stay visible through it. A flat tinted gradient, which is what this used
-            // to be, gets the hue right and loses everything else: the page reads as a solid colour
-            // swatch rather than as the record it belongs to.
-            //
-            // Loaded straight from the url by AsyncImage rather than through the screen state's
-            // decoded bitmap. The background IS an image, so there is no reason to route it through a
-            // bitmap someone else has to remember to fill in — which is exactly what broke: the only
-            // thing feeding that bitmap was the artwork pager inside MAIN, so on QUEUE or LYRICS a
-            // track change left it null and the page fell back to a bare gradient.
-            //
-            // The palette still needs a bitmap, and it comes off this same load. One source, so the
-            // frosted art and the tint over it cannot end up belonging to different songs.
-            //
-            // The heavy blur radius is safe because the whole style is gated behind Android 12 for
-            // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
-            // scaled far past its own resolution — at this blur that costs nothing visually.
-            if (!backdropUrl.isNullOrBlank()) {
+            // of the artwork stay visible through it.
+            // When lyrics view is open, the background blur strictly follows the static album art sequence.
+            val blurSourceUrl = if (viewState == AppleMusicView.LYRICS) {
+                state.screenData.thumbnailURL
+            } else {
+                backdropUrl
+            }
+
+            if (!blurSourceUrl.isNullOrBlank()) {
                 AsyncImage(
                     model =
                         ImageRequest
                             .Builder(LocalPlatformContext.current)
-                            .data(backdropUrl)
+                            .data(blurSourceUrl)
                             .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(backdropUrl + "BIGGER")
+                            .diskCacheKey(blurSourceUrl + "BIGGER")
                             .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -244,8 +250,8 @@ fun NowPlayingContentAppleMusic(
                     // Same fallback the artwork pager carries: maxresdefault is missing for plenty of
                     // videos, and without this the page would simply stay black.
                     onError = {
-                        val fallback = backdropUrl?.replace("maxresdefault", "hqdefault")
-                        if (fallback != null && fallback != backdropUrl) backdropUrl = fallback
+                        val fallback = blurSourceUrl?.replace("maxresdefault", "hqdefault")
+                        if (fallback != null && fallback != blurSourceUrl) backdropUrl = fallback
                     },
                     modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
                 )
@@ -274,6 +280,8 @@ fun NowPlayingContentAppleMusic(
                         activePillContainer = activePillContainer,
                         activePillContent = activePillContent,
                         deviceVolumeController = deviceVolumeController,
+                        backdropUrl = backdropUrl,
+                        backdropBrush = backdropBrush,
                     )
 
                 AppleMusicView.LYRICS ->
@@ -381,14 +389,20 @@ private fun AppleMusicMainView(
     activePillContainer: Color,
     activePillContent: Color,
     deviceVolumeController: DeviceVolumeController?,
+    backdropUrl: String?,
+    backdropBrush: Brush,
 ) {
     val screenInfo = getScreenSizeInfo()
     val localDensity = LocalDensity.current
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
 
+    val amData = state.screenData.amArtworkData
+    val isAmLoading = state.screenData.isAmArtworkLoading
+    val hasAmMotion = amData?.hasMotion == true && amData.bestMotionUrl != null
+    val canShowCanvas = !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val showCanvasBackdrop =
-        state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo)
-    val isVideoBackdrop = showCanvasBackdrop && state.screenData.canvasData == null
+        canShowCanvas || (state.screenData.isVideo && state.shouldShowVideo)
+    val isVideoBackdrop = showCanvasBackdrop && !canShowCanvas
 
     // Same fade/half-blended-frame fix M3E uses: fast fade-in, relaxed fade-out.
     val controlsAlpha by animateFloatAsState(
@@ -438,6 +452,9 @@ private fun AppleMusicMainView(
                 onToggleVideoOverlay = { showVideoOverlay = !showVideoOverlay },
                 showSubtitle = showSubtitle,
                 onToggleSubtitle = { showSubtitle = !showSubtitle },
+                seedColor = seedColor,
+                backdropUrl = backdropUrl,
+                backdropBrush = backdropBrush,
             )
         }
 
@@ -753,21 +770,43 @@ private fun AppleMusicArtworkPage(
     onToggleVideoOverlay: () -> Unit,
     showSubtitle: Boolean,
     onToggleSubtitle: () -> Unit,
+    seedColor: Color,
+    backdropUrl: String?,
+    backdropBrush: Brush,
 ) {
     val pageTrack = state.artworkQueue.getOrNull(page)
     val isCurrentPage = page == state.currentOrderIndex
+    val amArtwork = state.screenData.amArtworkData
+    val isAmLoading = isCurrentPage && state.screenData.isAmArtworkLoading
+    val hasAmMotion = isCurrentPage && amArtwork?.hasMotion == true && amArtwork.bestMotionUrl != null
+    val canShowCanvas = isCurrentPage && !hasAmMotion && !isAmLoading && state.screenData.canvasData != null
     val pageShowsCanvasOrVideo =
-        isCurrentPage && (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
+        canShowCanvas || (isCurrentPage && state.screenData.isVideo && state.shouldShowVideo)
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isCurrentPage) {
-            var artworkUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+            var artworkUrl by remember(state.screenData.thumbnailURL, amArtwork?.staticArtworkUrl) {
+                val amUrl = amArtwork?.staticArtworkUrl
+                val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
+                mutableStateOf(url)
+            }
+            val isPlaying = state.controllerState.isPlaying
+
+            val staticArtworkScale by animateFloatAsState(
+                targetValue = if (isPlaying) 1f else 0.87f,
+                animationSpec = tween(500, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                label = "staticArtworkScale"
+            )
+            
+            var extractedEdgeColor by remember(artworkUrl) { mutableStateOf(Color.Transparent) }
+
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
                         .height(artworkZoneHeightDp.dp),
+                contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
                     model =
@@ -779,7 +818,39 @@ private fun AppleMusicArtworkPage(
                             .crossfade(550)
                             .build(),
                     contentDescription = "",
-                    onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+                    onSuccess = { 
+                        val bitmap = it.result.image.toImageBitmap()
+                        actions.onArtworkBitmap(bitmap)
+                        
+                        try {
+                            val width = bitmap.width
+                            val height = bitmap.height
+                            val startY = (height * 0.90).toInt()
+                            val regionHeight = height - startY
+                            if (width > 0 && regionHeight > 0) {
+                                val pixels = IntArray(width * regionHeight)
+                                bitmap.readPixels(
+                                    buffer = pixels,
+                                    startX = 0,
+                                    startY = startY,
+                                    width = width,
+                                    height = regionHeight
+                                )
+                                var r = 0L
+                                var g = 0L
+                                var b = 0L
+                                for (pixel in pixels) {
+                                    r += (pixel shr 16) and 0xFF
+                                    g += (pixel shr 8) and 0xFF
+                                    b += pixel and 0xFF
+                                }
+                                val count = pixels.size.coerceAtLeast(1)
+                                extractedEdgeColor = Color((r / count).toInt(), (g / count).toInt(), (b / count).toInt())
+                            }
+                        } catch (e: Exception) {
+                            extractedEdgeColor = seedColor
+                        }
+                    },
                     onError = {
                         val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
                         if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
@@ -787,15 +858,59 @@ private fun AppleMusicArtworkPage(
                     contentScale = ContentScale.Crop,
                     placeholder = rememberHolderPainter(),
                     error = rememberHolderPainter(),
-                    // The artwork DISSOLVES (alpha mask) instead of being covered by a colour
-                    // overlay: that overlay had to land on exactly the page gradient's colour at
-                    // that Y, and any drift drew a hard horizontal line across the screen.
-                    // Masking lets the real background show through — nothing left to match.
                     modifier =
                         Modifier
-                            .fillMaxSize()
-                            .alpha(if (pageShowsCanvasOrVideo) 0f else 1f)
-                            .appleMusicVerticalFadeEdges(topFade = 0.dp, bottomFade = 300.dp),
+                            .fillMaxWidth(0.85f)
+                            .aspectRatio(1f)
+                            .scale(staticArtworkScale)
+                            .shadow(elevation = 24.dp, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp), spotColor = Color.Black)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                            .alpha(if (pageShowsCanvasOrVideo || hasAmMotion) 0f else 1f),
+                )
+                
+                if (hasAmMotion) {
+                    val dominantColor = if (extractedEdgeColor != Color.Transparent) extractedEdgeColor else seedColor
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        MediaPlayerView(
+                            url = amArtwork!!.bestMotionUrl!!,
+                            cropToBounds = true,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        
+                        // Cover the bottom 10% of the video with a gradient fading into dominantColor
+                        val coverHeight = (artworkZoneHeightDp * 0.10f).coerceAtLeast(30f).dp
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(coverHeight)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    Brush.verticalGradient(
+                                        0f to Color.Transparent,
+                                        1f to dominantColor
+                                    )
+                                )
+                        )
+                    }
+                }
+            }
+
+            if (hasAmMotion) {
+                val dominantColor = if (extractedEdgeColor != Color.Transparent) extractedEdgeColor else seedColor
+                val bottomGradientColor = appleMusicGradientColorAt(dominantColor, 1f)
+
+                // Seamless fill below the artwork zone to the bottom of the screen
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(top = artworkZoneHeightDp.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                0f to dominantColor,
+                                1f to bottomGradientColor
+                            )
+                        )
                 )
             }
             if (pageShowsCanvasOrVideo) {
