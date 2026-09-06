@@ -85,7 +85,6 @@ import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.smoothScrimBrush
-import com.maxrave.simpmusic.extension.toHighQualityArtworkUrl
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
@@ -176,7 +175,7 @@ fun NowPlayingContentAppleMusic(
         val amData = state.screenData.amArtworkData
         val amUrl = amData?.staticArtworkUrl
         val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
-        mutableStateOf(url?.toHighQualityArtworkUrl())
+        mutableStateOf(url)
     }
 
     val paletteColor = state.startColor.value
@@ -231,7 +230,7 @@ fun NowPlayingContentAppleMusic(
             // of the artwork stay visible through it.
             // When lyrics view is open, the background blur strictly follows the static album art sequence.
             val blurSourceUrl = if (viewState == AppleMusicView.LYRICS) {
-                state.screenData.thumbnailURL?.toHighQualityArtworkUrl()
+                state.screenData.thumbnailURL
             } else {
                 backdropUrl
             }
@@ -663,9 +662,9 @@ private fun AppleMusicMainView(
                                     model =
                                         ImageRequest
                                             .Builder(LocalPlatformContext.current)
-                                            .data(state.screenData.thumbnailURL?.toHighQualityArtworkUrl())
+                                            .data(state.screenData.thumbnailURL)
                                             .diskCachePolicy(CachePolicy.ENABLED)
-                                            .diskCacheKey(state.screenData.thumbnailURL?.toHighQualityArtworkUrl())
+                                            .diskCacheKey(state.screenData.thumbnailURL)
                                             .crossfade(300)
                                             .build(),
                                     placeholder = rememberHolderPainter(),
@@ -789,7 +788,7 @@ private fun AppleMusicArtworkPage(
             var artworkUrl by remember(state.screenData.thumbnailURL, amArtwork?.staticArtworkUrl) {
                 val amUrl = amArtwork?.staticArtworkUrl
                 val url = if (!amUrl.isNullOrBlank()) amUrl else state.screenData.thumbnailURL
-                mutableStateOf(url?.toHighQualityArtworkUrl())
+                mutableStateOf(url)
             }
             val isPlaying = state.controllerState.isPlaying
 

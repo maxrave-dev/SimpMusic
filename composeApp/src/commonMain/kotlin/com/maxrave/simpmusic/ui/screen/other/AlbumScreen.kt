@@ -77,7 +77,6 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
-import com.maxrave.simpmusic.extension.toHighQualityArtworkUrl
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -203,7 +202,7 @@ fun AlbumScreen(
     }
 
     val hasAmMotion = uiState.amArtworkData?.hasMotion == true && uiState.amArtworkData?.bestMotionUrl != null
-    val currentArtworkUrl = (uiState.amArtworkData?.staticArtworkUrl ?: uiState.thumbnail)?.toHighQualityArtworkUrl()
+    val currentArtworkUrl = uiState.amArtworkData?.staticArtworkUrl ?: uiState.thumbnail
     var resolvedArtworkUrl by remember(currentArtworkUrl) {
         mutableStateOf(currentArtworkUrl)
     }

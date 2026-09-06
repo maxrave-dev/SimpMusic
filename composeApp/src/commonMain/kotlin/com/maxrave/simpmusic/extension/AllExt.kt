@@ -201,32 +201,6 @@ fun String.toSquareThumbnailUrl(): String {
         spec.replace(Regex("(^|-)([wh])\\d+")) { m -> "${m.groupValues[1]}${m.groupValues[2]}$min" }
 }
 
-/**
- * Forces high-resolution artwork for supported image hosts:
- * - iTunes / Apple Music CDN: replaces dimensions with 1200x1200bb.jpg
- * - Google / YouTube images (=w...-h... or =s...): bumps dimensions to 1200
- * - YouTube video thumbnails (i.ytimg.com): attempts maxresdefault.jpg
- */
-fun String.toHighQualityArtworkUrl(): String {
-    if (isBlank()) return this
-    if (contains("{w}x{h}")) {
-        return replace("{w}x{h}", "1200x1200")
-    }
-    val amMatch = Regex("""/(?:[0-9]+x[0-9]+bb|source/[0-9]+x[0-9]+bb)\.(?:jpg|png|webp|jpeg)""").find(this)
-    if (amMatch != null) {
-        val base = substring(0, amMatch.range.first)
-        return "$base/1200x1200bb.jpg"
-    }
-    if (contains("googleusercontent.com") || contains("ggpht.com")) {
-        return this.replace(Regex("=w\\d+-h\\d+.*"), "=w1200-h1200")
-            .replace(Regex("=s\\d+.*"), "=s1200")
-    }
-    if (contains("i.ytimg.com/vi/")) {
-        return this.replace(Regex("/(?:hqdefault|sddefault|default|mqdefault)\\.jpg"), "/maxresdefault.jpg")
-    }
-    return this
-}
-
 fun isValidProxyHost(host: String): Boolean {
     // Regular expression to validate proxy host (without port)
     val proxyHostRegex =
