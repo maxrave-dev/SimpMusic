@@ -235,6 +235,17 @@ class SharedViewModel(
     private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
+    // Vote state for translated lyrics
+    private val _translatedVoteState = MutableStateFlow<VoteData?>(null)
+    val translatedVoteState: StateFlow<VoteData?> = _translatedVoteState.asStateFlow()
+
+    // Vote state for original lyrics
+    private val _lyricsVoteState = MutableStateFlow<VoteData?>(null)
+    val lyricsVoteState: StateFlow<VoteData?> = _lyricsVoteState.asStateFlow()
+
+    private val _isTranslatingLyrics = MutableStateFlow(false)
+    val isTranslatingLyrics: StateFlow<Boolean> = _isTranslatingLyrics.asStateFlow()
+
     init {
         viewModelScope.launch {
             log("SharedViewModel init")
@@ -1950,17 +1961,6 @@ class SharedViewModel(
             it.copy(bitmap = bitmap)
         }
     }
-
-    // Vote state for translated lyrics
-    private val _translatedVoteState = MutableStateFlow<VoteData?>(null)
-    val translatedVoteState: StateFlow<VoteData?> = _translatedVoteState.asStateFlow()
-
-    // Vote state for original lyrics
-    private val _lyricsVoteState = MutableStateFlow<VoteData?>(null)
-    val lyricsVoteState: StateFlow<VoteData?> = _lyricsVoteState.asStateFlow()
-
-    private val _isTranslatingLyrics = MutableStateFlow(false)
-    val isTranslatingLyrics: StateFlow<Boolean> = _isTranslatingLyrics.asStateFlow()
 
     fun requestAITranslation() {
         val videoId = _nowPlayingState.value?.songEntity?.videoId ?: return
