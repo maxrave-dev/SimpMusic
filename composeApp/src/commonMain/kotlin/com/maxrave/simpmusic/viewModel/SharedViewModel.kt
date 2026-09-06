@@ -236,6 +236,10 @@ class SharedViewModel(
     private val _shareSavedLyrics: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
+    private val canvasCache = mutableMapOf<String, NowPlayingScreenData.CanvasData?>()
+    private var amArtworkJob: Job? = null
+    private val amArtworkCache = mutableMapOf<String, com.maxrave.domain.data.model.canvas.AppleMusicArtwork?>()
+
     init {
         viewModelScope.launch {
             log("SharedViewModel init")
@@ -598,8 +602,6 @@ class SharedViewModel(
         }
     }
 
-    private val canvasCache = mutableMapOf<String, NowPlayingScreenData.CanvasData?>()
-
     private fun getCanvas(
         videoId: String,
         duration: Int,
@@ -679,9 +681,6 @@ class SharedViewModel(
             }
         }
     }
-
-    private var amArtworkJob: Job? = null
-    private val amArtworkCache = mutableMapOf<String, com.maxrave.domain.data.model.canvas.AppleMusicArtwork?>()
 
     private fun getAppleMusicArtwork(
         videoId: String,
