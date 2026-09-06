@@ -224,9 +224,10 @@ private data class TimedLineIndex(
  *  - nowMs strictly before the first start time -> -1
  *  - nowMs after the last start time -> the last entry's original index (sticky last line)
  */
-private fun List<TimedLineIndex>.activeIndexAt(nowMs: Long): Int {
+private fun List<TimedLineIndex>.activeIndexAt(nowMs: Long, lastLineEndMs: Long? = null): Int {
     if (isEmpty()) return -1
     if (nowMs < first().startTimeMs) return -1
+    if (lastLineEndMs != null && nowMs >= lastLineEndMs) return -1
     // Binary search for the last item whose startTimeMs <= nowMs.
     var lo = 0
     var hi = size - 1
@@ -363,6 +364,21 @@ fun LyricsView(
 
     val isUnsynced = lyricsData.lyrics.syncType == "UNSYNCED" || lyricsData.lyrics.syncType == null
 
+    val lastLineEndMs = remember(lyricsData.lyrics.lines, isUnsynced) {
+        if (isUnsynced) null
+        else {
+            val lines = lyricsData.lyrics.lines.orEmpty()
+            val last = lines.lastOrNull()
+            if (last != null) {
+                val end = last.endTimeMs.toLongOrNull() ?: 0L
+                val start = last.startTimeMs.toLongOrNull() ?: 0L
+                if (end > start) end else (start + 5000L)
+            } else {
+                null
+            }
+        }
+    }
+
     val timedLineIndexes =
         remember(lyricsData.lyrics.lines, isUnsynced) {
             if (isUnsynced) {
@@ -382,10 +398,11 @@ fun LyricsView(
             }
         }
 
-    val currentLineIndex by remember(timedLineIndexes) {
+    val currentLineIndex by remember(timedLineIndexes, lastLineEndMs) {
         derivedStateOf {
             val now = current.current
-            if (now <= 0L) -1 else timedLineIndexes.activeIndexAt(now)
+            if (now <= 0L || (lastLineEndMs != null && now >= lastLineEndMs)) -1
+            else timedLineIndexes.activeIndexAt(now, lastLineEndMs)
         }
     }
 

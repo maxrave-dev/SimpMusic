@@ -519,22 +519,33 @@ fun NowPlayingScreenContent(
                 ?.first
                 ?.lines
         if (timelineState.current > 0L) {
-            lines.indices.forEach { i ->
-                val startTimeMs = lines[i].startTimeMs.toLongOrNull() ?: 0L
-                val endTimeMs =
-                    if (i < lines.size - 1) {
-                        lines[i + 1].startTimeMs.toLongOrNull() ?: 0L
-                    } else {
-                        startTimeMs + 60000
-                    }
-                if (timelineState.current in startTimeMs..endTimeMs) {
-                    currentLyricLineIndex = i
-                }
-            }
-            if (lines.isNotEmpty() &&
-                timelineState.current in 0..(lines.getOrNull(0)?.startTimeMs?.toLongOrNull() ?: 0L)
-            ) {
+            val lastLine = lines.lastOrNull()
+            val lastLineStart = lastLine?.startTimeMs?.toLongOrNull() ?: 0L
+            val lastLineEndRaw = lastLine?.endTimeMs?.toLongOrNull() ?: 0L
+            val lastLineEnd = if (lastLineEndRaw > lastLineStart) lastLineEndRaw else (lastLineStart + 5000L)
+
+            if (timelineState.current >= lastLineEnd) {
                 currentLyricLineIndex = -1
+            } else {
+                var foundIndex = -1
+                lines.indices.forEach { i ->
+                    val startTimeMs = lines[i].startTimeMs.toLongOrNull() ?: 0L
+                    val endTimeMs =
+                        if (i < lines.size - 1) {
+                            lines[i + 1].startTimeMs.toLongOrNull() ?: 0L
+                        } else {
+                            lastLineEnd
+                        }
+                    if (timelineState.current in startTimeMs..endTimeMs) {
+                        foundIndex = i
+                    }
+                }
+                if (lines.isNotEmpty() &&
+                    timelineState.current in 0..(lines.getOrNull(0)?.startTimeMs?.toLongOrNull() ?: 0L)
+                ) {
+                    foundIndex = -1
+                }
+                currentLyricLineIndex = foundIndex
             }
         } else {
             currentLyricLineIndex = -1
