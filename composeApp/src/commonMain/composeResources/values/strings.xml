@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Balance media loudness</string>
     <string name="normalize_volume">Normalize Volume</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Your device doesn't have equalizer</string>
+    <string name="open_system_equalizer">Open system equalizer</string>
+    <string name="use_your_system_equalizer">Use your system equalizer</string>
     <string name="version_format" translatable="false">v%1$s</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
@@ -312,6 +315,9 @@
     <string name="sync_follow_to_youtube">Sync Follow with YouTube</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Shape the sound with a ten-band curve</string>
+    <string name="equalizer_type">Equalizer type</string>
+    <string name="equalizer_type_built_in">Built-in</string>
+    <string name="equalizer_type_system">System</string>
     <string name="equalizer_preamp">Preamp</string>
     <string name="equalizer_presets">Presets</string>
     <string name="equalizer_preset_custom">Custom</string>

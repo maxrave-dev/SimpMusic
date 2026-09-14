@@ -273,6 +273,8 @@ class SettingsViewModel(
         }
     }
 
+    fun getAudioSessionId() = mediaPlayerHandler.player.audioSessionId
+
     fun getData() {
         getLocation()
         getLanguage()
@@ -1745,6 +1747,15 @@ class SettingsViewModel(
         }
     }
 
+    private var _equalizerType: MutableStateFlow<String> = MutableStateFlow(DataStoreManager.EQUALIZER_TYPE_BUILT_IN)
+    val equalizerType: StateFlow<String> = _equalizerType
+
+    fun setEqualizerType(type: String) {
+        viewModelScope.launch {
+            dataStoreManager.setEqualizerType(type)
+        }
+    }
+
     private var _equalizerBands: MutableStateFlow<List<Float>> = MutableStateFlow(List(EQUALIZER_BAND_COUNT) { 0f })
     val equalizerBands: StateFlow<List<Float>> = _equalizerBands
 
@@ -1762,7 +1773,7 @@ class SettingsViewModel(
      * equalizer block itself, which asks on its own so it keeps working if it is ever hosted
      * anywhere else. Both land on this same view model, and the collectors live in
      * [viewModelScope] rather than in a composition — so without this, toggling the switch off and
-     * on left another four behind every time, each re-reading the preference file for a value
+     * on left another five behind every time, each re-reading the preference file for a value
      * three others were already publishing.
      */
     private var equalizerCollectorsStarted = false
@@ -1775,6 +1786,9 @@ class SettingsViewModel(
                 dataStoreManager.equalizerEnabled.collect {
                     _equalizerEnabled.emit(it == DataStoreManager.TRUE)
                 }
+            }
+            launch {
+                dataStoreManager.equalizerType.collect { _equalizerType.emit(it) }
             }
             launch {
                 dataStoreManager.equalizerBands.collect { stored ->

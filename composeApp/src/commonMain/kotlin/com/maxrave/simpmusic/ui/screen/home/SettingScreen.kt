@@ -112,6 +112,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
+import com.maxrave.simpmusic.expect.ui.openEqResult
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
@@ -253,6 +254,9 @@ import simpmusic.composeapp.generated.resources.enable_sponsor_block
 import simpmusic.composeapp.generated.resources.enable_spotify_lyrics
 import simpmusic.composeapp.generated.resources.equalizer
 import simpmusic.composeapp.generated.resources.equalizer_description
+import simpmusic.composeapp.generated.resources.equalizer_type
+import simpmusic.composeapp.generated.resources.equalizer_type_built_in
+import simpmusic.composeapp.generated.resources.equalizer_type_system
 import simpmusic.composeapp.generated.resources.free_space
 import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
@@ -339,6 +343,7 @@ import simpmusic.composeapp.generated.resources.now_playing_style_apple_music
 import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
 import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
 import simpmusic.composeapp.generated.resources.other_app
@@ -408,6 +413,7 @@ import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
 import simpmusic.composeapp.generated.resources.use_ai_translation
 import simpmusic.composeapp.generated.resources.use_ai_translation_description
+import simpmusic.composeapp.generated.resources.use_your_system_equalizer
 import simpmusic.composeapp.generated.resources.user_interface
 import simpmusic.composeapp.generated.resources.version
 import simpmusic.composeapp.generated.resources.version_format
@@ -496,6 +502,9 @@ fun SettingScreen(
             }
         }
 
+    // Open equalizer
+    val resultLauncher = openEqResult(viewModel.getAudioSessionId())
+
     val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
@@ -568,6 +577,7 @@ fun SettingScreen(
     val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
     val syncFollowToYouTube by viewModel.syncFollowToYouTube.collectAsStateWithLifecycle()
     val equalizerEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
+    val equalizerType by viewModel.equalizerType.collectAsStateWithLifecycle()
     val delayEnabled by viewModel.delayEnabled.collectAsStateWithLifecycle()
     val reverbEnabled by viewModel.reverbEnabled.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
@@ -1316,6 +1326,51 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.skip_no_music_part),
                         switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                     )
+                    val equalizerTypeLabels =
+                        listOf(
+                            DataStoreManager.EQUALIZER_TYPE_BUILT_IN to stringResource(Res.string.equalizer_type_built_in),
+                            DataStoreManager.EQUALIZER_TYPE_SYSTEM to stringResource(Res.string.equalizer_type_system),
+                        )
+                    SettingItem(
+                        title = stringResource(Res.string.equalizer_type),
+                        subtitle = equalizerTypeLabels.firstOrNull { it.first == equalizerType }?.second ?: "",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.equalizer_type) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect = equalizerTypeLabels.map { (it.first == equalizerType) to it.second },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            val selected = state.selectOne?.getSelected()
+                                            equalizerTypeLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                viewModel.setEqualizerType(it)
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                    AnimatedVisibility(visible = equalizerType == DataStoreManager.EQUALIZER_TYPE_SYSTEM) {
+                        SettingItem(
+                            title = stringResource(Res.string.open_system_equalizer),
+                            subtitle =
+                                if (castState.isRemote) {
+                                    stringResource(Res.string.not_available_while_casting)
+                                } else {
+                                    stringResource(Res.string.use_your_system_equalizer)
+                                },
+                            isEnable = !castState.isRemote,
+                            onClick = {
+                                coroutineScope.launch {
+                                    resultLauncher.launch()
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -1331,17 +1386,21 @@ fun SettingScreen(
                 // Android-only branch — "Open system equalizer" is an Android feature — and this
                 // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
                 // Media3 sink on Android, driven from the same stored curve.
-                SettingItem(
-                    title = stringResource(Res.string.equalizer),
-                    subtitle = stringResource(Res.string.equalizer_description),
-                    smallSubtitle = true,
-                    switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
-                )
-                // Only while on. A curve that visibly does nothing is worse than no curve —
-                // and the stored bands survive the switch, so turning it back on returns to
-                // the shape the user built rather than to flat.
-                AnimatedVisibility(visible = equalizerEnabled) {
-                    EqualizerSection()
+                AnimatedVisibility(visible = getPlatform() != Platform.Android || equalizerType != DataStoreManager.EQUALIZER_TYPE_SYSTEM) {
+                    Column {
+                        SettingItem(
+                            title = stringResource(Res.string.equalizer),
+                            subtitle = stringResource(Res.string.equalizer_description),
+                            smallSubtitle = true,
+                            switch = (equalizerEnabled to { viewModel.setEqualizerEnabled(it) }),
+                        )
+                        // Only while on. A curve that visibly does nothing is worse than no curve —
+                        // and the stored bands survive the switch, so turning it back on returns to
+                        // the shape the user built rather than to flat.
+                        AnimatedVisibility(visible = equalizerEnabled) {
+                            EqualizerSection()
+                        }
+                    }
                 }
                 // Beside the equalizer rather than in its own group: all three are the same kind of
                 // thing — one stored setting reshaping the audio on both backends — and a user
