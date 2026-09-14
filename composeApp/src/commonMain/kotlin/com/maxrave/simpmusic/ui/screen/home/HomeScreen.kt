@@ -433,9 +433,12 @@ fun HomeScreen(
     if (showFootgunsDialog) {
         FootgunsStarDialog(
             onDismissRequest = {
-                // "Later" only closes the dialog: it must not touch OPEN_APP_TIME,
-                // so the next milestone stays exactly where it was.
+                // "Later" advances OPEN_APP_TIME, the same way the review and share-lyrics dialogs do.
+                // Home's launch effect runs again every time Home re-enters composition, reading the
+                // stored count; leaving it untouched kept the milestone condition true, so the prompt
+                // came back on every return to Home until the app was restarted.
                 showFootgunsDialog = false
+                sharedViewModel.onDoneReview(isDismissOnly = true)
             },
             onDoneStar = {
                 sharedViewModel.putString(FOOTGUNS_STAR_KEY, "true")
