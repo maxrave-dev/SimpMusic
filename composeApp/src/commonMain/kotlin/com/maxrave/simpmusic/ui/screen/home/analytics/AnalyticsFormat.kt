@@ -1,12 +1,17 @@
 package com.maxrave.simpmusic.ui.screen.home.analytics
 
 import androidx.compose.runtime.Composable
+import com.maxrave.simpmusic.viewModel.AnalyticsUiState
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
+import kotlinx.datetime.number
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.last_30_days
+import simpmusic.composeapp.generated.resources.last_7_days
+import simpmusic.composeapp.generated.resources.last_90_days
 import simpmusic.composeapp.generated.resources.listening_time_hours_minutes
 import simpmusic.composeapp.generated.resources.listening_time_minutes
 import simpmusic.composeapp.generated.resources.listening_time_seconds
@@ -34,6 +39,7 @@ import simpmusic.composeapp.generated.resources.month_short_may
 import simpmusic.composeapp.generated.resources.month_short_nov
 import simpmusic.composeapp.generated.resources.month_short_oct
 import simpmusic.composeapp.generated.resources.month_short_sep
+import simpmusic.composeapp.generated.resources.this_year
 
 /**
  * A listening total in units a person reads, rather than the raw second count.
@@ -164,6 +170,33 @@ fun formatPeriodSpan(
         else ->
             "${start.day} ${monthShortName(start.month)} ${start.year} – ${end.day} ${monthShortName(end.month)} ${end.year}"
     }
+
+/**
+ * The name the range dropdown shows for [this] — "Last 30 days", "This year" — so any other screen
+ * describing a period uses the dropdown's own words, and its translations, rather than a copy.
+ */
+fun AnalyticsUiState.DayRange.labelRes(): StringResource =
+    when (this) {
+        AnalyticsUiState.DayRange.LAST_7_DAYS -> Res.string.last_7_days
+        AnalyticsUiState.DayRange.LAST_30_DAYS -> Res.string.last_30_days
+        AnalyticsUiState.DayRange.LAST_90_DAYS -> Res.string.last_90_days
+        AnalyticsUiState.DayRange.THIS_YEAR -> Res.string.this_year
+    }
+
+/**
+ * A span written in numbers, day first: `1/9-1/10/2026`.
+ *
+ * The year is written once, at the end, when both days share it. A span that crosses New Year
+ * carries it on both sides — `15/12/2025-13/1/2026` — because `15/12-13/1/2026` reads as December
+ * of the later year.
+ */
+fun formatNumericSpan(
+    start: LocalDate,
+    end: LocalDate,
+): String {
+    val from = if (start.year == end.year) "${start.day}/${start.month.number}" else "${start.day}/${start.month.number}/${start.year}"
+    return "$from-${end.day}/${end.month.number}/${end.year}"
+}
 
 /** `Aug 2026` — the chart's month bucket, which used to render the raw enum name. */
 @Composable

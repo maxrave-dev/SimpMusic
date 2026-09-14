@@ -1135,7 +1135,9 @@ private fun TopArtistsSection(
         SectionHeader(stringResource(Res.string.your_top_artists), gutter) {
             navController.navigate(
                 LibraryDynamicPlaylistDestination(
-                    type = LibraryDynamicPlaylistType.TopArtists.toStringParams(),
+                    // The period on screen, not the latest one: the playlist opens its own view
+                    // model, which would otherwise start from the present.
+                    type = LibraryDynamicPlaylistType.TopArtists(uiState.periodStart, uiState.periodEnd, uiState.dayRange).toStringParams(),
                 ),
             )
         }
@@ -1170,7 +1172,9 @@ private fun TopAlbumsSection(
         SectionHeader(stringResource(Res.string.your_top_albums), gutter) {
             navController.navigate(
                 LibraryDynamicPlaylistDestination(
-                    type = LibraryDynamicPlaylistType.TopAlbums.toStringParams(),
+                    // The period on screen, not the latest one: the playlist opens its own view
+                    // model, which would otherwise start from the present.
+                    type = LibraryDynamicPlaylistType.TopAlbums(uiState.periodStart, uiState.periodEnd, uiState.dayRange).toStringParams(),
                 ),
             )
         }
@@ -1208,7 +1212,9 @@ private fun TopTracksSection(
         SectionHeader(stringResource(Res.string.your_top_tracks), gutter) {
             navController.navigate(
                 LibraryDynamicPlaylistDestination(
-                    type = LibraryDynamicPlaylistType.TopTracks.toStringParams(),
+                    // The period on screen, not the latest one: the playlist opens its own view
+                    // model, which would otherwise start from the present.
+                    type = LibraryDynamicPlaylistType.TopTracks(uiState.periodStart, uiState.periodEnd, uiState.dayRange).toStringParams(),
                 ),
             )
         }
