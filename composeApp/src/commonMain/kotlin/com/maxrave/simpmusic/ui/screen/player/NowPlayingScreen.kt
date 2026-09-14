@@ -3,18 +3,28 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -34,22 +44,37 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kmpalette.rememberPaletteState
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
+import com.maxrave.simpmusic.ui.component.FullscreenLyricsContent
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -81,6 +106,11 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 private const val TAG = "NowPlayingScreen"
+
+// Desktop's fullscreen lyrics page: in a little slower than out, so opening reads as arriving and
+// closing gets out of the way.
+private const val FULLSCREEN_LYRICS_ENTER_MS = 300
+private const val FULLSCREEN_LYRICS_EXIT_MS = 220
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
@@ -547,105 +577,6 @@ fun NowPlayingScreenContent(
         }
     }
 
-    if (showSheet) {
-        NowPlayingBottomSheet(
-            onDismiss = {
-                showSheet = false
-            },
-            navController = navController,
-            onNavigateToOtherScreen = {
-                onDismiss()
-            },
-            song = null, // Auto set now playing
-            setSleepTimerEnable = true,
-            changeMainLyricsProviderEnable = true,
-        )
-    }
-
-    if (showFullscreenLyrics) {
-        FullscreenLyricsSheet(
-            sharedViewModel = sharedViewModel,
-            navController = navController, // <-- ADD THIS LINE
-            color = startColor.value,
-        ) {
-            showFullscreenLyrics = false
-        }
-    }
-
-    if (showQueueBottomSheet) {
-        QueueBottomSheet(
-            onDismiss = {
-                showQueueBottomSheet = false
-            },
-        )
-    }
-
-    if (showInfoBottomSheet) {
-        InfoPlayerBottomSheet(
-            onDismiss = {
-                showInfoBottomSheet = false
-            },
-        )
-    }
-
-    // NEW: Add to Playlist Bottom Sheet
-    if (showAddToPlaylistDirectly) {
-        val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-        LaunchedEffect(Unit) {
-            viewModel.resetPlaylists()
-            viewModel.setSongEntity(null) // Uses current playing song
-        }
-
-        AddToPlaylistModalBottomSheet(
-            isBottomSheetVisible = true,
-            listLocalPlaylist = uiState.listLocalPlaylist,
-            listYouTubePlaylist = uiState.listYouTubePlaylist,
-            onDismiss = { showAddToPlaylistDirectly = false },
-            onClick = { playlist ->
-                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(playlist.id))
-                showAddToPlaylistDirectly = false
-            },
-            onYTPlaylistClick = { playlist ->
-                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(playlist.browseId))
-                showAddToPlaylistDirectly = false
-            },
-            videoId = uiState.songUIState.videoId,
-        )
-    }
-
-    // Vote Dialog
-    if (showVoteDialog) {
-        val canVoteLyrics =
-            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
-                screenDataState.lyricsData
-                    ?.lyrics
-                    ?.simpMusicLyrics != null
-        val canVoteTranslatedLyrics =
-            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
-                screenDataState.lyricsData
-                    ?.translatedLyrics
-                    ?.first
-                    ?.simpMusicLyrics != null
-
-        VoteLyricsDialog(
-            canVoteLyrics = canVoteLyrics,
-            canVoteTranslatedLyrics = canVoteTranslatedLyrics,
-            lyricsVoteState = lyricsVoteState,
-            translatedLyricsVoteState = translatedVoteState,
-            onVoteLyrics = { upvote ->
-                sharedViewModel.voteLyrics(upvote)
-            },
-            onVoteTranslatedLyrics = { upvote ->
-                sharedViewModel.voteTranslatedLyrics(upvote)
-            },
-            onDismiss = {
-                showVoteDialog = false
-            },
-        )
-    }
-
     if (screenDataState.lyricsData != null && controllerState.isPlaying) {
         KeepScreenOn()
     }
@@ -740,6 +671,186 @@ fun NowPlayingScreenContent(
                 mediaPlayerHandler.removeMediaItem(index)
             },
         )
+
+    // Below `state`/`actions`: the landscape lyrics layout renders the current style's own track row
+    // and playback controls, so it takes the same contract the style content does.
+    if (showFullscreenLyrics) {
+        if (getPlatform() == Platform.Desktop) {
+            // Desktop's Now Playing is a side panel, not a sheet, so the page opens as a Popup over
+            // the whole window — the custom title bar included. A Popup that stops below the bar
+            // leaves the bar outside it, and a focusable Popup dismisses on any press outside
+            // itself, so a click on the bar used to close the page.
+            val windowSize = LocalWindowInfo.current.containerSize
+            val density = LocalDensity.current
+            // DesktopApp makes the window transparent and clips its content to 12dp corners exactly
+            // when it draws the custom title bar (both gated on !isVM). A Popup is a layer of its own
+            // that clip never reaches, so the page rounds itself. getScreenSizeInfo() subtracts that
+            // same bar, which makes the height difference the one signal commonMain can read.
+            val windowIsRounded = windowSize.height > getScreenSizeInfo().hPX
+            val popupPositionProvider =
+                remember {
+                    object : PopupPositionProvider {
+                        override fun calculatePosition(
+                            anchorBounds: IntRect,
+                            windowSize: IntSize,
+                            layoutDirection: LayoutDirection,
+                            popupContentSize: IntSize,
+                        ): IntOffset = IntOffset.Zero
+                    }
+                }
+            // A Popup appears in a single frame, which reads as a flash over the whole window. The
+            // page fades and scales in instead, and a close plays the reverse first: the flag only
+            // drops once the exit has finished, or the Popup would leave mid-animation.
+            val pageVisibility = remember { MutableTransitionState(false).apply { targetState = true } }
+            val closePage = { pageVisibility.targetState = false }
+            LaunchedEffect(pageVisibility.currentState, pageVisibility.isIdle) {
+                if (pageVisibility.isIdle && !pageVisibility.currentState) {
+                    showFullscreenLyrics = false
+                }
+            }
+            Popup(
+                popupPositionProvider = popupPositionProvider,
+                onDismissRequest = closePage,
+                properties = PopupProperties(focusable = true),
+            ) {
+                AnimatedVisibility(
+                    visibleState = pageVisibility,
+                    enter =
+                        fadeIn(tween(FULLSCREEN_LYRICS_ENTER_MS)) +
+                            scaleIn(tween(FULLSCREEN_LYRICS_ENTER_MS, easing = FastOutSlowInEasing), initialScale = 0.96f),
+                    exit =
+                        fadeOut(tween(FULLSCREEN_LYRICS_EXIT_MS)) +
+                            scaleOut(tween(FULLSCREEN_LYRICS_EXIT_MS, easing = FastOutSlowInEasing), targetScale = 0.96f),
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(
+                                    with(density) { windowSize.width.toDp() },
+                                    with(density) { windowSize.height.toDp() },
+                                ).then(
+                                    if (windowIsRounded) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier,
+                                ),
+                    ) {
+                        FullscreenLyricsContent(
+                            sharedViewModel = sharedViewModel,
+                            navController = navController,
+                            color = startColor.value,
+                            state = state,
+                            actions = actions,
+                            nowPlayingStyle = nowPlayingStyle,
+                            onDismiss = closePage,
+                        )
+                    }
+                }
+            }
+        } else {
+            FullscreenLyricsSheet(
+                sharedViewModel = sharedViewModel,
+                navController = navController,
+                color = startColor.value,
+                state = state,
+                actions = actions,
+                nowPlayingStyle = nowPlayingStyle,
+            ) {
+                showFullscreenLyrics = false
+            }
+        }
+    }
+
+    // Declared AFTER the lyrics host on purpose. A rotation recreates the activity, so every open
+    // sheet re-enters composition in one pass and attaches in declaration order: the landscape
+    // lyrics page opens these same sheets (more, queue, add to playlist) on top of itself, and
+    // declaring them first would bury them under the page after the device is turned.
+    if (showSheet) {
+        NowPlayingBottomSheet(
+            onDismiss = {
+                showSheet = false
+            },
+            navController = navController,
+            onNavigateToOtherScreen = {
+                onDismiss()
+            },
+            song = null, // Auto set now playing
+            setSleepTimerEnable = true,
+            changeMainLyricsProviderEnable = true,
+        )
+    }
+
+    if (showQueueBottomSheet) {
+        QueueBottomSheet(
+            onDismiss = {
+                showQueueBottomSheet = false
+            },
+        )
+    }
+
+    if (showInfoBottomSheet) {
+        InfoPlayerBottomSheet(
+            onDismiss = {
+                showInfoBottomSheet = false
+            },
+        )
+    }
+
+    // NEW: Add to Playlist Bottom Sheet
+    if (showAddToPlaylistDirectly) {
+        val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(Unit) {
+            viewModel.resetPlaylists()
+            viewModel.setSongEntity(null) // Uses current playing song
+        }
+
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = uiState.listLocalPlaylist,
+            listYouTubePlaylist = uiState.listYouTubePlaylist,
+            onDismiss = { showAddToPlaylistDirectly = false },
+            onClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(playlist.id))
+                showAddToPlaylistDirectly = false
+            },
+            onYTPlaylistClick = { playlist ->
+                viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist(playlist.browseId))
+                showAddToPlaylistDirectly = false
+            },
+            videoId = uiState.songUIState.videoId,
+        )
+    }
+
+    // Vote Dialog
+    if (showVoteDialog) {
+        val canVoteLyrics =
+            screenDataState.lyricsData?.lyricsProvider == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.lyrics
+                    ?.simpMusicLyrics != null
+        val canVoteTranslatedLyrics =
+            screenDataState.lyricsData?.translatedLyrics?.second == LyricsProvider.SIMPMUSIC &&
+                screenDataState.lyricsData
+                    ?.translatedLyrics
+                    ?.first
+                    ?.simpMusicLyrics != null
+
+        VoteLyricsDialog(
+            canVoteLyrics = canVoteLyrics,
+            canVoteTranslatedLyrics = canVoteTranslatedLyrics,
+            lyricsVoteState = lyricsVoteState,
+            translatedLyricsVoteState = translatedVoteState,
+            onVoteLyrics = { upvote ->
+                sharedViewModel.voteLyrics(upvote)
+            },
+            onVoteTranslatedLyrics = { upvote ->
+                sharedViewModel.voteTranslatedLyrics(upvote)
+            },
+            onDismiss = {
+                showVoteDialog = false
+            },
+        )
+    }
+
     when (nowPlayingStyle) {
         DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE ->
             NowPlayingContentM3Expressive(
