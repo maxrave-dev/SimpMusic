@@ -1,0 +1,96 @@
+name: Desktop app issue
+description: Report a problem specific to the Windows, macOS, or Linux desktop app
+labels: [ "bug:unconfirmed", "desktop" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Important:**
+        Issues that are incomplete or not properly filled out will be closed without further explanation.
+
+  - type: checkboxes
+    id: duplicate_check
+    attributes:
+      label: Duplicate Check
+      description: Confirm you searched both open and closed issues.
+      options:
+        - label: I confirm I searched for existing reports and found no duplicates.
+          required: true
+
+  - type: checkboxes
+    id: latest_release
+    attributes:
+      label: Latest Release
+      description: Check the [Releases page](https://github.com/maxrave-dev/SimpMusic/releases) — this may already be fixed.
+      options:
+        - label: I confirm I am on the latest release and the problem still happens.
+          required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: package_format
+    attributes:
+      label: Package Downloaded
+      description: "As described in the README's Desktop app section."
+      placeholder: e.g. .msix installer (Windows), .dmg (macOS), .AppImage (Linux)
+    validations:
+      required: true
+
+  - type: input
+    id: desktop_environment
+    attributes:
+      label: Desktop Environment (Linux only)
+      description: e.g. GNOME/X11, KDE/Wayland, Hyprland. Leave blank on Windows/macOS.
+      placeholder: e.g. Hyprland (Wayland)
+
+  - type: input
+    id: version
+    attributes:
+      label: App Version
+      placeholder: e.g. 1.7.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Describe the Bug
+      placeholder: Briefly describe the bug you encountered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log / Error Details
+      placeholder: Paste any error message, crash dialog text, or terminal output.

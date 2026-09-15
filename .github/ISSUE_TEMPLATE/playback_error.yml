@@ -1,0 +1,108 @@
+name: Playback error
+description: Music stops, fails to start, or errors out during playback
+labels: [ "bug:unconfirmed", "playback" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Important:**
+        Issues that are incomplete or not properly filled out will be closed without further explanation.
+
+  - type: checkboxes
+    id: duplicate_check
+    attributes:
+      label: Duplicate Check
+      description: Confirm you searched both open and closed issues.
+      options:
+        - label: I confirm I searched for existing reports and found no duplicates.
+          required: true
+
+  - type: checkboxes
+    id: latest_release
+    attributes:
+      label: Latest Release
+      description: Check the [Releases page](https://github.com/maxrave-dev/SimpMusic/releases) — this may already be fixed.
+      options:
+        - label: I confirm I am on the latest release and the problem still happens.
+          required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - Desktop (Windows)
+        - Desktop (macOS)
+        - Desktop (Linux)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: build_variant
+    attributes:
+      label: Build Variant
+      options:
+        - Full
+        - FOSS
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App Version
+      placeholder: e.g. 1.7.0
+    validations:
+      required: true
+
+  - type: input
+    id: previous_version
+    attributes:
+      label: Did this work in a previous version?
+      placeholder: e.g. "Yes, worked fine on 1.5.1" or "No, never worked"
+
+  - type: checkboxes
+    id: context
+    attributes:
+      label: Context
+      description: Check any that apply — helps narrow down the cause.
+      options:
+        - label: I am logged in to a YouTube Music account
+        - label: Crossfade or DJ-style transition is enabled
+        - label: The problem started right after a network interruption (Wi-Fi drop, mobile signal loss, etc.)
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Describe the Bug
+      placeholder: What happens — does playback stop, fail to start, skip, show an error message?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log / Error Details
+      placeholder: Paste any error message or crash log shown.
