@@ -1010,16 +1010,18 @@ fun MiniPlayer(
                         }
                     }
 
-                    Box(modifier = Modifier
-                                        .hoverable(volumeInteraction)
-                                        .volumeScrollable(
-                                            currentVolume = volumeValue, // or controllerState.volume
-                                            isSliding = isVolumeSliding,
-                                            onVolumeChanged = { newVolume ->
-                                                volumeValue = newVolume
-                                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                    Box(modifier =
+                            Modifier
+                                .hoverable(volumeInteraction)
+                                .volumeScrollable(
+                                    currentVolume = volumeValue,
+                                    isSliding = isVolumeSliding,
+                                    onVolumeChanged = { newVolume ->
+                                        volumeValue = newVolume
+                                        sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
                                             }
-                                        ))
+                                )
+                            )
                         {
                         IconButton(
                             onClick = {
@@ -1071,7 +1073,7 @@ fun MiniPlayer(
                                             .height(VOLUME_POPUP_HEIGHT)
                                             .clip(RoundedCornerShape(14.dp))
                                             .volumeScrollable(
-                                                currentVolume = volumeValue, // or controllerState.volume
+                                                currentVolume = volumeValue,
                                                 isSliding = isVolumeSliding,
                                                 onVolumeChanged = { newVolume ->
                                                     volumeValue = newVolume
