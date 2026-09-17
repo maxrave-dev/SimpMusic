@@ -73,6 +73,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -87,7 +88,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -958,7 +961,66 @@ fun MiniPlayer(
                     val isVolumeHovered by volumeInteraction.collectIsHoveredAsState()
                     val popupInteraction = remember { MutableInteractionSource() }
                     val isPopupHovered by popupInteraction.collectIsHoveredAsState()
-                    Box(modifier = Modifier.hoverable(volumeInteraction)) {
+
+                    //While hovering volume button and vertical volume popup, scroll to adjust volume
+                    val VOLUME_SCROLL_STEP = 0.05f
+                    val VOLUME_SCROLL_MAX_DELTA = 3f // clamp raw input magnitude before scaling
+
+                    @Composable
+                    fun Modifier.volumeScrollable(
+                        currentVolume: Float,
+                        isSliding: Boolean,
+                        onVolumeChanged: (Float) -> Unit
+                    ): Modifier {
+                        if (getPlatform() != Platform.Desktop) return this
+
+                        // Prevent function firing during drag to adjust volume
+                        val currentIsSliding by rememberUpdatedState(isSliding)
+                        val currentVolumeState by rememberUpdatedState(currentVolume)
+
+                        return pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    if (event.type != PointerEventType.Scroll) continue
+
+                                    // Do not adjust volume if in drag/sliding state
+                                    if (currentIsSliding) continue
+
+                                    val change = event.changes.firstOrNull() ?: continue
+                                    val rawDelta = change.scrollDelta.y
+                                    if (rawDelta == 0f) continue
+
+                                    val absDelta = kotlin.math.abs(rawDelta)
+                                    val effectiveDelta = if (absDelta < 0.5f) {
+                                        // Improve trackpad responsiveness and effectiveness
+                                        rawDelta * 3.0f
+                                    } else {
+                                        // Clamp larger mouse wheel inputs
+                                        rawDelta.coerceIn(-VOLUME_SCROLL_MAX_DELTA, VOLUME_SCROLL_MAX_DELTA)
+                                    }
+
+                                    val newVolume = (currentVolumeState - effectiveDelta * VOLUME_SCROLL_STEP)
+                                        .coerceIn(0f, 1f)
+
+                                    onVolumeChanged(newVolume)
+                                    change.consume()
+                                }
+                            }
+                        }
+                    }
+
+                    Box(modifier = Modifier
+                                        .hoverable(volumeInteraction)
+                                        .volumeScrollable(
+                                            currentVolume = volumeValue, // or controllerState.volume
+                                            isSliding = isVolumeSliding,
+                                            onVolumeChanged = { newVolume ->
+                                                volumeValue = newVolume
+                                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                            }
+                                        ))
+                        {
                         IconButton(
                             onClick = {
                                 // Toggle mute/unmute
@@ -1008,6 +1070,14 @@ fun MiniPlayer(
                                             .width(44.dp)
                                             .height(VOLUME_POPUP_HEIGHT)
                                             .clip(RoundedCornerShape(14.dp))
+                                            .volumeScrollable(
+                                                currentVolume = volumeValue, // or controllerState.volume
+                                                isSliding = isVolumeSliding,
+                                                onVolumeChanged = { newVolume ->
+                                                    volumeValue = newVolume
+                                                    sharedViewModel.onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                                }
+                                            )
                                             // Theme surface, not `background` — that one animates to the
                                             // artwork's palette colour, which turned the popup olive green
                                             // for one cover and pink for the next.
