@@ -98,8 +98,6 @@ class SettingsViewModel(
     val skipSilent: StateFlow<String?> = _skipSilent
     private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
-    private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
-    val saveRecentSongAndQueue: StateFlow<String?> = _saveRecentSongAndQueue
     private var _lastCheckForUpdate: MutableStateFlow<String?> = MutableStateFlow(null)
     val lastCheckForUpdate: StateFlow<String?> = _lastCheckForUpdate
     private var _sponsorBlockEnabled: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -287,7 +285,6 @@ class SettingsViewModel(
         getSkipSilent()
         getSavedPlaybackState()
         getSendBackToGoogle()
-        getSaveRecentSongAndQueue()
         getLastCheckForUpdate()
         getSponsorBlockEnabled()
         getSponsorBlockCategories()
@@ -1142,14 +1139,6 @@ class SettingsViewModel(
         }
     }
 
-    fun getSaveRecentSongAndQueue() {
-        viewModelScope.launch {
-            dataStoreManager.saveRecentSongAndQueue.collect { saved ->
-                _saveRecentSongAndQueue.emit(saved)
-            }
-        }
-    }
-
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
             dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
@@ -1451,13 +1440,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
             getSavedPlaybackState()
-        }
-    }
-
-    fun setSaveLastPlayed(b: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setSaveRecentSongAndQueue(b)
-            getSaveRecentSongAndQueue()
         }
     }
 
