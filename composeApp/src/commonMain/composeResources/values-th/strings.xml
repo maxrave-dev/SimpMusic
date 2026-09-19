@@ -531,8 +531,6 @@
     <string name="enable_rich_presence">เปิดใช้งาน Rich Presence</string>
     <string name="rich_presence_info">แสดงข้อมูลการเล่นสื่อบนโปรไฟล์ Discord ของคุณ</string>
     <string name="youtube_liked_music">เพลงที่ถูกใจบน YouTube</string>
-    <string name="keep_service_alive">คงการทำงานของบริการ</string>
-    <string name="keep_service_alive_description">รักษาการทำงานของเครื่องเล่นเพลง เพื่อหลีกเลี่ยงการถูกระบบปิดเพลง</string>
     <string name="keep_your_youtube_playlist_offline">แสดงเพลย์ลิสต์ YouTube แม้ไม่ได้เชื่อมต่ออินเทอร์เน็ต</string>
     <string name="keep_your_youtube_playlist_offline_description">จัดเก็บเพลย์ลิสต์ YouTube ในเครื่องเพื่อใช้งานแบบออฟไลน์</string>
     <string name="combine_local_and_youtube_liked_songs">ใช้เพลงที่ถูกใจบน YouTube แทนรายการโปรดเมื่อเข้าสู่ระบบ</string>

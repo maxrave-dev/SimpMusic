@@ -586,8 +586,6 @@
     <string name="lastfm_paste_callback_confirm">Cliquez sur ce lien pour continuer</string>
     <string name="logged_in_as">Connecté en tant que %1$s</string>
     <string name="youtube_liked_music">Musique aimée par YouTube</string>
-    <string name="keep_service_alive">Maintenir le service en vie</string>
-    <string name="keep_service_alive_description">Maintenez le service du lecteur de musique actif pour éviter qu'il ne soit arrêté par le système</string>
     <string name="keep_your_youtube_playlist_offline">Continuer à afficher votre playlist YouTube lorsque vous êtes hors ligne</string>
     <string name="keep_your_youtube_playlist_offline_description">Enregistrez votre playlist YouTube en local et conservez-la pour la visionner hors ligne</string>
     <string name="combine_local_and_youtube_liked_songs">Remplacer « Favori » par « J’aime » sur YouTube lors de la connexion</string>

@@ -281,8 +281,6 @@ import simpmusic.composeapp.generated.resources.invalid_language_code
 import simpmusic.composeapp.generated.resources.invalid_port
 import simpmusic.composeapp.generated.resources.keep_backups
 import simpmusic.composeapp.generated.resources.keep_backups_format
-import simpmusic.composeapp.generated.resources.keep_service_alive
-import simpmusic.composeapp.generated.resources.keep_service_alive_description
 import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offline
 import simpmusic.composeapp.generated.resources.keep_your_youtube_playlist_offline_description
 import simpmusic.composeapp.generated.resources.kill_service_on_exit
@@ -581,7 +579,6 @@ fun SettingScreen(
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
     val richPresenceEnabled by viewModel.richPresenceEnabled.collectAsStateWithLifecycle()
-    val keepServiceAlive by viewModel.keepServiceAlive.collectAsStateWithLifecycle()
 
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
@@ -1434,11 +1431,6 @@ fun SettingScreen(
                         title = stringResource(Res.string.kill_service_on_exit),
                         subtitle = stringResource(Res.string.kill_service_on_exit_description),
                         switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
-                    )
-                    SettingItem(
-                        title = stringResource(Res.string.keep_service_alive),
-                        subtitle = stringResource(Res.string.keep_service_alive_description),
-                        switch = (keepServiceAlive to { viewModel.setKeepServiceAlive(it) }),
                     )
                 }
             }

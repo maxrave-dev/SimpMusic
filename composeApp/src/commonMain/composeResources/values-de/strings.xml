@@ -573,8 +573,6 @@
     <string name="lastfm_paste_callback_confirm">Mit diesem Link fortfahren</string>
     <string name="logged_in_as">Eingeloggt als %1$s</string>
     <string name="youtube_liked_music">YouTube-Like-Playlist</string>
-    <string name="keep_service_alive">Dienst weiterlaufen lassen</string>
-    <string name="keep_service_alive_description">Musikplayer-Dienst aktiv halten, um zu verhindern, dass er vom System beendet wird</string>
     <string name="keep_your_youtube_playlist_offline">Zeige deine YouTube-Playlisten, auch wenn du  offline bist</string>
     <string name="keep_your_youtube_playlist_offline_description">Speichere deine YouTube-Playlist lokal und zeige sie auch offline an.</string>
     <string name="combine_local_and_youtube_liked_songs">Favoriten durch YouTube-Likes ersetzen, wenn angemeldet</string>

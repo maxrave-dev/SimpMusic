@@ -503,8 +503,6 @@
     <string name="enable_rich_presence">Włącz Discord Rich Presence</string>
     <string name="rich_presence_info">Pokaż informacje o sesji multimedialnej w profilu Discorda</string>
     <string name="youtube_liked_music">Polubiona muzyka YouTube</string>
-    <string name="keep_service_alive">Utrzymuj usługę przy życiu</string>
-    <string name="keep_service_alive_description">Trzymaj usługę odtwarzacza muzyki przy życiu, aby uniknąć zabijania jej przez system</string>
     <string name="keep_your_youtube_playlist_offline">Pokazuj swoją playlistę YouTube w trybie offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Zapisz swoją playlistę YT do lokalnej i zachowaj, aby pokazywała się w trybie offline</string>
     <string name="combine_local_and_youtube_liked_songs">Zastąp Ulubione przez polubienia YouTube podczas logowania</string>

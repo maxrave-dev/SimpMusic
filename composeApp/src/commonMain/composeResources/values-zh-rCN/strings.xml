@@ -527,8 +527,6 @@
     <string name="lastfm_paste_callback_confirm">继续使用此链接</string>
     <string name="logged_in_as">已登入为 %1$s</string>
     <string name="youtube_liked_music">YouTube喜欢的音乐</string>
-    <string name="keep_service_alive">保持服务活动状态</string>
-    <string name="keep_service_alive_description">保持音乐播放器服务活跃，以免被系统关闭</string>
     <string name="keep_your_youtube_playlist_offline">离线时继续展示您的 YouTube 播放列表</string>
     <string name="keep_your_youtube_playlist_offline_description">将您的 YT 播放列表保存到本地并在离线时保持显示</string>
     <string name="combine_local_and_youtube_liked_songs">登录后，将“收藏”替换为“YouTube点赞的内容”</string>

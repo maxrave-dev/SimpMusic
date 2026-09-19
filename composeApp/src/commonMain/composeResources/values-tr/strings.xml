@@ -483,8 +483,6 @@
     <string name="log_in_to_discord">Discord'a giriş yapın</string>
     <string name="intro_login_to_discord">Oturum açarak Discord'da etkinlik gösterimini etkinleştirin</string>
     <string name="rich_presence_info">Discord profilinizde medya oturumu bilgilerini gösterin</string>
-    <string name="keep_service_alive">Hizmeti aktif tut</string>
-    <string name="keep_service_alive_description">Müzik çalar hizmetini sistem tarafından öldürülmekten kurtarmak için aktif tut</string>
     <string name="keep_your_youtube_playlist_offline">Çevrimdışıyken YouTube oynatma listenizi göstermeye devam edin</string>
     <string name="keep_your_youtube_playlist_offline_description">YouTube oynatma listenizi yerel olarak kaydedin ve çevrimdışıyken göstermek için saklayın</string>
     <string name="combine_local_and_youtube_liked_songs">Giriş yaptığınızda \"Favorilere Ekle\" seçeneğini \"YouTube'da Beğendim\" olarak değiştirin</string>

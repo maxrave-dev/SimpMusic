@@ -528,8 +528,6 @@
     <string name="lastfm_paste_callback_confirm">透過此連結繼續</string>
     <string name="logged_in_as">已登入為 %1$s</string>
     <string name="youtube_liked_music">YouTube 喜歡的音樂</string>
-    <string name="keep_service_alive">保持服務正常運行</string>
-    <string name="keep_service_alive_description">保持音樂播放器服務運行，避免被系統終止</string>
     <string name="keep_your_youtube_playlist_offline">離線時繼續顯示您的 YouTube 播放清單</string>
     <string name="keep_your_youtube_playlist_offline_description">將您的 YouTube 播放清單儲存到本地，以便在離線時查看</string>
     <string name="combine_local_and_youtube_liked_songs">登入後，將「收藏」替換為「YouTube 讚」</string>

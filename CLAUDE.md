@@ -798,6 +798,18 @@ if (getPlatform() == Platform.Android) {
   - **The album shelf's More leads to a dead page.** It points at `FEmusic_new_releases_albums`, which 404s for every client tried on 2026-09-19 — the app's own 1.20260304 web client, YouTube Music's current 1.20260915.14.00, signed out in VN/US, and the owner's signed-in session. It has been failing since at least **2026-05-29**, when ArchiveTune (commit `da4f838a`) added a fallback for `newReleaseAlbums` throwing `ClientRequestException`; a Metrolist #1383 comment from 2026-02-06 already reports ArchiveTune's New Releases not working when signed in. Metrolist still calls it and shows an empty screen. `parseNewRelease` therefore drops that one id (`takeUnless`) — the plumbing stays, so the button returns by itself if YouTube ever points the shelf somewhere live. ArchiveTune's fallback chain (no account → `FEmusic_new_releases` → Explore) yields nothing in VN today either: signed out, neither page has an album shelf.
   - `getAlbumMore` also calls `YouTube.browse()` and reads the FIRST section. The artist-discography page is a single grid, so that is unchanged — but a page that ever puts another shelf kind above its grid would now hand `getAlbumMore` that shelf instead.
   - `BrowseViewModel` is a new Koin `viewModel {}` definition, and Koin definitions are the global state the Compose Hot Reload entry above says CHR cannot rebuild — restart `hotRunJvm` before opening the Browse page after pulling this in.
+- **"Keep service alive" removed entirely (2026-09-20, issue #2510)**: the Android setting and everything behind it are gone. That covers:
+  - the switch and its two strings (base + all 17 translations)
+  - `keepServiceAlive`/`setKeepServiceAlive` on `DataStoreManager` + `KEEP_SERVICE_ALIVE`
+  - the `SettingsViewModel` state
+  - the whole block in `SimpleMediaService.onCreate`
+  - `media3-ui` from `core/media/media3`, which that block alone used
+
+  The block ran a second `PlayerNotificationManager` notification beside Media3's own, and restarted `while (isActive) { startForeground(); delay(30 s) }` on every notification post, on `SERVICE_SCOPE` (`Dispatchers.Main`).
+  - **It was the app's only uncaught `startForeground`.** media3-session's `MediaNotificationManager` catches `ForegroundServiceStartNotAllowedException` around its own call, so on Android 12+ a background denial of OUR call killed the process on main. The system then restarted the service, which crashed again — #2510's 1s → 4s → 16s → 64s → 256s restart backoff.
+  - Its notification also captured `mediaSession?.sessionActivity` at service creation, before `MainActivity` binds and sets it, so tapping that notification did nothing.
+  - A stored `keep_service_alive` value simply stays unread in existing DataStore files.
+  - Still open next door: #2071, the uncaught `ContextCompat.startForegroundService` fallback in `startService()` (`Media3ServiceModule.kt`).
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -823,6 +835,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-19
+**Last updated**: 2026-09-20
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
