@@ -113,6 +113,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.expect.ui.PlatformCastButton
+import com.maxrave.simpmusic.expect.ui.PlatformRemoteDeviceButton
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
@@ -1028,6 +1029,12 @@ fun NowPlayingContentSpotify(
                                             // the app theme is, so a light-theme primary would sink into the black
                                             // backdrop. Mirrors the `if (forceDark) Color.Cyan` rule in FullWidthItems.
                                             PlatformCastButton(
+                                                modifier = Modifier.size(24.dp),
+                                                tint = if (state.castState.isRemote) Color.Cyan else Color.White,
+                                            )
+                                            // HEOS (Denon / Marantz) device picker — same active tint as Cast,
+                                            // since both drive the same castState.
+                                            PlatformRemoteDeviceButton(
                                                 modifier = Modifier.size(24.dp),
                                                 tint = if (state.castState.isRemote) Color.Cyan else Color.White,
                                             )

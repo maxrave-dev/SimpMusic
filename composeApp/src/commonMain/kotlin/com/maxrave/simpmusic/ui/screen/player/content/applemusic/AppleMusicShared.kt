@@ -77,7 +77,9 @@ import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.PlatformCastButton
+import com.maxrave.simpmusic.expect.ui.PlatformRemoteDeviceButton
 import com.maxrave.simpmusic.expect.ui.isPlatformCastAvailable
+import com.maxrave.simpmusic.expect.ui.isPlatformRemoteDeviceAvailable
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -767,6 +769,15 @@ internal fun AppleMusicDock(
         if (isPlatformCastAvailable()) {
             Box(modifier = Modifier.appleMusicPressInflate().size(40.dp), contentAlignment = Alignment.Center) {
                 PlatformCastButton(
+                    modifier = Modifier.size(22.dp),
+                    tint = if (castState.isRemote) activeColor else Color.White,
+                )
+            }
+        }
+        // HEOS (Denon / Marantz) device picker.
+        if (isPlatformRemoteDeviceAvailable()) {
+            Box(modifier = Modifier.appleMusicPressInflate().size(40.dp), contentAlignment = Alignment.Center) {
+                PlatformRemoteDeviceButton(
                     modifier = Modifier.size(22.dp),
                     tint = if (castState.isRemote) activeColor else Color.White,
                 )
