@@ -208,9 +208,6 @@ class SettingsViewModel(
     private val _lastfmScrobbleEnabled = MutableStateFlow(false)
     val lastfmScrobbleEnabled: StateFlow<Boolean> = _lastfmScrobbleEnabled
 
-    private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
-    val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
-
     private val _keepYouTubePlaylistOffline = MutableStateFlow<Boolean>(false)
     val keepYouTubePlaylistOffline: StateFlow<Boolean> = _keepYouTubePlaylistOffline
 
@@ -328,7 +325,6 @@ class SettingsViewModel(
         getDiscordRichPresenceEnabled()
         getLastfmSession()
         getLastfmScrobbleEnabled()
-        getKeepServiceAlive()
         getKeepYouTubePlaylistOffline()
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
@@ -441,21 +437,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCombineLocalAndYouTubeLiked(combine)
             getCombineLocalAndYouTubeLiked()
-        }
-    }
-
-    private fun getKeepServiceAlive() {
-        viewModelScope.launch {
-            dataStoreManager.keepServiceAlive.collect { keepServiceAlive ->
-                _keepServiceAlive.value = keepServiceAlive == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setKeepServiceAlive(keepServiceAlive: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setKeepServiceAlive(keepServiceAlive)
-            getKeepServiceAlive()
         }
     }
 

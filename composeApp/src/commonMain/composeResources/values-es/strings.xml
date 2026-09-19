@@ -565,8 +565,6 @@
     <string name="lastfm_paste_callback_confirm">Continuar con este enlace</string>
     <string name="logged_in_as">Conectado como %1$s</string>
     <string name="youtube_liked_music">Música de YouTube con Me gusta</string>
-    <string name="keep_service_alive">Mantener el servicio activo</string>
-    <string name="keep_service_alive_description">Mantener el servicio de reproductor de música activo para evitar que el sistema lo cierre</string>
     <string name="keep_your_youtube_playlist_offline">Seguir mostrando tu lista de reproducción de YouTube sin conexión</string>
     <string name="keep_your_youtube_playlist_offline_description">Guardar tu lista de reproducción de YT y mantener para mostrar sin conexión</string>
     <string name="combine_local_and_youtube_liked_songs">Reemplazar Favorito por Me Gusta de YouTube al iniciar sesión</string>

@@ -510,8 +510,6 @@
     <string name="enable_rich_presence">Ativar rich presence</string>
     <string name="rich_presence_info"></string>
     <string name="youtube_liked_music">Músicas curtidas do YouTube</string>
-    <string name="keep_service_alive">Manter serviço ativo</string>
-    <string name="keep_service_alive_description">Manter o serviço do player de música ativo para evitar que seja encerrado pelo sistema</string>
     <string name="keep_your_youtube_playlist_offline">Continuar mostrando sua lista de reprodução do YouTube quando estiver offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Salvar sua lista de reprodução YT no local e manter para mostrar quando estiver offline</string>
     <string name="combine_local_and_youtube_liked_songs">Substituir Favoritos pelas músicas marcadas com 'Gostei' do YouTube ao fazer login</string>

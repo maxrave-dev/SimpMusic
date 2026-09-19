@@ -514,8 +514,6 @@
     <string name="enable_rich_presence">Увімкнути Rich Presence</string>
     <string name="rich_presence_info">Показувати інформацію про медіа-сеанс у профілі Discord</string>
     <string name="youtube_liked_music">Вподобана музика YouTube</string>
-    <string name="keep_service_alive">Підтримувати службу активною</string>
-    <string name="keep_service_alive_description">Утримувати музичний плеєр активним, щоб не бути закритим системою</string>
     <string name="keep_your_youtube_playlist_offline">Показувати ваш YouTube-плейлист офлайн</string>
     <string name="keep_your_youtube_playlist_offline_description">Зберегти свій плейліст YouTube локально й переглядати офлайн</string>
     <string name="combine_local_and_youtube_liked_songs">Замінювати «Обране» на «Вподобане YouTube» після входу в обліковий запис</string>

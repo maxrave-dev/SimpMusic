@@ -503,8 +503,6 @@
     <string name="enable_rich_presence">Activa el Rich Presence</string>
     <string name="rich_presence_info">Mostra la informació de la sessió multimèdia al teu perfil de Discord</string>
     <string name="youtube_liked_music">Música que t'agrada de YouTube</string>
-    <string name="keep_service_alive">Mantingues el servei actiu</string>
-    <string name="keep_service_alive_description">Mantingues actiu el servei del reproductor de música per evitar que el sistema l'ature</string>
     <string name="keep_your_youtube_playlist_offline">Continua mostrant la teva llista de reproducció de YouTube sense connexió</string>
     <string name="keep_your_youtube_playlist_offline_description">Desa la teva llista de reproducció de YT al dispositiu per continuar mostrant-la sense connexió</string>
     <string name="combine_local_and_youtube_liked_songs">Substitueix Preferits per la Música que t'agrada de YouTube en iniciar sessió</string>

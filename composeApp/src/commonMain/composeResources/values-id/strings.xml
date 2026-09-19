@@ -518,8 +518,6 @@
     <string name="enable_rich_presence">Aktifkan rich presence</string>
     <string name="rich_presence_info">Tampilkan informasi sesi media di profil Discord Anda</string>
     <string name="youtube_liked_music">Musik yang Disukai di YouTube</string>
-    <string name="keep_service_alive">Jaga layanan tetap aktif</string>
-    <string name="keep_service_alive_description">Jaga agar layanan pemutar musik tetap aktif untuk menghindari dihentikan oleh sistem</string>
     <string name="keep_your_youtube_playlist_offline">Tetap tampilkan daftar putar YouTube Anda saat offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Simpan daftar putar YouTube Anda ke lokal dan simpan untuk ditampilkan saat offline</string>
     <string name="combine_local_and_youtube_liked_songs">Ganti Favorit dengan Disukai di YouTube saat masuk</string>

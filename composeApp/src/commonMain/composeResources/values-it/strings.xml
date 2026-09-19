@@ -556,8 +556,6 @@
     <string name="lastfm_paste_callback_confirm">Continua con questo collegamento</string>
     <string name="logged_in_as">Accesso effettuato come %1$s</string>
     <string name="youtube_liked_music">Musica apprezzata su YouTube</string>
-    <string name="keep_service_alive">Tieni il servizio attivo</string>
-    <string name="keep_service_alive_description">Mantieni attivo il servizio del lettore musicale per evitare che venga chiuso dal sistema</string>
     <string name="keep_your_youtube_playlist_offline">Mostra la tua playlist di YouTube quando offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Salva la tua playlist di YouTube in locale per mantenerla anche senza connessione</string>
     <string name="combine_local_and_youtube_liked_songs">Combina i preferiti di YouTube con i mi piace quando accedi</string>

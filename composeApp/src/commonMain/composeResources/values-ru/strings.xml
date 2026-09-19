@@ -571,8 +571,6 @@
     <string name="lastfm_paste_callback_confirm">Продолжить с этой ссылкой</string>
     <string name="logged_in_as">Вход выполнен: %1$s</string>
     <string name="youtube_liked_music">Любимые треки YouTube</string>
-    <string name="keep_service_alive">Сохранять работу сервиса</string>
-    <string name="keep_service_alive_description">Держать музыкальный плеер активным</string>
     <string name="keep_your_youtube_playlist_offline">Показывать плейлист YouTube офлайн</string>
     <string name="keep_your_youtube_playlist_offline_description">Сохранить плейлист YouTube и использовать офлайн</string>
     <string name="combine_local_and_youtube_liked_songs">Заменить Избранное на Понравившиеся в YouTube при входе</string>
