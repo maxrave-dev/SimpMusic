@@ -811,6 +811,14 @@ if (getPlatform() == Platform.Android) {
   - A stored `keep_service_alive` value simply stays unread in existing DataStore files.
   - Still open next door: #2071, the uncaught `ContextCompat.startForegroundService` fallback in `startService()` (`Media3ServiceModule.kt`).
 
+- **Radio queues trim their own history, and the per-append queue scan got cheap (2026-09-21, issue #2504)**: a radio queue keeps 100 played tracks behind the current one and drops the oldest once the history passes 150 (`RadioQueueTrim` in `core/domain`). Nothing ahead of the playing track is ever touched, and a playlist or album is trimmed only after *Endless queue* has carried it past the list the user picked — at which point `loadMore` re-points it at the last track's radio and now also re-types it `PlaylistType.RADIO`, because from there on it IS a radio.
+  - **`reorderShuffledQueue` was the stall in #2504, not the appends themselves.** `loadMoreCatalog` adds a batch one track at a time, so it fires ~50 timeline events; each one re-matched the whole queue with a nested search (queue × player string compares) and built three log lines containing every title, then threw the result away when the sizes disagreed. It is now a map lookup and logs sizes only. The first shape of this fix — an early return when the player list is shorter — was **wrong**: `loadMoreCatalog` updates `queueData` once at the END, so mid-batch the PLAYER is the longer list.
+  - **`MediaPlayerInterface.removeMediaItems(from, to)`** removes a range in one pass (one shuffle rebuild, one precache top-up, one timeline notification) with a default that falls back to the per-item call. Removing one at a time would repeat exactly the storm above. Both adapters re-check bounds INSIDE their own launch (issue #2156's crash shape) and refuse while `isCrossfading`: `crossfadeFromIndex` indexes the same playlist and is not shifted, so a cancelled fade would revert to a track ~100 positions away. They do NOT call `clearPrecacheExceptCurrentInternal()` — that releases every precached handle, including the one the next crossfade is about to use; the removed tracks are all behind the playhead and precache is keyed by `mediaId`.
+  - **`queueData` follows the player, never leads it.** The handler asks for the removal and records the size to expect; `applyPendingRadioTrim`, driven by the timeline event, cuts `listTracks` only once the player's ids are exactly the tail of what it holds. Cutting first would leave the two lists permanently offset whenever an adapter refuses — and `reorderShuffledQueue` bails on a size mismatch, so nothing would ever heal it. That offset is the "tap a queue row, play the wrong song" bug.
+  - **Shuffle is excluded on purpose.** `currentMediaItemIndex` and the indices `removeMediaItems` takes count the UNSHUFFLED playlist, while `getCurrentMediaTimeLine()` and `listTracks` are in shuffled order, so the oldest-played tracks are not a contiguous range there at all. Radio with shuffle on keeps its full history.
+  - `TRIM_ABOVE_HISTORY = 150` is a floor, not a ceiling: the check runs right after a batch append, so in practice the history reaches ~197 before the first cut and then swings between 100 and ~197.
+  - Now Playing's artwork pager snaps instead of animating when the index moves more than one page — a trim drops it by ~100 without changing the track, and animating that flings the pager through a hundred covers.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -835,6 +843,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-20
+**Last updated**: 2026-09-21
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
