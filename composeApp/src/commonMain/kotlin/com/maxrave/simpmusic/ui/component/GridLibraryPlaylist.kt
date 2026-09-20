@@ -5,12 +5,12 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -129,8 +129,11 @@ internal inline fun <reified T> GridLibraryPlaylist(
             // point of the tab must not fall through to the empty text and hide it.
             if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null || header != null) {
                 LazyVerticalGrid(
-                    columns = GridCells.FixedSize(size = 132.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    // Adaptive, not a fixed 132dp cell: the column count then follows the window
+                    // instead of the device's density. A 1080p phone at display size "large" is
+                    // 360dp wide, where a 132dp cell fits only twice and left 96dp to spread as
+                    // gaps — two fat columns, while the same build shows three on a 412dp phone.
+                    columns = GridCells.Adaptive(minSize = 120.dp),
                     contentPadding = contentPadding,
                     state = state,
                 ) {
@@ -154,7 +157,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                 ) {
                                     Box(
                                         Modifier
-                                            .size(132.dp)
+                                            .fillMaxWidth()
                                             .aspectRatio(1f)
                                             .clip(RoundedCornerShape(10.dp))
                                             .angledGradientBackground(
@@ -184,7 +187,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                         maxLines = 1,
                                         modifier =
                                             Modifier
-                                                .width(132.dp)
+                                                .fillMaxWidth()
                                                 .wrapContentHeight(align = Alignment.CenterVertically)
                                                 .padding(top = 8.dp)
                                                 .basicMarquee(
@@ -272,6 +275,9 @@ internal inline fun <reified T> GridLibraryPlaylist(
                             },
                             data = item,
                             thumbSize = 132.dp,
+                            // The cell decides the width now, so the artwork follows it instead of
+                            // being pinned to thumbSize and cropped by a narrower cell.
+                            fillMaxWidth = true,
                         )
                     }
 

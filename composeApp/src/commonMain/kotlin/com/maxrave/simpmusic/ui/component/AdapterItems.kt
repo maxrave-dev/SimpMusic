@@ -407,7 +407,9 @@ fun HomeItemContentPlaylist(
                     // One floor for every home card, so a row mixing them stays one height. 70
                     // covers the tallest text block among them, HomeItemSong's: 69.5dp when the
                     // text engine counts Poppins' line gap (Skia on Desktop does), 65.8dp when not.
-                    .heightIn(min = thumbSize + 70.dp),
+                    // A cell-filling card has no such row to match and its artwork is narrower than
+                    // thumbSize, so the floor would only add empty space under every tile.
+                    .then(if (fillMaxWidth) Modifier else Modifier.heightIn(min = thumbSize + 70.dp)),
         ) {
             val thumb =
                 when (data) {
