@@ -1139,6 +1139,15 @@ fun QueueBottomSheet(
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
+                val queueRowKeys =
+                    remember(queue) {
+                        val seen = HashMap<String, Int>(queue.size)
+                        queue.map { track ->
+                            val occurrence = seen.getOrElse(track.videoId) { 0 }
+                            seen[track.videoId] = occurrence + 1
+                            "${track.videoId}#$occurrence"
+                        }
+                    }
                 LazyColumn(
                     horizontalAlignment = Alignment.Start,
                     state = lazyListState,
@@ -1188,7 +1197,12 @@ fun QueueBottomSheet(
                 ) {
                     itemsIndexed(
                         queue,
-                        key = { i, t -> i.toString() + t.videoId },
+                        // Keyed by the track, NOT by its position: a radio queue drops played
+                        // tracks off the front, and a position-based key changes for every row
+                        // when that happens, so the list loses its scroll anchor and jumps under
+                        // the user. The occurrence number keeps the key unique when a radio
+                        // repeats a song.
+                        key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
                     ) { index, track ->
                         if (index != -1) {
                             DraggableItem(
