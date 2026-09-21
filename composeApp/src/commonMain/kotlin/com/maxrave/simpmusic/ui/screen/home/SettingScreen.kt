@@ -109,6 +109,7 @@ import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
@@ -303,6 +304,11 @@ import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
+import simpmusic.composeapp.generated.resources.login_sync_android_description
+import simpmusic.composeapp.generated.resources.login_sync_android_title
+import simpmusic.composeapp.generated.resources.login_sync_desktop_description
+import simpmusic.composeapp.generated.resources.login_sync_desktop_title
+import simpmusic.composeapp.generated.resources.login_sync_section
 import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.lyrics
 import simpmusic.composeapp.generated.resources.lyrics_style
@@ -614,6 +620,9 @@ fun SettingScreen(
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
     }
+    var showLoginSyncDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
     var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
@@ -666,6 +675,25 @@ fun SettingScreen(
                 // 64dp item 0 would have switched branches while the glow was still half-visible.
                 Spacer(Modifier.height(64.dp))
                 Spacer(Modifier.height(16.dp))
+                // Above every section, and inside item 0 rather than an item of its own, for the
+                // glow reason above.
+                Text(text = stringResource(Res.string.login_sync_section), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
+                SettingItem(
+                    title =
+                        stringResource(
+                            if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
+                        ),
+                    subtitle =
+                        stringResource(
+                            if (getPlatform() == Platform.Android) {
+                                Res.string.login_sync_android_description
+                            } else {
+                                Res.string.login_sync_desktop_description
+                            },
+                        ),
+                    onClick = { showLoginSyncDialog = true },
+                )
+                Spacer(Modifier.height(8.dp))
                 Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
                 val themeModeLabels =
                     listOf(
@@ -2880,6 +2908,9 @@ fun SettingScreen(
                 }
             },
         )
+    }
+    if (showLoginSyncDialog) {
+        LoginSyncDialog(onDismiss = { showLoginSyncDialog = false })
     }
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(

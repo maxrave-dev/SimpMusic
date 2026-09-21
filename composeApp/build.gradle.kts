@@ -98,6 +98,12 @@ kotlin {
             } else {
                 implementation(projects.castEmpty)
             }
+
+            // Login sync QR scanner: CameraX + ZXing, not ML Kit, which F-Droid rejects as proprietary
+            implementation(libs.camera.camera2)
+            implementation(libs.camera.lifecycle)
+            implementation(libs.camera.view)
+            implementation(libs.zxing.core)
         }
         commonMain.dependencies {
             implementation(libs.runtime)
@@ -187,6 +193,8 @@ kotlin {
             implementation(libs.sentry.jvm)
             implementation(libs.native.tray)
             implementation(projects.mediaJvmUi)
+            // Login sync QR code
+            implementation(libs.zxing.core)
         }
     }
 }
