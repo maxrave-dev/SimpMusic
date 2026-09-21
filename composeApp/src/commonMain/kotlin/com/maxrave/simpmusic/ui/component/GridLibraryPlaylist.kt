@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maxrave.domain.data.entities.AlbumEntity
@@ -67,6 +68,34 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.create
+import kotlin.math.roundToInt
+
+/**
+ * Columns for every grid built on [GridLibraryPlaylist] — the Library tabs, Wrapped and Mix for you.
+ *
+ * The count is whichever brings the artwork closest to 150dp, so every cell on a page is the same
+ * size and a wider window adds columns instead of stretching them. `Adaptive(minSize = 120.dp)`
+ * treated 120 as a floor instead, which on a 1404dp window meant eleven columns of ~108dp artwork.
+ *
+ * Never fewer than three: the column count must follow the window, not the device's density, and a
+ * 360–412dp phone would otherwise round down to two. Below 480dp this gives exactly the three columns
+ * `Adaptive(120.dp)` did, so phones keep the grid they have.
+ */
+internal object LibraryGridCells : GridCells {
+    // The artwork plus the 10dp start + 10dp end padding every item in these grids carries.
+    private val TargetCellWidth = 150.dp + 20.dp
+
+    override fun Density.calculateCrossAxisCellSizes(
+        availableSize: Int,
+        spacing: Int,
+    ): List<Int> {
+        val target = TargetCellWidth.roundToPx() + spacing
+        val count = ((availableSize + spacing).toFloat() / target).roundToInt().coerceAtLeast(3)
+        // The same split GridCells.Fixed makes: leftover pixels go one each to the first columns.
+        val usable = availableSize - spacing * (count - 1)
+        return List(count) { usable / count + if (it < usable % count) 1 else 0 }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,11 +158,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
             // point of the tab must not fall through to the empty text and hide it.
             if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null || header != null) {
                 LazyVerticalGrid(
-                    // Adaptive, not a fixed 132dp cell: the column count then follows the window
-                    // instead of the device's density. A 1080p phone at display size "large" is
-                    // 360dp wide, where a 132dp cell fits only twice and left 96dp to spread as
-                    // gaps — two fat columns, while the same build shows three on a 412dp phone.
-                    columns = GridCells.Adaptive(minSize = 120.dp),
+                    columns = LibraryGridCells,
                     contentPadding = contentPadding,
                     state = state,
                 ) {
