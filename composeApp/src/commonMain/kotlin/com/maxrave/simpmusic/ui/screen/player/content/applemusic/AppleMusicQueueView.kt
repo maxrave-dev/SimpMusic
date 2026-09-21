@@ -208,10 +208,12 @@ internal fun AppleMusicQueueView(
 
         // Same per-item sheet the old queue sheet opens from a row's ⋯ (move up/down/delete).
         var queueItemSheetIndex by remember { mutableStateOf(-1) }
+        var queueItemSheetVideoId by remember { mutableStateOf<String?>(null) }
         if (queueItemSheetIndex >= 0) {
             QueueItemBottomSheet(
                 onDismiss = { queueItemSheetIndex = -1 },
                 index = queueItemSheetIndex,
+                videoId = queueItemSheetVideoId,
             )
         }
 
@@ -289,7 +291,10 @@ internal fun AppleMusicQueueView(
                             onClickListener = { videoId ->
                                 if (videoId == track.videoId) actions.onSeekToQueueIndex(queueIndex)
                             },
-                            onMoreClickListener = { queueItemSheetIndex = queueIndex },
+                            onMoreClickListener = {
+                                queueItemSheetVideoId = track.videoId
+                                queueItemSheetIndex = queueIndex
+                            },
                         )
                     }
                 }
