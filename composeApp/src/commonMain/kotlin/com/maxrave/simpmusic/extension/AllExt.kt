@@ -201,6 +201,21 @@ fun String.toSquareThumbnailUrl(): String {
         spec.replace(Regex("(^|-)([wh])\\d+")) { m -> "${m.groupValues[1]}${m.groupValues[2]}$min" }
 }
 
+/**
+ * Width ÷ height of a YouTube image URL's `w`/`h` size spec (`...=w2880-h1200-...` -> 2.4), or null
+ * when it has none. Read off the URL rather than the decoded image, so a frame can take the image's
+ * shape before the image has loaded and the page does not jump when it arrives.
+ */
+fun String.thumbnailAspectRatio(): Float? {
+    val eq = lastIndexOf('=')
+    if (eq < 0 || eq == lastIndex) return null
+    val spec = substring(eq + 1)
+    val width = Regex("(?:^|-)w(\\d+)").find(spec)?.groupValues?.get(1)?.toIntOrNull()
+    val height = Regex("(?:^|-)h(\\d+)").find(spec)?.groupValues?.get(1)?.toIntOrNull()
+    if (width == null || height == null || width <= 0 || height <= 0) return null
+    return width.toFloat() / height
+}
+
 fun isValidProxyHost(host: String): Boolean {
     // Regular expression to validate proxy host (without port)
     val proxyHostRegex =

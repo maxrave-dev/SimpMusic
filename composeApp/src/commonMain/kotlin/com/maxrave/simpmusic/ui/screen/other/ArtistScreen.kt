@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -91,6 +92,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.hexToColorOrNull
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.extension.thumbnailAspectRatio
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.getPlatform
@@ -186,7 +188,8 @@ fun ArtistScreen(
 
     // Apple Music-inspired immersive treatment. The header adapts to the window's aspect ratio
     // alone, not to the platform: a portrait window keeps the square artwork frame, a landscape
-    // one (including every desktop window) uses a half-viewport-tall frame instead.
+    // one (including every desktop window) takes the artist banner's own shape at full width, or a
+    // half-viewport-tall frame when the artist has no wide banner.
     val screenInfo = getScreenSizeInfo()
     val isPortrait = screenInfo.wDP < screenInfo.hDP
 
@@ -266,20 +269,27 @@ fun ArtistScreen(
                                     state.data.imageUrl?.let {
                                         if (isPortrait) it.toSquareThumbnailUrl() else it
                                     }
+                                // Landscape follows Apple Music: full width, the banner's OWN shape, and the
+                                // page below pushed down by however tall that makes it. The shape is read off
+                                // the URL so the frame is right before the image loads. Only a wide banner
+                                // qualifies — a square photo at full width would be as tall as the window is
+                                // wide, so an artist without a banner keeps the half-viewport frame below.
+                                val bannerRatio =
+                                    if (isPortrait) null else headerImageUrl?.thumbnailAspectRatio()?.takeIf { it >= 1.5f }
                                 Box(
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
                                             .then(
-                                                if (isPortrait) {
-                                                    Modifier.aspectRatio(1f)
-                                                } else {
+                                                when {
+                                                    isPortrait -> Modifier.aspectRatio(1f)
+                                                    bannerRatio != null -> Modifier.aspectRatio(bannerRatio)
                                                     // Half the viewport, matching Album/Playlist/LocalPlaylist.
                                                     // A square frame only works while the frame is roughly as
                                                     // wide as a phone; on a landscape window aspectRatio(1f)
                                                     // makes this as tall as the window is wide and the artwork
                                                     // (or a playing canvas) swallows the entire page.
-                                                    Modifier.height((screenInfo.hDP / 2).dp)
+                                                    else -> Modifier.height((screenInfo.hDP / 2).dp)
                                                 },
                                             ),
                                 ) {
@@ -302,10 +312,9 @@ fun ArtistScreen(
                                                 error = rememberHolderPainter(),
                                                 contentDescription = null,
                                                 // FillWidth fits the square source into the square portrait
-                                                // frame. Landscape covers with Crop, and it only trims a
-                                                // little because the source there is YouTube's own wide
-                                                // banner (~2.4:1) against a ~3.3:1 frame — a squared source
-                                                // would have lost far more of its height to the same crop.
+                                                // frame. Landscape covers with Crop: the frame there has the
+                                                // banner's own shape, so nothing is trimmed, and Crop only
+                                                // matters for the half-viewport fallback.
                                                 contentScale =
                                                     if (isPortrait) ContentScale.FillWidth else ContentScale.Crop,
                                                 // Always decoded so the page background color can be extracted
@@ -364,22 +373,15 @@ fun ArtistScreen(
                                         // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
                                         // its cost doesn't grow, while the color gets 70% of the artwork
                                         // to ramp over. A short ramp means a steep alpha, and a steep
-                                        // alpha is what reads as a visible edge. Both figures are 70% of
-                                        // the frame's own height: the portrait frame is square so that is
-                                        // 70% of the width, the landscape one is hDP/2 so it is 35% of hDP.
-                                        // Measuring off the width in landscape would make the scrim taller
-                                        // than the artwork itself.
+                                        // alpha is what reads as a visible edge. It is 70% of the FRAME's
+                                        // own height, whatever shape the frame has (square, banner, half
+                                        // viewport) — measured off the window instead, it outgrew the
+                                        // artwork in landscape.
                                         Box(
                                             modifier =
                                                 Modifier
                                                     .fillMaxWidth()
-                                                    .height(
-                                                        if (isPortrait) {
-                                                            (screenInfo.wDP * 0.7f).dp
-                                                        } else {
-                                                            (screenInfo.hDP * 0.35f).dp
-                                                        },
-                                                    )
+                                                    .fillMaxHeight(0.7f)
                                                     .align(Alignment.BottomCenter)
                                                     .background(artworkScrimBrush(mutedPaletteBg)),
                                         )
