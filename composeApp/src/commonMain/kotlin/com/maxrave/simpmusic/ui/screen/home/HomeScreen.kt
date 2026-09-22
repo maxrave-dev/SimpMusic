@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.getPlatform
@@ -999,6 +1000,10 @@ fun AccountLayout(
     }
 }
 
+// Portrait fills the width with one column (the next one peeking in). On a landscape window that one
+// column stretched across the whole screen, so every row there is capped instead.
+private val LandscapeGridItemMaxWidth = 400.dp
+
 @ExperimentalFoundationApi
 @Composable
 fun QuickPicks(
@@ -1008,6 +1013,7 @@ fun QuickPicks(
 ) {
     val lazyListState = rememberLazyGridState()
     val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))
+    val isPortrait = getScreenSizeInfo().let { it.wDP < it.hDP }
     val density = LocalDensity.current
     var widthDp by remember {
         mutableStateOf(0.dp)
@@ -1077,7 +1083,7 @@ fun QuickPicks(
                             bottomSheetShow = true
                         },
                         data = it,
-                        widthDp = widthDp,
+                        widthDp = if (isPortrait) widthDp else minOf(widthDp, LandscapeGridItemMaxWidth + 30.dp),
                     )
                 }
             }
@@ -1180,6 +1186,7 @@ fun ChartData(
 
     val lazyListState2 = rememberLazyGridState()
     val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
+    val isPortrait = getScreenSizeInfo().let { it.wDP < it.hDP }
 
     Column(
         Modifier.onGloballyPositioned { coordinates ->
@@ -1250,7 +1257,7 @@ fun ChartData(
                         )
                     },
                     data = data,
-                    widthDp = gridWidthDp,
+                    widthDp = if (isPortrait) gridWidthDp else minOf(gridWidthDp, LandscapeGridItemMaxWidth),
                 )
             }
         }
