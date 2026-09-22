@@ -832,6 +832,14 @@ if (getPlatform() == Platform.Android) {
   - Desktop name: macOS `scutil --get ComputerName`, Windows `COMPUTERNAME`, Linux `/etc/hostname`.
   - Known limits: the phone must be able to reach one of those addresses (guest Wi-Fi usually blocks client-to-client traffic), and the first listen raises the Windows Firewall / macOS incoming-connection prompt.
 
+- **Unofficial copies are blocked on Android (2026-09-22)**: our own release APKs circulate renamed and re-signed (App Cloner / apktool — seen as `com.spotify.music`, `cn.kuwo.player`, `com.apple.android.music`, `com.anxhify.music`). The package must be in `Config.OFFICIAL_PACKAGE_NAMES` (`com.maxrave.simpmusic`, `.dev`) **and** the signing certificate's SHA-256 must match `AllowedAPKSigningKeys` in F-Droid's metadata for this app — F-Droid ships the APK we sign, so that value is our release key and one check covers both flavours. **The key is not in the code**: it follows the update check's path — `Ytmusic.fdroidMetadata()` (fdroiddata `master`, raw.githubusercontent — so a key rotation on F-Droid reaches the app without a release; the field may be one inline value or a YAML list) → `YouTube.getFdroidSigningKeys()` → `UpdateRepository.getFdroidSigningKeys()` → `SharedViewModel.checkOfficialBuild(packageName, signingCertSha256())` → `isOfficialBuild: StateFlow<Boolean>`, collected in `App()`. It starts `true` and only a successful fetch with none of our keys turns it `false`, so a failed fetch (or no certificate read at all) never blocks — the app plays offline. A failing copy gets `UnofficialBuildScreen` inside `App()`'s own `AppTheme` (so it follows the user's theme mode and colour) in place of the whole app: a full-screen block with no way back into the app, only a download button to simpmusic.org/download. Desktop is out of scope and untouched (the state defaults to `true` and nothing there calls the check).
+  - **The two halves catch different things.** Signature-killer tools (MT Manager, ApkSignatureKiller) hook `PackageManager` into returning our certificate, but cannot hide a renamed package — and every clone seen so far was renamed.
+  - Debug builds skip the check (`BuildConfig.DEBUG`, a compile-time constant): they are signed with each machine's debug key. Do not key this off the manifest's `debuggable` flag instead — a modder can set that.
+  - `MainActivity.onCreate` reloads `viewModelModule`, so `SharedViewModel` is rebuilt whenever the activity is recreated (language or light/dark change) and the signature half re-fetches from `true`; the package half is synchronous and unaffected.
+  - It blocks the UI only: the media service still starts, so anything driving the MediaSession without the activity (Android Auto, car head units) is not blocked by it.
+  - The nightly workflow (`android.yml`) signs with `secrets.SIGNING_KEY`, the release workflow with `BASE_64_SIGNING_KEY`. If those are different keystores, every nightly is blocked.
+  - Anyone patching the APK can remove the check; only server-side Key Attestation resists that, and nothing here needs it yet.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -856,6 +864,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-21
+**Last updated**: 2026-09-22
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

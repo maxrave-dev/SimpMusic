@@ -904,4 +904,6 @@
     <string name="login_sync_unreachable">Couldn't reach the computer. Make sure your phone is on the same network or tailnet, then try again.</string>
     <string name="login_sync_code_expired">The code on your computer has expired. Show a new one and scan again.</string>
     <string name="login_sync_failed">Something went wrong. Please try again.</string>
+    <string name="modified_build_title">Unofficial app</string>
+    <string name="modified_build_message">You are using an unofficial copy of SimpMusic that was modified or repackaged by someone else. It cannot be used. Download the official version from simpmusic.org.</string>
 </resources>

@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
+import com.maxrave.common.Config
 import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.DOWNLOAD_CACHE
 import com.maxrave.common.Config.PLAYLIST_CLICK
@@ -167,6 +168,9 @@ class SharedViewModel(
 
     private val _showNotificationPermissionDialog = MutableStateFlow(false)
     val showNotificationPermissionDialog: StateFlow<Boolean> = _showNotificationPermissionDialog
+
+    private val _isOfficialBuild = MutableStateFlow(true)
+    val isOfficialBuild: StateFlow<Boolean> = _isOfficialBuild
 
     private var getFormatFlowJob: Job? = null
 
@@ -1084,6 +1088,29 @@ class SharedViewModel(
                         }
                     }
                     _isCheckingUpdate.value = false
+                }
+            }
+        }
+    }
+
+    /**
+     * [signingCerts]: SHA-256 hex of each certificate this APK is signed with. A failed fetch leaves
+     * the app usable — it plays offline, and an unknown answer must not lock out our own users.
+     */
+    fun checkOfficialBuild(
+        packageName: String,
+        signingCerts: List<String>,
+    ) {
+        if (packageName !in Config.OFFICIAL_PACKAGE_NAMES) {
+            _isOfficialBuild.value = false
+            return
+        }
+        viewModelScope.launch {
+            updateRepository.getFdroidSigningKeys().collect { response ->
+                val keys = response.data
+                // No certificate read at all is an unknown answer, and unknown never blocks.
+                if (response is Resource.Success && keys != null && signingCerts.isNotEmpty() && keys.none { it in signingCerts }) {
+                    _isOfficialBuild.value = false
                 }
             }
         }
