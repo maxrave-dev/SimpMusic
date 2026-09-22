@@ -45,8 +45,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import io.sentry.Sentry
 import io.sentry.SentryLevel
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import io.sentry.protocol.User
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -73,6 +72,12 @@ import simpmusic.composeapp.generated.resources.open_app
 import simpmusic.composeapp.generated.resources.open_miniplayer
 import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
+import java.io.File
+import java.security.MessageDigest
+
+private const val SENTRY_APP_OPEN = "app.open"
 
 /**
  * Any `scheme://…` command-line argument. RFC 3986 §3.1 allows ALPHA followed by
@@ -201,11 +206,18 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     VersionManager.initialize()
     configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
     if (BuildKonfig.sentryDsn.isNotEmpty()) {
+        val installationId = machineId()
         Sentry.init { options ->
             options.dsn = BuildKonfig.sentryDsn
             options.release = "simpmusic-desktop@${VersionManager.getVersionName()}"
             options.setDiagnosticLevel(SentryLevel.ERROR)
+            options.distinctId = installationId
+            options.isSendDefaultPii = true
+            options.setTracesSampler { context -> if (context.transactionContext.name == SENTRY_APP_OPEN) 1.0 else 0.0 }
         }
+        if (installationId != null) Sentry.setUser(User().apply { id = installationId })
+        Sentry.startSession()
+        Sentry.startTransaction(SENTRY_APP_OPEN, SENTRY_APP_OPEN).finish()
     }
 
     val mediaPlayerHandler by inject<MediaPlayerHandler>(MediaPlayerHandler::class.java)
@@ -313,6 +325,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             Divider()
             Item(quitAppString) {
                 mediaPlayerHandler.release()
+                Sentry.endSession()
                 exitApplication()
             }
         }
@@ -365,8 +378,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                                 val out = p.inputStream.bufferedReader().readText()
                                 if (p.waitFor() == 0 && out.isNotBlank()) out else null
                             }.getOrNull()
-                        }
-                        .firstOrNull()
+                        }.firstOrNull()
                         .orEmpty()
                 val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
                 vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
@@ -502,3 +514,44 @@ private object DesktopRestoreSignal {
         _requests.tryEmit(Unit)
     }
 }
+
+/**
+ * The OS's own machine id, hashed so the raw value never leaves the machine: stable across launches
+ * and reinstalls without storing anything. Null when the OS will not say. Blocking (runs a process on
+ * Windows and macOS).
+ */
+private fun machineId(): String? {
+    val os = System.getProperty("os.name").orEmpty()
+    val raw =
+        runCatching {
+            when {
+                os.startsWith("Windows") -> {
+                    // /reg:64: MachineGuid exists only in the 64-bit registry view.
+                    runCommand("reg", "query", "HKLM\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid", "/reg:64")
+                        .substringAfter("REG_SZ", "")
+                        .trim()
+                }
+
+                os.startsWith("Mac") -> {
+                    Regex("\"IOPlatformUUID\" = \"([^\"]+)\"")
+                        .find(runCommand("ioreg", "-rd1", "-c", "IOPlatformExpertDevice"))
+                        ?.groupValues
+                        ?.get(1)
+                }
+
+                else -> {
+                    listOf("/etc/machine-id", "/var/lib/dbus/machine-id")
+                        .firstNotNullOfOrNull { path -> File(path).takeIf { it.canRead() }?.readText()?.trim() }
+                }
+            }
+        }.getOrNull()
+    if (raw.isNullOrBlank()) return null
+    return MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()).joinToString("") { "%02x".format(it) }
+}
+
+private fun runCommand(vararg command: String): String =
+    ProcessBuilder(*command)
+        .start()
+        .inputStream
+        .bufferedReader()
+        .use { it.readText() }
