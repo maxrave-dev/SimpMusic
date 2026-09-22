@@ -391,7 +391,7 @@ filled states render identically.
   - Deep link support (`simpmusic://` and `simpmusic.org`)
   - Mini Player window (always-on-top, resizable, draggable)
   - Crash dialog
-  - Custom title bar (disabled in VM environments)
+  - Custom title bar (disabled on Linux and in VM environments)
 - **Limitations**:
   - No offline playback
 

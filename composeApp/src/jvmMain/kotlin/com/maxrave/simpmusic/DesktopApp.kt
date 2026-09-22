@@ -72,10 +72,15 @@ import simpmusic.composeapp.generated.resources.open_app
 import simpmusic.composeapp.generated.resources.open_miniplayer
 import simpmusic.composeapp.generated.resources.quit_app
 import simpmusic.composeapp.generated.resources.time_out_check_internet_connection_or_change_piped_instance_in_settings
+import java.awt.Canvas
+import java.awt.Container
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
 import java.security.MessageDigest
+import javax.swing.Timer
 
 private const val SENTRY_APP_OPEN = "app.open"
 
@@ -351,6 +356,11 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         val isVM =
             remember {
                 val osName = System.getProperty("os.name", "")
+                // Linux takes the VM branch too: undecorated + transparent breaks on some
+                // distros/WMs, so like Spotify it keeps the native title bar there.
+                if (osName.contains("Linux", ignoreCase = true)) {
+                    return@remember true
+                }
                 if (!osName.contains("Windows", ignoreCase = true)) {
                     return@remember false
                 }
@@ -412,6 +422,37 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 window.addWindowFocusListener(listener)
                 onDispose {
                     window.removeWindowFocusListener(listener)
+                }
+            }
+            // AWT on GNOME/XWayland (CMP-9528): moving the window to another monitor puts the
+            // native window of the Compose canvas back at the top of the frame, under the title
+            // bar, instead of at insets.top, so the UI sits one title-bar height too high over a
+            // grey strip. Resizing the frame 1px and back in one go does not help: both sizes are
+            // applied before Swing lays out, so nothing moves. After a move settles, find a canvas
+            // that really sits above the client area (locationOnScreen asks the X server) and
+            // change ITS size by 1px and back: every bounds change re-sends its native position,
+            // recomputed from its parents. The frame is untouched, so maximized windows are safe.
+            if (System.getProperty("os.name", "").contains("Linux", ignoreCase = true)) {
+                DisposableEffect(window) {
+                    val settle =
+                        Timer(300) {
+                            if (!window.isShowing) return@Timer
+                            val clientTop = window.locationOnScreen.y + window.insets.top
+                            val canvas =
+                                window.contentPane.findCanvas { it.isShowing && it.locationOnScreen.y < clientTop }
+                                    ?: return@Timer
+                            canvas.setSize(canvas.width, canvas.height + 1)
+                            canvas.setSize(canvas.width, canvas.height - 1)
+                        }.apply { isRepeats = false }
+                    val listener =
+                        object : ComponentAdapter() {
+                            override fun componentMoved(event: ComponentEvent) = settle.restart()
+                        }
+                    window.addComponentListener(listener)
+                    onDispose {
+                        settle.stop()
+                        window.removeComponentListener(listener)
+                    }
                 }
             }
             // Restore requests (Dock reopen, tray, second instance) also need a
@@ -548,6 +589,10 @@ private fun machineId(): String? {
     if (raw.isNullOrBlank()) return null
     return MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()).joinToString("") { "%02x".format(it) }
 }
+
+// Skiko draws into a heavyweight java.awt.Canvas nested somewhere under the content pane.
+private fun Container.findCanvas(predicate: (Canvas) -> Boolean): Canvas? =
+    components.firstNotNullOfOrNull { if (it is Canvas) it.takeIf(predicate) else (it as? Container)?.findCanvas(predicate) }
 
 private fun runCommand(vararg command: String): String =
     ProcessBuilder(*command)
