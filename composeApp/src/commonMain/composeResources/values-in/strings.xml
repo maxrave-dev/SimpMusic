@@ -151,6 +151,9 @@
     <string name="balance_media_loudness">Menyeimbangkan suara bising media</string>
     <string name="normalize_volume">Volume Dinormalkan</string>
     <string name="audio">Suara</string>
+    <string name="no_equalizer">Perangkat kamu tidak ada equalizer</string>
+    <string name="open_system_equalizer">Buka sistem equalizer</string>
+    <string name="use_your_system_equalizer">Gunakan sistem equalizer anda</string>
     <string name="streaming_data_provider_piped">Penyedia data streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Tipe Mime</string>
@@ -324,8 +327,6 @@
     <string name="repeat_off">Pengulangan Mati</string>
     <string name="youtube_transcript">Transkripsi Youtube</string>
     <string name="user_interface">Tampilan</string>
-    <string name="translucent_bottom_navigation_bar">Bilah navigasi bawah tembus pandang</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Anda dapat melihat konten di bawah bilah dibawah</string>
     <string name="donation">Jika Anda menyukai pekerjaan saya, beri saya kopi</string>
     <string name="relax">Santai</string>
     <string name="sleep">Tidur</string>

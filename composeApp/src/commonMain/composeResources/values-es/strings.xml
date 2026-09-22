@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Equilibrar el volumen de los medios</string>
     <string name="normalize_volume">Normalizar volumen</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Tu dispositivo no tiene ecualizador</string>
+    <string name="open_system_equalizer">Ecualizador del Sistema</string>
+    <string name="use_your_system_equalizer">Utilizar el ecualizador del sistema</string>
     <string name="streaming_data_provider_piped">Proveedor de datos de streaming (Piped)</string>
     <string name="itag">Etiqueta</string>
     <string name="mime_type">Tipo de Mime</string>
@@ -380,8 +383,6 @@
     <string name="theme_color_wallpaper">Fondo de pantalla</string>
     <string name="theme_color_custom">Personalizado</string>
     <string name="custom_color">Color personalizado</string>
-    <string name="translucent_bottom_navigation_bar">Barra de navegación inferior traslucida</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Puedes ver el contenido debajo de la barra inferior</string>
     <string name="donation">Si te gusta mi trabajo, invítame un café</string>
     <string name="relax">Relax</string>
     <string name="sleep">Para dormir</string>
@@ -562,8 +563,6 @@
     <string name="lastfm_paste_callback_confirm">Continuar con este enlace</string>
     <string name="logged_in_as">Conectado como %1$s</string>
     <string name="youtube_liked_music">Música de YouTube con Me gusta</string>
-    <string name="keep_service_alive">Mantener el servicio activo</string>
-    <string name="keep_service_alive_description">Mantener el servicio de reproductor de música activo para evitar que el sistema lo cierre</string>
     <string name="keep_your_youtube_playlist_offline">Seguir mostrando tu lista de reproducción de YouTube sin conexión</string>
     <string name="keep_your_youtube_playlist_offline_description">Guardar tu lista de reproducción de YT y mantener para mostrar sin conexión</string>
     <string name="combine_local_and_youtube_liked_songs">Reemplazar Favorito por Me Gusta de YouTube al iniciar sesión</string>

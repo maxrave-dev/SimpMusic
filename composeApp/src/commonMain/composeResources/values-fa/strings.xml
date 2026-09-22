@@ -160,6 +160,9 @@
     <string name="balance_media_loudness">تعادل بلندی صدا</string>
     <string name="normalize_volume">نرمال‌سازی صدا</string>
     <string name="audio">صدا</string>
+    <string name="no_equalizer">دستگاه شما اکولایزر ندارد</string>
+    <string name="open_system_equalizer">اکولایزر سامانه را باز کنید</string>
+    <string name="use_your_system_equalizer">از اکولایزر سامانه خود استفاده کنید</string>
     <string name="streaming_data_provider_piped">تأمین‌کننده داده‌های استریم (Piped)</string>
     <string name="itag">آی‌تگ</string>
     <string name="mime_type">نوع MIME</string>
@@ -352,8 +355,6 @@
     <string name="repeat_off">تکرار خاموش</string>
     <string name="youtube_transcript">متن ویدیو یوتیوب</string>
     <string name="user_interface">رابط کاربری</string>
-    <string name="translucent_bottom_navigation_bar">نوار ناوبری پایینی نیمه شفاف</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">شما می‌توانید محتوا را زیر نوار پایینی ببینید</string>
     <string name="donation">اگر از کار من خوشتان می‌آید، یک قهوه به من بدهید</string>
     <string name="relax">آرامش</string>
     <string name="sleep">خواب</string>

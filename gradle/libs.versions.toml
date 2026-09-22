@@ -95,8 +95,15 @@ nucleus-notification = "2.4.7"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
 conveyor = "2.0"
+# Login sync: QR encode (Desktop) + decode (Android), and the Android scanner's camera
+zxing = "3.5.4"
+camerax = "1.6.2"
 
 [libraries]
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugaring"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-expressive" }
@@ -165,6 +172,8 @@ materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "ma
 okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor" }

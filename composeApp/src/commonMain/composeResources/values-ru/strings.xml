@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Баланс медиа громкости</string>
     <string name="normalize_volume">Нормализовать громкость</string>
     <string name="audio">Аудио</string>
+    <string name="no_equalizer">Ваше устройство не имеет эквалайзера</string>
+    <string name="open_system_equalizer">Открыть системный эквалайзер</string>
+    <string name="use_your_system_equalizer">Использовать системный эквалайзер</string>
     <string name="streaming_data_provider_piped">Поставщик потоковых данных (пустой)</string>
     <string name="itag">Итег</string>
     <string name="extract_source">Извлечь источник</string>
@@ -385,8 +388,6 @@
     <string name="theme_color_wallpaper">Обои</string>
     <string name="theme_color_custom">Пользовательский</string>
     <string name="custom_color">Пользовательский цвет</string>
-    <string name="translucent_bottom_navigation_bar">Полупрозрачная нижняя панель</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Вы можете увидеть содержимое под нижней панелью</string>
     <string name="donation">Если вам нравится моя работа — купите мне кофе</string>
     <string name="relax">Релакс</string>
     <string name="sleep">Сон</string>
@@ -568,8 +569,6 @@
     <string name="lastfm_paste_callback_confirm">Продолжить с этой ссылкой</string>
     <string name="logged_in_as">Вход выполнен: %1$s</string>
     <string name="youtube_liked_music">Любимые треки YouTube</string>
-    <string name="keep_service_alive">Сохранять работу сервиса</string>
-    <string name="keep_service_alive_description">Держать музыкальный плеер активным</string>
     <string name="keep_your_youtube_playlist_offline">Показывать плейлист YouTube офлайн</string>
     <string name="keep_your_youtube_playlist_offline_description">Сохранить плейлист YouTube и использовать офлайн</string>
     <string name="combine_local_and_youtube_liked_songs">Заменить Избранное на Понравившиеся в YouTube при входе</string>

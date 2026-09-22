@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Équilibrer le volume des médias</string>
     <string name="normalize_volume">Égaliser le volume</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Votre appareil n'a pas d'égaliseur</string>
+    <string name="open_system_equalizer">Ouvrir l'égaliseur du système</string>
+    <string name="use_your_system_equalizer">Utilisez votre égaliseur système</string>
     <string name="streaming_data_provider_piped">Fournisseur de données de streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="extract_source">Extraire la source</string>
@@ -399,8 +402,6 @@
     <string name="theme_color_wallpaper">Fond d'écran</string>
     <string name="theme_color_custom">Personnalisé</string>
     <string name="custom_color">Couleur personnalisée</string>
-    <string name="translucent_bottom_navigation_bar">Barre de navigation inférieure translucide</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Vous pouvez voir le contenu en dessous de la barre inférieure</string>
     <string name="donation">Si vous aimez mon travail, offrez-moi un café ! ☕</string>
     <string name="relax">Détente</string>
     <string name="sleep">Sommeil</string>
@@ -583,8 +584,6 @@
     <string name="lastfm_paste_callback_confirm">Cliquez sur ce lien pour continuer</string>
     <string name="logged_in_as">Connecté en tant que %1$s</string>
     <string name="youtube_liked_music">Musique aimée par YouTube</string>
-    <string name="keep_service_alive">Maintenir le service en vie</string>
-    <string name="keep_service_alive_description">Maintenez le service du lecteur de musique actif pour éviter qu'il ne soit arrêté par le système</string>
     <string name="keep_your_youtube_playlist_offline">Continuer à afficher votre playlist YouTube lorsque vous êtes hors ligne</string>
     <string name="keep_your_youtube_playlist_offline_description">Enregistrez votre playlist YouTube en local et conservez-la pour la visionner hors ligne</string>
     <string name="combine_local_and_youtube_liked_songs">Remplacer « Favori » par « J’aime » sur YouTube lors de la connexion</string>

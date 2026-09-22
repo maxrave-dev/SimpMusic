@@ -72,6 +72,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullName
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.AnalyticsUiState
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
@@ -81,6 +82,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import com.maxrave.simpmusic.ui.screen.home.analytics.formatNumericSpan
+import com.maxrave.simpmusic.ui.screen.home.analytics.labelRes
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -151,8 +155,14 @@ fun LibraryDynamicPlaylistScreen(
     // which month. Keyed on the route argument rather than the parsed type so re-entering the same
     // month does not re-query.
     LaunchedEffect(type) {
-        (LibraryDynamicPlaylistType.toType(type) as? LibraryDynamicPlaylistType.MonthlyRecap)
-            ?.let { viewModel.getMonthlyRecapSong(it) }
+        val parsed = LibraryDynamicPlaylistType.toType(type)
+        if (parsed is LibraryDynamicPlaylistType.MonthlyRecap) {
+            viewModel.getMonthlyRecapSong(parsed)
+        }
+        // A top list opened from an older period. This screen gets its own analytics view model,
+        // which starts on the latest period, so without this every older period opened as the
+        // newest one.
+        parsed.topListRange()?.let { (start, end) -> analyticsViewModel.showRange(start, end) }
     }
 
     LaunchedEffect(query) {
@@ -208,7 +218,7 @@ fun LibraryDynamicPlaylistScreen(
                     },
                 )
             }
-        } else if (type == LibraryDynamicPlaylistType.TopArtists) {
+        } else if (type is LibraryDynamicPlaylistType.TopArtists) {
             when (analyticsUIState.topArtists) {
                 is LocalResource.Success if (!analyticsUIState.topArtists.data.isNullOrEmpty()) -> {
                     val data = analyticsUIState.topArtists.data ?: emptyList()
@@ -243,7 +253,7 @@ fun LibraryDynamicPlaylistScreen(
 
                 else -> {}
             }
-        } else if (type == LibraryDynamicPlaylistType.TopAlbums) {
+        } else if (type is LibraryDynamicPlaylistType.TopAlbums) {
             when (analyticsUIState.topAlbums) {
                 is LocalResource.Success if (!analyticsUIState.topAlbums.data.isNullOrEmpty()) -> {
                     val data = analyticsUIState.topAlbums.data ?: emptyList()
@@ -278,7 +288,7 @@ fun LibraryDynamicPlaylistScreen(
 
                 else -> {}
             }
-        } else if (type == LibraryDynamicPlaylistType.TopTracks) {
+        } else if (type is LibraryDynamicPlaylistType.TopTracks) {
             when (analyticsUIState.topTracks) {
                 is LocalResource.Success if (!analyticsUIState.topTracks.data.isNullOrEmpty()) -> {
                     val data = analyticsUIState.topTracks.data ?: emptyList()
@@ -472,8 +482,8 @@ fun LibraryDynamicPlaylistScreen(
         val type = LibraryDynamicPlaylistType.toType(type)
         val isSongType =
             type != LibraryDynamicPlaylistType.Followed &&
-                type != LibraryDynamicPlaylistType.TopArtists &&
-                type != LibraryDynamicPlaylistType.TopAlbums
+                type !is LibraryDynamicPlaylistType.TopArtists &&
+                type !is LibraryDynamicPlaylistType.TopAlbums
         // Counts always come from the unfiltered lists, so the subtitle keeps reporting the
         // library total while the user is typing in the search bar.
         val subtitle =
@@ -488,6 +498,9 @@ fun LibraryDynamicPlaylistScreen(
                     "${followed.size} ${stringResource(Res.string.artists)}"
                 is LibraryDynamicPlaylistType.MonthlyRecap ->
                     stringResource(Res.string.wrapped_recap_subtitle)
+                is LibraryDynamicPlaylistType.TopTracks,
+                is LibraryDynamicPlaylistType.TopArtists,
+                is LibraryDynamicPlaylistType.TopAlbums -> topListSubtitle(type)
                 else -> null
             }
         Box {
@@ -533,7 +546,7 @@ fun LibraryDynamicPlaylistScreen(
                             fillMaxSize = true,
                             tint = MaterialTheme.colorScheme.onBackground,
                         ) {
-                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                            if (type is LibraryDynamicPlaylistType.TopTracks) {
                                 val data = analyticsUIState.topTracks.data
                                 if (!data.isNullOrEmpty()) {
                                     val first = data.first().second
@@ -563,7 +576,7 @@ fun LibraryDynamicPlaylistScreen(
                             true,
                             tint = MaterialTheme.colorScheme.onBackground,
                         ) {
-                            if (type == LibraryDynamicPlaylistType.TopTracks) {
+                            if (type is LibraryDynamicPlaylistType.TopTracks) {
                                 val data = analyticsUIState.topTracks.data
                                 if (!data.isNullOrEmpty()) {
                                     val shuffled = data.shuffled()
@@ -619,7 +632,7 @@ fun LibraryDynamicPlaylistScreen(
                     onSelectAll = {
                         val visible =
                             when (type) {
-                                LibraryDynamicPlaylistType.TopTracks ->
+                                is LibraryDynamicPlaylistType.TopTracks ->
                                     (
                                         if (query.isNotEmpty() && showSearchBar) {
                                             tempTopTracks
@@ -696,11 +709,32 @@ sealed class LibraryDynamicPlaylistType {
 
     data object Downloaded : LibraryDynamicPlaylistType()
 
-    data object TopTracks : LibraryDynamicPlaylistType()
+    /**
+     * The three top lists carry the period they were opened for, so the list on screen is the one
+     * the user was looking at rather than whatever period this screen's own view model starts on.
+     *
+     * Both ends null means no period was given — the deep link and anything else that names the
+     * list without a range — and the list follows the navigator's current period, as it always has.
+     * [dayRange] is only the NAME the Analytics dropdown had selected, kept for the header; the
+     * dates alone decide what is loaded.
+     */
+    data class TopTracks(
+        val start: LocalDate? = null,
+        val end: LocalDate? = null,
+        val dayRange: AnalyticsUiState.DayRange? = null,
+    ) : LibraryDynamicPlaylistType()
 
-    data object TopArtists : LibraryDynamicPlaylistType()
+    data class TopArtists(
+        val start: LocalDate? = null,
+        val end: LocalDate? = null,
+        val dayRange: AnalyticsUiState.DayRange? = null,
+    ) : LibraryDynamicPlaylistType()
 
-    data object TopAlbums : LibraryDynamicPlaylistType()
+    data class TopAlbums(
+        val start: LocalDate? = null,
+        val end: LocalDate? = null,
+        val dayRange: AnalyticsUiState.DayRange? = null,
+    ) : LibraryDynamicPlaylistType()
 
     /**
      * One calendar month's top songs — the Wrapped tab's "Recap January".
@@ -732,9 +766,9 @@ sealed class LibraryDynamicPlaylistType {
             Followed -> Res.string.followed
             MostPlayed -> Res.string.most_played
             Downloaded -> Res.string.downloaded
-            TopAlbums -> Res.string.your_top_albums
-            TopArtists -> Res.string.your_top_artists
-            TopTracks -> Res.string.your_top_tracks
+            is TopAlbums -> Res.string.your_top_albums
+            is TopArtists -> Res.string.your_top_artists
+            is TopTracks -> Res.string.your_top_tracks
             is MonthlyRecap -> Res.string.wrapped
         }
 
@@ -763,6 +797,37 @@ sealed class LibraryDynamicPlaylistType {
             else -> stringResource(name())
         }
 
+    /** The span a top list was opened for, or null when it follows the navigator's own period. */
+    fun topListRange(): Pair<LocalDate, LocalDate>? {
+        // Named apart from the properties on purpose: inside each branch `this` is smart-cast, so a
+        // local called `start` would sit one character away from the property it is reading.
+        val (rangeStart, rangeEnd) =
+            when (this) {
+                is TopTracks -> Pair(start, end)
+                is TopArtists -> Pair(start, end)
+                is TopAlbums -> Pair(start, end)
+                else -> return null
+            }
+        return if (rangeStart != null && rangeEnd != null) Pair(rangeStart, rangeEnd) else null
+    }
+
+    /** The Analytics dropdown range a top list was opened from, or null. */
+    fun topListDayRange(): AnalyticsUiState.DayRange? =
+        when (this) {
+            is TopTracks -> dayRange
+            is TopArtists -> dayRange
+            is TopAlbums -> dayRange
+            else -> null
+        }
+
+    // `_LAST_30_DAYS_2026-09-01_2026-10-01`, or nothing. The dates go LAST because they contain no
+    // underscore while the enum name does, which is what lets the parser read them off the end.
+    private fun periodSuffix(): String {
+        val (start, end) = topListRange() ?: return ""
+        val range = topListDayRange()?.let { "_${it.name}" }.orEmpty()
+        return "${range}_${start}_$end"
+    }
+
     // For serialization and navigation
     fun toStringParams(): String =
         when (this) {
@@ -770,9 +835,9 @@ sealed class LibraryDynamicPlaylistType {
             Followed -> "followed"
             MostPlayed -> "most_played"
             Downloaded -> "downloaded"
-            TopAlbums -> "top_albums"
-            TopArtists -> "top_artists"
-            TopTracks -> "top_tracks"
+            is TopAlbums -> TOP_ALBUMS + periodSuffix()
+            is TopArtists -> TOP_ARTISTS + periodSuffix()
+            is TopTracks -> TOP_TRACKS + periodSuffix()
             // Zero-padded so the strings sort the way the months do, which makes a list of these
             // readable in a log or a deep link without parsing it back.
             is MonthlyRecap -> "${RECAP_PREFIX}${year}_${month.toString().padStart(2, '0')}"
@@ -780,6 +845,9 @@ sealed class LibraryDynamicPlaylistType {
 
     companion object {
         private const val RECAP_PREFIX = "recap_"
+        private const val TOP_TRACKS = "top_tracks"
+        private const val TOP_ARTISTS = "top_artists"
+        private const val TOP_ALBUMS = "top_albums"
 
         fun toType(input: String): LibraryDynamicPlaylistType =
             when (input) {
@@ -787,11 +855,44 @@ sealed class LibraryDynamicPlaylistType {
                 "followed" -> Followed
                 "most_played" -> MostPlayed
                 "downloaded" -> Downloaded
-                "top_albums" -> TopAlbums
-                "top_artists" -> TopArtists
-                "top_tracks" -> TopTracks
-                else -> parseMonthlyRecap(input) ?: throw IllegalArgumentException("Unknown type: $input")
+                TOP_ALBUMS -> TopAlbums()
+                TOP_ARTISTS -> TopArtists()
+                TOP_TRACKS -> TopTracks()
+                else ->
+                    parseTopList(input)
+                        ?: parseMonthlyRecap(input)
+                        ?: throw IllegalArgumentException("Unknown type: $input")
             }
+
+        /**
+         * `top_tracks_2026-08-01_2026-08-31` back into a top list with its period, or null.
+         *
+         * Validated for the same reason as [parseMonthlyRecap] — this can arrive through the deep
+         * link from outside the app — and a start after its end is rejected rather than handed to a
+         * query that would quietly return nothing.
+         */
+        private fun parseTopList(input: String): LibraryDynamicPlaylistType? {
+            val key = listOf(TOP_TRACKS, TOP_ARTISTS, TOP_ALBUMS).firstOrNull { input.startsWith("${it}_") } ?: return null
+            // Read from the RIGHT: the two dates are last and never contain an underscore, while the
+            // range name before them is an enum name that does (`LAST_30_DAYS`).
+            val parts = input.removePrefix("${key}_").split("_")
+            if (parts.size < 2) return null
+            val start = runCatching { LocalDate.parse(parts[parts.size - 2]) }.getOrNull() ?: return null
+            val end = runCatching { LocalDate.parse(parts.last()) }.getOrNull() ?: return null
+            if (start > end) return null
+            val rangeName = parts.dropLast(2).joinToString("_")
+            val dayRange =
+                if (rangeName.isEmpty()) {
+                    null
+                } else {
+                    runCatching { AnalyticsUiState.DayRange.valueOf(rangeName) }.getOrNull() ?: return null
+                }
+            return when (key) {
+                TOP_TRACKS -> TopTracks(start, end, dayRange)
+                TOP_ARTISTS -> TopArtists(start, end, dayRange)
+                else -> TopAlbums(start, end, dayRange)
+            }
+        }
 
         /**
          * `recap_2026_01` back into a [MonthlyRecap], or null for anything else.
@@ -809,6 +910,19 @@ sealed class LibraryDynamicPlaylistType {
             return MonthlyRecap(year = year, month = month)
         }
     }
+}
+
+/**
+ * `Last 30 days (1/9-1/10/2026)` — the period a top list was opened on, named exactly as the
+ * Analytics dropdown names it so the two screens read the same. Null when the list names no period,
+ * which keeps the header to a single line.
+ */
+@Composable
+private fun topListSubtitle(type: LibraryDynamicPlaylistType): String? {
+    val (start, end) = type.topListRange() ?: return null
+    val span = formatNumericSpan(start, end)
+    val dayRange = type.topListDayRange() ?: return span
+    return "${stringResource(dayRange.labelRes())} ($span)"
 }
 
 /**

@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Balance media loudness</string>
     <string name="normalize_volume">Normalize Volume</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Your device doesn't have equalizer</string>
+    <string name="open_system_equalizer">Open system equalizer</string>
+    <string name="use_your_system_equalizer">Use your system equalizer</string>
     <string name="version_format" translatable="false">v%1$s</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
@@ -284,7 +287,7 @@
     <string name="added_date">Added date</string>
     <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue Tracker</string>
-    <string name="copyright" translatable="false">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
@@ -312,6 +315,9 @@
     <string name="sync_follow_to_youtube">Sync Follow with YouTube</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Shape the sound with a ten-band curve</string>
+    <string name="equalizer_type">Equalizer type</string>
+    <string name="equalizer_type_built_in">Built-in</string>
+    <string name="equalizer_type_system">System</string>
     <string name="equalizer_preamp">Preamp</string>
     <string name="equalizer_presets">Presets</string>
     <string name="equalizer_preset_custom">Custom</string>
@@ -441,8 +447,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Custom</string>
     <string name="custom_color">Custom color</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
     <string name="relax">Relax</string>
     <string name="sleep">Sleep</string>
@@ -628,8 +632,6 @@
     <string name="lastfm_paste_callback_confirm">Continue with this link</string>
     <string name="logged_in_as">Logged in as %1$s</string>
     <string name="youtube_liked_music">YouTube Liked Music</string>
-    <string name="keep_service_alive">Keep service alive</string>
-    <string name="keep_service_alive_description">Keep music player service alive to avoid being killed by system</string>
     <string name="keep_your_youtube_playlist_offline">Keep showing your YouTube playlist when offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Save your YT playlist to local and keep to show when offline</string>
     <string name="combine_local_and_youtube_liked_songs">Replace Favorite by YouTube Liked when logged in</string>
@@ -868,4 +870,38 @@
     <string name="month_full_oct">October</string>
     <string name="month_full_nov">November</string>
     <string name="month_full_dec">December</string>
+    <string name="login_sync_section">Devices</string>
+    <string name="login_sync_desktop_title">Sign in from your phone</string>
+    <string name="login_sync_desktop_description">Scan a QR code with SimpMusic on Android to bring your sign-ins here</string>
+    <string name="login_sync_android_title">Send sign-ins to desktop</string>
+    <string name="login_sync_android_description">Scan the QR code shown by SimpMusic on your computer</string>
+    <string name="login_sync_desktop_instructions">On your phone, open SimpMusic → Settings → %1$s, then scan this code.</string>
+    <string name="login_sync_pick_address">Pick an address your phone can reach — on the same network, or over Tailscale.</string>
+    <string name="login_sync_phone_connected">Phone connected. Confirm on your phone to continue.</string>
+    <string name="login_sync_received">Signed in to %1$s</string>
+    <string name="login_sync_expired">This code has expired.</string>
+    <string name="login_sync_new_code">New code</string>
+    <string name="login_sync_no_network">No network address found on this computer.</string>
+    <string name="login_sync_start_failed">Couldn't start: %1$s</string>
+    <string name="login_sync_receive_failed">Couldn't receive the sign-ins: %1$s</string>
+    <string name="login_sync_scan_hint">Point the camera at the QR code on your computer</string>
+    <string name="login_sync_connecting">Connecting to your computer…</string>
+    <string name="login_sync_trust_title">Trust this computer?</string>
+    <string name="login_sync_trust_message">%1$s (%2$s) is asking for your sign-ins. Only continue if this is the computer in front of you.</string>
+    <string name="login_sync_trust">Trust</string>
+    <string name="login_sync_choose_title">Choose what to send</string>
+    <string name="login_sync_send">Send</string>
+    <string name="login_sync_sending">Sending…</string>
+    <string name="login_sync_sent">Signed in on %1$s: %2$s</string>
+    <string name="login_sync_nothing_signed_in">You're not signed in to any service yet.</string>
+    <string name="login_sync_camera_needed">SimpMusic uses the camera only to scan the code shown on your computer.</string>
+    <string name="login_sync_allow_camera">Allow camera</string>
+    <string name="login_sync_camera_blocked">Camera access is turned off for SimpMusic. Turn it on in Settings to scan the code.</string>
+    <string name="login_sync_open_settings">Open settings</string>
+    <string name="login_sync_no_camera">No camera is available to scan the code.</string>
+    <string name="login_sync_unreachable">Couldn't reach the computer. Make sure your phone is on the same network or tailnet, then try again.</string>
+    <string name="login_sync_code_expired">The code on your computer has expired. Show a new one and scan again.</string>
+    <string name="login_sync_failed">Something went wrong. Please try again.</string>
+    <string name="modified_build_title">Unofficial app</string>
+    <string name="modified_build_message">You are using an unofficial copy of SimpMusic that was modified or repackaged by someone else. It cannot be used. Download the official version from simpmusic.org.</string>
 </resources>

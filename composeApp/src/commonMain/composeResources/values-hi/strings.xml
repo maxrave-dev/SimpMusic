@@ -159,6 +159,9 @@
     <string name="balance_media_loudness">मीडिया की आवाज संतुलित करें</string>
     <string name="normalize_volume">वॉल्यूम सामान्य करें</string>
     <string name="audio">ऑडियो</string>
+    <string name="no_equalizer">आपके डिवाइस में इक्वलाइज़र नहीं है</string>
+    <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
+    <string name="use_your_system_equalizer">अपना सिस्टम इक्वलाइज़र उपयोग करें</string>
     <string name="streaming_data_provider_piped">स्ट्रीमिंग डेटा प्रोवाइडर (पाइप्ड)</string>
     <string name="itag">आईटैग</string>
     <string name="mime_type">माइम टाइप</string>
@@ -340,8 +343,6 @@
     <string name="repeat_off">दोहराना बंद</string>
     <string name="youtube_transcript">YouTube ट्रांसक्रिप्ट</string>
     <string name="user_interface">इंटरफ़ेस</string>
-    <string name="translucent_bottom_navigation_bar">पारदर्शी बॉटम नेविगेशन बार</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">आप बॉटम बार के नीचे सामग्री देख सकते हैं</string>
     <string name="donation">यदि आपको मेरा काम पसंद है, तो मुझे एक कॉफी दें</string>
     <string name="relax">आराम</string>
     <string name="sleep">नींद</string>

@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Wyrównaj głośność mediów</string>
     <string name="normalize_volume">Normalizuj głośność</string>
     <string name="audio">Dźwięk</string>
+    <string name="no_equalizer">Twoje urządzenie nie posiada korektora</string>
+    <string name="open_system_equalizer">Otwórz korektor systemu</string>
+    <string name="use_your_system_equalizer">Użyj korektora systemowego</string>
     <string name="streaming_data_provider_piped">Dostawca danych streamingu (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Typ Mime</string>
@@ -356,8 +359,6 @@
     <string name="theme_color_wallpaper">Tapeta</string>
     <string name="theme_color_custom">Niestandardowy</string>
     <string name="custom_color">Kolor niestandardowy</string>
-    <string name="translucent_bottom_navigation_bar">Przezroczysty dolny pasek nawigacji</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Możesz zobaczyć zawartość pod dolnym paskiem</string>
     <string name="donation">Jeśli lubisz moją pracę, kup mi kawę</string>
     <string name="relax">Relaks</string>
     <string name="sleep">Sen</string>
@@ -500,8 +501,6 @@
     <string name="enable_rich_presence">Włącz Discord Rich Presence</string>
     <string name="rich_presence_info">Pokaż informacje o sesji multimedialnej w profilu Discorda</string>
     <string name="youtube_liked_music">Polubiona muzyka YouTube</string>
-    <string name="keep_service_alive">Utrzymuj usługę przy życiu</string>
-    <string name="keep_service_alive_description">Trzymaj usługę odtwarzacza muzyki przy życiu, aby uniknąć zabijania jej przez system</string>
     <string name="keep_your_youtube_playlist_offline">Pokazuj swoją playlistę YouTube w trybie offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Zapisz swoją playlistę YT do lokalnej i zachowaj, aby pokazywała się w trybie offline</string>
     <string name="combine_local_and_youtube_liked_songs">Zastąp Ulubione przez polubienia YouTube podczas logowania</string>

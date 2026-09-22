@@ -158,6 +158,9 @@
     <string name="balance_media_loudness">Балансиране на звука на медията</string>
     <string name="normalize_volume">Нормализиране на звукът</string>
     <string name="audio">Звук</string>
+    <string name="no_equalizer">Устройството няма еквилайзер</string>
+    <string name="open_system_equalizer">Отвори системния еквилайзер</string>
+    <string name="use_your_system_equalizer">Отвори системния еквилайзер</string>
     <string name="streaming_data_provider_piped">Доставчик на данни за поточно предаване (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime тип</string>
@@ -341,8 +344,6 @@
     <string name="repeat_off">Изключване на повторение</string>
     <string name="youtube_transcript">YouTube транскрипт</string>
     <string name="user_interface">Интерфейс</string>
-    <string name="translucent_bottom_navigation_bar">Прозрачна навигационна лента</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Можете да видите съдържанието под долната лента</string>
     <string name="donation">Ако харесвате работата ми, почерпете ме кафе</string>
     <string name="relax">Спокойствие</string>
     <string name="sleep">Сън</string>

@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Баланс гучності медіа</string>
     <string name="normalize_volume">Нормалізувати гучність</string>
     <string name="audio">Аудіо</string>
+    <string name="no_equalizer">Ваш пристрій не має еквалайзера</string>
+    <string name="open_system_equalizer">Відкрийте системний еквалайзер</string>
+    <string name="use_your_system_equalizer">Використовуйте системний еквалайзер</string>
     <string name="streaming_data_provider_piped">Постачальник даних потоку (Piped)</string>
     <string name="itag">Теги</string>
     <string name="mime_type">Тип Mime</string>
@@ -358,8 +361,6 @@
     <string name="theme_color_wallpaper">Шпалери</string>
     <string name="theme_color_custom">Власний</string>
     <string name="custom_color">Власний колір</string>
-    <string name="translucent_bottom_navigation_bar">Напівпрозора нижня панель навігації</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Ви можете побачити вміст під нижньою панеллю</string>
     <string name="donation">Якщо ви оцінили мою роботу, дайте мені на каву</string>
     <string name="relax">Відпочинок</string>
     <string name="sleep">Сон</string>
@@ -511,8 +512,6 @@
     <string name="enable_rich_presence">Увімкнути Rich Presence</string>
     <string name="rich_presence_info">Показувати інформацію про медіа-сеанс у профілі Discord</string>
     <string name="youtube_liked_music">Вподобана музика YouTube</string>
-    <string name="keep_service_alive">Підтримувати службу активною</string>
-    <string name="keep_service_alive_description">Утримувати музичний плеєр активним, щоб не бути закритим системою</string>
     <string name="keep_your_youtube_playlist_offline">Показувати ваш YouTube-плейлист офлайн</string>
     <string name="keep_your_youtube_playlist_offline_description">Зберегти свій плейліст YouTube локально й переглядати офлайн</string>
     <string name="combine_local_and_youtube_liked_songs">Замінювати «Обране» на «Вподобане YouTube» після входу в обліковий запис</string>

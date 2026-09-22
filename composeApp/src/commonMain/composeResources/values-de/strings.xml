@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Medienlautstärke ausgleichen</string>
     <string name="normalize_volume">Lautstärke normalisieren</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Dein Gerät hat keinen Equalizer</string>
+    <string name="open_system_equalizer">System-Equalizer öffnen</string>
+    <string name="use_your_system_equalizer">Verwende deinen System-Equalizer</string>
     <string name="streaming_data_provider_piped">Streaming-Daten von... (Piped)</string>
     <string name="itag">Itag</string>
     <string name="extract_source">Quelle extrahieren</string>
@@ -388,8 +391,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Benutzerdefiniert</string>
     <string name="custom_color">Benutzerdefinierte Farbe</string>
-    <string name="translucent_bottom_navigation_bar">Durchsichtige untere Navigationsleiste</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Du kannst den Inhalt unter der Navigationsleiste sehen</string>
     <string name="donation">Wenn du meine Arbeit magst, fühl dich frei mir einen Kaffee zu spendieren</string>
     <string name="relax">Entspannen</string>
     <string name="sleep">Schlafen</string>
@@ -570,8 +571,6 @@
     <string name="lastfm_paste_callback_confirm">Mit diesem Link fortfahren</string>
     <string name="logged_in_as">Eingeloggt als %1$s</string>
     <string name="youtube_liked_music">YouTube-Like-Playlist</string>
-    <string name="keep_service_alive">Dienst weiterlaufen lassen</string>
-    <string name="keep_service_alive_description">Musikplayer-Dienst aktiv halten, um zu verhindern, dass er vom System beendet wird</string>
     <string name="keep_your_youtube_playlist_offline">Zeige deine YouTube-Playlisten, auch wenn du  offline bist</string>
     <string name="keep_your_youtube_playlist_offline_description">Speichere deine YouTube-Playlist lokal und zeige sie auch offline an.</string>
     <string name="combine_local_and_youtube_liked_songs">Favoriten durch YouTube-Likes ersetzen, wenn angemeldet</string>

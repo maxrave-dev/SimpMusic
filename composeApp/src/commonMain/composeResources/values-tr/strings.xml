@@ -158,6 +158,9 @@
     <string name="balance_media_loudness">Medya ses yüksekliğini dengeleyin</string>
     <string name="normalize_volume">Sesi Normalleştir</string>
     <string name="audio">Ses</string>
+    <string name="no_equalizer">Cihazınızda ekolayzır yok</string>
+    <string name="open_system_equalizer">Sistem ekolayzırı açık</string>
+    <string name="use_your_system_equalizer">Sistem ekolayzırını kullan</string>
     <string name="streaming_data_provider_piped">Veri akışı sağlayıcısı (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime türü</string>
@@ -340,8 +343,6 @@
     <string name="repeat_off">Tekrarlama Kapalı</string>
     <string name="youtube_transcript">YouTube Transkripti</string>
     <string name="user_interface">Arayüz</string>
-    <string name="translucent_bottom_navigation_bar">Yarı saydam alt gezinme çubuğu</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">İçeriği alt çubuğun altında görebilirsiniz</string>
     <string name="donation">Eğer işimi seviyorsanız bana bir kahve verin</string>
     <string name="relax">Rahatlama</string>
     <string name="sleep">Uyku</string>
@@ -480,8 +481,6 @@
     <string name="log_in_to_discord">Discord'a giriş yapın</string>
     <string name="intro_login_to_discord">Oturum açarak Discord'da etkinlik gösterimini etkinleştirin</string>
     <string name="rich_presence_info">Discord profilinizde medya oturumu bilgilerini gösterin</string>
-    <string name="keep_service_alive">Hizmeti aktif tut</string>
-    <string name="keep_service_alive_description">Müzik çalar hizmetini sistem tarafından öldürülmekten kurtarmak için aktif tut</string>
     <string name="keep_your_youtube_playlist_offline">Çevrimdışıyken YouTube oynatma listenizi göstermeye devam edin</string>
     <string name="keep_your_youtube_playlist_offline_description">YouTube oynatma listenizi yerel olarak kaydedin ve çevrimdışıyken göstermek için saklayın</string>
     <string name="combine_local_and_youtube_liked_songs">Giriş yaptığınızda \"Favorilere Ekle\" seçeneğini \"YouTube'da Beğendim\" olarak değiştirin</string>

@@ -8,11 +8,14 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -23,10 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.Repeat
+import com.maxrave.simpmusic.ui.icon.RepeatOne
+import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.SkipPrevious
@@ -37,6 +45,14 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 private const val SIDE_WEIGHT = 0.55f
 private const val PLAY_WEIGHT = 1.2f
 private const val PRESS_GROWTH = 1.15f
+
+// Shuffle and repeat, when the row carries them: narrower than prev/next, so the transport keeps
+// the middle of the row.
+private const val TOGGLE_WEIGHT = 0.4f
+
+// Extra room between a toggle and the transport, on top of the row's own 8dp either side (24dp in
+// all), so shuffle and repeat read as their own pair rather than two more transport buttons.
+private val TOGGLE_SEPARATION = 8.dp
 
 /**
  * M3-Expressive transport: three pill buttons in a 68dp row.
@@ -60,6 +76,9 @@ fun ExpressiveTransportRow(
     loading: Boolean,
     onUIEvent: (UIEvent) -> Unit,
     modifier: Modifier = Modifier,
+    // Only the fullscreen lyrics page asks for these: its layout leaves out the connected group
+    // below, which is where Now Playing keeps shuffle and repeat.
+    showShuffleAndRepeat: Boolean = false,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val motionScheme = MaterialTheme.motionScheme
@@ -101,6 +120,14 @@ fun ExpressiveTransportRow(
                 .fillMaxWidth()
                 .height(68.dp),
     ) {
+        if (showShuffleAndRepeat) {
+            ExpressiveToggleButton(
+                icon = SimpIcons.Shuffle,
+                active = controllerState.isShuffle,
+                onClick = { onUIEvent(UIEvent.Shuffle) },
+            )
+            Spacer(modifier = Modifier.width(TOGGLE_SEPARATION))
+        }
         // Previous — full pill on secondaryContainer.
         Surface(
             onClick = {
@@ -207,6 +234,46 @@ fun ExpressiveTransportRow(
                     modifier = Modifier.size(32.dp),
                 )
             }
+        }
+        if (showShuffleAndRepeat) {
+            Spacer(modifier = Modifier.width(TOGGLE_SEPARATION))
+            val repeatState = controllerState.repeatState
+            ExpressiveToggleButton(
+                icon = if (repeatState is RepeatState.One) SimpIcons.RepeatOne else SimpIcons.Repeat,
+                active = repeatState !is RepeatState.None,
+                onClick = { onUIEvent(UIEvent.Repeat) },
+            )
+        }
+    }
+}
+
+/**
+ * Shuffle or repeat as a pill beside the transport, in the connected group's colours: primary
+ * container while on, surfaceContainerHigh while off — the same pair Now Playing uses for them.
+ */
+@Composable
+private fun RowScope.ExpressiveToggleButton(
+    icon: ImageVector,
+    active: Boolean,
+    onClick: () -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(34.dp),
+        color = if (active) colorScheme.primaryContainer else colorScheme.surfaceContainerHigh,
+        modifier =
+            Modifier
+                .weight(TOGGLE_WEIGHT)
+                .fillMaxHeight(),
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "",
+                tint = if (active) colorScheme.onPrimaryContainer else colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
         }
     }
 }

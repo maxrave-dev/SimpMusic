@@ -161,6 +161,9 @@
     <string name="balance_media_loudness">メディアの音の大きさの均衡をとる</string>
     <string name="normalize_volume">音量を均一化</string>
     <string name="audio">音声</string>
+    <string name="no_equalizer">端末にイコライザがありません</string>
+    <string name="open_system_equalizer">システムのイコライザを開く</string>
+    <string name="use_your_system_equalizer">システムのイコライザを使う</string>
     <string name="streaming_data_provider_piped">ストリーミングデータの提供元 (Piped)</string>
     <string name="itag">iタグ</string>
     <string name="mime_type">MIME 種別</string>
@@ -341,8 +344,6 @@
     <string name="repeat_off">リピートなし</string>
     <string name="youtube_transcript">YouTube の文字起こし</string>
     <string name="user_interface">外観</string>
-    <string name="translucent_bottom_navigation_bar">下部のナビバーを半透明に</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">下部のバーの裏のコンテンツを表示</string>
     <string name="donation">このアプリが気に入れば、私にコーヒーおごってください</string>
     <string name="relax">リラックス</string>
     <string name="sleep">睡眠</string>
@@ -473,8 +474,6 @@
     <string name="enable_rich_presence">Rich Presence を有効にする</string>
     <string name="rich_presence_info">Discordのプロフィールにメディアセッション情報を表示します</string>
     <string name="youtube_liked_music">YouTubeで高く評価した音楽</string>
-    <string name="keep_service_alive">サービスを有効したままにする</string>
-    <string name="keep_service_alive_description">システムによって終了されるのを避けるために音楽プレイヤーのサービスを有効したままにします</string>
     <string name="keep_your_youtube_playlist_offline">オフライン時にYouTubeプレイリストを表示する</string>
     <string name="keep_your_youtube_playlist_offline_description">オフライン時にYouTubeプレイリストをローカルに保存して表示します</string>
     <string name="combine_local_and_youtube_liked_songs">ログイン時にお気に入りをYouTubeの高評価に置き換える</string>

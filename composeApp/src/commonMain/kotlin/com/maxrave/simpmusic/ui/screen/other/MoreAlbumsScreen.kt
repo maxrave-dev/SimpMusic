@@ -84,7 +84,11 @@ fun MoreAlbumsScreen(
             is MoreAlbumsUIState.Success -> {
                 val data = state.albumItems
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    // As many columns as fit, not a fixed two: HomeItemContentPlaylist is a fixed
+                    // 180dp wide, so two columns on a wide window left each tile alone in a huge cell.
+                    // 170dp rather than 180 keeps two columns on a 360dp phone (2 × 170 + the 10dp
+                    // gap fits), where the cells come out exactly as wide as Fixed(2) made them.
+                    columns = GridCells.Adaptive(minSize = 170.dp),
                     modifier =
                         Modifier
                             .fillMaxSize()

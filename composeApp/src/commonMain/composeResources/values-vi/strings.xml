@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Cân bằng độ lớn của âm thanh</string>
     <string name="normalize_volume">Cân bằng âm lượng</string>
     <string name="audio">Âm thanh</string>
+    <string name="no_equalizer">Thiết bị của bạn không có bộ chỉnh âm</string>
+    <string name="open_system_equalizer">Mở bộ chỉnh âm</string>
+    <string name="use_your_system_equalizer">Sử dụng bộ chỉnh âm của hệ thống</string>
     <string name="streaming_data_provider_piped">Trang cung cấp dữ liệu (Piped)</string>
     <string name="itag">Itag</string>
     <string name="extract_source">Nguồn trích xuất</string>
@@ -385,8 +388,6 @@
     <string name="theme_color_wallpaper">Hình nền</string>
     <string name="theme_color_custom">Tuỳ chỉnh</string>
     <string name="custom_color">Màu tùy chỉnh</string>
-    <string name="translucent_bottom_navigation_bar">Thanh điều hướng mờ</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Bạn có thể xem nội dung phía dưới thanh điều hướng</string>
     <string name="donation">Nếu bạn yêu thích những gi mà tác giả đã làm, hãy gửi cho họ một ly cà phê</string>
     <string name="relax">Thư giãn</string>
     <string name="sleep">Dễ ngủ</string>
@@ -567,8 +568,6 @@
     <string name="lastfm_paste_callback_confirm">Tiếp tục với đường dẫn này</string>
     <string name="logged_in_as">Đăng nhập với: %1$s</string>
     <string name="youtube_liked_music">Danh sách đã thích YouTube</string>
-    <string name="keep_service_alive">Giữ dịch vụ sống lâu hơn</string>
-    <string name="keep_service_alive_description">Bảo vệ dịch vụ phát nhạc sống tránh khỏi bị hệ thống tắt</string>
     <string name="keep_your_youtube_playlist_offline">Giữ danh sách phát YouTube của bạn hiển thị khi offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Lưu danh sách phát YT lại và hiển thị khi offline</string>
     <string name="combine_local_and_youtube_liked_songs">Thay đổi Yêu Thích bằng đã thích ở Youtube khi đã đăng nhập</string>

@@ -163,6 +163,9 @@
     <string name="balance_media_loudness">Bilancia il volume dei contenuti multimediali</string>
     <string name="normalize_volume">Normalizza il volume</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Il tuo dispositivo non ha l'equalizzatore</string>
+    <string name="open_system_equalizer">Equalizzatore a sistema aperto</string>
+    <string name="use_your_system_equalizer">Usa l'equalizzatore del tuo sistema</string>
     <string name="streaming_data_provider_piped">Fornitore di dati in streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="extract_source">Estrai sorgente</string>
@@ -386,8 +389,6 @@
     <string name="theme_color_wallpaper">Sfondo</string>
     <string name="theme_color_custom">Personalizzato</string>
     <string name="custom_color">Colore personalizzato</string>
-    <string name="translucent_bottom_navigation_bar">Barra di navigazione inferiore traslucida</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Puoi vedere il contenuto sotto la barra inferiore</string>
     <string name="donation">Se apprezzi il mio lavoro, donami un caffè</string>
     <string name="relax">Relax</string>
     <string name="sleep">Riposo</string>
@@ -553,8 +554,6 @@
     <string name="lastfm_paste_callback_confirm">Continua con questo collegamento</string>
     <string name="logged_in_as">Accesso effettuato come %1$s</string>
     <string name="youtube_liked_music">Musica apprezzata su YouTube</string>
-    <string name="keep_service_alive">Tieni il servizio attivo</string>
-    <string name="keep_service_alive_description">Mantieni attivo il servizio del lettore musicale per evitare che venga chiuso dal sistema</string>
     <string name="keep_your_youtube_playlist_offline">Mostra la tua playlist di YouTube quando offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Salva la tua playlist di YouTube in locale per mantenerla anche senza connessione</string>
     <string name="combine_local_and_youtube_liked_songs">Combina i preferiti di YouTube con i mi piace quando accedi</string>
