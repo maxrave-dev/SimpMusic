@@ -409,7 +409,6 @@ import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
 import simpmusic.composeapp.generated.resources.translation_language
 import simpmusic.composeapp.generated.resources.translation_language_message
-import simpmusic.composeapp.generated.resources.translucent_bottom_navigation_bar
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
@@ -424,7 +423,6 @@ import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
-import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
@@ -507,7 +505,6 @@ fun SettingScreen(
     // Open equalizer
     val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
-    val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
@@ -915,12 +912,6 @@ fun SettingScreen(
                         onClick = { showColorPickerDialog = true },
                     )
                 }
-                SettingItem(
-                    title = stringResource(Res.string.translucent_bottom_navigation_bar),
-                    subtitle = stringResource(Res.string.you_can_see_the_content_below_the_bottom_bar),
-                    smallSubtitle = true,
-                    switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
-                )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(
                         title = stringResource(Res.string.enable_liquid_glass_effect),

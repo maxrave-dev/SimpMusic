@@ -358,8 +358,6 @@
     <string name="theme_color_wallpaper">跟隨桌布</string>
     <string name="theme_color_custom">自訂</string>
     <string name="custom_color">自訂顏色</string>
-    <string name="translucent_bottom_navigation_bar">半透明底部導覽列</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">你可以看到底欄下方的內容</string>
     <string name="donation">如果你喜歡我的工作，請給我一杯咖啡</string>
     <string name="relax">放鬆</string>
     <string name="sleep">睡眠</string>

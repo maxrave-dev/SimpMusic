@@ -378,8 +378,6 @@
     <string name="theme_color_wallpaper">วอลเปเปอร์</string>
     <string name="theme_color_custom">กำหนดเอง</string>
     <string name="custom_color">กำหนดสี</string>
-    <string name="translucent_bottom_navigation_bar">แถบนำทางด้านล่างโปร่งแสง</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">คุณสามารถดูเนื้อหาได้ที่แถบด้านล่าง</string>
     <string name="donation">ถ้าคุณชอบแอปนี้ สามารถเลี้ยงกาแฟให้ฉันได้</string>
     <string name="relax">ผ่อนคลาย</string>
     <string name="sleep">นอน</string>

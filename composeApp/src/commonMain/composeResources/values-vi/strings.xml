@@ -388,8 +388,6 @@
     <string name="theme_color_wallpaper">Hình nền</string>
     <string name="theme_color_custom">Tuỳ chỉnh</string>
     <string name="custom_color">Màu tùy chỉnh</string>
-    <string name="translucent_bottom_navigation_bar">Thanh điều hướng mờ</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Bạn có thể xem nội dung phía dưới thanh điều hướng</string>
     <string name="donation">Nếu bạn yêu thích những gi mà tác giả đã làm, hãy gửi cho họ một ly cà phê</string>
     <string name="relax">Thư giãn</string>
     <string name="sleep">Dễ ngủ</string>

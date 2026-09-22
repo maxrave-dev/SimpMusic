@@ -343,8 +343,6 @@
     <string name="repeat_off">Tekrarlama Kapalı</string>
     <string name="youtube_transcript">YouTube Transkripti</string>
     <string name="user_interface">Arayüz</string>
-    <string name="translucent_bottom_navigation_bar">Yarı saydam alt gezinme çubuğu</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">İçeriği alt çubuğun altında görebilirsiniz</string>
     <string name="donation">Eğer işimi seviyorsanız bana bir kahve verin</string>
     <string name="relax">Rahatlama</string>
     <string name="sleep">Uyku</string>

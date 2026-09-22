@@ -383,8 +383,6 @@
     <string name="theme_color_wallpaper">Fondo de pantalla</string>
     <string name="theme_color_custom">Personalizado</string>
     <string name="custom_color">Color personalizado</string>
-    <string name="translucent_bottom_navigation_bar">Barra de navegación inferior traslucida</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Puedes ver el contenido debajo de la barra inferior</string>
     <string name="donation">Si te gusta mi trabajo, invítame un café</string>
     <string name="relax">Relax</string>
     <string name="sleep">Para dormir</string>

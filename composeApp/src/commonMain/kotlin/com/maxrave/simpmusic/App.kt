@@ -151,7 +151,6 @@ fun App(
     val intent by viewModel.intent.collectAsStateWithLifecycle()
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
-    val isTranslucentBottomBar by viewModel.getTranslucentBottomBar().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     // Analytics only makes sense with local tracking on, so its tab follows that setting.
     val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
@@ -471,10 +470,12 @@ fun App(
                             ) {
                                 MiniPlayer(
                                     Modifier
-                                        .height(56.dp)
+                                        // 56dp card + the 4dp gap below.
+                                        .height(60.dp)
                                         .fillMaxWidth()
                                         .padding(
-                                            horizontal = 12.dp,
+                                            // The bottom bar's own 16dp, so both edges line up.
+                                            horizontal = 16.dp,
                                         ).padding(
                                             bottom = 4.dp,
                                         ),
@@ -503,7 +504,6 @@ fun App(
                             } else {
                                 AppBottomNavigationBar(
                                     navController = navController,
-                                    isTranslucentBackground = isTranslucentBottomBar == TRUE,
                                     showAnalyticsTab = showAnalyticsTab,
                                     showMixForYouTab = showMixForYouTab,
                                 ) { klass ->
@@ -605,7 +605,8 @@ fun App(
                                 MiniPlayer(
                                     if (getPlatform() == Platform.Android) {
                                         Modifier
-                                            .height(56.dp)
+                                            // Glass keeps its 52dp card; the flat one is 56dp.
+                                            .height(if (isLiquidGlassEnabled == TRUE) 56.dp else 60.dp)
                                             .fillMaxWidth(0.8f)
                                             .padding(
                                                 horizontal = 12.dp,

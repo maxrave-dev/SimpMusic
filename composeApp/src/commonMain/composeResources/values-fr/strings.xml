@@ -402,8 +402,6 @@
     <string name="theme_color_wallpaper">Fond d'écran</string>
     <string name="theme_color_custom">Personnalisé</string>
     <string name="custom_color">Couleur personnalisée</string>
-    <string name="translucent_bottom_navigation_bar">Barre de navigation inférieure translucide</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Vous pouvez voir le contenu en dessous de la barre inférieure</string>
     <string name="donation">Si vous aimez mon travail, offrez-moi un café ! ☕</string>
     <string name="relax">Détente</string>
     <string name="sleep">Sommeil</string>

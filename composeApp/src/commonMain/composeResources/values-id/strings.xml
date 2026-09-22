@@ -364,8 +364,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Khusus</string>
     <string name="custom_color">Warna khusus</string>
-    <string name="translucent_bottom_navigation_bar">Bilah navigasi bawah tembus pandang</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Anda dapat melihat konten di bawah bilah bawah</string>
     <string name="donation">Jika Anda menyukai pekerjaan saya, beri saya kopi</string>
     <string name="relax">Santai</string>
     <string name="sleep">Tidur</string>

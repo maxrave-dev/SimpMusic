@@ -358,8 +358,6 @@
     <string name="theme_color_wallpaper">壁纸</string>
     <string name="theme_color_custom">自定义</string>
     <string name="custom_color">自定义颜色</string>
-    <string name="translucent_bottom_navigation_bar">半透明底部导航栏</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">您可以看到底部栏下的内容</string>
     <string name="donation">如果你喜欢我的作品，支持我一下</string>
     <string name="relax">放松</string>
     <string name="sleep">睡眠</string>

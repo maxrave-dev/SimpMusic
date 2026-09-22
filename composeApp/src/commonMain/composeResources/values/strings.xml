@@ -447,8 +447,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Custom</string>
     <string name="custom_color">Custom color</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
     <string name="relax">Relax</string>
     <string name="sleep">Sleep</string>

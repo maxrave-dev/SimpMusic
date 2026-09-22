@@ -361,8 +361,6 @@
     <string name="theme_color_wallpaper">Шпалери</string>
     <string name="theme_color_custom">Власний</string>
     <string name="custom_color">Власний колір</string>
-    <string name="translucent_bottom_navigation_bar">Напівпрозора нижня панель навігації</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Ви можете побачити вміст під нижньою панеллю</string>
     <string name="donation">Якщо ви оцінили мою роботу, дайте мені на каву</string>
     <string name="relax">Відпочинок</string>
     <string name="sleep">Сон</string>

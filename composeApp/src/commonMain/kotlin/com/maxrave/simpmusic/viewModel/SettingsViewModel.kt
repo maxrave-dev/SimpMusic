@@ -127,8 +127,6 @@ class SettingsViewModel(
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
     private var _canvasCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     val canvasCacheSize: StateFlow<Long?> = _canvasCacheSize
-    private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
-    val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
     private var _usingProxy = MutableStateFlow(false)
     val usingProxy: StateFlow<Boolean> = _usingProxy
     private var _proxyType = MutableStateFlow(DataStoreManager.ProxyType.PROXY_TYPE_HTTP)
@@ -302,7 +300,6 @@ class SettingsViewModel(
         getAMAnimatedArtwork()
         getUsingProxy()
         getCanvasCache()
-        getTranslucentBottomBar()
         getAutoCheckUpdate()
         getAIProvider()
         getAIApiKey()
@@ -974,21 +971,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setProxyUsername(username)
             dataStoreManager.setProxyPassword(password)
-        }
-    }
-
-    fun getTranslucentBottomBar() {
-        viewModelScope.launch {
-            dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->
-                _translucentBottomBar.emit(translucentBottomBar)
-            }
-        }
-    }
-
-    fun setTranslucentBottomBar(translucentBottomBar: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setTranslucentBottomBar(translucentBottomBar)
-            getTranslucentBottomBar()
         }
     }
 

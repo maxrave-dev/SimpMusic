@@ -391,8 +391,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Benutzerdefiniert</string>
     <string name="custom_color">Benutzerdefinierte Farbe</string>
-    <string name="translucent_bottom_navigation_bar">Durchsichtige untere Navigationsleiste</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Du kannst den Inhalt unter der Navigationsleiste sehen</string>
     <string name="donation">Wenn du meine Arbeit magst, fühl dich frei mir einen Kaffee zu spendieren</string>
     <string name="relax">Entspannen</string>
     <string name="sleep">Schlafen</string>
