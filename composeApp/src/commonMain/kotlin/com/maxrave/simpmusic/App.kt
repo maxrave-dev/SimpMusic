@@ -638,6 +638,11 @@ fun App(
                                         viewModel.stopPlayer()
                                         viewModel.isServiceRunning = false
                                     },
+                                    // The page lives in the Now Playing panel, so the panel opens with it.
+                                    onOpenFullscreenLyrics = {
+                                        viewModel.requestFullscreenLyrics()
+                                        isShowNowPlaylistScreen = true
+                                    },
                                 )
                             }
                         }

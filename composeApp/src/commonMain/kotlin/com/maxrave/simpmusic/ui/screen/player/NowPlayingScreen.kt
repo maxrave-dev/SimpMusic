@@ -370,6 +370,13 @@ fun NowPlayingScreenContent(
     var showFullscreenLyrics by rememberSaveable {
         mutableStateOf(false)
     }
+    val fullscreenLyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(fullscreenLyricsRequested) {
+        if (fullscreenLyricsRequested) {
+            showFullscreenLyrics = true
+            sharedViewModel.consumeFullscreenLyricsRequest()
+        }
+    }
 
     var showQueueBottomSheet by rememberSaveable {
         mutableStateOf(false)

@@ -125,6 +125,7 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -159,6 +160,7 @@ fun MiniPlayer(
     sharedViewModel: SharedViewModel = koinInject(),
     onClose: () -> Unit,
     onClick: () -> Unit,
+    onOpenFullscreenLyrics: () -> Unit = {},
 ) {
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -713,7 +715,11 @@ fun MiniPlayer(
                 // about part of their Tahoe player.
                 val trackInteraction = remember { MutableInteractionSource() }
                 val isTrackHovered by trackInteraction.collectIsHoveredAsState()
-                val showScrubber = isTrackHovered || isSliding
+                // The artwork is carved out of that hover: pointing at it keeps the track shown and
+                // offers the full-screen lyrics button instead of swapping to the timestamps.
+                val artworkInteraction = remember { MutableInteractionSource() }
+                val isArtworkHovered by artworkInteraction.collectIsHoveredAsState()
+                val showScrubber = (isTrackHovered && !isArtworkHovered) || isSliding
                 // A Box, not a Column: the [artwork -> text] content is centred on the capsule's own
                 // vertical axis and the progress line hangs off the bottom edge. Stacking them in a
                 // Column instead centres the PAIR, which pushes the content above the axis by half
@@ -756,28 +762,63 @@ fun MiniPlayer(
                                 .graphicsLayer { alpha = infoAlpha },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AsyncImage(
-                            model =
-                                ImageRequest
-                                    .Builder(LocalPlatformContext.current)
-                                    .data(songEntity?.thumbnails)
-                                    .crossfade(550)
-                                    .build(),
-                            placeholder = rememberHolderPainter(),
-                            error = rememberHolderPainter(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            // 32dp, not 40: the artwork is the tallest thing in the content row, so it
-                            // sets the floor under the capsule's own height once the progress box is
-                            // hung below it. At 40 the shortest capsule that still cleared the line
-                            // was 72dp, which read as a slab rather than a floating pill.
+                        // 32dp, not 40: the artwork is the tallest thing in the content row, so it
+                        // sets the floor under the capsule's own height once the progress box is
+                        // hung below it. At 40 the shortest capsule that still cleared the line
+                        // was 72dp, which read as a slab rather than a floating pill.
+                        Box(
                             modifier =
                                 Modifier
                                     .size(32.dp)
-                                    .clip(
-                                        RoundedCornerShape(6.dp),
-                                    ),
-                        )
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .hoverable(artworkInteraction),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            AsyncImage(
+                                model =
+                                    ImageRequest
+                                        .Builder(LocalPlatformContext.current)
+                                        .data(songEntity?.thumbnails)
+                                        .crossfade(550)
+                                        .build(),
+                                placeholder = rememberHolderPainter(),
+                                error = rememberHolderPainter(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                            // The Apple Music lyrics view's open-in-full button, reachable from the capsule.
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = isArtworkHovered,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                            ) {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.4f))
+                                            .clickable(onClick = onOpenFullscreenLyrics),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(24.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.24f)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.OpenInFull,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
