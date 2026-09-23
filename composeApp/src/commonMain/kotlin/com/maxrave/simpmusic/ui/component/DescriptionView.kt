@@ -1,9 +1,11 @@
 package com.maxrave.simpmusic.ui.component
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,13 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.ui.theme.typo
@@ -31,6 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.less
 import simpmusic.composeapp.generated.resources.more
+import kotlin.math.roundToInt
 
 @Composable
 fun DescriptionView(
@@ -46,9 +53,6 @@ fun DescriptionView(
     var shouldHideExpandButton by rememberSaveable {
         mutableStateOf(false)
     }
-    val maxLineAnimated by animateIntAsState(
-        targetValue = if (expanded) 1000 else limitLine,
-    )
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     LaunchedEffect(layoutResult) {
@@ -101,46 +105,77 @@ fun DescriptionView(
         annotatedString.append(text)
     }
 
-    Column(modifier.animateContentSize()) {
-        Text(
-            text = annotatedString.toAnnotatedString(),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .animateContentSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures { offset ->
-                            layoutResult?.let { layoutResult ->
-                                val position = layoutResult.getOffsetForPosition(offset)
-                                Logger.w("DescriptionView", "Position: $position")
-                                annotatedString
-                                    .toAnnotatedString()
-                                    .getStringAnnotations(
-                                        start = position,
-                                        end = position,
-                                    ).firstOrNull { annotation ->
-                                        Logger.w("DescriptionView", "Annotation: ${annotation.tag}")
-                                        annotation.tag.startsWith("CLICKABLE_USER_")
-                                    }?.let { annotation ->
-                                        when (annotation.tag) {
-                                            "CLICKABLE_USER_TIME" -> {
-                                                Logger.w("DescriptionView", "Time clicked: ${annotation.item}")
-                                                onTimeClicked(annotation.item)
-                                            }
+    val textMeasurer = rememberTextMeasurer()
+    val textStyle = typo().bodyMedium
 
-                                            "CLICKABLE_USER_URL" -> {
-                                                Logger.w("DescriptionView", "URL clicked: ${annotation.item}")
-                                                onURLClicked(annotation.item)
+    Column(modifier) {
+        // The full text is always laid out; what animates is the HEIGHT of the window onto it, in
+        // pixels, between "limitLine lines" and "all of it", with the rest clipped. Animating
+        // maxLines instead steps a whole line per frame (visibly jerky), and switching it at once
+        // under a size animation cut the text before the box caught up. Both heights are measured
+        // at the real width from BoxWithConstraints, so they are right from the first frame.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val maxWidthPx = constraints.maxWidth
+            val (fullHeightPx, collapsedHeightPx) =
+                remember(text, maxWidthPx, textStyle, limitLine) {
+                    val layout =
+                        textMeasurer.measure(
+                            annotatedString.toAnnotatedString(),
+                            textStyle,
+                            constraints = Constraints(maxWidth = maxWidthPx),
+                        )
+                    val collapsed =
+                        if (layout.lineCount > limitLine) {
+                            layout.getLineBottom(limitLine - 1).roundToInt()
+                        } else {
+                            layout.size.height
+                        }
+                    layout.size.height to collapsed
+                }
+            val heightPx by animateIntAsState(
+                targetValue = if (expanded) fullHeightPx else collapsedHeightPx,
+                animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
+            )
+            Text(
+                text = annotatedString.toAnnotatedString(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(with(LocalDensity.current) { heightPx.toDp() })
+                        .clipToBounds()
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                layoutResult?.let { layoutResult ->
+                                    val position = layoutResult.getOffsetForPosition(offset)
+                                    Logger.w("DescriptionView", "Position: $position")
+                                    annotatedString
+                                        .toAnnotatedString()
+                                        .getStringAnnotations(
+                                            start = position,
+                                            end = position,
+                                        ).firstOrNull { annotation ->
+                                            Logger.w("DescriptionView", "Annotation: ${annotation.tag}")
+                                            annotation.tag.startsWith("CLICKABLE_USER_")
+                                        }?.let { annotation ->
+                                            when (annotation.tag) {
+                                                "CLICKABLE_USER_TIME" -> {
+                                                    Logger.w("DescriptionView", "Time clicked: ${annotation.item}")
+                                                    onTimeClicked(annotation.item)
+                                                }
+
+                                                "CLICKABLE_USER_URL" -> {
+                                                    Logger.w("DescriptionView", "URL clicked: ${annotation.item}")
+                                                    onURLClicked(annotation.item)
+                                                }
                                             }
                                         }
-                                    }
+                                }
                             }
-                        }
-                    },
-            maxLines = maxLineAnimated,
-            onTextLayout = { layoutResult = it },
-            style = typo().bodyMedium,
-        )
+                        },
+                onTextLayout = { layoutResult = it },
+                style = textStyle,
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
             Text(
