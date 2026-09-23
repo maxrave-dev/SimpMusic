@@ -59,10 +59,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
@@ -84,6 +90,7 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
@@ -108,12 +115,16 @@ import com.maxrave.simpmusic.ui.component.HomeItemVideo
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
+import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionState
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.IosShare
+import com.maxrave.simpmusic.ui.icon.Movie
+import com.maxrave.simpmusic.ui.icon.MovieOff
 import com.maxrave.simpmusic.ui.icon.PersonAdd
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Shuffle
@@ -155,6 +166,7 @@ import simpmusic.composeapp.generated.resources.more
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.popular
 import simpmusic.composeapp.generated.resources.related_artists
+import simpmusic.composeapp.generated.resources.share
 import simpmusic.composeapp.generated.resources.singles
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.videos
@@ -170,6 +182,11 @@ fun ArtistScreen(
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
     val isFollowed by viewModel.followed.collectAsStateWithLifecycle()
     val canvasUrl by viewModel.canvasUrl.collectAsStateWithLifecycle()
+    // Header shows the canvas video by default; the top-right toggle swaps it for the artist's
+    // picture. Keyed on the canvas so a different artist's canvas starts as video again.
+    var showCanvasVideo by rememberSaveable(canvasUrl?.first) { mutableStateOf(true) }
+    val headerCanvas = canvasUrl?.takeIf { showCanvasVideo }
+    val shareTitle = stringResource(Res.string.share)
     val artistLogo by viewModel.artistLogo.collectAsStateWithLifecycle()
 
     val playingTrack by remember {
@@ -328,11 +345,40 @@ fun ArtistScreen(
                                                 modifier =
                                                     Modifier
                                                         .fillMaxSize()
-                                                        .alpha(if (canvasUrl != null) 0f else 1f),
+                                                        .alpha(if (headerCanvas != null) 0f else 1f),
                                             )
+                                            // Desktop: the artwork's bottom 200dp melts into the page
+                                            // through a Modifier.blur copy of it, faded in by a DstIn
+                                            // gradient. Android blurs with HazeProgressive further down,
+                                            // which crashes on skiko. Skipped under a canvas, where the
+                                            // artwork itself is hidden.
+                                            if (getPlatform() != Platform.Android && headerCanvas == null) {
+                                                AsyncImage(
+                                                    model = headerImageUrl,
+                                                    contentDescription = null,
+                                                    contentScale =
+                                                        if (isPortrait) ContentScale.FillWidth else ContentScale.Crop,
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxSize()
+                                                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                                                            .drawWithContent {
+                                                                drawContent()
+                                                                drawRect(
+                                                                    brush =
+                                                                        Brush.verticalGradient(
+                                                                            colors = listOf(Color.Transparent, Color.Black),
+                                                                            startY = size.height - 200.dp.toPx(),
+                                                                            endY = size.height,
+                                                                        ),
+                                                                    blendMode = BlendMode.DstIn,
+                                                                )
+                                                            }.blur(32.dp),
+                                                )
+                                            }
                                             // Canvas (Spotify) plays AS the background when present;
                                             // otherwise the static artwork above is the fallback.
-                                            canvasUrl?.let { canvas ->
+                                            headerCanvas?.let { canvas ->
                                                 // Canvas is a tall/portrait video. cropToBounds center
                                                 // scale-to-covers it into the header frame (ContentScale.Crop):
                                                 // true video aspect ratio, no stretch, overflow clipped.
@@ -343,6 +389,14 @@ fun ArtistScreen(
                                                 )
                                             }
                                         } // end media layer (Haze source)
+                                        // 5% black over the artwork/canvas, under the fade and scrim, so
+                                        // a bright photo sits back a little behind the title.
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.Black.copy(alpha = 0.05f)),
+                                        )
                                         // Bottom fade — progressive blur (Haze) over the media layer, so the
                                         // canvas/artwork edge melts into the page bg.
                                         // ANDROID ONLY. On skiko this kills the process: haze 1.7.2's
@@ -451,6 +505,34 @@ fun ArtistScreen(
                                                 .size(48.dp),
                                     ) {
                                         navController.navigateUp()
+                                    }
+                                    // Top-right pill mirroring the back button, shaped like the
+                                    // Playlist header's: [canvas ⇄ picture] when a canvas exists, then
+                                    // share. A sibling of the backdrop source, like the back button.
+                                    Row(
+                                        modifier =
+                                            Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(12.dp)
+                                                .windowInsetsPadding(WindowInsets.statusBars)
+                                                .height(48.dp)
+                                                .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        if (canvasUrl != null) {
+                                            IconButton(onClick = { showCanvasVideo = !showCanvasVideo }) {
+                                                Icon(
+                                                    imageVector = if (showCanvasVideo) SimpIcons.MovieOff else SimpIcons.Movie,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                )
+                                            }
+                                        }
+                                        IconButton(
+                                            onClick = { shareUrl(shareTitle, "https://music.youtube.com/channel/$channelId") },
+                                        ) {
+                                            Icon(SimpIcons.IosShare, contentDescription = shareTitle, tint = Color.White)
+                                        }
                                     }
                                 }
 
