@@ -840,6 +840,8 @@ if (getPlatform() == Platform.Android) {
   - The nightly workflow (`android.yml`) signs with `secrets.SIGNING_KEY`, the release workflow with `BASE_64_SIGNING_KEY`. If those are different keystores, every nightly is blocked.
   - Anyone patching the APK can remove the check; only server-side Key Attestation resists that, and nothing here needs it yet.
 
+- **Intel Macs get their SQLite JNI library back (2026-09-23, issue #2538)**: androidx.sqlite 2.7.0 ships no `natives/osx_x64/libsqliteJni.dylib`, so the mac.amd64 build died on Room's first open with "Cannot find a suitable SQLite binary for mac os x | x86_64". Not a deliberate drop: androidx `b4d7ca565f` (2025-12-16) removed `MACOS_X64` from sqlite-bundled's native target list while retiring the deprecated Kotlin/Native `macosX64` target (KT-78660), and the JVM JNI libraries are compiled from that same list; `androidx-main` still lacks it. `sqliteIntelMacNative` in `composeApp/build.gradle.kts` downloads sqlite-bundled-jvm **2.6.2** (SHA-256 pinned), extracts only that dylib and adds it to `jvmMain` resources — `NativeLibraryLoader` falls back to `getResourceAsStream("natives/<os>_<arch>/…")` on its classloader, so everything else stays on 2.7.0 and no runtime code changed. Safe because both versions bind through `RegisterNatives` in `JNI_OnLoad` and register the identical 22 methods, on the same SQLite 3.50.1; 2.7.0 only adds SQL math functions, which no query uses. **Re-diff the RegisterNatives strings before bumping `sqlite`**, and drop the block if upstream restores osx_x64.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -864,6 +866,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-22
+**Last updated**: 2026-09-23
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

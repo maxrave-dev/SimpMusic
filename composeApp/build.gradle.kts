@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
 import java.security.MessageDigest
 import java.util.Properties
+import java.util.zip.ZipInputStream
 
 val isFullBuild: Boolean =
     try {
@@ -867,6 +868,61 @@ buildkonfig {
             // the feature hides itself. The stub module is linked in this flavour anyway.
             buildConfigField(STRING, "lastfmApiKey", "")
             buildConfigField(STRING, "lastfmSecret", "")
+        }
+    }
+}
+
+// ===========================================================================
+// SQLite JNI library for Intel Macs (issue #2538)
+//
+// androidx.sqlite 2.7.0 stopped shipping `natives/osx_x64/libsqliteJni.dylib`: androidx
+// b4d7ca565f dropped MACOS_X64 from sqlite-bundled's native target list while removing the
+// deprecated Kotlin/Native macosX64 target, and the JVM JNI libraries are built from that same
+// list. Room then dies on first open with "Cannot find a suitable SQLite binary for mac os x |
+// x86_64", so the mac.amd64 build could not start at all.
+//
+// 2.6.2's x64 dylib is lifted out and shipped as a jvmMain resource at the path the loader
+// already looks for. NativeLibraryLoader ends its search with
+// `getResourceAsStream("natives/<os>_<arch>/…")` on its own classloader, which sees every jar on
+// the classpath, so no runtime code is involved. This is safe only because the two versions
+// agree on JNI: both bind through RegisterNatives in JNI_OnLoad, and 2.6.2's x64 dylib registers
+// the identical 22 methods (names, signatures, classes) as 2.7.0's arm64/linux ones, on the same
+// SQLite 3.50.1 source. The one difference is that 2.7.0 compiles in SQL math functions (log10,
+// acosh…), which no query here uses.
+//
+// Before bumping `sqlite` in libs.versions.toml, diff the RegisterNatives strings again
+// (`strings -a libsqliteJni.* | grep -E '^native[A-Z]|^\(|^androidx/sqlite/'`) — or drop this
+// block if upstream ships osx_x64 again.
+// ===========================================================================
+val sqliteIntelMacNative by tasks.registering {
+    // Everything doLast touches is a local: calling a script-level val or fun from it captures the
+    // build script object, which the configuration cache cannot serialize. The mpv tasks get away
+    // with that only because CI runs them with --no-configuration-cache; this one feeds jvmMain's
+    // resources, so it runs in every desktop build and hot run.
+    val version = "2.6.2"
+    val expectedSha256 = "e61efb0647288b486e595950724cc53c4f15eeeca03ce2184751d02de3cfaa17"
+    val dylib = "natives/osx_x64/libsqliteJni.dylib"
+    val url = "https://dl.google.com/android/maven2/androidx/sqlite/sqlite-bundled-jvm/$version/sqlite-bundled-jvm-$version.jar"
+    val outputDir = layout.buildDirectory.dir("generated/sqliteIntelMac").get().asFile
+    description = "Extract the macOS x86_64 SQLite JNI library from sqlite-bundled-jvm $version."
+    inputs.property("url", url)
+    inputs.property("sha256", expectedSha256)
+    outputs.dir(outputDir)
+    doLast {
+        val jar = URI(url).toURL().readBytes()
+        val actual = MessageDigest.getInstance("SHA-256").digest(jar).joinToString("") { "%02x".format(it) }
+        check(actual == expectedSha256) { "Checksum mismatch for $url\n  expected $expectedSha256\n  actual   $actual" }
+        ZipInputStream(jar.inputStream()).use { zip ->
+            checkNotNull(generateSequence { zip.nextEntry }.firstOrNull { it.name == dylib }) { "$dylib missing from $url" }
+            outputDir.resolve(dylib).apply { parentFile.mkdirs() }.writeBytes(zip.readBytes())
+        }
+    }
+}
+
+kotlin {
+    sourceSets {
+        jvmMain {
+            resources.srcDir(sqliteIntelMacNative)
         }
     }
 }
