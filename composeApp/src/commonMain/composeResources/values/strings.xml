@@ -578,6 +578,9 @@
     <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
     <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
+    <string name="preferred_audio_language">Preferred audio language</string>
+    <string name="preferred_audio_language_message">Some videos, mostly podcasts, come with several audio tracks in different languages. Type a language code (Eg: vi) (2 letters) to play that track when it exists. Leave it empty to always play the original audio.</string>
+    <string name="original_audio">Original audio</string>
     <string name="use_anonymous">Use anonymous name to contribute</string>
     <string name="contributor_name">Contributor name</string>
     <string name="contributor_email">Contributor email</string>

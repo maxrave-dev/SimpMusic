@@ -169,6 +169,8 @@ class SettingsViewModel(
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
+    private val _preferredAudioLanguage = MutableStateFlow("")
+    val preferredAudioLanguage: StateFlow<String> = _preferredAudioLanguage
 
     private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
@@ -256,6 +258,7 @@ class SettingsViewModel(
 
     init {
         getYoutubeSubtitleLanguage()
+        getPreferredAudioLanguage()
         getHelpBuildLyricsDatabase()
         viewModelScope.launch {
             enableLiquidGlass.collect {
@@ -2021,6 +2024,22 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setYoutubeSubtitleLanguage(language)
             getYoutubeSubtitleLanguage()
+        }
+    }
+
+    private fun getPreferredAudioLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.preferredAudioLanguage.collect { language ->
+                _preferredAudioLanguage.emit(language)
+            }
+        }
+    }
+
+    // Does not re-call the getter, for the same reason as setLyricsOffsetMs: the collector started
+    // in init already publishes every write.
+    fun setPreferredAudioLanguage(language: String) {
+        viewModelScope.launch {
+            dataStoreManager.setPreferredAudioLanguage(language)
         }
     }
 
