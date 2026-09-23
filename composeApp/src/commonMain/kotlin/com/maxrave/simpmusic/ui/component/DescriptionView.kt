@@ -59,7 +59,10 @@ fun DescriptionView(
     }
 
     val timeRegex = Regex("""(\d+):(\d+)(?::(\d+))?""")
-    val urlRegex = Regex("""https?://\S+""")
+    // Parentheses count only as a pair: descriptions wrap links in them — "From Wikipedia
+    // (https://…/Ariana_Grande)" — and `\S+` swallowed the closing one into the URL, while
+    // "…/Queen_(band)" must keep its own.
+    val urlRegex = Regex("""https?://(?:[^\s()]|\([^\s()]*\))+""")
     val annotatedString = AnnotatedString.Builder()
     var currentIndex = 0
     val style =
