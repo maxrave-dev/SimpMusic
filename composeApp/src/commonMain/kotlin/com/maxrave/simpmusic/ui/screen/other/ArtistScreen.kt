@@ -89,7 +89,6 @@ import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
-import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
@@ -103,7 +102,6 @@ import com.maxrave.simpmusic.extension.hexToColorOrNull
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.toImmersiveBackground
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
-import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -140,7 +138,6 @@ import com.maxrave.simpmusic.viewModel.ArtistScreenState
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
-import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -284,8 +281,6 @@ fun ArtistScreen(
                                 // Glass back button MUST be a sibling of the backdrop source
                                 // (not a child) to avoid render feedback loop / RuntimeShader crash.
                                 val artworkBackdrop = rememberBackdrop(Color.Black)
-                                // Haze state for the bottom progressive-blur fade (source = media layer).
-                                val headerHaze = rememberHazeState(blurEnabled = true)
                                 // Portrait fills a SQUARE frame, so the URL is clamped to a square
                                 // size there (logic from commit 5e596c5b). Landscape keeps YouTube's
                                 // own wide banner (e.g. w2880-h1200) instead: squaring the source
@@ -314,8 +309,8 @@ fun ArtistScreen(
                                 ) {
                                     // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
                                     Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
-                                        // Media layer (artwork + canvas) — Haze SOURCE for the bottom blur.
-                                        Box(modifier = Modifier.fillMaxSize().hazeSource(headerHaze)) {
+                                        // Media layer (artwork + canvas).
+                                        Box(modifier = Modifier.fillMaxSize()) {
                                             AsyncImage(
                                                 model =
                                                     ImageRequest
@@ -347,12 +342,15 @@ fun ArtistScreen(
                                                         .fillMaxSize()
                                                         .alpha(if (headerCanvas != null) 0f else 1f),
                                             )
-                                            // Desktop: the artwork's bottom 200dp melts into the page
-                                            // through a Modifier.blur copy of it, faded in by a DstIn
-                                            // gradient. Android blurs with HazeProgressive further down,
-                                            // which crashes on skiko. Skipped under a canvas, where the
-                                            // artwork itself is hidden.
-                                            if (getPlatform() != Platform.Android && headerCanvas == null) {
+                                            // The artwork's bottom 200dp melts into the page through a
+                                            // Modifier.blur copy of it, faded in by a DstIn gradient. At
+                                            // the top of the ramp the copy is fully transparent, so there
+                                            // is no seam — haze's HazeProgressive drew a visible line
+                                            // there on Android (and crashes on skiko). Below Android 12
+                                            // blur is a no-op and the copy is pixel-identical to the
+                                            // artwork, leaving just the colour scrim. Skipped under a
+                                            // canvas, where the artwork itself is hidden.
+                                            if (headerCanvas == null) {
                                                 AsyncImage(
                                                     model = headerImageUrl,
                                                     contentDescription = null,
@@ -388,7 +386,7 @@ fun ArtistScreen(
                                                     cropToBounds = true,
                                                 )
                                             }
-                                        } // end media layer (Haze source)
+                                        } // end media layer
                                         // 5% black over the artwork/canvas, under the fade and scrim, so
                                         // a bright photo sits back a little behind the title.
                                         Box(
@@ -397,34 +395,6 @@ fun ArtistScreen(
                                                     .fillMaxSize()
                                                     .background(Color.Black.copy(alpha = 0.05f)),
                                         )
-                                        // Bottom fade — progressive blur (Haze) over the media layer, so the
-                                        // canvas/artwork edge melts into the page bg.
-                                        // ANDROID ONLY. On skiko this kills the process: haze 1.7.2's
-                                        // progressive path calls ShaderBrush.createShader(Size), whose
-                                        // mangled signature does not match the Compose this build pins
-                                        // (material3-multiplatform 1.12.0-alpha01 / skiko 0.148.1), so it
-                                        // throws NoSuchMethodError from inside the draw pass —
-                                        // RenderEffect.skiko.kt:234. Only the progressive path is affected;
-                                        // plain hazeEffect is used on Desktop elsewhere and is fine.
-                                        // Dropping it costs Desktop only the blur: the colour scrim below
-                                        // is a separate box and still fades the artwork edge.
-                                        if (getPlatform() == Platform.Android) {
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(200.dp)
-                                                        .align(Alignment.BottomCenter)
-                                                        .hazeEffect(headerHaze) {
-                                                            blurRadius = 32.dp
-                                                            progressive =
-                                                                HazeProgressive.verticalGradient(
-                                                                    startIntensity = 0f,
-                                                                    endIntensity = 1f,
-                                                                )
-                                                        },
-                                            )
-                                        }
                                         // Color scrim is a SEPARATE, taller box: the blur stays at 200dp so
                                         // its cost doesn't grow, while the color gets 70% of the artwork
                                         // to ramp over. A short ramp means a steep alpha, and a steep
