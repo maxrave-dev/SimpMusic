@@ -87,6 +87,7 @@ import com.maxrave.simpmusic.ui.screen.home.analytics.labelRes
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -96,6 +97,8 @@ import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.liked_songs
+import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.search
@@ -141,6 +144,9 @@ fun LibraryDynamicPlaylistScreen(
     var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
     val monthlyRecap by viewModel.listMonthlyRecapSong.collectAsStateWithLifecycle()
     var tempMonthlyRecap by remember { mutableStateOf(emptyList<SongEntity>()) }
+    val artistLiked by viewModel.listArtistLikedSong.collectAsStateWithLifecycle()
+    val artistLikedName by viewModel.artistLikedName.collectAsStateWithLifecycle()
+    var tempArtistLiked by remember { mutableStateOf(emptyList<SongEntity>()) }
     val analyticsUIState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
     var tempTopTracks by remember { mutableStateOf(analyticsUIState.topTracks.data ?: emptyList()) }
     var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
@@ -159,6 +165,9 @@ fun LibraryDynamicPlaylistScreen(
         if (parsed is LibraryDynamicPlaylistType.MonthlyRecap) {
             viewModel.getMonthlyRecapSong(parsed)
         }
+        if (parsed is LibraryDynamicPlaylistType.ArtistLiked) {
+            viewModel.getArtistLikedSong(parsed)
+        }
         // A top list opened from an older period. This screen gets its own analytics view model,
         // which starts on the latest period, so without this every older period opened as the
         // newest one.
@@ -171,6 +180,7 @@ fun LibraryDynamicPlaylistScreen(
         tempMostPlayed = mostPlayed.filter { it.matches(query) }
         tempDownloaded = downloaded.filter { it.matches(query) }
         tempMonthlyRecap = monthlyRecap.filter { it.matches(query) }
+        tempArtistLiked = artistLiked.filter { it.matches(query) }
         tempTopTracks =
             analyticsUIState.topTracks.data
                 ?.filter { it.second.matches(query) }
@@ -397,6 +407,14 @@ fun LibraryDynamicPlaylistScreen(
                             monthlyRecap
                         }
                     }
+
+                    is LibraryDynamicPlaylistType.ArtistLiked -> {
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempArtistLiked
+                        } else {
+                            artistLiked
+                        }
+                    }
                 },
                 key = { it.hashCode() },
             ) { song ->
@@ -498,6 +516,11 @@ fun LibraryDynamicPlaylistScreen(
                     "${followed.size} ${stringResource(Res.string.artists)}"
                 is LibraryDynamicPlaylistType.MonthlyRecap ->
                     stringResource(Res.string.wrapped_recap_subtitle)
+                is LibraryDynamicPlaylistType.ArtistLiked ->
+                    listOfNotNull(
+                        pluralStringResource(Res.plurals.liked_songs_count, artistLiked.size, artistLiked.size),
+                        artistLikedName,
+                    ).joinToString(" · ")
                 is LibraryDynamicPlaylistType.TopTracks,
                 is LibraryDynamicPlaylistType.TopArtists,
                 is LibraryDynamicPlaylistType.TopAlbums -> topListSubtitle(type)
@@ -653,6 +676,10 @@ fun LibraryDynamicPlaylistScreen(
                                     (if (query.isNotEmpty() && showSearchBar) tempMostPlayed else mostPlayed)
                                         .map { it.videoId }
 
+                                is LibraryDynamicPlaylistType.ArtistLiked ->
+                                    (if (query.isNotEmpty() && showSearchBar) tempArtistLiked else artistLiked)
+                                        .map { it.videoId }
+
                                 else -> emptyList()
                             }
                         selectionState.toggleSelectAll(visible)
@@ -751,6 +778,17 @@ sealed class LibraryDynamicPlaylistType {
     ) : LibraryDynamicPlaylistType()
 
     /**
+     * Liked songs crediting one artist — opened from the "Liked songs" row on that artist's page
+     * (issue #2524).
+     *
+     * Carries only the channel id: the header's artist name is looked up by the view model, since a
+     * name can hold any character and would have to survive the route string.
+     */
+    data class ArtistLiked(
+        val channelId: String,
+    ) : LibraryDynamicPlaylistType()
+
+    /**
      * The fixed name, for the callers that resolve a resource without composition.
      *
      * [MonthlyRecap] has no honest answer here — its name is assembled from a month and sometimes
@@ -770,6 +808,7 @@ sealed class LibraryDynamicPlaylistType {
             is TopArtists -> Res.string.your_top_artists
             is TopTracks -> Res.string.your_top_tracks
             is MonthlyRecap -> Res.string.wrapped
+            is ArtistLiked -> Res.string.liked_songs
         }
 
     /**
@@ -841,10 +880,12 @@ sealed class LibraryDynamicPlaylistType {
             // Zero-padded so the strings sort the way the months do, which makes a list of these
             // readable in a log or a deep link without parsing it back.
             is MonthlyRecap -> "${RECAP_PREFIX}${year}_${month.toString().padStart(2, '0')}"
+            is ArtistLiked -> ARTIST_LIKED_PREFIX + channelId
         }
 
     companion object {
         private const val RECAP_PREFIX = "recap_"
+        private const val ARTIST_LIKED_PREFIX = "artist_liked_"
         private const val TOP_TRACKS = "top_tracks"
         private const val TOP_ARTISTS = "top_artists"
         private const val TOP_ALBUMS = "top_albums"
@@ -861,8 +902,21 @@ sealed class LibraryDynamicPlaylistType {
                 else ->
                     parseTopList(input)
                         ?: parseMonthlyRecap(input)
+                        ?: parseArtistLiked(input)
                         ?: throw IllegalArgumentException("Unknown type: $input")
             }
+
+        /**
+         * `artist_liked_UC…` back into an [ArtistLiked], or null. The remainder is taken whole —
+         * channel ids contain `_` and `-` — and only has to be non-blank: an id matching no song
+         * just opens an empty list.
+         */
+        private fun parseArtistLiked(input: String): ArtistLiked? =
+            input
+                .takeIf { it.startsWith(ARTIST_LIKED_PREFIX) }
+                ?.removePrefix(ARTIST_LIKED_PREFIX)
+                ?.takeIf { it.isNotBlank() }
+                ?.let(::ArtistLiked)
 
         /**
          * `top_tracks_2026-08-01_2026-08-31` back into a top list with its period, or null.
