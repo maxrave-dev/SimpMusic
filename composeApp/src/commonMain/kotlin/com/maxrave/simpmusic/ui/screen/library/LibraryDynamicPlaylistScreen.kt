@@ -77,10 +77,10 @@ import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import com.maxrave.simpmusic.ui.screen.home.analytics.formatNumericSpan
 import com.maxrave.simpmusic.ui.screen.home.analytics.labelRes
@@ -111,7 +111,6 @@ import simpmusic.composeapp.generated.resources.your_top_albums
 import simpmusic.composeapp.generated.resources.your_top_artists
 import simpmusic.composeapp.generated.resources.your_top_tracks
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 @ExperimentalMaterial3Api
 fun LibraryDynamicPlaylistScreen(
@@ -152,9 +151,7 @@ fun LibraryDynamicPlaylistScreen(
     var tempTopArtists by remember { mutableStateOf(analyticsUIState.topArtists.data ?: emptyList()) }
     var tempTopAlbums by remember { mutableStateOf(analyticsUIState.topAlbums.data ?: emptyList()) }
     val hazeState =
-        rememberHazeState(
-            blurEnabled = true,
-        )
+        rememberHazeState()
 
     // The other lists are observed from the database and are already loaded by the time this
     // screen opens; a recap is one month's ranking, so it can only be fetched once the route says
@@ -639,9 +636,7 @@ fun LibraryDynamicPlaylistScreen(
                 },
                 modifier =
                     Modifier
-                        .hazeEffect(hazeState, style = HazeMaterials.ultraThin()) {
-                            blurEnabled = true
-                        },
+                        .hazeBlur(HazeInput.Sources(hazeState), HazeMaterials.ultraThin().then { blurEnabled(true) }),
                 colors =
                     TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,

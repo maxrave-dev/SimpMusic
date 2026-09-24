@@ -114,6 +114,7 @@ import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
@@ -158,10 +159,9 @@ import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -437,7 +437,6 @@ import java.time.format.DateTimeFormatter
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalCoilApi::class,
-    ExperimentalHazeMaterialsApi::class,
     FormatStringsInDatetimeFormats::class,
     ExperimentalCalfApi::class,
 )
@@ -596,9 +595,7 @@ fun SettingScreen(
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
     val hazeState =
-        rememberHazeState(
-            blurEnabled = true,
-        )
+        rememberHazeState()
 
     val checkForUpdateSubtitle by remember {
         derivedStateOf {
@@ -3423,12 +3420,7 @@ fun SettingScreen(
                             // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in
                             // tint stacked on this page's dark ground read as a solid lid. 0.3 keeps
                             // the blur doing the work and the tint only settling legibility.
-                            Modifier.hazeEffect(hazeState) {
-                                blurEnabled = true
-                                blurRadius = 24.dp
-                                backgroundColor = settingBarTint
-                                tints = listOf(HazeTint(settingBarTint.copy(alpha = 0.3f)))
-                            }
+                            Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(settingBarTint, 0.3f))
                         },
                     ),
             colors =

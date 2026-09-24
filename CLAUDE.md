@@ -849,6 +849,12 @@ if (getPlatform() == Platform.Android) {
   - Setting: Settings → *Preferred audio language* (`preferred_audio_language`, a 2-letter code, empty = original), passed as `player(…, preferredAudioLanguage)`. **Deliberately not defaulted to the app language** the way the YouTube subtitle language is: that would replace the speaker's own voice with an AI dub (`dubbed-auto`) for every user whose language has one. `descriptive` tracks (narration for blind viewers) never count as the preferred language.
   - Not handled: the original has two variants, and `acont=original:drc=1` (dynamic-range compressed) is listed first, so it wins — which is what the itag-first code already picked. A URL already stored in `NewFormatEntity` is reused until it expires, so changing the setting does not affect a video played recently.
 
+- **haze 1.7.2 → 2.0.0 (2026-09-24)**: 2.0 publishes no `haze-materials`; blur moved to **`haze-blur`** and the presets to **`haze-blur-materials`** (package `dev.chrisbanes.haze.blur.materials`, no opt-in). The mutable `Modifier.hazeEffect(state) { … }` DSL is gone — a `hazeEffect` still exists but is the generic custom-effect API (`factory, input, style`), so leftover calls fail as "no matching overload", not "unresolved". All 22 call sites are now `hazeBlur(HazeInput.Sources(hazeState), style)`: `Sources` is the 1:1 replacement for 1.x's state-based effect (`Backdrop` is only a native path behind an off-by-default flag, Android 37.2). The 13 tinted top bars share `barBlurStyle(tint, tintAlpha)` in `UIExt.kt`; the 9 preset bars use `HazeMaterials.ultraThin().then { blurEnabled(true) }`. `blurEnabled` left `rememberHazeState()` for the Style, and must stay forced on: minSdk is 26, so Android 8–11 take haze's RenderScript path, whose crashes and leaks 2.0 fixes.
+  - **A Style is compared by its recorded writes** (`HazeBlurStyle { }` records into a list; `RecordedHazeBlurStyle` has structural `equals`), so building one per recomposition is free — no `remember` needed.
+  - `performanceMode` is left at `Default`, which is now `Adaptive` (downsamples under load); pass `HazePerformanceMode.Quality` if a bar looks softer than before.
+  - haze 2.0 is built on Compose Multiplatform 1.12.0, i.e. skiko 0.150.x, and so is everything that moved with it. **That killed the Desktop tray at runtime, not at build time**: `composenativetray` 1.3.3 (the last release under `io.github.kdroidfilter`, built on Compose 1.10.3) calls `Image.encodeToData$default`, which skiko 0.150 no longer has — `NoSuchMethodError` on the first composition, from `Tray(…)` rendering its icon, while Gradle reports BUILD SUCCESSFUL. The tray moved to **`dev.nucleusframework:composenativetray` 2.1.6** (Compose 1.12.0), package `dev.nucleusframework.composenativetray`. `Tray`/`Item`/`Divider` kept their shape.
+  - **`SingleInstanceManager` did not disappear in tray 2.0 — it moved to `dev.nucleusframework:nucleus.core-runtime`** (`dev.nucleusframework.core.runtime`). The tray pulls that artifact only into its RUNTIME variant, so it must be declared directly (`libs.nucleus.core.runtime`, on the `nucleus-notification` version) to compile against it. `isSingleInstance(onRestoreRequest = …)` still exists and still runs before `startKoin` (#2044); its callbacks now receive the restore-file `Path`. The README steers to `nucleusApplication { }` instead — do not take that route without moving `startKoin`, since that check would then run after Koin has already opened DataStore.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -873,6 +879,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-23
+**Last updated**: 2026-09-24
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

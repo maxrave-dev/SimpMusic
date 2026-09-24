@@ -172,6 +172,7 @@ kotlin {
 
             // Blur Haze
             implementation(libs.haze)
+            implementation(libs.haze.blur)
             implementation(libs.haze.material)
 
             api(libs.cmptoast)
@@ -193,6 +194,7 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sentry.jvm)
             implementation(libs.native.tray)
+            implementation(libs.nucleus.core.runtime)
             implementation(projects.mediaJvmUi)
             // Login sync QR code
             implementation(libs.zxing.core)

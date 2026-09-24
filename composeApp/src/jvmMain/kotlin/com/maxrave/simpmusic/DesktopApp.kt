@@ -26,8 +26,6 @@ import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
-import com.kdroid.composetray.tray.api.Tray
-import com.kdroid.composetray.utils.SingleInstanceManager
 import com.maxrave.common.AppIdentity
 import com.maxrave.data.di.loader.loadAllModules
 import com.maxrave.domain.manager.DataStoreManager
@@ -43,6 +41,8 @@ import com.maxrave.simpmusic.ui.theme.isDarkTheme
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
+import dev.nucleusframework.composenativetray.tray.api.Tray
+import dev.nucleusframework.core.runtime.SingleInstanceManager
 import io.sentry.Sentry
 import io.sentry.SentryLevel
 import io.sentry.protocol.User
