@@ -1,6 +1,6 @@
 name: Playback error
 description: Music stops, fails to start, or errors out during playback
-labels: [ "bug:unconfirmed", "playback" ]
+labels: [ "bug:unconfirmed", "area:playback" ]
 
 body:
   - type: markdown
@@ -54,7 +54,7 @@ body:
     id: version
     attributes:
       label: App Version
-      placeholder: e.g. 1.7.0
+      placeholder: e.g. 2.1.0
     validations:
       required: true
 

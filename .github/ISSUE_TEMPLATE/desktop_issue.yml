@@ -58,7 +58,7 @@ body:
     id: version
     attributes:
       label: App Version
-      placeholder: e.g. 1.7.0
+      placeholder: e.g. 2.1.0
     validations:
       required: true
 
