@@ -230,8 +230,8 @@ private fun NowPlayingM3ExpressiveLayout(
     }
     LaunchedEffect(
         topAppBarHeightDp,
-        // Unlike Classic, the M3E artwork frame CHANGES height (square ↔ 16:9 while a video
-        // plays), so the fold math must re-run when the measured middle height moves too —
+        // Unlike Classic, the M3E artwork frame CHANGES height (square ↔ the video's shape while
+        // a video plays), so the fold math must re-run when the measured middle height moves too —
         // without this key the gap keeps the previous track's numbers and the layout drifts.
         middleLayoutHeightDp,
         screenInfo,
@@ -403,8 +403,9 @@ private fun NowPlayingM3ExpressiveLayout(
                         // The artwork card is rendered by the pager above; reserve the same
                         // vertical space so the info layout keeps its Y position. Spacer has
                         // no pointer input so pager swipes fall through. Its ratio MUST match
-                        // the card's (16:9 while a video plays, else square) or the fold math
-                        // drifts from what the pager actually draws.
+                        // the card's slot (the video's shape capped at square while a video
+                        // plays, else square) or the fold math drifts from what the pager
+                        // actually draws — hence the one shared expressiveCardSlotRatio().
                         Spacer(
                             modifier =
                                 Modifier
@@ -418,9 +419,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                     .value
                                                     .toInt()
                                             }
-                                    }.aspectRatio(
-                                        if (state.screenData.isVideo && state.shouldShowVideo) 16f / 9 else 1f,
-                                    ),
+                                    }.aspectRatio(state.expressiveCardSlotRatio()),
                         )
 
                         // === 5. Inline current-lyric line, centered in the lower gap ===

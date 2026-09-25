@@ -61,10 +61,12 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kmpalette.rememberPaletteState
+import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.rememberVideoAspectRatio
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -622,6 +624,7 @@ fun NowPlayingScreenContent(
             // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
             // codec therefore never matched anything and the badge never rendered, on any track.
             audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
+            videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
         )
     val actions =
         NowPlayingContentActions(
