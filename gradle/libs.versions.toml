@@ -1,45 +1,45 @@
 [versions]
 # App version
-version-name = "2.1.0"
-version-code = "58"
+version-name = "2.2.0"
+version-code = "59"
 
 android = "9.2.1"
-kotlin = "2.4.10"
-serialization = "2.4.10"
+kotlin = "2.4.20"
+serialization = "2.4.20"
 ksp = "2.3.9"
-compose-bom = "2026.08.00" # maps compose ui/foundation/runtime to 1.12.0 stable — aligns with what the m3 alpha pin already pulled (1.12.0-beta01)
-material3-expressive = "1.5.0-alpha26" # alpha26 turned ExposedDropdownMenu into a top-level extension; DropdownButton.kt uses a material3 wildcard import to stay compilable on both targets
+compose-bom = "2026.09.00" # maps compose ui/foundation/runtime to 1.12.0 stable — aligns with what the m3 alpha pin already pulled (1.12.0-beta01)
+material3-expressive = "1.5.0-alpha22" # MUST equal the androidx material3 that material3-multiplatform maps to (1.12.0-alpha03 -> 1.5.0-alpha22, read off its .module). commonMain is compiled against that one and the higher of the two wins in the APK: at alpha29 the Slider(thumb, track) overloads were gone and Now Playing died with NoSuchMethodError. Bump the two together
 constraintlayout-compose = "1.1.2"
 activity-compose = "1.13.0"
 lifecycle = "2.11.0"
-core-ktx = "1.19.0"
+core-ktx = "1.19.1"
 appcompat = "1.8.0"
-work = "2.11.2"
+work = "2.12.0"
 startup-runtime = "1.2.0"
-media3 = "1.11.0"
+media3 = "1.11.1"
 play-services-cast-framework = "22.3.1"
 mediarouter = "1.8.1"
-car-app = "1.9.0-alpha01"
+car-app = "1.9.0-alpha02"
 androidx-media = "1.8.0"
 okhttp3 = "5.5.0"
 junit = "4.13.2"
 androidx-junit = "1.3.0"
 espresso-core = "3.7.0"
-room = "2.8.4"
+room = "2.8.5"
 legacy-support-v4 = "1.0.0"
 coroutines-android = "1.11.0"
 coroutines-guava = "1.11.0"
 navigation = "2.9.2"
 gson = "2.14.0"
-coil3 = "3.5.0"
+coil3 = "3.6.3"
 kmpalette = "3.1.0"
-materialkolor = "5.0.0"
+materialkolor = "5.0.1"
 easypermissions = "3.0.0"
 datastore-preferences = "1.2.1"
 paging = "3.5.1"
 customactivityoncrash = "2.4.0"
-aboutlibraries = "15.0.2" # BUG Can not upgrade version
-ktor = "3.5.2"
+aboutlibraries = "15.2.0" # BUG Can not upgrade version
+ktor = "3.6.0"
 brotli = "0.1.2"
 ksoup = "0.6.0"
 # Lyrics romanization. Both are plain Java, so one dependency covers Android AND the JVM desktop
@@ -49,49 +49,49 @@ kuromoji-ipadic = "0.9.0"
 pinyin4j = "2.5.1"
 desugaring = "2.1.5"
 koin-bom = "4.2.2"
-md = "0.44.0"
-haze = "1.7.2"
+md = "0.45.0"
+haze = "2.0.0"
 onetimepassword = "3.0.0"
 common = "1.22.1"
 json = "1.11.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.53.0"
-sentry-gradle-android = "6.19.0"
-sentry-jvm = "8.53.0"
+sentry-android = "8.58.0"
+sentry-gradle-android = "6.22.0"
+sentry-jvm = "8.58.0"
 newpipe = "v0.26.1"
 brave-newpipe = "0fcaf19ecc"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
 pipepipe = "f8982ca9e7"
 # QuickJS binding for KMP — runs YouTube's player JS to solve sig/n challenges locally.
-quickjs = "1.0.14"
-webkit = "1.17.0"
-kermit = "2.1.0"
+quickjs = "1.0.15"
+webkit = "1.17.1"
+kermit = "2.2.0"
 paging-common = "3.5.1"
-glance = "1.1.1"
-liquid-glass = "2.0.0"
-liquid-glass-shapes = "1.2.0"
+glance = "1.2.0"
+liquid-glass = "2.0.1"
+liquid-glass-shapes = "1.2.1"
 ffmpeg-kit-audio = "6.0.1"
 composeHotReload = "1.2.0"
-composeMultiplatform = "1.11.1"
+composeMultiplatform = "1.12.1"
 datetime = "0.8.0"
-sqlite = "2.7.0"
-okio = "3.18.1"
+sqlite = "2.7.1"
+okio = "3.18.2"
 atomicfu = "0.33.0"
-material3-multiplatform = "1.12.0-alpha01" # = skiko 0.148.1, where Matrix33 is still a class. haze 1.7.2, kyant/backdrop 2.0.0 and composenativetray 1.3.3 are all compiled against that; 0.148.2 turns Matrix33 into a value class and breaks backdrop, and 0.150.x also breaks the tray
+material3-multiplatform = "1.12.0-alpha03" # = Compose 1.12.0-beta01 / skiko 0.150.0. Anything that draws through skia must be built for Compose 1.12: skiko 0.148.2 turned Matrix33 into a value class (broke kyant/backdrop 2.0.0) and 0.150 dropped Image.encodeToData$default (broke composenativetray 1.3.3). Floor: haze 2.0.0, backdrop 2.0.1, composenativetray 2.1.6
 adaptive = "1.2.0"
-componentsResources = "1.11.1"
+componentsResources = "1.12.1"
 cmptoast = "1.0.71"
 uri = "0.0.21"
-buildkonfig = "0.22.0"
+buildkonfig = "0.23.0"
 jna = "5.19.1"
 jnaPlatform = "5.19.1"
-calf = "0.13.0"
+calf = "0.14.0"
 material = "1.14.0"
 osdetector = "1.7.3"
-tray = "1.3.3"
-nucleus-notification = "2.4.7"
+tray = "2.1.6"
+nucleus-notification = "2.5.18"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
 conveyor = "2.0"
@@ -195,7 +195,8 @@ ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.re
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
 markdown = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "md" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-material = { module = "dev.chrisbanes.haze:haze-blur-materials", version.ref = "haze" }
 kotlin-onetimepassword = { module = "dev.turingcomplete:kotlin-onetimepassword", version.ref = "onetimepassword" }
 common = { module = "commons-codec:commons-codec", version.ref = "common" }
 gemini-kotlin = { module = "org.simpmusic.gemini-kotlin:openai-client", version.ref = "gemini-kotlin" }
@@ -229,7 +230,9 @@ androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines-android" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
 file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf" }
-native-tray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "tray" }
+native-tray = { module = "dev.nucleusframework:composenativetray", version.ref = "tray" }
+# SingleInstanceManager moved here from the tray in 2.0; the tray only pulls it at runtime.
+nucleus-core-runtime = { module = "dev.nucleusframework:nucleus.core-runtime", version.ref = "nucleus-notification" }
 nucleus-notification = { module = "dev.nucleusframework:nucleus.notification-common", version.ref = "nucleus-notification" }
 
 #JVM

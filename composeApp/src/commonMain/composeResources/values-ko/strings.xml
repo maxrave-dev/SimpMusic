@@ -367,8 +367,6 @@
     <string name="theme_color_wallpaper">배경화면</string>
     <string name="theme_color_custom">사용자 지정</string>
     <string name="custom_color">사용자 지정 색상</string>
-    <string name="translucent_bottom_navigation_bar">반투명 하단 내비게이션 바</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">하단 바 밑에 있는 콘텐츠를 확인 가능</string>
     <string name="donation">앱이 마음에 드시면, 커피 한 잔으로 응원해주세요</string>
     <string name="relax">휴식</string>
     <string name="sleep">잠잘 때</string>

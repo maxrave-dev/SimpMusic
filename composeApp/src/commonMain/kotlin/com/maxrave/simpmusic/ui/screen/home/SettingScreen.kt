@@ -114,6 +114,7 @@ import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
@@ -158,10 +159,9 @@ import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -350,12 +350,15 @@ import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
+import simpmusic.composeapp.generated.resources.original_audio
 import simpmusic.composeapp.generated.resources.other_app
 import simpmusic.composeapp.generated.resources.play_explicit_content
 import simpmusic.composeapp.generated.resources.play_explicit_content_description
 import simpmusic.composeapp.generated.resources.play_video_for_video_track_instead_of_audio_only
 import simpmusic.composeapp.generated.resources.playback
 import simpmusic.composeapp.generated.resources.player_cache
+import simpmusic.composeapp.generated.resources.preferred_audio_language
+import simpmusic.composeapp.generated.resources.preferred_audio_language_message
 import simpmusic.composeapp.generated.resources.proxy
 import simpmusic.composeapp.generated.resources.proxy_description
 import simpmusic.composeapp.generated.resources.proxy_host
@@ -409,7 +412,6 @@ import simpmusic.composeapp.generated.resources.third_party_libraries
 import simpmusic.composeapp.generated.resources.thumbnail_cache
 import simpmusic.composeapp.generated.resources.translation_language
 import simpmusic.composeapp.generated.resources.translation_language_message
-import simpmusic.composeapp.generated.resources.translucent_bottom_navigation_bar
 import simpmusic.composeapp.generated.resources.unknown
 import simpmusic.composeapp.generated.resources.update_channel
 import simpmusic.composeapp.generated.resources.upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
@@ -424,7 +426,6 @@ import simpmusic.composeapp.generated.resources.video_quality
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.weekly
 import simpmusic.composeapp.generated.resources.what_segments_will_be_skipped
-import simpmusic.composeapp.generated.resources.you_can_see_the_content_below_the_bottom_bar
 import simpmusic.composeapp.generated.resources.youtube_account
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language
 import simpmusic.composeapp.generated.resources.youtube_subtitle_language_message
@@ -436,7 +437,6 @@ import java.time.format.DateTimeFormatter
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalCoilApi::class,
-    ExperimentalHazeMaterialsApi::class,
     FormatStringsInDatetimeFormats::class,
     ExperimentalCalfApi::class,
 )
@@ -507,7 +507,6 @@ fun SettingScreen(
     // Open equalizer
     val resultLauncher = openEqResult(viewModel.getAudioSessionId())
 
-    val enableTranslucentNavBar by remember { viewModel.translucentBottomBar.map { it == TRUE } }.collectAsStateWithLifecycle(initialValue = false)
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
@@ -529,6 +528,7 @@ fun SettingScreen(
     val mainLyricsProvider by viewModel.mainLyricsProvider.collectAsStateWithLifecycle()
     val lyricsOffsetMs by viewModel.lyricsOffsetMs.collectAsStateWithLifecycle()
     val youtubeSubtitleLanguage by viewModel.youtubeSubtitleLanguage.collectAsStateWithLifecycle()
+    val preferredAudioLanguage by viewModel.preferredAudioLanguage.collectAsStateWithLifecycle()
     val spotifyLoggedIn by viewModel.spotifyLogIn.collectAsStateWithLifecycle()
     val spotifyLyrics by viewModel.spotifyLyrics.collectAsStateWithLifecycle()
     val spotifyCanvas by viewModel.spotifyCanvas.collectAsStateWithLifecycle()
@@ -595,9 +595,7 @@ fun SettingScreen(
     val isCheckingUpdate by sharedViewModel.isCheckingUpdate.collectAsStateWithLifecycle()
 
     val hazeState =
-        rememberHazeState(
-            blurEnabled = true,
-        )
+        rememberHazeState()
 
     val checkForUpdateSubtitle by remember {
         derivedStateOf {
@@ -915,12 +913,6 @@ fun SettingScreen(
                         onClick = { showColorPickerDialog = true },
                     )
                 }
-                SettingItem(
-                    title = stringResource(Res.string.translucent_bottom_navigation_bar),
-                    subtitle = stringResource(Res.string.you_can_see_the_content_below_the_bottom_bar),
-                    smallSubtitle = true,
-                    switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
-                )
                 if (getPlatform() == Platform.Android) {
                     SettingItem(
                         title = stringResource(Res.string.enable_liquid_glass_effect),
@@ -1003,6 +995,33 @@ fun SettingScreen(
                                         viewModel.changeLocation(
                                             state.selectOne?.getSelected() ?: "US",
                                         )
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.preferred_audio_language),
+                    subtitle = preferredAudioLanguage.ifEmpty { stringResource(Res.string.original_audio) },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.preferred_audio_language) },
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = runBlocking { getString(Res.string.preferred_audio_language) },
+                                        value = preferredAudioLanguage,
+                                        // Empty is valid here: it means "original audio".
+                                        verifyCodeBlock = {
+                                            (it.isEmpty() || it.isTwoLetterCode()) to
+                                                runBlocking { getString(Res.string.invalid_language_code) }
+                                        },
+                                    ),
+                                message = runBlocking { getString(Res.string.preferred_audio_language_message) },
+                                confirm =
+                                    runBlocking { getString(Res.string.change) } to { state ->
+                                        viewModel.setPreferredAudioLanguage(state.textField?.value ?: "")
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
                             ),
@@ -3401,12 +3420,7 @@ fun SettingScreen(
                             // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in
                             // tint stacked on this page's dark ground read as a solid lid. 0.3 keeps
                             // the blur doing the work and the tint only settling legibility.
-                            Modifier.hazeEffect(hazeState) {
-                                blurEnabled = true
-                                blurRadius = 24.dp
-                                backgroundColor = settingBarTint
-                                tints = listOf(HazeTint(settingBarTint.copy(alpha = 0.3f)))
-                            }
+                            Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(settingBarTint, 0.3f))
                         },
                     ),
             colors =

@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -67,6 +68,17 @@ class LibraryDynamicPlaylistViewModel(
      * Loading already runs in a coroutine, so the name comes free at the one moment it is knowable.
      */
     private var loadedRecapName: String? = null
+
+    /**
+     * Liked songs crediting one artist, filled in once a route names the artist — the same shape as
+     * [_listMonthlyRecapSong], since there is no artist to observe until then.
+     */
+    private val _listArtistLikedSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
+    val listArtistLikedSong: StateFlow<List<SongEntity>> get() = _listArtistLikedSong
+
+    /** That artist's name for the header, or null when the artist was never stored. */
+    private val _artistLikedName: MutableStateFlow<String?> = MutableStateFlow(null)
+    val artistLikedName: StateFlow<String?> get() = _artistLikedName
 
     init {
         getFavoriteSong()
@@ -150,6 +162,24 @@ class LibraryDynamicPlaylistViewModel(
         }
     }
 
+    /**
+     * Liked songs crediting [artistLiked]'s artist, ordered like [getFavoriteSong] so this list and
+     * Favorites agree. Observed rather than read once: unliking a song here drops it from the list.
+     */
+    fun getArtistLikedSong(artistLiked: LibraryDynamicPlaylistType.ArtistLiked) {
+        viewModelScope.launch {
+            _artistLikedName.value = artistRepository.getArtistById(artistLiked.channelId).firstOrNull()?.name
+        }
+        viewModelScope.launch {
+            songRepository.getLikedSongsByArtist(artistLiked.channelId).collectLatest { likedSong ->
+                _listArtistLikedSong.value =
+                    likedSong.sortedByDescending {
+                        it.favoriteAt ?: REMOVED_SONG_DATE_TIME
+                    }
+            }
+        }
+    }
+
     /** "Recap January", or "Recap January 2025" once the year stops being obvious. */
     private suspend fun recapName(recap: LibraryDynamicPlaylistType.MonthlyRecap): String {
         val month =
@@ -174,6 +204,8 @@ class LibraryDynamicPlaylistViewModel(
         val name =
             when (type) {
                 is LibraryDynamicPlaylistType.MonthlyRecap -> loadedRecapName ?: getString(type.name())
+                is LibraryDynamicPlaylistType.ArtistLiked ->
+                    listOfNotNull(getString(type.name()), _artistLikedName.value).joinToString(" · ")
                 else -> getString(type.name())
             }
         return "${getString(Res.string.playlist)} $name"
@@ -191,6 +223,8 @@ class LibraryDynamicPlaylistViewModel(
                 LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
                 is LibraryDynamicPlaylistType.MonthlyRecap ->
                     listMonthlyRecapSong.value to listMonthlyRecapSong.value.find { it.videoId == videoId }
+                is LibraryDynamicPlaylistType.ArtistLiked ->
+                    listArtistLikedSong.value to listArtistLikedSong.value.find { it.videoId == videoId }
                 else -> return
             }
         if (playTrack == null) return
@@ -217,6 +251,7 @@ class LibraryDynamicPlaylistViewModel(
             LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value
             LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value
             is LibraryDynamicPlaylistType.MonthlyRecap -> listMonthlyRecapSong.value
+            is LibraryDynamicPlaylistType.ArtistLiked -> listArtistLikedSong.value
             else -> emptyList()
         }
 

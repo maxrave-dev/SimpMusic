@@ -9,6 +9,12 @@
     <string name="view_count">%1$s views</string>
     <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>
+    <string name="liked_songs">Liked songs</string>
+    <string name="liked_songs_by">By %1$s</string>
+    <plurals name="liked_songs_count">
+        <item quantity="one">%1$d song</item>
+        <item quantity="other">%1$d songs</item>
+    </plurals>
     <string name="like">Like</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="download">Download</string>
@@ -287,7 +293,7 @@
     <string name="added_date">Added date</string>
     <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue Tracker</string>
-    <string name="copyright" translatable="false">©2023-2025 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
@@ -447,8 +453,6 @@
     <string name="theme_color_wallpaper">Wallpaper</string>
     <string name="theme_color_custom">Custom</string>
     <string name="custom_color">Custom color</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
     <string name="relax">Relax</string>
     <string name="sleep">Sleep</string>
@@ -574,6 +578,9 @@
     <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
     <string name="youtube_subtitle_language_message">Type language code (Eg: en) (2 letters). This is the preferred translation language for YouTube subtitles.</string>
+    <string name="preferred_audio_language">Preferred audio language</string>
+    <string name="preferred_audio_language_message">Some videos, mostly podcasts, come with several audio tracks in different languages. Type a language code (Eg: vi) (2 letters) to play that track when it exists. Leave it empty to always play the original audio.</string>
+    <string name="original_audio">Original audio</string>
     <string name="use_anonymous">Use anonymous name to contribute</string>
     <string name="contributor_name">Contributor name</string>
     <string name="contributor_email">Contributor email</string>
@@ -904,4 +911,6 @@
     <string name="login_sync_unreachable">Couldn't reach the computer. Make sure your phone is on the same network or tailnet, then try again.</string>
     <string name="login_sync_code_expired">The code on your computer has expired. Show a new one and scan again.</string>
     <string name="login_sync_failed">Something went wrong. Please try again.</string>
+    <string name="modified_build_title">Unofficial app</string>
+    <string name="modified_build_message">You are using an unofficial copy of SimpMusic that was modified or repackaged by someone else. It cannot be used. Download the official version from simpmusic.org.</string>
 </resources>

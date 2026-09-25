@@ -389,8 +389,6 @@
     <string name="theme_color_wallpaper">Sfondo</string>
     <string name="theme_color_custom">Personalizzato</string>
     <string name="custom_color">Colore personalizzato</string>
-    <string name="translucent_bottom_navigation_bar">Barra di navigazione inferiore traslucida</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Puoi vedere il contenuto sotto la barra inferiore</string>
     <string name="donation">Se apprezzi il mio lavoro, donami un caffè</string>
     <string name="relax">Relax</string>
     <string name="sleep">Riposo</string>

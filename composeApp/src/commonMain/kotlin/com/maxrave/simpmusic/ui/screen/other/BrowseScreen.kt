@@ -60,6 +60,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AmbientGlowHeight
@@ -77,10 +78,9 @@ import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.BrowseUIState
 import com.maxrave.simpmusic.viewModel.BrowseViewModel
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -105,7 +105,7 @@ private val MoodCellWidth = 170.dp
  * cards per row follows the shapes in it — drawn with Home's own cards, so an item opens and plays
  * exactly as it does on Home. The glow and the bar are Mix for you's.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseScreen(
     innerPadding: PaddingValues,
@@ -116,7 +116,7 @@ fun BrowseScreen(
     viewModel: BrowseViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val hazeState = rememberHazeState(blurEnabled = true)
+    val hazeState = rememberHazeState()
     val listState = rememberLazyListState()
     // Mix for you's bar rule: transparent only while pixel 0 is on screen.
     val isAtTop by remember {
@@ -300,14 +300,7 @@ fun BrowseScreen(
                     if (atTop) {
                         Modifier.background(Color.Transparent)
                     } else {
-                        Modifier.hazeEffect(hazeState) {
-                            blurEnabled = true
-                            blurRadius = 24.dp
-                            // `this.` is load-bearing: the local `val backgroundColor` above would
-                            // otherwise win over the haze scope's member.
-                            this.backgroundColor = pageBackground
-                            tints = listOf(HazeTint(pageBackground.copy(alpha = 0.3f)))
-                        }
+                        Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(pageBackground, 0.3f))
                     },
                 ),
             ) {

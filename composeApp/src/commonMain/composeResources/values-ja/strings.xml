@@ -344,8 +344,6 @@
     <string name="repeat_off">リピートなし</string>
     <string name="youtube_transcript">YouTube の文字起こし</string>
     <string name="user_interface">外観</string>
-    <string name="translucent_bottom_navigation_bar">下部のナビバーを半透明に</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">下部のバーの裏のコンテンツを表示</string>
     <string name="donation">このアプリが気に入れば、私にコーヒーおごってください</string>
     <string name="relax">リラックス</string>
     <string name="sleep">睡眠</string>

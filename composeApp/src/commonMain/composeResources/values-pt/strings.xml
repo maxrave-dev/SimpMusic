@@ -357,8 +357,6 @@
     <string name="theme_color">Cor do tema</string>
     <string name="theme_color_default">Padrão</string>
     <string name="theme_color_wallpaper">Papel de parede</string>
-    <string name="translucent_bottom_navigation_bar">Barra de navegação inferior translúcida</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Você pode ver o conteúdo abaixo da barra inferior</string>
     <string name="donation">Se curtiu o meu trabalho, me paga um café</string>
     <string name="relax">Relaxante</string>
     <string name="sleep">Suspensão</string>

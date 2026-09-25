@@ -359,8 +359,6 @@
     <string name="theme_color_wallpaper">Tapeta</string>
     <string name="theme_color_custom">Niestandardowy</string>
     <string name="custom_color">Kolor niestandardowy</string>
-    <string name="translucent_bottom_navigation_bar">Przezroczysty dolny pasek nawigacji</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Możesz zobaczyć zawartość pod dolnym paskiem</string>
     <string name="donation">Jeśli lubisz moją pracę, kup mi kawę</string>
     <string name="relax">Relaks</string>
     <string name="sleep">Sen</string>

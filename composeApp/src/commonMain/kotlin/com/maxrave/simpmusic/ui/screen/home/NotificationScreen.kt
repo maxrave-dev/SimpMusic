@@ -62,6 +62,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.entities.NotificationEntity
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -77,8 +78,8 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import org.jetbrains.compose.resources.stringResource
@@ -102,7 +103,7 @@ fun NotificationScreen(
     val glowNowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val density = LocalDensity.current
-    val hazeState = rememberHazeState(blurEnabled = true)
+    val hazeState = rememberHazeState()
     var topAppBarHeight by remember { mutableStateOf(0.dp) }
     // Home's rule: transparent only while pixel-0 is on screen; the frost itself stays light.
     val isAtTop by remember {
@@ -187,12 +188,7 @@ fun NotificationScreen(
                         Modifier
                     } else {
                         // AlbumScreen's bar recipe, thinned to 0.3 — see SettingScreen.
-                        Modifier.hazeEffect(hazeState) {
-                            blurEnabled = true
-                            blurRadius = 24.dp
-                            backgroundColor = barTint
-                            tints = listOf(HazeTint(barTint.copy(alpha = 0.3f)))
-                        }
+                        Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(barTint, 0.3f))
                     },
                 ).onGloballyPositioned { coordinates ->
                     topAppBarHeight = with(density) { coordinates.size.height.toDp() }

@@ -388,8 +388,6 @@
     <string name="theme_color_wallpaper">Обои</string>
     <string name="theme_color_custom">Пользовательский</string>
     <string name="custom_color">Пользовательский цвет</string>
-    <string name="translucent_bottom_navigation_bar">Полупрозрачная нижняя панель</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Вы можете увидеть содержимое под нижней панелью</string>
     <string name="donation">Если вам нравится моя работа — купите мне кофе</string>
     <string name="relax">Релакс</string>
     <string name="sleep">Сон</string>
