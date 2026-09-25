@@ -258,6 +258,7 @@ import simpmusic.composeapp.generated.resources.equalizer_description
 import simpmusic.composeapp.generated.resources.equalizer_type
 import simpmusic.composeapp.generated.resources.equalizer_type_built_in
 import simpmusic.composeapp.generated.resources.equalizer_type_system
+import simpmusic.composeapp.generated.resources.follow_me_on_x
 import simpmusic.composeapp.generated.resources.free_space
 import simpmusic.composeapp.generated.resources.gemini
 import simpmusic.composeapp.generated.resources.guest
@@ -2768,6 +2769,13 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.maxrave_dev),
                     onClick = {
                         uriHandler.openUri("https://github.com/maxrave-dev")
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.follow_me_on_x),
+                    subtitle = "@maxrave_dev",
+                    onClick = {
+                        uriHandler.openUri("https://x.com/maxrave_dev")
                     },
                 )
                 SettingItem(
