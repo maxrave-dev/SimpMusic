@@ -163,8 +163,12 @@
     <string name="balance_media_loudness">平衡媒體音量</string>
     <string name="normalize_volume">音量平衡</string>
     <string name="audio">音訊</string>
+    <string name="no_equalizer">您的裝置不支援等化器</string>
+    <string name="open_system_equalizer">打開系統等化器</string>
+    <string name="use_your_system_equalizer">使用系統等化器</string>
     <string name="streaming_data_provider_piped">串流資料提供者</string>
     <string name="itag">標籤</string>
+    <string name="extract_source">提取来源</string>
     <string name="mime_type">Mime 類型</string>
     <string name="bitrate">位元率</string>
     <string name="warning">警告</string>
@@ -355,8 +359,6 @@
     <string name="theme_color_wallpaper">跟隨桌布</string>
     <string name="theme_color_custom">自訂</string>
     <string name="custom_color">自訂顏色</string>
-    <string name="translucent_bottom_navigation_bar">半透明底部導覽列</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">你可以看到底欄下方的內容</string>
     <string name="donation">如果你喜歡我的工作，請給我一杯咖啡</string>
     <string name="relax">放鬆</string>
     <string name="sleep">睡眠</string>
@@ -439,7 +441,7 @@
     <string name="ai_api_key">你的AI API金鑰</string>
     <string name="invalid_api_key">此金鑰不可用</string>
     <string name="custom_ai_model_id">自訂大模型ID</string>
-    <string name="default_models">預設模型為 \"gemini-2.0-flash\" 與 \"gpt-4o\"</string>
+    <string name="default_models">預設模型為 "gemini-2.0-flash" 與 "gpt-4o"</string>
     <string name="invalid">不可用</string>
     <string name="custom_model_id_messages">請鍵入確實的大模型ID。</string>
     <string name="favorite_podcasts">我的最愛 Podcast</string>
@@ -525,8 +527,6 @@
     <string name="lastfm_paste_callback_confirm">透過此連結繼續</string>
     <string name="logged_in_as">已登入為 %1$s</string>
     <string name="youtube_liked_music">YouTube 喜歡的音樂</string>
-    <string name="keep_service_alive">保持服務正常運行</string>
-    <string name="keep_service_alive_description">保持音樂播放器服務運行，避免被系統終止</string>
     <string name="keep_your_youtube_playlist_offline">離線時繼續顯示您的 YouTube 播放清單</string>
     <string name="keep_your_youtube_playlist_offline_description">將您的 YouTube 播放清單儲存到本地，以便在離線時查看</string>
     <string name="combine_local_and_youtube_liked_songs">登入後，將「收藏」替換為「YouTube 讚」</string>

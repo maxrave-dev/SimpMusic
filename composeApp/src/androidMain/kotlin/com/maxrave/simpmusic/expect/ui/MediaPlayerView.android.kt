@@ -31,6 +31,10 @@ actual fun MediaPlayerView(
     )
 }
 
+// Fully qualified: the media3-ui helper shares this function's name and signature.
+@Composable
+actual fun rememberVideoAspectRatio(playerName: String): Float? = com.maxrave.media3.ui.rememberVideoAspectRatio(playerName)
+
 @Composable
 actual fun MediaPlayerViewWithSubtitle(
     modifier: Modifier,

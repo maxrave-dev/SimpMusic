@@ -11,8 +11,9 @@ import kotlin.math.roundToInt
  * Main-window chrome facts published once by DesktopApp. The custom title bar is drawn INSIDE
  * the window (above the app content), so `LocalWindowInfo.containerSize` includes it — every
  * hDP-based layout (most visibly the player's one-screen fold math) overflowed by exactly the
- * bar height until it is subtracted here. In VMs the bar is not mounted (native decorations
- * live outside containerSize) and nothing must be subtracted. Only the main window ever calls
+ * bar height until it is subtracted here. On Linux and in VMs the bar is not mounted: native
+ * decorations live outside containerSize (measured on GNOME: frame 860 = title bar 37 + content
+ * 823 = containerSize), so nothing must be subtracted. Only the main window ever calls
  * [getScreenSizeInfo]; the mini-player window does not.
  */
 object DesktopWindowChrome {

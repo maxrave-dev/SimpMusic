@@ -17,9 +17,19 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
     <uses-permission android:name="androidx.car.app.MEDIA_TEMPLATES" />
+    <!-- Login sync: scanning the QR shown by SimpMusic Desktop. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Login sync reaches the computer by its LAN address. Only enforced for apps targeting
+         Android 17 (API 37) and up, where it is a runtime permission; LoginSync.android.kt asks
+         for it then. Declared now so a targetSdk bump cannot make the connection silently time out. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
     <uses-feature
         android:name="android.hardware.type.automotive"
+        android:required="false" />
+    <!-- Requesting CAMERA implies a required camera, which would hide the app from TVs and cars. -->
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.wifi"
@@ -58,7 +68,7 @@
         android:localeConfig="@xml/locale_config"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+        android:theme="@style/Theme.SimpMusic"
         android:enableOnBackInvokedCallback="true"
         android:requestLegacyExternalStorage="true"
         tools:replace="android:name"
@@ -71,7 +81,7 @@
             android:supportsPictureInPicture="true"
             android:enableOnBackInvokedCallback="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            android:theme="@style/Theme.SimpMusic"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

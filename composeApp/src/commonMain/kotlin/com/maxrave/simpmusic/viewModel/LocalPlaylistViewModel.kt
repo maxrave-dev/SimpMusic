@@ -540,36 +540,38 @@ class LocalPlaylistViewModel(
         }
     }
 
+    /**
+     * Mirrors the download state of [listJob] onto the playlist while the batch runs.
+     *
+     * A missing entry in `downloadTask` means "nothing reported yet", which is NOT the same as
+     * "finished and not downloaded" — collapsing the two into a trailing `else` is what pinned
+     * every playlist to STATE_NOT_DOWNLOADED whenever the map had not been populated. An
+     * unresolved batch therefore leaves the current state alone instead of overwriting it.
+     *
+     * The repository write also has to happen OUTSIDE `_uiState.update`: that helper is a
+     * compare-and-set retry loop, so a lambda with a suspending side effect in it can run more
+     * than once per emission and issue duplicate writes.
+     */
     fun downloadFullPlaylistState(
         id: Long,
         listJob: List<String>,
     ) {
+        if (listJob.isEmpty()) return
         viewModelScope.launch {
             downloadUtils.downloadTask.collect { download ->
-                _uiState.update { ui ->
-                    ui.copy(
-                        downloadState =
-                            if (listJob.all { download[it] == STATE_DOWNLOADED }) {
-                                localPlaylistRepository.updateLocalPlaylistDownloadState(
-                                    STATE_DOWNLOADED,
-                                    id,
-                                )
-                                STATE_DOWNLOADED
-                            } else if (listJob.any { download[it] == STATE_DOWNLOADING }) {
-                                localPlaylistRepository.updateLocalPlaylistDownloadState(
-                                    STATE_DOWNLOADING,
-                                    id,
-                                )
-                                STATE_DOWNLOADING
-                            } else {
-                                localPlaylistRepository.updateLocalPlaylistDownloadState(
-                                    STATE_NOT_DOWNLOADED,
-                                    id,
-                                )
-                                STATE_NOT_DOWNLOADED
-                            },
-                    )
-                }
+                val states = listJob.map { download[it] }
+                val resolved =
+                    when {
+                        // Checked before completeness: one track actively downloading is enough
+                        // to call the playlist downloading, even if the rest are still unreported.
+                        states.any { it == STATE_DOWNLOADING } -> STATE_DOWNLOADING
+                        states.all { it == STATE_DOWNLOADED } -> STATE_DOWNLOADED
+                        states.any { it == null } -> null
+                        else -> STATE_NOT_DOWNLOADED
+                    }
+                if (resolved == null || resolved == uiState.value.downloadState) return@collect
+                localPlaylistRepository.updateLocalPlaylistDownloadState(resolved, id)
+                _uiState.update { it.copy(downloadState = resolved) }
             }
         }
     }
@@ -1041,22 +1043,23 @@ class LocalPlaylistViewModel(
                 )
         } else {
             // Unsynced playlist: local only, no loading dialog needed
-            val loadedList =
-                lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
-            val fromItem = loadedList.getOrNull(from)?.first ?: return
-            val toItem = loadedList.getOrNull(to)?.first ?: return
-            val fromPosition = loadedList.getOrNull(from)?.second?.position ?: from
-            val toPosition = loadedList.getOrNull(to)?.second?.position ?: to
-            val playlistId = uiState.value.id
-
             localPlaylistRepository
-                .changePositionOfSongInPlaylist(playlistId, fromItem.videoId, toPosition)
-                .lastOrNull()
-                ?.let { log("changeLocalPlaylistItemPosition: from $it") }
-            localPlaylistRepository
-                .changePositionOfSongInPlaylist(playlistId, toItem.videoId, fromPosition)
-                .lastOrNull()
-                ?.let { log("changeLocalPlaylistItemPosition: to $it") }
+                .moveItemInLocalPlaylist(
+                    playlistId = uiState.value.id,
+                    fromIndex = from,
+                    toIndex = to,
+                ).collectResource(
+                    onLoading = {
+                        log("changeLocalPlaylistItemPosition (local): loading")
+                    },
+                    onSuccess = {
+                        log("changeLocalPlaylistItemPosition (local): success $it")
+                    },
+                    onError = { message ->
+                        log("changeLocalPlaylistItemPosition (local): error $message")
+                        makeToast(message)
+                    },
+                )
         }
     }
 }

@@ -23,11 +23,13 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background
 - Three Now Playing styles: Classic, Material 3 Expressive and Apple Music (NEW)
-- Ten-band equalizer with presets and AutoEq headphone profiles, plus Delay and Reverb effects (NEW)
+- Ten-band equalizer with presets and AutoEq headphone profiles, plus Delay and Reverb effects, or your phone's system equalizer on Android (NEW)
 - SimpMusic Wrapped: your year in music, plus monthly recap playlists (NEW)
 - On-device listening analytics: charts, period history, listening clock (NEW)
-- Word-by-word Apple Music-style lyrics, romanization for 12 languages, share lyrics as an image (NEW)
+- Word-by-word Apple Music-style lyrics, romanization for 12 languages, share lyrics as an image, landscape fullscreen lyrics and a timing offset (NEW)
 - Home screen widgets: turntable, playlists and listening insights (NEW)
+- Send your sign-ins from Android to Desktop by scanning a QR code (NEW)
+- Preferred audio language for videos with several audio tracks (NEW)
 - High quality up-to 256kbps stream (Opus or AAC) for YouTube Music Premium users
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
@@ -98,7 +100,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
 logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API to send listening history and listening record of video to Google for better recommendations and      
 supporting artist or YouTube Creator (For API reference,      
-see [this](https://github.com/maxrave-dev/SimpMusic/blob/main/core/service/kotlinYtmusicScraper/src/commonMain/kotlin/com/maxrave/kotlinytmusicscraper/Ytmusic.kt)).
+see [this](https://github.com/maxrave-dev/core/blob/master/service/kotlinYtmusicScraper/src/commonMain/kotlin/com/maxrave/kotlinytmusicscraper/Ytmusic.kt)).
 
 We collect crash data in the Full version to improve the app.
    

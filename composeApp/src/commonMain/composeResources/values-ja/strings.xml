@@ -124,7 +124,9 @@
     <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">コーヒーを奢る</string>
     <string name="developer_blog">開発者ブログ</string>
+    <string name="developer_blog_tagline">開発ノートやチュートリアル &amp; 開発秘話を読む</string>
     <string name="blog_promo_title">開発者からの新着情報</string>
+    <string name="blog_promo_message">個人ブログ maxrave.dev を開設しました。SimpMusicの開発背景や音楽技術の解説、開発メモを公開しています。気になる方はぜひご覧ください</string>
     <string name="visit_blog">ブログを見る</string>
     <string name="paypal">PayPal</string>
     <string name="title">題名</string>
@@ -161,8 +163,12 @@
     <string name="balance_media_loudness">メディアの音の大きさの均衡をとる</string>
     <string name="normalize_volume">音量を均一化</string>
     <string name="audio">音声</string>
+    <string name="no_equalizer">端末にイコライザーがありません</string>
+    <string name="open_system_equalizer">システムのイコライザーを開く</string>
+    <string name="use_your_system_equalizer">システムのイコライザーを使用</string>
     <string name="streaming_data_provider_piped">ストリーミングデータの提供元 (Piped)</string>
     <string name="itag">iタグ</string>
+    <string name="extract_source">ソースを抽出</string>
     <string name="mime_type">MIME 種別</string>
     <string name="bitrate">ビットレート</string>
     <string name="warning">警告</string>
@@ -198,6 +204,7 @@
     <string name="categories_sponsor_block">スキップするシーンを選択</string>
     <string name="what_segments_will_be_skipped">スキップしたいシーンを選択</string>
     <string name="save">保存</string>
+    <string name="crop_cover">カバー画像をトリミング</string>
     <string name="saved">保存しました</string>
     <string name="sponsor_block_intro">SponsorBlock は、YouTube 動画の余分なシーンをスキップするための、クラウドソースのシステムです。\n詳細: https://sponsor.ajay.app/\nSimpMusic では、SponsorBlock は端末がネットに接続中の場合にのみ利用できます。</string>
     <string name="skip_sponsor_part_of_video">動画の協賛シーンなどをスキップします</string>
@@ -214,6 +221,7 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">エラー情報</string>
     <string name="no_update">お使いのバージョンは最新です</string>
     <string name="sleep_timer">スリープタイマー - %1$s 分</string>
+    <string name="sleep_timer_end_of_song">スリープタイマー - 曲の終了時</string>
     <string name="sleep_timer_off">スリープタイマー</string>
     <string name="sleep_minutes">カウントダウン（分）</string>
     <string name="set">設定</string>
@@ -259,6 +267,7 @@
     <string name="translation_language_message">言語コードを入力してください (2文字、例: en)。SimpMusic の言語と同じに設定にするには、編集欄を空にしてください。</string>
     <string name="invalid_language_code">無効な言語コードです</string>
     <string name="lyrics_provider_youtube">歌詞の提供元 YouTube</string>
+    <string name="lyrics_provider_betterlyrics">BetterLyricsが提供する歌詞</string>
     <string name="limit_player_cache">プレイヤーのキャッシュを制限</string>
     <string name="unlimited">無制限</string>
     <string name="third_party_libraries">第三者製のライブラリ</string>
@@ -296,6 +305,20 @@
     <string name="your_music_is_always_up_to_date">常に最新の状態です</string>
     <string name="youtube_account">YouTubeアカウント</string>
     <string name="manage_your_youtube_accounts">YouTubeアカウントの管理</string>
+    <string name="sync_follow_to_youtube">Youtubeとフォローを同期</string>
+    <string name="equalizer">イコライザー</string>
+    <string name="equalizer_description">10バンドの周波数カーブで音質を細かく調整します</string>
+    <string name="equalizer_type">イコライザーの種類</string>
+    <string name="equalizer_type_built_in">内蔵</string>
+    <string name="equalizer_type_system">システム</string>
+    <string name="equalizer_preamp">プリアンプ</string>
+    <string name="equalizer_presets">プリセット</string>
+    <string name="equalizer_preset_custom">カスタム</string>
+    <string name="equalizer_reset">リセット</string>
+    <string name="equalizer_autoeq_choose">ヘッドフォンの選択</string>
+    <string name="equalizer_autoeq_search">ヘッドフォンのモデル</string>
+    <string name="equalizer_autoeq_downloading">AutoEqのプロファイルリストをダウンロード中…</string>
+    <string name="equalizer_autoeq_unavailable">AutoEq に接続できませんでした。ネットワーク接続を確認して、もう一度お試しください。</string>
     <string name="no_account">アカウントなし</string>
     <string name="add_an_account">アカウントの追加</string>
     <string name="signed_in">ログイン済み</string>
@@ -341,8 +364,6 @@
     <string name="repeat_off">リピートなし</string>
     <string name="youtube_transcript">YouTube の文字起こし</string>
     <string name="user_interface">外観</string>
-    <string name="translucent_bottom_navigation_bar">下部のナビバーを半透明に</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">下部のバーの裏のコンテンツを表示</string>
     <string name="donation">このアプリが気に入れば、私にコーヒーおごってください</string>
     <string name="relax">リラックス</string>
     <string name="sleep">睡眠</string>
@@ -418,7 +439,7 @@
     <string name="ai_api_key">AI の API キー</string>
     <string name="invalid_api_key">API キーが無効です</string>
     <string name="custom_ai_model_id">AI のモデル ID を指定</string>
-    <string name="default_models">デフォルトのモデルは \"gemini-2.0-flash\" と \"gpt-4o\"</string>
+    <string name="default_models">デフォルトのモデルは "gemini-2.0-flash" と "gpt-4o"</string>
     <string name="invalid">無効です</string>
     <string name="custom_model_id_messages">AI 提供元によるモデルIDを正確に入力します。</string>
     <string name="favorite_podcasts">お気に入りのポッドキャスト</string>
@@ -473,8 +494,6 @@
     <string name="enable_rich_presence">Rich Presence を有効にする</string>
     <string name="rich_presence_info">Discordのプロフィールにメディアセッション情報を表示します</string>
     <string name="youtube_liked_music">YouTubeで高く評価した音楽</string>
-    <string name="keep_service_alive">サービスを有効したままにする</string>
-    <string name="keep_service_alive_description">システムによって終了されるのを避けるために音楽プレイヤーのサービスを有効したままにします</string>
     <string name="keep_your_youtube_playlist_offline">オフライン時にYouTubeプレイリストを表示する</string>
     <string name="keep_your_youtube_playlist_offline_description">オフライン時にYouTubeプレイリストをローカルに保存して表示します</string>
     <string name="combine_local_and_youtube_liked_songs">ログイン時にお気に入りをYouTubeの高評価に置き換える</string>

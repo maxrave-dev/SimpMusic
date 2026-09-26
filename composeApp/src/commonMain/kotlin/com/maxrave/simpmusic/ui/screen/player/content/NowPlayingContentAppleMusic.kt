@@ -19,8 +19,9 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -156,18 +157,6 @@ fun NowPlayingContentAppleMusic(
         actions.onToolbarVisibilityChange(false)
     }
 
-    // The artwork bitmap feeds BOTH the frosted backdrop below and the palette every colour on
-    // this page is derived from. The only thing that ever supplied it is the AsyncImage inside the
-    // artwork pager, which lives in MAIN — and the Crossfade composes exactly one body, so on
-    // QUEUE or LYRICS that pager does not exist. Changing track there fed nothing, and the page
-    // fell back to a flat gradient.
-    //
-    // The loader below sits OUTSIDE the Crossfade so it covers every body, and it is an AsyncImage
-    // rather than an imperative ImageLoader.execute(): the pager's AsyncImage demonstrably loads
-    // this exact url while the execute() call did not, so this uses the path already proven to
-    // work rather than a second one that has to be kept working.
-    var backdropUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
-
     val paletteColor = state.startColor.value
     val seedColor = if (paletteColor == Color.Black) seed else paletteColor
     val activePillContainer = remember(seedColor) { lerp(seedColor, Color.White, 0.75f) }
@@ -177,18 +166,6 @@ fun NowPlayingContentAppleMusic(
         viewState == AppleMusicView.MAIN &&
             (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
     val isVideoBackdropTop = showCanvasBackdrop && state.screenData.canvasData == null
-
-    // The approved mock's page gradient is THREE stops — a clearly-tinted top, ~55%-darkened by
-    // mid-page (48%), warm near-black at the bottom. The first cut's two stops to near-black read
-    // as a flat black page on any dark artwork (first device screenshots).
-    val backdropBrush =
-        remember(seedColor) {
-            Brush.verticalGradient(
-                0f to appleMusicGradientColorAt(seedColor, 0f),
-                0.48f to appleMusicGradientColorAt(seedColor, 0.48f),
-                1f to appleMusicGradientColorAt(seedColor, 1f),
-            )
-        }
 
     val deviceVolumeController = rememberDeviceVolumeController()
     val typography = rememberAppleMusicTypography()
@@ -212,48 +189,7 @@ fun NowPlayingContentAppleMusic(
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Box(modifier = Modifier.matchParentSize().layerBackdrop(panelBackdrop)) {
-            // Apple frosts the COVER ART into the page background — the colour and the soft blotches
-            // of the artwork stay visible through it. A flat tinted gradient, which is what this used
-            // to be, gets the hue right and loses everything else: the page reads as a solid colour
-            // swatch rather than as the record it belongs to.
-            //
-            // Loaded straight from the url by AsyncImage rather than through the screen state's
-            // decoded bitmap. The background IS an image, so there is no reason to route it through a
-            // bitmap someone else has to remember to fill in — which is exactly what broke: the only
-            // thing feeding that bitmap was the artwork pager inside MAIN, so on QUEUE or LYRICS a
-            // track change left it null and the page fell back to a bare gradient.
-            //
-            // The palette still needs a bitmap, and it comes off this same load. One source, so the
-            // frosted art and the tint over it cannot end up belonging to different songs.
-            //
-            // The heavy blur radius is safe because the whole style is gated behind Android 12 for
-            // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
-            // scaled far past its own resolution — at this blur that costs nothing visually.
-            if (!backdropUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model =
-                        ImageRequest
-                            .Builder(LocalPlatformContext.current)
-                            .data(backdropUrl)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(backdropUrl + "BIGGER")
-                            .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
-                    // Same fallback the artwork pager carries: maxresdefault is missing for plenty of
-                    // videos, and without this the page would simply stay black.
-                    onError = {
-                        val fallback = backdropUrl?.replace("maxresdefault", "hqdefault")
-                        if (fallback != null && fallback != backdropUrl) backdropUrl = fallback
-                    },
-                    modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
-                )
-            }
-            // The tint still rides on top, but as a translucent wash rather than the whole background:
-            // it keeps the vertical darkening that makes the controls readable at the bottom, while the
-            // frosted artwork shows through it.
-            Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
+            AppleMusicArtworkBackdrop(state = state, actions = actions, seedColor = seedColor)
             // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
             // turns the bars above and below it into dead black slabs — keep the artwork-tinted
             // gradient there.
@@ -324,8 +260,8 @@ fun NowPlayingContentAppleMusic(
                     modifier =
                         Modifier
                             .align(Alignment.TopStart)
-                            .padding(12.dp)
-                            .size(48.dp),
+                            .padding(DISMISS_BUTTON_INSET)
+                            .size(DISMISS_BUTTON_SIZE),
                     onClick = { actions.onDismiss() },
                 )
             }
@@ -338,7 +274,7 @@ fun NowPlayingContentAppleMusic(
                     Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
-                        .size(width = 64.dp, height = 28.dp)
+                        .size(width = 64.dp, height = GRABBER_HEIGHT)
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() },
@@ -433,6 +369,7 @@ private fun AppleMusicMainView(
                 localDensity = localDensity,
                 page = page,
                 artworkZoneHeightDp = artworkZoneHeightDp,
+                bottomContentHeightDp = bottomContentHeightDp,
                 isVideoBackdrop = isVideoBackdrop,
                 showVideoOverlay = showVideoOverlay,
                 onToggleVideoOverlay = { showVideoOverlay = !showVideoOverlay },
@@ -691,8 +628,88 @@ private fun AppleMusicMainView(
     }
 }
 
+/**
+ * The frosted cover art behind the page, with the artwork-derived gradient washed over it. Shared
+ * with the fullscreen lyrics landscape layout. Emits straight into the caller's Box — in both
+ * places that Box is the glass backdrop source, and anything stacked after this call (the canvas
+ * black layer here) must keep drawing on top of it.
+ */
 @Composable
-private fun AppleMusicMainTitleRow(
+internal fun BoxScope.AppleMusicArtworkBackdrop(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+    seedColor: Color,
+) {
+    // The artwork bitmap feeds BOTH the frosted backdrop below and the palette every colour on
+    // this page is derived from. The only thing that ever supplied it is the AsyncImage inside the
+    // artwork pager, which lives in MAIN — and the Crossfade composes exactly one body, so on
+    // QUEUE or LYRICS that pager does not exist. Changing track there fed nothing, and the page
+    // fell back to a flat gradient.
+    //
+    // The loader below sits OUTSIDE the Crossfade so it covers every body, and it is an AsyncImage
+    // rather than an imperative ImageLoader.execute(): the pager's AsyncImage demonstrably loads
+    // this exact url while the execute() call did not, so this uses the path already proven to
+    // work rather than a second one that has to be kept working.
+    var backdropUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+
+    // The approved mock's page gradient is THREE stops — a clearly-tinted top, ~55%-darkened by
+    // mid-page (48%), warm near-black at the bottom. The first cut's two stops to near-black read
+    // as a flat black page on any dark artwork (first device screenshots).
+    val backdropBrush =
+        remember(seedColor) {
+            Brush.verticalGradient(
+                0f to appleMusicGradientColorAt(seedColor, 0f),
+                0.48f to appleMusicGradientColorAt(seedColor, 0.48f),
+                1f to appleMusicGradientColorAt(seedColor, 1f),
+            )
+        }
+
+    // Apple frosts the COVER ART into the page background — the colour and the soft blotches
+    // of the artwork stay visible through it. A flat tinted gradient, which is what this used
+    // to be, gets the hue right and loses everything else: the page reads as a solid colour
+    // swatch rather than as the record it belongs to.
+    //
+    // Loaded straight from the url by AsyncImage rather than through the screen state's
+    // decoded bitmap. The background IS an image, so there is no reason to route it through a
+    // bitmap someone else has to remember to fill in — which is exactly what broke: the only
+    // thing feeding that bitmap was the artwork pager inside MAIN, so on QUEUE or LYRICS a
+    // track change left it null and the page fell back to a bare gradient.
+    //
+    // The palette still needs a bitmap, and it comes off this same load. One source, so the
+    // frosted art and the tint over it cannot end up belonging to different songs.
+    //
+    // The heavy blur radius is safe because the whole style is gated behind Android 12 for
+    // exactly this reason (isLyricsBlurSupported), and Crop + fillMaxSize means the artwork is
+    // scaled far past its own resolution — at this blur that costs nothing visually.
+    if (!backdropUrl.isNullOrBlank()) {
+        AsyncImage(
+            model =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(backdropUrl)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(backdropUrl + "BIGGER")
+                    .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+            // Same fallback the artwork pager carries: maxresdefault is missing for plenty of
+            // videos, and without this the page would simply stay black.
+            onError = {
+                val fallback = backdropUrl?.replace("maxresdefault", "hqdefault")
+                if (fallback != null && fallback != backdropUrl) backdropUrl = fallback
+            },
+            modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
+        )
+    }
+    // The tint still rides on top, but as a translucent wash rather than the whole background:
+    // it keeps the vertical darkening that makes the controls readable at the bottom, while the
+    // frosted artwork shows through it.
+    Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
+}
+
+@Composable
+internal fun AppleMusicMainTitleRow(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     typography: AppleMusicTypography,
@@ -748,6 +765,7 @@ private fun AppleMusicArtworkPage(
     localDensity: Density,
     page: Int,
     artworkZoneHeightDp: Int,
+    bottomContentHeightDp: Int,
     isVideoBackdrop: Boolean,
     showVideoOverlay: Boolean,
     onToggleVideoOverlay: () -> Unit,
@@ -803,33 +821,53 @@ private fun AppleMusicArtworkPage(
                     // Centre the video in the region ABOVE the controls (top → cluster), not in
                     // the whole screen: screen-centred, half of a 16:9 video sat behind the
                     // control cluster and its subtitles landed on the dock.
-                    // fillMaxWidth (never fillMaxSize) leaves the height free so the surface's
-                    // own .aspectRatio(videoRatio) still applies — that is what keeps it from
-                    // being stretched.
-                    Box(
+                    // The frame takes the video's own shape, fitted into that region, but never
+                    // starts above the top chrome — status bar + grabber on Android, the glass
+                    // dismiss button on Desktop — plus a gap: a tall video would otherwise run into
+                    // them and put the fullscreen button under the status bar.
+                    val topChrome =
+                        with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() } +
+                            (if (getPlatform() == Platform.Desktop) DISMISS_BUTTON_INSET + DISMISS_BUTTON_SIZE else GRABBER_HEIGHT) +
+                            VIDEO_FRAME_TOP_GAP
+                    BoxWithConstraints(
                         modifier =
                             Modifier
                                 .align(Alignment.TopCenter)
-                                .fillMaxWidth()
-                                .height(artworkZoneHeightDp.dp)
+                                // The page's own height minus the controls, not artworkZoneHeightDp:
+                                // that one is measured against the window, and the Desktop side panel
+                                // is shorter than the window by its shell padding, which pushed a tall
+                                // frame down into the gap above the title.
+                                .fillMaxSize()
+                                .padding(bottom = bottomContentHeightDp.dp)
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },
                                 ) { onToggleVideoOverlay() },
-                        contentAlignment = Alignment.Center,
                     ) {
+                        val ratio = state.videoAspectRatio
+                        val frameHeight = minOf(maxWidth / ratio, (maxHeight - topChrome).coerceAtLeast(0.dp))
+                        val frameWidth = frameHeight * ratio
+                        val frameTop = maxOf((maxHeight - frameHeight) / 2, topChrome)
                         // THE VIDEO FRAME. Everything over-video — the surface, the subtitle and
                         // the whole control overlay — is anchored to THIS box, so the fullscreen
                         // button sits on the video's own top-right corner and the subtitle button
                         // on its bottom-right, instead of being flung to the corners of the much
                         // taller zone (fullscreen ended up under the status bar, subtitles far
                         // below the picture).
-                        Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = frameTop)
+                                    .size(width = frameWidth, height = frameHeight)
+                                    // A vertical video stands clear of the screen edges, so it is rounded
+                                    // like a card; wide ones run edge to edge and stay square.
+                                    .then(if (ratio < 1f) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier),
+                        ) {
                         MediaPlayerViewWithSubtitle(
                             playerName = MAIN_PLAYER,
                             // fillMaxWidth, never fillMaxSize: a free height lets the surface's
-                            // own .aspectRatio(videoRatio) apply, which is what stops it being
-                            // stretched.
+                            // own aspect ratio apply, which is what stops it being stretched.
                             modifier = Modifier.fillMaxWidth().align(Alignment.Center),
                             shouldShowSubtitle = showSubtitle,
                             shouldPip = false,
@@ -993,6 +1031,18 @@ private fun AppleMusicArtworkPage(
 // survives as a shape — what is left is its colour and its broad light and dark areas, which is
 // precisely what Apple's background is.
 private val BACKDROP_BLUR_RADIUS = 80.dp
+
+// Height of the Android grabber's tap target, right under the status bar. A tall video frame
+// starts below it, so the frame's fullscreen button lands on neither the grabber nor the status bar.
+private val GRABBER_HEIGHT = 28.dp
+
+// Desktop's glass dismiss button in the panel's top-left corner, which stands in for the grabber
+// there — a tall video frame starts below it for the same reason.
+private val DISMISS_BUTTON_INSET = 12.dp
+private val DISMISS_BUTTON_SIZE = 48.dp
+
+// Breathing room between that top chrome and a tall video frame.
+private val VIDEO_FRAME_TOP_GAP = 16.dp
 
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.

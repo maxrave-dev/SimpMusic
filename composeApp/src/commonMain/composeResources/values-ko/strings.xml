@@ -364,8 +364,6 @@
     <string name="theme_color_wallpaper">배경화면</string>
     <string name="theme_color_custom">사용자 지정</string>
     <string name="custom_color">사용자 지정 색상</string>
-    <string name="translucent_bottom_navigation_bar">반투명 하단 내비게이션 바</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">하단 바 밑에 있는 콘텐츠를 확인 가능</string>
     <string name="donation">앱이 마음에 드시면, 커피 한 잔으로 응원해주세요</string>
     <string name="relax">휴식</string>
     <string name="sleep">잠잘 때</string>
@@ -447,7 +445,7 @@
     <string name="ai_api_key">내 AI API 키</string>
     <string name="invalid_api_key">잘못된 API 키</string>
     <string name="custom_ai_model_id">사용자 AI 모델 ID</string>
-    <string name="default_models">기본 모델은 \"gemini-2.0-flash\" 및 \"gpt-4o\"입니다</string>
+    <string name="default_models">기본 모델은 "gemini-2.0-flash" 및 "gpt-4o"입니다</string>
     <string name="invalid">잘못됨</string>
     <string name="custom_model_id_messages">AI 제공자의 정확한 모델 ID를 입력해 주십시오.</string>
     <string name="favorite_podcasts">즐겨 찾는 팟캐스트</string>
@@ -534,8 +532,6 @@
     <string name="lastfm_paste_callback_confirm">이 링크로 계속하기</string>
     <string name="logged_in_as">%1$s로 로그인됨</string>
     <string name="youtube_liked_music">YouTube 좋아요 표시한 음악</string>
-    <string name="keep_service_alive">서비스 활성 유지</string>
-    <string name="keep_service_alive_description">시스템이 종료하지 않도록 음악 플레이어 서비스를 활성 상태로 유지합니다</string>
     <string name="keep_your_youtube_playlist_offline">오프라인일 때도 YouTube 재생목록 표시</string>
     <string name="keep_your_youtube_playlist_offline_description">YouTube 재생목록을 로컬에 저장한 뒤 오프라인일 때 표시합니다</string>
     <string name="combine_local_and_youtube_liked_songs">로그인 시 즐겨찾기를 YouTube 좋아요 표시한 재생목록으로 교체</string>

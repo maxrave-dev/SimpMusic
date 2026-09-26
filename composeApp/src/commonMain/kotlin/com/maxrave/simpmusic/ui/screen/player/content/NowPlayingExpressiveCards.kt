@@ -134,6 +134,14 @@ private val ExpressiveCardShape = RoundedCornerShape(20.dp)
 private val ArtworkCardShape = RoundedCornerShape(28.dp)
 
 /**
+ * Width / height of the slot the artwork card takes in the column: the video's own shape while
+ * one plays, capped at square so a tall video is never taller than a song's card. The one
+ * expression both the drawn card and the measuring spacer in `NowPlayingContentM3Expressive` use.
+ */
+internal fun NowPlayingContentState.expressiveCardSlotRatio(): Float =
+    if (screenData.isVideo && shouldShowVideo) maxOf(videoAspectRatio, 1f) else 1f
+
+/**
  * One pager page: a rounded square card (width = screen − 40dp, 1:1, 28dp corners).
  *
  * Current page: live artwork (feeds the palette via [NowPlayingContentActions.onArtworkBitmap])
@@ -159,10 +167,11 @@ internal fun ExpressiveArtworkCardPage(
     val pageTrack = state.artworkQueue.getOrNull(page)
     val isCurrentArtworkPage = page == state.currentOrderIndex
     val pageHasCanvas = isCurrentArtworkPage && state.screenData.canvasData != null
-    // While a video plays, the card frame itself shrinks to the video's 16:9 — no letterbox
-    // bands inside a square card. Every page shares the ratio so the pager height matches the
-    // measuring spacer in the content column (which uses the same condition).
-    val cardAspectRatio = if (state.screenData.isVideo && state.shouldShowVideo) 16f / 9 else 1f
+    // While a video plays, the card itself takes the video's shape — no letterbox bands inside a
+    // square card — fitted into a slot no taller than the square card a song gets, so a tall video
+    // narrows the card instead of pushing the page past the fold. Every page shares the slot so the
+    // pager height matches the measuring spacer in the content column (expressiveCardSlotRatio).
+    val cardAspectRatio = if (state.screenData.isVideo && state.shouldShowVideo) state.videoAspectRatio else 1f
 
     Box(
         contentAlignment = Alignment.Center,
@@ -285,6 +294,8 @@ internal fun ExpressiveArtworkCardPage(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .alpha(if (pageHasCanvas) 0f else 1f)
+                        .aspectRatio(state.expressiveCardSlotRatio())
+                        .wrapContentSize()
                         .aspectRatio(cardAspectRatio)
                         .clip(ArtworkCardShape)
                         .background(colorScheme.surfaceContainer),
@@ -350,11 +361,11 @@ internal fun ExpressiveArtworkCardPage(
                         var internalShowSubtitle by rememberSaveable {
                             mutableStateOf(true)
                         }
+                        // The card already has the video's shape, so this simply fills it.
                         Box(
                             modifier =
                                 Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(16f / 9)
+                                    .fillMaxSize()
                                     .background(Color.Black),
                         ) {
                             Box(Modifier.fillMaxSize()) {

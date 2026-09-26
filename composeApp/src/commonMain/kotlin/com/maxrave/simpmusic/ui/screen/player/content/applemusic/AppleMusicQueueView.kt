@@ -127,6 +127,19 @@ internal fun AppleMusicQueueView(
         remember(state.artworkQueue, state.currentOrderIndex) {
             if (state.currentOrderIndex < 0) emptyList() else state.artworkQueue.withIndex().drop(offset)
         }
+    // Row keys by track, NOT by position: a radio queue drops played tracks off the front, and a
+    // position-based key changes for every row when that happens, so the list loses its scroll
+    // anchor and jumps under the user. The occurrence number keeps it unique when a radio repeats
+    // a song. Indexed by the ABSOLUTE queue position each row carries.
+    val rowKeys =
+        remember(state.artworkQueue) {
+            val seen = HashMap<String, Int>(state.artworkQueue.size)
+            state.artworkQueue.map { track ->
+                val occurrence = seen.getOrElse(track.videoId) { 0 }
+                seen[track.videoId] = occurrence + 1
+                "${track.videoId}#$occurrence"
+            }
+        }
 
     Column(modifier = modifier.fillMaxSize()) {
         // statusBars + 20dp, not a bare status-bar offset: the grabber that
@@ -195,10 +208,12 @@ internal fun AppleMusicQueueView(
 
         // Same per-item sheet the old queue sheet opens from a row's ⋯ (move up/down/delete).
         var queueItemSheetIndex by remember { mutableStateOf(-1) }
+        var queueItemSheetVideoId by remember { mutableStateOf<String?>(null) }
         if (queueItemSheetIndex >= 0) {
             QueueItemBottomSheet(
                 onDismiss = { queueItemSheetIndex = -1 },
                 index = queueItemSheetIndex,
+                videoId = queueItemSheetVideoId,
             )
         }
 
@@ -254,7 +269,7 @@ internal fun AppleMusicQueueView(
                     upcoming,
                     // Absolute index in the key: `upcoming` is a sublist, so a bare local index
                     // shifts on every track change and invalidates every row.
-                    key = { _, item -> item.index.toString() + item.value.videoId },
+                    key = { _, item -> rowKeys.getOrElse(item.index) { item.value.videoId } },
                 ) { localIndex, item ->
                     val track = item.value
                     // The queue-wide index this row actually has. Everything the PLAYER is told
@@ -276,7 +291,10 @@ internal fun AppleMusicQueueView(
                             onClickListener = { videoId ->
                                 if (videoId == track.videoId) actions.onSeekToQueueIndex(queueIndex)
                             },
-                            onMoreClickListener = { queueItemSheetIndex = queueIndex },
+                            onMoreClickListener = {
+                                queueItemSheetVideoId = track.videoId
+                                queueItemSheetIndex = queueIndex
+                            },
                         )
                     }
                 }

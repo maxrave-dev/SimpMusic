@@ -356,8 +356,6 @@
     <string name="theme_color_wallpaper">Tapeta</string>
     <string name="theme_color_custom">Niestandardowy</string>
     <string name="custom_color">Kolor niestandardowy</string>
-    <string name="translucent_bottom_navigation_bar">Przezroczysty dolny pasek nawigacji</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">Możesz zobaczyć zawartość pod dolnym paskiem</string>
     <string name="donation">Jeśli lubisz moją pracę, kup mi kawę</string>
     <string name="relax">Relaks</string>
     <string name="sleep">Sen</string>
@@ -437,7 +435,7 @@
     <string name="ai_api_key">Twój klucz API AI</string>
     <string name="invalid_api_key">Nieprawidłowy klucz</string>
     <string name="custom_ai_model_id">ID niestandardowego modelu AI</string>
-    <string name="default_models">Domyślne modele to \"gemini-2.0-flash\" i \"gpt-4o\"</string>
+    <string name="default_models">Domyślne modele to "gemini-2.0-flash" i "gpt-4o"</string>
     <string name="invalid">Niepoprawne</string>
     <string name="custom_model_id_messages">Wprowadź dokładny identyfikator modelu od dostawcy AI.</string>
     <string name="favorite_podcasts">Ulubione podcasty</string>
@@ -500,8 +498,6 @@
     <string name="enable_rich_presence">Włącz Discord Rich Presence</string>
     <string name="rich_presence_info">Pokaż informacje o sesji multimedialnej w profilu Discorda</string>
     <string name="youtube_liked_music">Polubiona muzyka YouTube</string>
-    <string name="keep_service_alive">Utrzymuj usługę przy życiu</string>
-    <string name="keep_service_alive_description">Trzymaj usługę odtwarzacza muzyki przy życiu, aby uniknąć zabijania jej przez system</string>
     <string name="keep_your_youtube_playlist_offline">Pokazuj swoją playlistę YouTube w trybie offline</string>
     <string name="keep_your_youtube_playlist_offline_description">Zapisz swoją playlistę YT do lokalnej i zachowaj, aby pokazywała się w trybie offline</string>
     <string name="combine_local_and_youtube_liked_songs">Zastąp Ulubione przez polubienia YouTube podczas logowania</string>

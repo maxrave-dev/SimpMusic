@@ -375,8 +375,6 @@
     <string name="theme_color_wallpaper">วอลเปเปอร์</string>
     <string name="theme_color_custom">กำหนดเอง</string>
     <string name="custom_color">กำหนดสี</string>
-    <string name="translucent_bottom_navigation_bar">แถบนำทางด้านล่างโปร่งแสง</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">คุณสามารถดูเนื้อหาได้ที่แถบด้านล่าง</string>
     <string name="donation">ถ้าคุณชอบแอปนี้ สามารถเลี้ยงกาแฟให้ฉันได้</string>
     <string name="relax">ผ่อนคลาย</string>
     <string name="sleep">นอน</string>
@@ -458,7 +456,7 @@
     <string name="ai_api_key">คีย์ API สำหรับ AI ของคุณ</string>
     <string name="invalid_api_key">คีย์ API ไม่ถูกต้อง</string>
     <string name="custom_ai_model_id">รหัสโมเดล AI ที่ปรับแต่งเอง</string>
-    <string name="default_models">โมเดลเริ่มต้นคือ \"gemini-2.0-flash\" และ \"gpt-4o\"</string>
+    <string name="default_models">โมเดลเริ่มต้นคือ "gemini-2.0-flash" และ "gpt-4o"</string>
     <string name="invalid">ไม่ถูกต้อง</string>
     <string name="custom_model_id_messages">กรุณากรอกรหัสโมเดลที่ถูกต้องจากผู้ให้บริการ AI ของคุณ</string>
     <string name="favorite_podcasts">พอดแคสต์ที่ชื่นชอบ</string>
@@ -528,8 +526,6 @@
     <string name="enable_rich_presence">เปิดใช้งาน Rich Presence</string>
     <string name="rich_presence_info">แสดงข้อมูลการเล่นสื่อบนโปรไฟล์ Discord ของคุณ</string>
     <string name="youtube_liked_music">เพลงที่ถูกใจบน YouTube</string>
-    <string name="keep_service_alive">คงการทำงานของบริการ</string>
-    <string name="keep_service_alive_description">รักษาการทำงานของเครื่องเล่นเพลง เพื่อหลีกเลี่ยงการถูกระบบปิดเพลง</string>
     <string name="keep_your_youtube_playlist_offline">แสดงเพลย์ลิสต์ YouTube แม้ไม่ได้เชื่อมต่ออินเทอร์เน็ต</string>
     <string name="keep_your_youtube_playlist_offline_description">จัดเก็บเพลย์ลิสต์ YouTube ในเครื่องเพื่อใช้งานแบบออฟไลน์</string>
     <string name="combine_local_and_youtube_liked_songs">ใช้เพลงที่ถูกใจบน YouTube แทนรายการโปรดเมื่อเข้าสู่ระบบ</string>

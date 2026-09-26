@@ -252,6 +252,7 @@ class MainActivity : AppCompatActivity() {
         }
         viewModel.getLocation()
 
+        if (!BuildConfig.DEBUG) viewModel.checkOfficialBuild(packageName, signingCertSha256())
         setContent {
             App(viewModel)
         }
@@ -291,6 +292,10 @@ class MainActivity : AppCompatActivity() {
 
                     is ToastType.PlayerError -> {
                         runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.TIME_OUT_ERROR, type.error) }
+                    }
+
+                    is ToastType.SponsorBlockSkip -> {
+                        runBlocking { ComposeResUtils.getResString(ComposeResUtils.StringType.SPONSOR_BLOCK_SKIP, type.category) }
                     }
                 },
             )

@@ -57,11 +57,14 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.LocalAppColors
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.HazeColorEffect
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -525,6 +528,25 @@ fun Palette?.toImmersiveBackground(): Color {
     val darkenFactor = 0.35f + 0.45f * luminance
     return androidx.compose.ui.graphics.lerp(base, Color.Black, darkenFactor)
 }
+
+/**
+ * The frosted top bar of the immersive screens: their own page colour behind a 24dp blur, washed
+ * with that colour again at [tintAlpha]. Blur is forced on, so Android 8–11 takes haze's
+ * RenderScript path instead of a flat scrim.
+ *
+ * A plain function, not remembered: `HazeBlurStyle { }` records its writes into a list and compares
+ * by them, so an unchanged tint recomposes into an equal Style and leaves the node alone.
+ */
+fun barBlurStyle(
+    tint: Color,
+    tintAlpha: Float,
+): HazeBlurStyle =
+    HazeBlurStyle {
+        blurEnabled(true)
+        blurRadius(24.dp)
+        backgroundColor(tint)
+        colorEffects(listOf(HazeColorEffect.tint(tint.copy(alpha = tintAlpha))))
+    }
 
 /**
  * Vertical scrim from [from] to [to] that fades without showing an edge.

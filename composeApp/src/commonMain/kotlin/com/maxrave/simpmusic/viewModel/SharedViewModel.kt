@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
+import com.maxrave.common.Config
 import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.DOWNLOAD_CACHE
 import com.maxrave.common.Config.PLAYLIST_CLICK
@@ -167,6 +168,22 @@ class SharedViewModel(
 
     private val _showNotificationPermissionDialog = MutableStateFlow(false)
     val showNotificationPermissionDialog: StateFlow<Boolean> = _showNotificationPermissionDialog
+
+    private val _isOfficialBuild = MutableStateFlow(true)
+    val isOfficialBuild: StateFlow<Boolean> = _isOfficialBuild
+
+    // One-shot: the Desktop capsule asks the Now Playing panel, which hosts the page, to open
+    // full-screen lyrics. The panel consumes it once shown.
+    private val _fullscreenLyricsRequest = MutableStateFlow(false)
+    val fullscreenLyricsRequest: StateFlow<Boolean> = _fullscreenLyricsRequest
+
+    fun requestFullscreenLyrics() {
+        _fullscreenLyricsRequest.value = true
+    }
+
+    fun consumeFullscreenLyricsRequest() {
+        _fullscreenLyricsRequest.value = false
+    }
 
     private var getFormatFlowJob: Job? = null
 
@@ -457,9 +474,12 @@ class SharedViewModel(
                                 // When progress hasn't changed (same value polled again) or is negative,
                                 // don't modify loading state. The loading flag is already managed by
                                 // Buffering/Ready/Loading state events. Setting loading=true here would
-                                // cause rapid flickering because the progress poll interval (100ms) is
-                                // shorter than the adapter's position cache update interval (200ms),
-                                // resulting in duplicate position values that incorrectly triggered loading.
+                                // cause rapid flickering whenever the same value arrives twice,
+                                // which it can: the handler's ticker and the adapter's position
+                                // poll both run at 50ms and are not in step, so a poll is sometimes
+                                // read twice. A repeat is not evidence of a stall, and the loading
+                                // flag belongs to the Buffering/Ready events rather than to a
+                                // guess made here.
                             }
 
                             is SimpleMediaState.Loading -> {
@@ -1081,6 +1101,29 @@ class SharedViewModel(
                         }
                     }
                     _isCheckingUpdate.value = false
+                }
+            }
+        }
+    }
+
+    /**
+     * [signingCerts]: SHA-256 hex of each certificate this APK is signed with. A failed fetch leaves
+     * the app usable — it plays offline, and an unknown answer must not lock out our own users.
+     */
+    fun checkOfficialBuild(
+        packageName: String,
+        signingCerts: List<String>,
+    ) {
+        if (packageName !in Config.OFFICIAL_PACKAGE_NAMES) {
+            _isOfficialBuild.value = false
+            return
+        }
+        viewModelScope.launch {
+            updateRepository.getFdroidSigningKeys().collect { response ->
+                val keys = response.data
+                // No certificate read at all is an unknown answer, and unknown never blocks.
+                if (response is Resource.Success && keys != null && signingCerts.isNotEmpty() && keys.none { it in signingCerts }) {
+                    _isOfficialBuild.value = false
                 }
             }
         }
@@ -1809,8 +1852,6 @@ class SharedViewModel(
         }
     }
 
-    fun getTranslucentBottomBar() = dataStoreManager.translucentBottomBar
-
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
 
     fun getLocalTrackingEnabled() = dataStoreManager.localTrackingEnabled
@@ -1827,6 +1868,8 @@ class SharedViewModel(
     fun getNowPlayingStyle() = dataStoreManager.nowPlayingStyle
 
     fun getLyricsStyle() = dataStoreManager.lyricsStyle
+
+    fun getLyricsOffsetMs() = dataStoreManager.lyricsOffsetMs
 
     fun setThemeMode(mode: String) {
         viewModelScope.launch {

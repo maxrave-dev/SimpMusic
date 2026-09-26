@@ -347,8 +347,6 @@
     <string name="repeat_off">Repeteix apagat</string>
     <string name="youtube_transcript">YouTube Transcript</string>
     <string name="user_interface">Interface</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
     <string name="relax">Calma</string>
     <string name="sleep">Repòs</string>
@@ -430,7 +428,7 @@
     <string name="ai_api_key">La seva clau de l'API de la IA</string>
     <string name="invalid_api_key">Clau de l'API de la IA invàlida</string>
     <string name="custom_ai_model_id">ID de model d'IA personalitzat</string>
-    <string name="default_models">Els models per defecte són \"gemini-2.0-flash\" i \"gpt-4o\"</string>
+    <string name="default_models">Els models per defecte són "gemini-2.0-flash" i "gpt-4o"</string>
     <string name="invalid">Invàlid</string>
     <string name="custom_model_id_messages">Per favor, introdueixi l'ID de model exacte del seu proveïdor d'IA</string>
     <string name="favorite_podcasts">Podcasts preferits</string>
@@ -500,8 +498,6 @@
     <string name="enable_rich_presence">Activa el Rich Presence</string>
     <string name="rich_presence_info">Mostra la informació de la sessió multimèdia al teu perfil de Discord</string>
     <string name="youtube_liked_music">Música que t'agrada de YouTube</string>
-    <string name="keep_service_alive">Mantingues el servei actiu</string>
-    <string name="keep_service_alive_description">Mantingues actiu el servei del reproductor de música per evitar que el sistema l'ature</string>
     <string name="keep_your_youtube_playlist_offline">Continua mostrant la teva llista de reproducció de YouTube sense connexió</string>
     <string name="keep_your_youtube_playlist_offline_description">Desa la teva llista de reproducció de YT al dispositiu per continuar mostrant-la sense connexió</string>
     <string name="combine_local_and_youtube_liked_songs">Substitueix Preferits per la Música que t'agrada de YouTube en iniciar sessió</string>

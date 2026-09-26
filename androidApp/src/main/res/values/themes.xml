@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Cold-start / splash background only — Compose paints everything after the first frame.
+
+        Pinned rather than left to DayNight because the system resolves it before any app code
+        runs, so it cannot read the stored theme mode. Black matches the DataStore default
+        (THEME_MODE_DARK) and every immersive screen; letting it follow the system instead gave
+        dark-theme users a white flash on light-mode devices.
+    -->
+    <style name="Theme.SimpMusic" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

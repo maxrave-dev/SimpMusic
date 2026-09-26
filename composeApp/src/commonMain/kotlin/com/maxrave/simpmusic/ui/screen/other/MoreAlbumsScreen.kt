@@ -42,15 +42,15 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.MoreAlbumsDestinatio
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.MoreAlbumsUIState
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreAlbumsScreen(
     innerPadding: PaddingValues,
@@ -84,7 +84,11 @@ fun MoreAlbumsScreen(
             is MoreAlbumsUIState.Success -> {
                 val data = state.albumItems
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    // As many columns as fit, not a fixed two: HomeItemContentPlaylist is a fixed
+                    // 180dp wide, so two columns on a wide window left each tile alone in a huge cell.
+                    // 170dp rather than 180 keeps two columns on a 360dp phone (2 × 170 + the 10dp
+                    // gap fits), where the cells come out exactly as wide as Fixed(2) made them.
+                    columns = GridCells.Adaptive(minSize = 170.dp),
                     modifier =
                         Modifier
                             .fillMaxSize()
@@ -124,9 +128,7 @@ fun MoreAlbumsScreen(
                 TopAppBar(
                     modifier =
                         Modifier
-                            .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin()) {
-                                blurEnabled = true
-                            },
+                            .hazeBlur(HazeInput.Sources(hazeState), HazeMaterials.ultraThin().then { blurEnabled(true) }),
                     title = {
                         Text(
                             text = state.title,

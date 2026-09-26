@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.parseRichSyncWords
@@ -76,6 +78,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 
 @Composable
@@ -391,10 +394,11 @@ fun MediumMiniLayout(
 
                 // Lyrics display (if available)
                 if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
+                    val lyricsNowMs = rememberLyricsNowMs(timeline)
                     val currentLine =
-                        remember(timeline.current) {
+                        remember(lyricsNowMs) {
                             lyricsData.lyrics.lines?.findLast { line ->
-                                line.startTimeMs.toLongOrNull()?.let { it <= timeline.current } ?: false
+                                line.startTimeMs.toLongOrNull()?.let { it <= lyricsNowMs } ?: false
                             }
                         }
 
@@ -417,7 +421,7 @@ fun MediumMiniLayout(
                                     RichSyncLyricsLineItem(
                                         parsedLine = parsedLine,
                                         translatedWords = null,
-                                        currentTimeMs = timeline.current,
+                                        currentTimeMs = lyricsNowMs,
                                         isCurrent = true,
                                         customFontSize = typo().bodySmall.fontSize,
                                         modifier = Modifier,
@@ -544,10 +548,11 @@ fun SquareMiniLayout(
 
             // Lyrics display (if available)
             if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
+                val lyricsNowMs = rememberLyricsNowMs(timeline)
                 val currentLine =
-                    remember(timeline.current) {
+                    remember(lyricsNowMs) {
                         lyricsData.lyrics.lines?.findLast { line ->
-                            line.startTimeMs.toLongOrNull()?.let { it <= timeline.current } ?: false
+                            line.startTimeMs.toLongOrNull()?.let { it <= lyricsNowMs } ?: false
                         }
                     }
 
@@ -563,7 +568,7 @@ fun SquareMiniLayout(
                             RichSyncLyricsLineItem(
                                 parsedLine = parsedLine,
                                 translatedWords = null,
-                                currentTimeMs = timeline.current,
+                                currentTimeMs = lyricsNowMs,
                                 isCurrent = true,
                                 customFontSize = typo().bodySmall.fontSize,
                                 modifier = Modifier.padding(horizontal = 8.dp),
@@ -891,10 +896,11 @@ fun ExpandedMiniLayout(
 
             // Lyrics display below thumbnail row
             if (lyricsData != null && !lyricsData.lyrics.error && lyricsData.lyrics.lines != null) {
+                val lyricsNowMs = rememberLyricsNowMs(timeline)
                 val currentLine =
-                    remember(timeline.current) {
+                    remember(lyricsNowMs) {
                         lyricsData.lyrics.lines?.findLast { line ->
-                            line.startTimeMs.toLongOrNull()?.let { it <= timeline.current } ?: false
+                            line.startTimeMs.toLongOrNull()?.let { it <= lyricsNowMs } ?: false
                         }
                     }
 
@@ -916,7 +922,7 @@ fun ExpandedMiniLayout(
                                 RichSyncLyricsLineItem(
                                     parsedLine = parsedLine,
                                     translatedWords = null,
-                                    currentTimeMs = timeline.current,
+                                    currentTimeMs = lyricsNowMs,
                                     isCurrent = true,
                                     customFontSize = typo().bodySmall.fontSize,
                                     customPadding = 4.dp,
@@ -974,4 +980,15 @@ private fun rememberPreviousVolume(volume: Float): Float {
         if (volume > 0f) previous = volume
     }
     return previous
+}
+
+/**
+ * The moment the listener is actually HEARING, which is what a lyric line answers to. Bluetooth
+ * buffers, so the ear trails the player by the stored offset. The mini player's own seek bar keeps
+ * reading [TimeLine.current] untouched: that one reports where the player is, not what is heard.
+ */
+@Composable
+private fun rememberLyricsNowMs(timeline: TimeLine): Long {
+    val offsetMs by koinInject<DataStoreManager>().lyricsOffsetMs.collectAsState(0)
+    return timeline.current - offsetMs
 }

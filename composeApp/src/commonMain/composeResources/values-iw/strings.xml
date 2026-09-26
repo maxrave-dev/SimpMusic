@@ -18,7 +18,7 @@
     <string name="hide">הסתר</string>
     <string name="show">הצג</string>
     <string name="na_na">זה:זה</string>
-    <string name="cache_size">%1$s מ\"ב</string>
+    <string name="cache_size">%1$s מ"ב</string>
     <string name="favorite">מועדף</string>
     <string name="followed">עוקב</string>
     <string name="most_played">הכי מושמעים</string>
@@ -151,6 +151,9 @@
     <string name="balance_media_loudness">איזון עוצמת מדיה</string>
     <string name="normalize_volume">נרמל את עוצמת הקול</string>
     <string name="audio">אודיו</string>
+    <string name="no_equalizer">למכשיר שלך אין אקולייזר</string>
+    <string name="open_system_equalizer">אקולייזר מערכת פתוחה</string>
+    <string name="use_your_system_equalizer">השתמש באקולייזר המערכת שלך</string>
     <string name="streaming_data_provider_piped">ספק נתונים בסטרימינג (Piped)</string>
     <string name="itag">יציב</string>
     <string name="mime_type">סוג Mime</string>
@@ -329,8 +332,6 @@ SimpMusic תמיד בחינם וללא פרסומות\n\nבונה מ ❤️מ-Tu
     <string name="repeat_off">חזרה כבויה</string>
     <string name="youtube_transcript">תמלול יוטיוב</string>
     <string name="user_interface">ממשק</string>
-    <string name="translucent_bottom_navigation_bar">סרגל ניווט תחתון שקוף</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">אתה יכול לראות את התוכן מתחת לסרגל התחתון</string>
     <string name="donation">אם אתה אוהב את העבודה שלי, תן ​​לי קפה</string>
     <string name="relax">לְהִרָגַע</string>
     <string name="sleep">שינה</string>

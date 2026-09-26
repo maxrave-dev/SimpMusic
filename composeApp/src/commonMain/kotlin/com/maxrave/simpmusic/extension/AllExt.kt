@@ -248,15 +248,18 @@ fun FilterState.displayNameRes(): StringResource =
 fun String?.ifNullOrEmpty(defaultValue: @Composable () -> String): String = if (isNullOrEmpty()) defaultValue() else this
 
 @Composable
-fun SponsorBlockType.displayString(): String =
+fun SponsorBlockType.displayString(): String = stringResource(displayRes())
+
+/** The resource behind [displayString], for callers outside composition (the skip toast). */
+fun SponsorBlockType.displayRes(): StringResource =
     when (this) {
-        SponsorBlockType.FILLER -> stringResource(Res.string.filler)
-        SponsorBlockType.INTERACTION -> stringResource(Res.string.interaction)
-        SponsorBlockType.INTRO -> stringResource(Res.string.intro)
-        SponsorBlockType.MUSIC_OFF_TOPIC -> stringResource(Res.string.music_off_topic)
-        SponsorBlockType.OUTRO -> stringResource(Res.string.outro)
-        SponsorBlockType.POI_HIGHLIGHT -> stringResource(Res.string.poi_highlight)
-        SponsorBlockType.PREVIEW -> stringResource(Res.string.preview)
-        SponsorBlockType.SELF_PROMOTION -> stringResource(Res.string.self_promotion)
-        SponsorBlockType.SPONSOR -> stringResource(Res.string.sponsor)
+        SponsorBlockType.FILLER -> Res.string.filler
+        SponsorBlockType.INTERACTION -> Res.string.interaction
+        SponsorBlockType.INTRO -> Res.string.intro
+        SponsorBlockType.MUSIC_OFF_TOPIC -> Res.string.music_off_topic
+        SponsorBlockType.OUTRO -> Res.string.outro
+        SponsorBlockType.POI_HIGHLIGHT -> Res.string.poi_highlight
+        SponsorBlockType.PREVIEW -> Res.string.preview
+        SponsorBlockType.SELF_PROMOTION -> Res.string.self_promotion
+        SponsorBlockType.SPONSOR -> Res.string.sponsor
     }

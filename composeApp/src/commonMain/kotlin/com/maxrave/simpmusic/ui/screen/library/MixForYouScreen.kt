@@ -42,6 +42,7 @@ import com.kmpalette.rememberDominantColorState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.getPlatform
@@ -50,10 +51,9 @@ import com.maxrave.simpmusic.ui.component.GridLibraryPlaylist
 import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -74,7 +74,7 @@ import simpmusic.composeapp.generated.resources.no_mixes_found
  * The tab is hidden while signed out (see `App.kt`), which is what the chip did too — YouTube has
  * no mixes to give an anonymous session.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MixForYouScreen(
     innerPadding: PaddingValues,
@@ -84,7 +84,7 @@ fun MixForYouScreen(
 ) {
     val density = LocalDensity.current
     val mixForYou by viewModel.youTubeMixForYou.collectAsStateWithLifecycle()
-    val hazeState = rememberHazeState(blurEnabled = true)
+    val hazeState = rememberHazeState()
     val gridState = rememberLazyGridState()
     // Home's rule, verbatim: transparent only while pixel-0 is on screen. onScrolling is too
     // coarse for this — it stays "on top" through the whole first row. The frost itself is kept
@@ -189,16 +189,7 @@ fun MixForYouScreen(
                         Modifier.background(Color.Transparent)
                     } else {
                         // AlbumScreen's bar recipe, thinned to 0.3 — see SettingScreen.
-                        Modifier.hazeEffect(hazeState) {
-                            blurEnabled = true
-                            blurRadius = 24.dp
-                            // `this.` is load-bearing: this function has a local
-                            // `val backgroundColor` for the glow machinery, and Kotlin resolves
-                            // locals BEFORE implicit-receiver members — the bare name assigns to
-                            // the val and does not compile.
-                            this.backgroundColor = pageBackground
-                            tints = listOf(HazeTint(pageBackground.copy(alpha = 0.3f)))
-                        }
+                        Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(pageBackground, 0.3f))
                     },
                 ).onGloballyPositioned { coordinates ->
                     topAppBarHeight = with(density) { coordinates.size.height.toDp() }
