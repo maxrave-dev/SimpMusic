@@ -36,6 +36,13 @@
 -keep class dev.nucleusframework.notification.** { *; }
 -dontwarn dev.nucleusframework.notification.**
 
+# ComposeNativeTray's libMacTray finds MacNativeBridge$ThemeChangeCallback.onThemeChanged(I)V by
+# exact name through JNI. ProGuard renamed the interface to MacNativeBridge$a and dropped the method,
+# so the lookup failed on the AppKit main thread and the next AWT callback (MTLLayer blitCallback →
+# CHECK_EXCEPTION) raised the pending Java exception as an NSException: the macOS release build died
+# 2–5 s after every launch. Dev runs skip ProGuard and never saw it.
+-keep class dev.nucleusframework.composenativetray.** { *; }
+
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.Structure {
