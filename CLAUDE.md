@@ -331,6 +331,16 @@ filled states render identically.
   `google/material-design-icons` → `variablefont/MaterialSymbolsRounded[...].codepoints`. Legacy
   names like `favorite_border` and `thumb_up_alt` do still exist; `person_add_alt_1` does not.
 
+### 9. Prepare a Release (changelogs)
+
+**Location**: `changelogs/<version>/`, one folder per version, holding `en-US.md` and `vi-VN.md`. The full procedure is the `simpmusic-release-changelog` skill in `.claude/skills/`.
+
+- `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` stays the short store text (F-Droid caps it at 500 characters) and is written by the owner. The full changelog lives in `changelogs/`.
+- Sections are New / Improved / Fixed (vi: Mới / Cải thiện / Sửa lỗi) and list only shipped work. Every line links its issue or PR with a full URL, because GitHub does not autolink `#N` inside repository files.
+- Shipped changes with no issue of their own are gathered into ONE "Polish for <version>" task on Project #2, and their lines link that task.
+- Reconcile Project #2 before writing. Close issues fixed by shipped commits: post the "Fixed in <version> (<sha>)" comment FIRST, then set the milestone and Status Done. Done closes the issue by itself, so a later `gh issue close --comment` silently drops the comment.
+- vi-VN addresses the reader as "bạn".
+
 ## 📍 Important Files and Locations
 
 ### Configuration
@@ -902,6 +912,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-09-25
+**Last updated**: 2026-09-26
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
