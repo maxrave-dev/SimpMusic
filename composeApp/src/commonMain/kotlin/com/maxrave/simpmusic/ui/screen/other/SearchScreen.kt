@@ -396,6 +396,7 @@ fun SearchScreen(
                                 onItemClick = { item ->
                                     when (item) {
                                         is SongsResult, is VideosResult -> {
+                                            focusManager.clearFocus()
                                             val firstTrack: Track = (item as? SongsResult)?.toTrack() ?: (item as VideosResult).toTrack()
                                             searchViewModel.setQueueData(
                                                 QueueData.Data(
@@ -777,6 +778,7 @@ fun SearchScreen(
                                                                             onMoreClick(result.toTrack().toSongEntity())
                                                                         },
                                                                         onClickListener = {
+                                                                            focusManager.clearFocus()
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
                                                                                 QueueData.Data(
@@ -816,6 +818,7 @@ fun SearchScreen(
                                                                             onMoreClick(result.toTrack().toSongEntity())
                                                                         },
                                                                         onClickListener = {
+                                                                            focusManager.clearFocus()
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
                                                                                 QueueData.Data(
