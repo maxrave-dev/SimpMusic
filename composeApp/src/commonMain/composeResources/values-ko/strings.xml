@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">미디어 음량 균형 맞추기</string>
     <string name="normalize_volume">음량 평준화</string>
     <string name="audio">오디오</string>
-    <string name="no_equalizer">기기에 이퀄라이저 없음</string>
-    <string name="open_system_equalizer">시스템 이퀄라이저 열기</string>
-    <string name="use_your_system_equalizer">시스템 이퀄라이저 사용</string>
     <string name="streaming_data_provider_piped">스트리밍 데이터 제공자 (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime 유형</string>
@@ -448,7 +445,7 @@
     <string name="ai_api_key">내 AI API 키</string>
     <string name="invalid_api_key">잘못된 API 키</string>
     <string name="custom_ai_model_id">사용자 AI 모델 ID</string>
-    <string name="default_models">기본 모델은 \"gemini-2.0-flash\" 및 \"gpt-4o\"입니다</string>
+    <string name="default_models">기본 모델은 "gemini-2.0-flash" 및 "gpt-4o"입니다</string>
     <string name="invalid">잘못됨</string>
     <string name="custom_model_id_messages">AI 제공자의 정확한 모델 ID를 입력해 주십시오.</string>
     <string name="favorite_podcasts">즐겨 찾는 팟캐스트</string>

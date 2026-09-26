@@ -13,7 +13,7 @@ tracks it. Reconcile the board first: the changelog's links point at what the bo
 | What | Where | Notes |
 |---|---|---|
 | Full changelog | `changelogs/<version>/en-US.md`, `changelogs/<version>/vi-VN.md` | No length limit |
-| Store text (F-Droid / Play) | `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` | ≤ 500 characters, written by the owner |
+| Store text (F-Droid / Play) | `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` | ≤ 500 characters, written by the owner. Never cut the owner's items to make room; anything that does not fit goes into `changelogs/` |
 | GitHub release | Release body | New / Improved / Fixed, plus a link to the full changelog |
 
 ## Step 1: reconcile Project #2
@@ -73,6 +73,7 @@ In `vi-VN.md` the headings are `## Mới`, `## Cải thiện` and `## Sửa lỗ
   - PR: `https://github.com/maxrave-dev/SimpMusic/pull/N`
   - core PR: `[core#N](https://github.com/maxrave-dev/core/pull/N)`
   - a change with no issue of its own: the release's Polish task
+  - a new app language: `[Crowdin](https://crowdin.com/project/simpmusic)`
 
   Use full URLs. GitHub does not autolink `#N` inside repository files.
 - **Order:** follow the owner's fastlane `<versionCode>.txt` first, then add the remaining items grouped by area.
@@ -90,3 +91,4 @@ In `vi-VN.md` the headings are `## Mới`, `## Cải thiện` and `## Sửa lỗ
 | `gh issue close --comment` after setting Done | Comment first, then set Done |
 | `#N` shorthand in the `.md` files | Full URLs |
 | "anh" in `vi-VN.md` | "bạn" |
+| Trimming the owner's fastlane items to fit new ones under 500 characters | Leave the fastlane text as written; the full list is `changelogs/` |

@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">Seimbangkan kenyaringan media</string>
     <string name="normalize_volume">Normalisasi Volume</string>
     <string name="audio">Audio</string>
-    <string name="no_equalizer">Perangkat Anda tidak memiliki ekualiser</string>
-    <string name="open_system_equalizer">Buka ekualiser sistem</string>
-    <string name="use_your_system_equalizer">Gunakan ekualiser sistem Anda</string>
     <string name="streaming_data_provider_piped">Penyedia data streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="extract_source">Ekstrak sumber</string>
@@ -290,8 +287,6 @@
     <string name="audio_quality">Kualitas audio</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Putar video untuk trek video, bukan hanya audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Seperti Video Musik, Video Lirik, Podcast, dan lainnya</string>
-    <string name="radio_audio_only">Tetap gunakan mode audio saja pada radio</string>
-    <string name="radio_audio_only_description">Lewati video musik, remix dan mashup yang YouTube gabungkan di radio. Namun tidak memengaruhi playlist dan album</string>
     <string name="video_quality">Kualitas Video</string>
     <plurals name="n_song">
         <item quantity="other">%d lagu</item>
@@ -307,7 +302,7 @@
     <string name="your_music_is_always_up_to_date">MUSIK ANDA SELALU TERBARU</string>
     <string name="youtube_account">Akun YouTube</string>
     <string name="manage_your_youtube_accounts">Kelola Akun YouTube Anda</string>
-    <string name="sync_follow_to_youtube">Menyinkronkan \"ikuti\" dengan YouTube</string>
+    <string name="sync_follow_to_youtube">Menyinkronkan "ikuti" dengan YouTube</string>
     <string name="equalizer_description">Sesuaikan suara dengan kurva ten-band</string>
     <string name="no_account">Tidak ada akun</string>
     <string name="add_an_account">Tambahkan akun</string>
@@ -446,7 +441,7 @@
     <string name="ai_api_key">Kunci API AI Anda</string>
     <string name="invalid_api_key">Kunci API tidak valid</string>
     <string name="custom_ai_model_id">AI Model Khsusus</string>
-    <string name="default_models">Model bawaan adalah \"gemini-2.0-flash\" dan \"gpt-4o\"</string>
+    <string name="default_models">Model bawaan adalah "gemini-2.0-flash" dan "gpt-4o"</string>
     <string name="invalid">Tidak valid</string>
     <string name="custom_model_id_messages">Harap masukkan Model ID yang sesuai dari penyedia AI Anda.</string>
     <string name="favorite_podcasts">Podcast favorit</string>

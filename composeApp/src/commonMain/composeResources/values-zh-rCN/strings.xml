@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">平衡媒体响度</string>
     <string name="normalize_volume">标准化音量</string>
     <string name="audio">音频</string>
-    <string name="no_equalizer">您的设备没有均衡器</string>
-    <string name="open_system_equalizer">打开系统均衡器</string>
-    <string name="use_your_system_equalizer">使用系统均衡器</string>
     <string name="streaming_data_provider_piped">数据流提供者 (已接入)</string>
     <string name="itag">标签</string>
     <string name="mime_type">Mime 类型</string>

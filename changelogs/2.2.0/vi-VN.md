@@ -10,6 +10,7 @@
 - **Ngôn ngữ âm thanh ưu tiên**: video có nhiều bản âm thanh sẽ phát bản gốc, hoặc ngôn ngữ bạn chọn. ([#2545](https://github.com/maxrave-dev/SimpMusic/issues/2545))
 - **EQ hệ thống trên Android**: dùng equalizer của máy thay cho equalizer có sẵn trong app. ([#2464](https://github.com/maxrave-dev/SimpMusic/issues/2464))
 - **Trang nghệ sĩ**: bật/tắt Canvas và chia sẻ nghệ sĩ. ([#2552](https://github.com/maxrave-dev/SimpMusic/issues/2552))
+- **Tiếng Thụy Điển và tiếng Croatia**: hai ngôn ngữ mới cho app, do cộng đồng dịch. ([Crowdin](https://crowdin.com/project/simpmusic))
 - **Follow me on X** trong Cài đặt → Giới thiệu. ([#2552](https://github.com/maxrave-dev/SimpMusic/issues/2552))
 
 ## Cải thiện

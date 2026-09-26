@@ -1,9 +1,10 @@
 Mới:
 - Chuyển đăng nhập Android sang máy tính bằng QR
-- Lời toàn màn hình ngang, chỉnh timing, chấm dạo và tô sáng từng từ
+- Lời toàn màn hình ngang, chỉnh timing, chấm dạo, tô sáng từng từ
 - Home Browse/More, bài đã thích theo nghệ sĩ, ngôn ngữ âm thanh ưu tiên
-- EQ hệ thống Android, bật/tắt Canvas và chia sẻ nghệ sĩ
+- EQ hệ thống Android, bật/tắt Canvas, chia sẻ nghệ sĩ
+- Tiếng Thụy Điển và tiếng Croatia
 Cải thiện:
-- Mini player, trang nghệ sĩ, lưới thư viện, cuộn desktop, radio queue và chạm lại Search
+- Mini player, trang nghệ sĩ, lưới thư viện, cuộn desktop, radio queue, chạm lại Search
 Sửa lỗi:
-- Tài khoản thương hiệu, proxy, sắp xếp/tải playlist, giao diện, analytics, cửa sổ Linux và SQLite Mac Intel
+- Tài khoản thương hiệu, proxy, sắp xếp/tải playlist, giao diện, analytics, cửa sổ Linux, SQLite Mac Intel

@@ -159,9 +159,6 @@
     <string name="balance_media_loudness">मीडिया की आवाज संतुलित करें</string>
     <string name="normalize_volume">वॉल्यूम सामान्य करें</string>
     <string name="audio">ऑडियो</string>
-    <string name="no_equalizer">आपके डिवाइस में इक्वलाइज़र नहीं है</string>
-    <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
-    <string name="use_your_system_equalizer">अपना सिस्टम इक्वलाइज़र उपयोग करें</string>
     <string name="streaming_data_provider_piped">स्ट्रीमिंग डेटा प्रोवाइडर (पाइप्ड)</string>
     <string name="itag">आईटैग</string>
     <string name="mime_type">माइम टाइप</string>
@@ -418,7 +415,7 @@
     <string name="ai_api_key">आपकी एआई एपीआई कुंजी</string>
     <string name="invalid_api_key">अमान्य एपीआई कुंजी</string>
     <string name="custom_ai_model_id">कस्टम एआई मॉडल आईडी</string>
-    <string name="default_models">डिफ़ॉल्ट मॉडल \"gemini-2.0-flash\" और \"gpt-4o\" हैं</string>
+    <string name="default_models">डिफ़ॉल्ट मॉडल "gemini-2.0-flash" और "gpt-4o" हैं</string>
     <string name="invalid">अमान्य</string>
     <string name="custom_model_id_messages">कृपया अपने एआई प्रदाता से सटीक मॉडल आईडी दर्ज करें।</string>
     <string name="favorite_podcasts">पसंदीदा पॉडकास्ट</string>

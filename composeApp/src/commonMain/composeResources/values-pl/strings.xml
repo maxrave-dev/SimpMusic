@@ -163,9 +163,6 @@
     <string name="balance_media_loudness">Wyrównaj głośność mediów</string>
     <string name="normalize_volume">Normalizuj głośność</string>
     <string name="audio">Dźwięk</string>
-    <string name="no_equalizer">Twoje urządzenie nie posiada korektora</string>
-    <string name="open_system_equalizer">Otwórz korektor systemu</string>
-    <string name="use_your_system_equalizer">Użyj korektora systemowego</string>
     <string name="streaming_data_provider_piped">Dostawca danych streamingu (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Typ Mime</string>
@@ -438,7 +435,7 @@
     <string name="ai_api_key">Twój klucz API AI</string>
     <string name="invalid_api_key">Nieprawidłowy klucz</string>
     <string name="custom_ai_model_id">ID niestandardowego modelu AI</string>
-    <string name="default_models">Domyślne modele to \"gemini-2.0-flash\" i \"gpt-4o\"</string>
+    <string name="default_models">Domyślne modele to "gemini-2.0-flash" i "gpt-4o"</string>
     <string name="invalid">Niepoprawne</string>
     <string name="custom_model_id_messages">Wprowadź dokładny identyfikator modelu od dostawcy AI.</string>
     <string name="favorite_podcasts">Ulubione podcasty</string>

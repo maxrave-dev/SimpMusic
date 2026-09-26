@@ -164,10 +164,11 @@
     <string name="normalize_volume">音量平衡</string>
     <string name="audio">音訊</string>
     <string name="no_equalizer">您的裝置不支援等化器</string>
-    <string name="open_system_equalizer">打開等化器</string>
+    <string name="open_system_equalizer">打開系統等化器</string>
     <string name="use_your_system_equalizer">使用系統等化器</string>
     <string name="streaming_data_provider_piped">串流資料提供者</string>
     <string name="itag">標籤</string>
+    <string name="extract_source">提取来源</string>
     <string name="mime_type">Mime 類型</string>
     <string name="bitrate">位元率</string>
     <string name="warning">警告</string>
@@ -440,7 +441,7 @@
     <string name="ai_api_key">你的AI API金鑰</string>
     <string name="invalid_api_key">此金鑰不可用</string>
     <string name="custom_ai_model_id">自訂大模型ID</string>
-    <string name="default_models">預設模型為 \"gemini-2.0-flash\" 與 \"gpt-4o\"</string>
+    <string name="default_models">預設模型為 "gemini-2.0-flash" 與 "gpt-4o"</string>
     <string name="invalid">不可用</string>
     <string name="custom_model_id_messages">請鍵入確實的大模型ID。</string>
     <string name="favorite_podcasts">我的最愛 Podcast</string>

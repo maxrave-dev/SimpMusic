@@ -151,9 +151,6 @@
     <string name="balance_media_loudness">Media səs ucalığın yaxşılaşdır</string>
     <string name="normalize_volume">Səs səviyyəsini normallaşdır</string>
     <string name="audio">Səs</string>
-    <string name="no_equalizer">Cihazınızın tarazlayıcısı yoxdur</string>
-    <string name="open_system_equalizer">Sistem tarazlayıcını aç</string>
-    <string name="use_your_system_equalizer">Sistem tarazlayıcınızı istifadə edin</string>
     <string name="streaming_data_provider_piped">Yayım məlumatı təminatçısı (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Növü</string>

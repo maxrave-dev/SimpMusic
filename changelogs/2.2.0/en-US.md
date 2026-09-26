@@ -10,6 +10,7 @@
 - **Preferred audio language**: videos with several audio tracks play the original, or the language you choose. ([#2545](https://github.com/maxrave-dev/SimpMusic/issues/2545))
 - **System equalizer on Android**: use your phone's equalizer instead of the built-in one. ([#2464](https://github.com/maxrave-dev/SimpMusic/issues/2464))
 - **Artist page**: turn the Canvas on or off, and share the artist. ([#2552](https://github.com/maxrave-dev/SimpMusic/issues/2552))
+- **Swedish and Croatian**: two new app languages, translated by the community. ([Crowdin](https://crowdin.com/project/simpmusic))
 - **Follow me on X** from Settings → About. ([#2552](https://github.com/maxrave-dev/SimpMusic/issues/2552))
 
 ## Improved
