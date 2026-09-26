@@ -469,7 +469,7 @@
     <string name="sync_first">Diese Playlist erst mit Youtube Musik synchronisieren</string>
     <string name="endless_queue">Endlose Warteschlange</string>
     <string name="continue_playing">Continuer à jouer</string>
-    <string name="continue_playing_endless_subtitle">Ajoute automatiquement des titres similaires à la fin de la file d\'attente</string>
+    <string name="continue_playing_endless_subtitle">Ajoute automatiquement des titres similaires à la fin de la file d'attente</string>
     <string name="do_not_show_again">Nicht erneut anzeigen</string>
     <string name="auto_check_for_update">Automatisches Überprüfen auf Updates</string>
     <string name="auto_check_for_update_description">Überprüfung auf Updates beim App Start</string>

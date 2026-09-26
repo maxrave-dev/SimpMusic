@@ -109,7 +109,7 @@
     <string name="all">Всі</string>
     <string name="videos">Відео</string>
     <string name="content">Контент</string>
-    <string name="storage">Пам\'ять</string>
+    <string name="storage">Пам'ять</string>
     <string name="player_cache">Кеш плеєра</string>
     <string name="downloaded_cache">Кеш завантажених</string>
     <string name="thumbnail_cache">Кеш мініатюр</string>
@@ -410,7 +410,7 @@
     <string name="lyrics_romanization">Романізація текстів пісень</string>
     <string name="romanization_japanese_dict_downloading">Завантаження японського словника…</string>
     <string name="romanization_japanese_dict_ready">Японський словник завантажено</string>
-    <string name="romanization_japanese_dict_failed">Не вдалося завантажити японський словник. Перевірте ваше з\'єднання та виберіть японську знову щоб спробувати знову.</string>
+    <string name="romanization_japanese_dict_failed">Не вдалося завантажити японський словник. Перевірте ваше з'єднання та виберіть японську знову щоб спробувати знову.</string>
     <string name="theme_color">Колір теми</string>
     <string name="theme_color_default">Стандартний</string>
     <string name="theme_color_wallpaper">Шпалери</string>
@@ -452,9 +452,9 @@
     <string name="proxy_port_message">Введіть проксі-порт</string>
     <string name="proxy_username">Ім’я користувача проксі</string>
     <string name="proxy_password">Пароль проксі</string>
-    <string name="proxy_username_message">Введіть ім\'я користувача проксі-сервера (необов\'язково)</string>
-    <string name="proxy_password_message">Будь ласка,  введіть ім\'я користувача проксі-сервера (необов\'язково)</string>
-    <string name="five_seconds">П\'ять секунд</string>
+    <string name="proxy_username_message">Введіть ім'я користувача проксі-сервера (необов'язково)</string>
+    <string name="proxy_password_message">Будь ласка,  введіть ім'я користувача проксі-сервера (необов'язково)</string>
+    <string name="five_seconds">П'ять секунд</string>
     <string name="lyrics_provider_lrc">Тексти пісень надано LRCLIB</string>
     <string name="sync_first">Спочатку синхронізуйте цей список відтворення з YouTube Music</string>
     <string name="endless_queue">Нескінченна черга</string>
@@ -466,7 +466,7 @@
     <string name="playback_speed_pitch_disabled"><![CDATA[Швидкість відтворення та висота тону (вимкнено, коли ввімкнено кросфейд)]]></string>
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="pitch">Тон</string>
-    <string name="merging_audio_and_video">Об\'єднання аудіо та відео</string>
+    <string name="merging_audio_and_video">Об'єднання аудіо та відео</string>
     <string name="error_occurred">Сталася помилка</string>
     <string name="downloading_audio">Завантаження аудіо: %1$s </string>
     <string name="downloading_video">Завантаження відео: %1$s </string>
@@ -529,8 +529,8 @@
     <string name="downloading_liked_songs">Завантаження %1$d улюблених пісень</string>
     <string name="youtube_subtitle_language">Мова перекладу субтитрів YouTube</string>
     <string name="youtube_subtitle_language_message">Введіть код мови (Eg: en) (2 букви). Це бажана мова перекладу для YouTube субтитрів.</string>
-    <string name="use_anonymous">Використовувати анонімне ім\'я для співпраці</string>
-    <string name="contributor_name">Ім\'я учасника</string>
+    <string name="use_anonymous">Використовувати анонімне ім'я для співпраці</string>
+    <string name="contributor_name">Ім'я учасника</string>
     <string name="contributor_email">Електронна пошта учасника</string>
     <string name="anonymous">Анонімно</string>
     <string name="simpmusic_lyrics">Тексти пісень SimpMusic</string>
@@ -668,7 +668,7 @@
     <string name="lt_not_connected">Не підключено</string>
     <string name="lt_connected">Підключено</string>
     <string name="lt_connecting">Підключення...</string>
-    <string name="lt_connect">З\'єднатись</string>
+    <string name="lt_connect">З'єднатись</string>
     <string name="lt_create_room">Створити кімнату</string>
     <string name="lt_or_join_with_code">або приєднайтеся з кодом</string>
     <string name="lt_join_room">Приєднатись до кімнати</string>
@@ -702,7 +702,7 @@
     <string name="share_lyrics_save_failed">Не вдалося зберегти зображення</string>
     <string name="share_lyrics_share_failed">Не вдалося поділитися зображенням</string>
     <string name="share_lyrics_background">Фон</string>
-    <string name="share_lyrics_permission_denied">Для збереження зображення потрібен дозвіл на доступ до пам\'яті</string>
+    <string name="share_lyrics_permission_denied">Для збереження зображення потрібен дозвіл на доступ до пам'яті</string>
     <string name="share_lyrics_no_lyrics">У цієї пісні немає тексту щоб поділитися</string>
     <string name="wrapped_tap_to_begin">Натисніть, щоб почати</string>
     <string name="wrapped_tap_to_continue">Натисніть, щоб продовжити</string>
