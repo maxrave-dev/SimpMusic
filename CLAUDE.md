@@ -129,7 +129,7 @@ Service modules:
 - **cast/**: Google Cast support for the Full build (`media3-cast` + `play-services-cast-framework`, `CastOptionsProvider`, `CastIconButton` Compose wrapper for `MediaRouteButton`)
 - **cast-empty/**: FOSS no-op stub with identical public API (package `org.simpmusic.cast`), keeping GMS out of F-Droid builds
 - Selected via the `isFullBuild` Gradle property (same pattern as crashlytics) in `core/media/media3/build.gradle.kts` and `composeApp/build.gradle.kts` androidMain
-- Playback handoff lives in `core/media/media3` (`cast/CastHandoffManager.kt` + `cast/CastStreamResolver.kt`): the session player is `CastPlayer.Builder().setLocalPlayer(forwardingPlayer).build()`; while remote, `CrossfadeExoPlayerAdapter` routes transport/getters to the receiver and pushes a resolved-URL queue window (googlevideo URLs resolved up-front via `StreamRepository`); crossfade/EQ/precache are force-disabled while casting
+- Playback handoff lives in `core/media/media3` (`remote/RemoteHandoffManager.kt` + `remote/RemoteStreamResolver.kt`, shared with HEOS since 2026-09-19): the session player is `RemotePlayerSwitch` over `CastPlayer.Builder().setLocalPlayer(forwardingPlayer).build()`; while remote, `CrossfadeExoPlayerAdapter` routes transport/getters to the receiver and pushes a resolved-URL queue window (googlevideo URLs resolved up-front via `StreamRepository`); crossfade/EQ/precache are force-disabled while casting
 
 ## 🛠️ Key Technologies
 

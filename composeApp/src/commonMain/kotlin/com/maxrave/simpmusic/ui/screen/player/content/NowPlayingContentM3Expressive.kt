@@ -85,7 +85,9 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.PlatformCastButton
+import com.maxrave.simpmusic.expect.ui.PlatformRemoteDeviceButton
 import com.maxrave.simpmusic.expect.ui.isPlatformCastAvailable
+import com.maxrave.simpmusic.expect.ui.isPlatformRemoteDeviceAvailable
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
@@ -941,6 +943,18 @@ private fun ExpressiveConnectedGroup(
                 onClick = null,
             ) {
                 PlatformCastButton(
+                    modifier = Modifier.size(24.dp),
+                    tint = if (state.castState.isRemote) colorScheme.primary else colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        // HEOS (Denon / Marantz) — the button owns its click and opens the device picker.
+        if (isPlatformRemoteDeviceAvailable()) {
+            ExpressiveConnectedSlot(
+                shape = middle,
+                onClick = null,
+            ) {
+                PlatformRemoteDeviceButton(
                     modifier = Modifier.size(24.dp),
                     tint = if (state.castState.isRemote) colorScheme.primary else colorScheme.onSurfaceVariant,
                 )
