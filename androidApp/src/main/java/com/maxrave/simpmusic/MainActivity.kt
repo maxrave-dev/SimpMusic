@@ -22,7 +22,19 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import android.app.SearchManager
+import android.provider.MediaStore
 import androidx.work.PeriodicWorkRequestBuilder
+import com.maxrave.common.Config
+import com.maxrave.domain.mediaservice.handler.PlaylistType
+import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.repository.SearchRepository
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.toListTrack
+import com.maxrave.domain.utils.toSongEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.lastOrNull
 import androidx.work.WorkManager
 import com.eygraber.uri.toKmpUriOrNull
 import com.maxrave.common.FIRST_TIME_MIGRATION
@@ -58,6 +70,8 @@ class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
     val mediaPlayerHandler by inject<MediaPlayerHandler>()
     val dataStoreManager: DataStoreManager by inject()
+    val searchRepository: SearchRepository by inject()
+    val songRepository: SongRepository by inject()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -94,6 +108,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         Logger.d("MainActivity", "onNewIntent: $intent")
+        handleMediaSearchIntent(intent)
         viewModel.setIntent(
             GenericIntent(
                 action = intent.action,
@@ -121,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             startMusicService()
         }
+        handleMediaSearchIntent(intent)
         Logger.d("MainActivity", "onCreate: ")
         val data = (intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull()
         if (data != null) {
@@ -323,5 +339,43 @@ class MainActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         viewModel.activityRecreate()
+    }
+
+    private fun handleMediaSearchIntent(intent: Intent?) {
+        if (intent?.action == MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
+            val query =
+                intent.getStringExtra(SearchManager.QUERY)
+                    ?: intent.getStringExtra(MediaStore.EXTRA_MEDIA_TITLE)
+                    ?: intent.getStringExtra(MediaStore.EXTRA_MEDIA_ARTIST)
+            Logger.w("MainActivity", "handleMediaSearchIntent: query='$query'")
+            if (!query.isNullOrBlank()) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val searchResult = searchRepository.getSearchDataSong(query).lastOrNull()?.data?.toListTrack()
+                    if (!searchResult.isNullOrEmpty()) {
+                        val firstQueue = searchResult.first()
+                        songRepository.insertSong(firstQueue.toSongEntity()).first()
+                        mediaPlayerHandler.setQueueData(
+                            QueueData.Data(
+                                listTracks = ArrayList(searchResult),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM${firstQueue.videoId}",
+                                playlistName = "\"${firstQueue.title}\" Radio",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
+                        )
+                        mediaPlayerHandler.loadMediaItem(
+                            firstQueue,
+                            Config.SONG_CLICK,
+                            0,
+                        )
+                    }
+                }
+            } else {
+                lifecycleScope.launch {
+                    mediaPlayerHandler.restoreQueueAndPlay()
+                }
+            }
+        }
     }
 }
