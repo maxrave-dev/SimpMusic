@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -949,6 +950,7 @@ fun QueueBottomSheet(
         }
     var overscrollJob by remember { mutableStateOf<Job?>(null) }
     var shouldShowQueueItemBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var shouldShowAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
     var clickMoreVideoId by rememberSaveable { mutableStateOf<String?>(null) }
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
@@ -1012,6 +1014,30 @@ fun QueueBottomSheet(
             index = clickMoreIndex,
             videoId = clickMoreVideoId,
             musicServiceHandler = musicServiceHandler,
+        )
+    }
+
+    if (shouldShowAddToPlaylist) {
+        val viewModel: NowPlayingBottomSheetViewModel = koinViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(Unit) {
+            viewModel.resetPlaylists()
+        }
+
+        AddToPlaylistModalBottomSheet(
+            isBottomSheetVisible = true,
+            listLocalPlaylist = uiState.listLocalPlaylist,
+            listYouTubePlaylist = uiState.listYouTubePlaylist,
+            onDismiss = { shouldShowAddToPlaylist = false },
+            onClick = { playlist ->
+                sharedViewModel.saveQueueToLocalPlaylist(playlist.id, queue)
+                shouldShowAddToPlaylist = false
+            },
+            onYTPlaylistClick = { playlist ->
+                sharedViewModel.saveQueueToYouTubePlaylist(playlist.browseId, queue)
+                shouldShowAddToPlaylist = false
+            }
         )
     }
 
@@ -1119,11 +1145,18 @@ fun QueueBottomSheet(
                     Text(
                         text = stringResource(Res.string.queue),
                         style = typo().titleMedium,
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 20.dp)
-                                .weight(1f),
+                        modifier = Modifier.padding(start = 20.dp),
                     )
+                    IconButton(
+                        onClick = { shouldShowAddToPlaylist = true },
+                        modifier = Modifier.weight(1f).wrapContentWidth(Alignment.Start)
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.baseline_playlist_add_24),
+                            contentDescription = "Save as Playlist",
+                            tint = Color.White
+                        )
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(Res.string.endless_queue),
