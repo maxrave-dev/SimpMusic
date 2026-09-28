@@ -235,7 +235,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: desktop-mac-zips
-          path: output/*.zip
+          path: output/*-mac-*.zip
+          if-no-files-found: error
 
       # Bundle Windows installer = install.bat + simpmusic.crt + msix.
       # Conveyor's default .exe wrapper + .appinstaller fetch URLs from
