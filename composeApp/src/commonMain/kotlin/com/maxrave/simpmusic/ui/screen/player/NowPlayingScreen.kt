@@ -61,10 +61,12 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kmpalette.rememberPaletteState
+import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.rememberVideoAspectRatio
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
@@ -104,6 +106,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.abs
 
 private const val TAG = "NowPlayingScreen"
 
@@ -270,7 +273,15 @@ fun NowPlayingScreenContent(
         ) {
             isAnimatingFromPlayer = true
             try {
-                artworkPagerState.animateScrollToPage(target)
+                // Animate only a neighbouring page — that is a track change, and the slide IS the
+                // feedback. A jump of many pages is not: trimming a radio queue's history drops the
+                // current track's index by dozens without changing the track, and animating that
+                // flings the pager through dozens of covers to land on the same song.
+                if (abs(target - artworkPagerState.currentPage) <= 1) {
+                    artworkPagerState.animateScrollToPage(target)
+                } else {
+                    artworkPagerState.scrollToPage(target)
+                }
             } finally {
                 isAnimatingFromPlayer = false
             }
@@ -360,6 +371,13 @@ fun NowPlayingScreenContent(
 
     var showFullscreenLyrics by rememberSaveable {
         mutableStateOf(false)
+    }
+    val fullscreenLyricsRequested by sharedViewModel.fullscreenLyricsRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(fullscreenLyricsRequested) {
+        if (fullscreenLyricsRequested) {
+            showFullscreenLyrics = true
+            sharedViewModel.consumeFullscreenLyricsRequest()
+        }
     }
 
     var showQueueBottomSheet by rememberSaveable {
@@ -613,6 +631,7 @@ fun NowPlayingScreenContent(
             // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
             // codec therefore never matched anything and the badge never rendered, on any track.
             audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
+            videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
         )
     val actions =
         NowPlayingContentActions(

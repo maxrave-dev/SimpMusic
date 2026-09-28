@@ -84,7 +84,9 @@ fun ReviewDialog(
                         append(" ProductHunt")
                     }
                     append("\n")
-                    append(stringResource(Res.string.if_you_love_my_work_consider))
+                    // Every locale wraps this in quotes to keep the trailing space, Android style, and Compose
+                    // Resources prints them as text. Strip them and add the space here, like " ProductHunt" above.
+                    append(stringResource(Res.string.if_you_love_my_work_consider).removeSurrounding("\"").trimEnd() + " ")
                     withLink(
                         LinkAnnotation.Url(
                             "https://buymeacoffee.com/maxrave",

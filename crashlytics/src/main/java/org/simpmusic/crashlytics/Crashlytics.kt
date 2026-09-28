@@ -11,11 +11,19 @@ fun reportCrash(throwable: Throwable) {
     Sentry.captureException(throwable)
 }
 
-fun configCrashlytics(applicationContext: Context, dsn: String) {
+private const val APP_OPEN = "app.open"
+
+fun configCrashlytics(
+    applicationContext: Context,
+    dsn: String,
+) {
     SentryAndroid.init(applicationContext) { options ->
         Log.d("Sentry", "dsn: $dsn")
         options.dsn = dsn
+        options.isSendDefaultPii = true
+        options.setTracesSampler { context -> if (context.transactionContext.name == APP_OPEN) 1.0 else 0.0 }
     }
+    Sentry.startTransaction(APP_OPEN, APP_OPEN).finish()
 }
 
 fun pushPlayerError(error: PlayerError) {

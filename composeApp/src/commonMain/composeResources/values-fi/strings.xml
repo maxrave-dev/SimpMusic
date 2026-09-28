@@ -151,9 +151,6 @@
     <string name="balance_media_loudness">Tasapainota äänenvoimakkuus</string>
     <string name="normalize_volume">Normalisoi äänenvoimakkuus</string>
     <string name="audio">Ääni</string>
-    <string name="no_equalizer">Laitteessasi ei ole taajuuskorjainta</string>
-    <string name="open_system_equalizer">Avaa järjestelmän taajuuskorjain</string>
-    <string name="use_your_system_equalizer">Käytä järjestelmän taajuuskorjainta</string>
     <string name="streaming_data_provider_piped">Suoratoiston tarjoaja (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime-tyyppi</string>

@@ -1,0 +1,10 @@
+New:
+- QR sign-in transfer from Android to desktop
+- Landscape fullscreen lyrics, timing offset, interlude dots, word lighting
+- Home Browse/More, liked songs by artist, preferred audio language
+- Android system EQ, artist Canvas/share controls
+- Swedish and Croatian
+Improved:
+- Mini player, artist pages, library grids, desktop scrolling, radio queue, search re-tap
+Fixed:
+- Brand accounts, proxy switching, playlist reorder/download state, system theme, analytics, Linux windows, Intel Mac SQLite

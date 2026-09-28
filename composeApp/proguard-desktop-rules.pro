@@ -16,6 +16,18 @@
     native <methods>;
 }
 
+# Enum.valueOf() (and EnumSet/EnumMap) find an enum's constants by calling its public values()
+# reflectively. ProGuard removes values() whenever nothing calls it directly, and Enum.valueOf then
+# throws "<class> is not an enum class". Hit in 2.2.0 by ZXing's QRCodeWriter, which reads the
+# ERROR_CORRECTION hint with ErrorCorrectionLevel.valueOf — "Sign in from your phone" crashed the
+# moment its QR drew. Android never saw it: AGP's proguard-android-optimize.txt ships this exact
+# rule, Compose Desktop's default rules do not.
+# https://www.guardsquare.com/manual/configuration/examples#enumerations
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
 # Nucleus notification backends call these Kotlin entry points from JNI by their exact class and
 # method names. Keeping only classes that declare native methods preserves the outward JNI calls,
 # but ProGuard still removes callbacks such as onNotificationSettings/onAuthorizationResult and
@@ -23,6 +35,13 @@
 # stays queued forever in release builds.
 -keep class dev.nucleusframework.notification.** { *; }
 -dontwarn dev.nucleusframework.notification.**
+
+# ComposeNativeTray's libMacTray finds MacNativeBridge$ThemeChangeCallback.onThemeChanged(I)V by
+# exact name through JNI. ProGuard renamed the interface to MacNativeBridge$a and dropped the method,
+# so the lookup failed on the AppKit main thread and the next AWT callback (MTLLayer blitCallback →
+# CHECK_EXCEPTION) raised the pending Java exception as an NSException: the macOS release build died
+# 2–5 s after every launch. Dev runs skip ProGuard and never saw it.
+-keep class dev.nucleusframework.composenativetray.** { *; }
 
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }

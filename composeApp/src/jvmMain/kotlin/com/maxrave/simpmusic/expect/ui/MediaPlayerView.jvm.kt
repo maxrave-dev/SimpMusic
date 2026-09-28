@@ -7,6 +7,7 @@ import com.maxrave.domain.data.model.metadata.Lyrics
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.media_jvm_ui.ui.MediaPlayerViewWithSubtitleJvm
 import com.maxrave.media_jvm_ui.ui.MediaPlayerViewWithUrl
+import com.maxrave.media_jvm_ui.ui.rememberVideoAspectRatioJvm
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
@@ -21,6 +22,9 @@ actual fun MediaPlayerView(
         cropToBounds = cropToBounds,
     )
 }
+
+@Composable
+actual fun rememberVideoAspectRatio(playerName: String): Float? = rememberVideoAspectRatioJvm()
 
 @Composable
 actual fun MediaPlayerViewWithSubtitle(

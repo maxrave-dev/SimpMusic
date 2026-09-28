@@ -24,6 +24,7 @@ import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Success
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +52,12 @@ class ArtistViewModel(
     private val _artistLogo: MutableStateFlow<ArtistLogo?> = MutableStateFlow(null)
     val artistLogo: StateFlow<ArtistLogo?> = _artistLogo
 
+    // How many liked songs credit this artist — the "Liked songs" row above Popular (issue #2524)
+    // shows only while this is above zero. Observed, so liking a song from the page updates it.
+    private val _likedSongCount: MutableStateFlow<Int> = MutableStateFlow(0)
+    val likedSongCount: StateFlow<Int> = _likedSongCount
+    private var likedSongsJob: Job? = null
+
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
 
@@ -62,6 +69,12 @@ class ArtistViewModel(
         _canvasUrl.value = null
         _artistLogo.value = null
         _followed.value = false
+        _likedSongCount.value = 0
+        likedSongsJob?.cancel()
+        likedSongsJob =
+            viewModelScope.launch {
+                songRepository.getLikedSongsByArtist(channelId).collect { _likedSongCount.value = it.size }
+            }
         viewModelScope.launch {
             artistRepository.getArtistData(channelId).collect { browse ->
                 val data = browse.data
