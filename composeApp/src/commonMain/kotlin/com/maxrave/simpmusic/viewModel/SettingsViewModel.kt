@@ -127,8 +127,6 @@ class SettingsViewModel(
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
     private var _canvasCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
     val canvasCacheSize: StateFlow<Long?> = _canvasCacheSize
-    private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
-    val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
     private var _usingProxy = MutableStateFlow(false)
     val usingProxy: StateFlow<Boolean> = _usingProxy
     private var _proxyType = MutableStateFlow(DataStoreManager.ProxyType.PROXY_TYPE_HTTP)
@@ -171,6 +169,8 @@ class SettingsViewModel(
     val youtubeSubtitleLanguage: StateFlow<String> = _youtubeSubtitleLanguage
     private val _lyricsOffsetMs = MutableStateFlow<Int>(0)
     val lyricsOffsetMs: StateFlow<Int> = _lyricsOffsetMs
+    private val _preferredAudioLanguage = MutableStateFlow("")
+    val preferredAudioLanguage: StateFlow<String> = _preferredAudioLanguage
 
     private var _helpBuildLyricsDatabase: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val helpBuildLyricsDatabase: StateFlow<Boolean> = _helpBuildLyricsDatabase
@@ -207,9 +207,6 @@ class SettingsViewModel(
 
     private val _lastfmScrobbleEnabled = MutableStateFlow(false)
     val lastfmScrobbleEnabled: StateFlow<Boolean> = _lastfmScrobbleEnabled
-
-    private val _keepServiceAlive = MutableStateFlow<Boolean>(false)
-    val keepServiceAlive: StateFlow<Boolean> = _keepServiceAlive
 
     private val _keepYouTubePlaylistOffline = MutableStateFlow<Boolean>(false)
     val keepYouTubePlaylistOffline: StateFlow<Boolean> = _keepYouTubePlaylistOffline
@@ -261,6 +258,7 @@ class SettingsViewModel(
 
     init {
         getYoutubeSubtitleLanguage()
+        getPreferredAudioLanguage()
         getHelpBuildLyricsDatabase()
         viewModelScope.launch {
             enableLiquidGlass.collect {
@@ -305,7 +303,6 @@ class SettingsViewModel(
         getAMAnimatedArtwork()
         getUsingProxy()
         getCanvasCache()
-        getTranslucentBottomBar()
         getAutoCheckUpdate()
         getAIProvider()
         getAIApiKey()
@@ -328,7 +325,6 @@ class SettingsViewModel(
         getDiscordRichPresenceEnabled()
         getLastfmSession()
         getLastfmScrobbleEnabled()
-        getKeepServiceAlive()
         getKeepYouTubePlaylistOffline()
         getCombineLocalAndYouTubeLiked()
         getDownloadQuality()
@@ -441,21 +437,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setCombineLocalAndYouTubeLiked(combine)
             getCombineLocalAndYouTubeLiked()
-        }
-    }
-
-    private fun getKeepServiceAlive() {
-        viewModelScope.launch {
-            dataStoreManager.keepServiceAlive.collect { keepServiceAlive ->
-                _keepServiceAlive.value = keepServiceAlive == DataStoreManager.TRUE
-            }
-        }
-    }
-
-    fun setKeepServiceAlive(keepServiceAlive: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setKeepServiceAlive(keepServiceAlive)
-            getKeepServiceAlive()
         }
     }
 
@@ -993,21 +974,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setProxyUsername(username)
             dataStoreManager.setProxyPassword(password)
-        }
-    }
-
-    fun getTranslucentBottomBar() {
-        viewModelScope.launch {
-            dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->
-                _translucentBottomBar.emit(translucentBottomBar)
-            }
-        }
-    }
-
-    fun setTranslucentBottomBar(translucentBottomBar: Boolean) {
-        viewModelScope.launch {
-            dataStoreManager.setTranslucentBottomBar(translucentBottomBar)
-            getTranslucentBottomBar()
         }
     }
 
@@ -2058,6 +2024,22 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setYoutubeSubtitleLanguage(language)
             getYoutubeSubtitleLanguage()
+        }
+    }
+
+    private fun getPreferredAudioLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.preferredAudioLanguage.collect { language ->
+                _preferredAudioLanguage.emit(language)
+            }
+        }
+    }
+
+    // Does not re-call the getter, for the same reason as setLyricsOffsetMs: the collector started
+    // in init already publishes every write.
+    fun setPreferredAudioLanguage(language: String) {
+        viewModelScope.launch {
+            dataStoreManager.setPreferredAudioLanguage(language)
         }
     }
 

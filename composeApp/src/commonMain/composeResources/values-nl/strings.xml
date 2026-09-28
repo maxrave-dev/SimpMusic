@@ -152,9 +152,6 @@
     <string name="balance_media_loudness">Media-volume balanceren</string>
     <string name="normalize_volume">Volume normaliseren</string>
     <string name="audio">Geluid</string>
-    <string name="no_equalizer">Je apparaat heeft geen equalizer</string>
-    <string name="open_system_equalizer">Systeem equalizer openen</string>
-    <string name="use_your_system_equalizer">Gebruik uw systeem equalizer</string>
     <string name="streaming_data_provider_piped">Streaming dataprovider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime-type</string>

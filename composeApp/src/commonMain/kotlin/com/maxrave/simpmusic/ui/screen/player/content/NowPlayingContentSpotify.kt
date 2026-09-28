@@ -568,11 +568,20 @@ fun NowPlayingContentSpotify(
                                                 Modifier
                                                     .align(Alignment.Center)
                                                     .padding(3.dp)
-                                                    .fillMaxWidth()
-                                                    .background(Color.Transparent)
-                                                    .aspectRatio(
-                                                        if (!state.screenData.isVideo) 1f else 16f / 9,
-                                                    ).clip(
+                                                    .then(
+                                                        // Hidden while the video plays, but its box is what
+                                                        // the shadow above is cast from — so it takes the
+                                                        // video frame's shape, or a 16:9 shadow rings a
+                                                        // tall video.
+                                                        if (state.screenData.isVideo && state.shouldShowVideo) {
+                                                            Modifier.aspectRatio(state.videoAspectRatio)
+                                                        } else {
+                                                            Modifier
+                                                                .fillMaxWidth()
+                                                                .aspectRatio(if (!state.screenData.isVideo) 1f else 16f / 9)
+                                                        },
+                                                    ).background(Color.Transparent)
+                                                    .clip(
                                                         RoundedCornerShape(8.dp),
                                                     ).alpha(
                                                         if (!state.screenData.isVideo || !state.shouldShowVideo) 1f else 0f,
@@ -588,11 +597,14 @@ fun NowPlayingContentSpotify(
                                         var internalShowSubtitle by rememberSaveable {
                                             mutableStateOf(true)
                                         }
+                                        // The frame takes the video's own shape, fitted into the
+                                        // square slot: a wide video spans its width, a tall one
+                                        // its height. The slot itself never changes, so nothing
+                                        // below the artwork moves.
                                         Box(
                                             modifier =
                                                 Modifier
-                                                    .fillMaxWidth()
-                                                    .aspectRatio(16f / 9)
+                                                    .aspectRatio(state.videoAspectRatio)
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .background(Color.Black),
                                         ) {

@@ -950,6 +950,7 @@ fun QueueBottomSheet(
     var overscrollJob by remember { mutableStateOf<Job?>(null) }
     var shouldShowQueueItemBottomSheet by rememberSaveable { mutableStateOf(false) }
     var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
+    var clickMoreVideoId by rememberSaveable { mutableStateOf<String?>(null) }
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
     val queueData by musicServiceHandler.queueData.collectAsStateWithLifecycle()
@@ -1001,6 +1002,7 @@ fun QueueBottomSheet(
 
     val showQueueItemBottomSheet: (Int) -> Unit = { index ->
         clickMoreIndex = index
+        clickMoreVideoId = queue.getOrNull(index)?.videoId
         shouldShowQueueItemBottomSheet = true
     }
 
@@ -1008,6 +1010,7 @@ fun QueueBottomSheet(
         QueueItemBottomSheet(
             onDismiss = { shouldShowQueueItemBottomSheet = false },
             index = clickMoreIndex,
+            videoId = clickMoreVideoId,
             musicServiceHandler = musicServiceHandler,
         )
     }
@@ -1139,6 +1142,15 @@ fun QueueBottomSheet(
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
+                val queueRowKeys =
+                    remember(queue) {
+                        val seen = HashMap<String, Int>(queue.size)
+                        queue.map { track ->
+                            val occurrence = seen.getOrElse(track.videoId) { 0 }
+                            seen[track.videoId] = occurrence + 1
+                            "${track.videoId}#$occurrence"
+                        }
+                    }
                 LazyColumn(
                     horizontalAlignment = Alignment.Start,
                     state = lazyListState,
@@ -1188,7 +1200,12 @@ fun QueueBottomSheet(
                 ) {
                     itemsIndexed(
                         queue,
-                        key = { i, t -> i.toString() + t.videoId },
+                        // Keyed by the track, NOT by its position: a radio queue drops played
+                        // tracks off the front, and a position-based key changes for every row
+                        // when that happens, so the list loses its scroll anchor and jumps under
+                        // the user. The occurrence number keeps the key unique when a radio
+                        // repeats a song.
+                        key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
                     ) { index, track ->
                         if (index != -1) {
                             DraggableItem(
@@ -1249,6 +1266,8 @@ private enum class QueueItemAction {
 fun QueueItemBottomSheet(
     onDismiss: () -> Unit,
     index: Int,
+    /** The track that was at [index] when this sheet opened; its actions only run if it still is. */
+    videoId: String?,
     musicServiceHandler: MediaPlayerHandler = koinInject<MediaPlayerHandler>(),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -1333,6 +1352,17 @@ fun QueueItemBottomSheet(
                                     .fillMaxWidth()
                                     .clickable {
                                         hideModalBottomSheet()
+                                        // These act by POSITION, and a radio trims its played history
+                                        // off the front while this sheet can be open, which moves every
+                                        // row. If the track is no longer at [index], do nothing rather
+                                        // than move or delete whatever slid into its place.
+                                        val stillThere =
+                                            musicServiceHandler.queueData.value
+                                                ?.data
+                                                ?.listTracks
+                                                ?.getOrNull(index)
+                                                ?.videoId == videoId
+                                        if (!stillThere) return@clickable
                                         when (action) {
                                             QueueItemAction.UP -> {
                                                 coroutineScope.launch {

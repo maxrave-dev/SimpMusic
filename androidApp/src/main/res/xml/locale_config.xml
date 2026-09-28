@@ -27,4 +27,6 @@
     <locale android:name="ca" />
     <locale android:name="fa" />
     <locale android:name="bg" />
+    <locale android:name="sv" />
+    <locale android:name="hr" />
 </locale-config>
