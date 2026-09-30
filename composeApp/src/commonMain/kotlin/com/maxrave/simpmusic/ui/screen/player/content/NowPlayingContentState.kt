@@ -8,6 +8,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.player.GenericCastState
@@ -17,6 +18,7 @@ import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.roundToInt
 
 /**
  * Whether the lyrics currently on screen can be rated.
@@ -58,20 +60,26 @@ internal fun String.stripRichSyncTimestamps(): String =
         .replace(WHITESPACE_REGEX, " ")
         .trim()
 
-// Codec label for the Apple Music style's progress-bar badge. Derived from the stream's
-// mimeType (e.g. `audio/webm; codecs="opus"`, `audio/mp4; codecs="mp4a.40.2"`) rather than the
-// itag, which the two YouTube audio families always encode as one of these two codecs. Returns
-// null for anything else so the badge hides instead of showing a guess.
-internal fun String?.toAudioCodecLabel(): String? {
-    // Fed NewFormatEntity.codecs — "opus", or "mp4a.40.2" for AAC. The regex that fills that
-    // column falls back to the WHOLE mimeType when it fails to match, so both shapes have to be
-    // recognised here; "aac" covers the Piped path, which reports the codec by name.
-    val codec = this ?: return null
-    return when {
-        codec.contains("opus", ignoreCase = true) -> "OPUS"
-        codec.contains("mp4a", ignoreCase = true) || codec.contains("aac", ignoreCase = true) -> "AAC"
-        else -> null
-    }
+/**
+ * "154 kbps · 48 kHz" — the Apple Music style's quality line, read off the format YouTube served
+ * for the track now playing: its `bitrate` (the figure the Info sheet prints in bps) and its
+ * `sampleRate`. A figure the format does not carry is dropped rather than guessed, and null comes
+ * back when neither is known, so the line hides instead of showing a placeholder.
+ */
+internal fun NewFormatEntity?.toAudioQualityLabel(): String? {
+    val format = this ?: return null
+    val parts =
+        buildList {
+            format.bitrate?.takeIf { it > 0 }?.let { add("${(it / 1000.0).roundToInt()} kbps") }
+            format.sampleRate?.takeIf { it > 0 }?.let { add(it.toKhzLabel()) }
+        }
+    return parts.joinToString(" · ").takeIf { it.isNotEmpty() }
+}
+
+// 48000 → "48 kHz", 44100 → "44.1 kHz": one decimal, and none when it would be ".0".
+private fun Int.toKhzLabel(): String {
+    val tenths = (this + 50) / 100
+    return if (tenths % 10 == 0) "${tenths / 10} kHz" else "${tenths / 10}.${tenths % 10} kHz"
 }
 
 /**
@@ -107,8 +115,13 @@ class NowPlayingContentState(
     val mainScrollState: ScrollState,
     val isExpanded: Boolean,
     val dismissIcon: ImageVector,
-    /** Current track's audio codec ("OPUS"/"AAC"), or null while unknown — see [toAudioCodecLabel]. */
-    val audioCodecLabel: String? = null,
+    /** "154 kbps · 48 kHz" for the stream now playing, or null while unknown — see [toAudioQualityLabel]. */
+    val audioQualityLabel: String? = null,
+    /**
+     * The user's lyrics delay, applied at read time. [currentLyricLineIndex] already has it baked in;
+     * this is for anything that times WITHIN a line (the Apple Music lyric strip's word sweep).
+     */
+    val lyricsOffsetMs: Long = 0L,
     /**
      * Width / height of the video now playing, 16:9 until the player knows it. Every style sizes
      * its video frame from this one value, so a frame and the spacer that measures it cannot drift.
@@ -129,6 +142,7 @@ class NowPlayingContentActions(
     val onSliderChangeFinished: () -> Unit,
     val onToggleControls: () -> Unit,
     val onNavigateToArtist: () -> Unit,
+    val onOpenListenTogether: () -> Unit,
     val onAddToYouTubeLiked: () -> Unit,
     val onShowMoreSheet: () -> Unit,
     val onShowQueue: () -> Unit,

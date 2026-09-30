@@ -635,6 +635,7 @@ class SharedViewModel(
                                     NowPlayingScreenData.CanvasData(
                                         isVideo = data.isVideo,
                                         url = data.canvasUrl,
+                                        thumbUrl = data.canvasThumbUrl,
                                     ),
                             )
                         }
@@ -656,6 +657,7 @@ class SharedViewModel(
                                 NowPlayingScreenData.CanvasData(
                                     isVideo = url.isCanvasVideoUrl(),
                                     url = url,
+                                    thumbUrl = nowPlayingState.value?.songEntity?.canvasThumbUrl,
                                 ),
                         )
                     }
@@ -2172,6 +2174,10 @@ data class NowPlayingScreenData(
     data class CanvasData(
         val isVideo: Boolean,
         val url: String,
+        // A still of the clip at the clip's own size — Apple Music's animated artwork sends one.
+        // The Apple Music player shows it under the clip while that loads, and reads the clip's
+        // proportions off it, so the frame is the right shape before the first video frame arrives.
+        val thumbUrl: String? = null,
     )
 
     data class LyricsData(

@@ -16,3 +16,14 @@ expect fun ImageBitmap.toByteArray(): ByteArray?
 expect fun ImageBitmap.toPngByteArray(): ByteArray?
 
 expect fun Image.toImageBitmap(): ImageBitmap
+
+/**
+ * A [width]x[height] copy of this bitmap whose pixels can be read with [ImageBitmap.readPixels].
+ *
+ * Needed on Android because Coil hands back HARDWARE bitmaps, which keep their pixels on the GPU:
+ * reading them, or drawing them into a software canvas, throws.
+ */
+expect fun ImageBitmap.toReadableBitmap(
+    width: Int,
+    height: Int,
+): ImageBitmap

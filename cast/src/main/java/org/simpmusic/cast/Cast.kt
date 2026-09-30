@@ -3,6 +3,7 @@ package org.simpmusic.cast
 import android.content.Context
 import androidx.media3.cast.CastPlayer
 import androidx.media3.common.Player
+import androidx.mediarouter.media.MediaRouteSelector
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -68,6 +69,15 @@ fun wrapWithCastPlayer(
         localPlayer
     }
 }
+
+/** The route selector the Cast framework registered for this app's receiver, or null without Cast. */
+internal fun castRouteSelector(): MediaRouteSelector? =
+    try {
+        castContext?.mergedSelector
+    } catch (e: Exception) {
+        Logger.e(TAG, "Failed to read the Cast route selector: ${e.message}", e)
+        null
+    }
 
 fun currentCastDeviceName(): String? =
     try {

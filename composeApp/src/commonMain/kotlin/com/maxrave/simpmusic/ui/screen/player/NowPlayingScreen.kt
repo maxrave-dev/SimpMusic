@@ -84,6 +84,7 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.VoteLyricsDialog
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
@@ -92,7 +93,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentM3Express
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentSpotify
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
-import com.maxrave.simpmusic.ui.screen.player.content.toAudioCodecLabel
+import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
@@ -184,7 +185,7 @@ fun NowPlayingScreenContent(
     val lyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
     val likeStatus by sharedViewModel.likeStatus.collectAsStateWithLifecycle()
     val castState by sharedViewModel.castState.collectAsStateWithLifecycle()
-    // Apple Music style's progress-bar codec badge — see NowPlayingContentState.toAudioCodecLabel.
+    // Apple Music style's quality line under the progress bar — see NowPlayingContentState.toAudioQualityLabel.
     val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsStateWithLifecycle()
@@ -626,11 +627,8 @@ fun NowPlayingScreenContent(
             mainScrollState = mainScrollState,
             isExpanded = isExpanded,
             dismissIcon = dismissIcon,
-            // codecs, NOT mimeType. StreamRepositoryImpl splits YouTube's
-            // `audio/webm; codecs="opus"` with a regex and stores the two halves in SEPARATE
-            // columns: mimeType keeps "audio/webm", codecs keeps "opus". Asking mimeType for the
-            // codec therefore never matched anything and the badge never rendered, on any track.
-            audioCodecLabel = formatState?.codecs.toAudioCodecLabel(),
+            audioQualityLabel = formatState.toAudioQualityLabel(),
+            lyricsOffsetMs = lyricsOffsetMs.toLong(),
             videoAspectRatio = rememberVideoAspectRatio(MAIN_PLAYER) ?: 16f / 9,
         )
     val actions =
@@ -667,6 +665,10 @@ fun NowPlayingScreenContent(
                         ),
                     )
                 }
+            },
+            onOpenListenTogether = {
+                onDismiss()
+                navController.navigate(ListenTogetherDestination)
             },
             onAddToYouTubeLiked = { sharedViewModel.addToYouTubeLiked() },
             onShowMoreSheet = { showSheet = true },
