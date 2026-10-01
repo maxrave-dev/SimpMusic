@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +55,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Smartphone
 import com.maxrave.simpmusic.ui.icon.Speaker
 import com.maxrave.simpmusic.ui.theme.typo
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.audio_output
@@ -85,6 +87,11 @@ internal fun AppleMusicOutputSheet(
 ) {
     val colors = rememberSurfaceDarkColors()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    // A pick is the whole job: the sheet slides away and the caption under the button names the new
+    // output. onDismiss runs however the slide ends — waiting for a finished hide is how a sheet gets
+    // left parked half-way with no scrim to close it.
+    val closeSheet: () -> Unit = { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() } }
     val localDensity = LocalDensity.current
     // Scanning for receivers only while this is open: discovery keeps the radio busy.
     val cast = rememberCastReceivers(discover = true)
@@ -135,6 +142,7 @@ internal fun AppleMusicOutputSheet(
                             // would route a local player that is not the one playing.
                             if (castState.isRemote) cast.disconnect()
                             onSelectOutput(output)
+                            closeSheet()
                         },
                     )
                 }

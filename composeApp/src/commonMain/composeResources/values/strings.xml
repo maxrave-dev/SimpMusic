@@ -24,6 +24,7 @@
     <string name="hide">Hide</string>
     <string name="show">Show</string>
     <string name="na_na">NA:NA</string>
+    <string name="live_badge">LIVE</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>

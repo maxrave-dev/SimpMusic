@@ -112,6 +112,7 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.live_badge
 import kotlin.math.roundToLong
 import org.koin.compose.koinInject
 
@@ -550,7 +551,8 @@ internal fun AppleMusicTimesRow(
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = formatDuration(elapsedMs),
+                // Blank for a live broadcast: where it sits in the broadcast's seek window means nothing.
+                text = if (state.timelineState.isLive) "" else formatDuration(elapsedMs),
                 style = typography.times,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Left,
@@ -559,7 +561,12 @@ internal fun AppleMusicTimesRow(
                 // No leading "-" when the length is unknown: "-NA:NA" reads as a negative amount of
                 // nothing. formatDuration's own out-of-range string is the app's established way to
                 // say "no value here".
-                text = remainingMs?.let { "-" + formatDuration(it) } ?: formatDuration(-1L),
+                text =
+                    if (state.timelineState.isLive) {
+                        stringResource(Res.string.live_badge)
+                    } else {
+                        remainingMs?.let { "-" + formatDuration(it) } ?: formatDuration(-1L)
+                    },
                 style = typography.times,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Right,

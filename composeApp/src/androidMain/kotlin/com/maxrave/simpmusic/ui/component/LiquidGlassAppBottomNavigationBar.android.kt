@@ -67,6 +67,9 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
 
+// How long the bar takes to morph between the tab bar and the collapsed pill.
+private const val BAR_MORPH_MS = 300
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 actual fun LiquidGlassAppBottomNavigationBar(
@@ -180,6 +183,17 @@ actual fun LiquidGlassAppBottomNavigationBar(
     var isExpanded by rememberSaveable {
         mutableStateOf(true)
     }
+    // Collapsing swaps the tabs for the pill at once and lets the layout shrink around it. Expanding
+    // has to be that motion played backwards: the pill rides the layout out to its expanded place
+    // and only then do the tabs replace it. Swapping first lays the full bar out inside the
+    // collapsed constraints, so it overflows the screen and the mini player snaps to the far edge
+    // before anything animates.
+    var tabsSettled by remember { mutableStateOf(isExpanded) }
+    LaunchedEffect(isExpanded) {
+        if (isExpanded) delay(BAR_MORPH_MS.toLong())
+        tabsSettled = isExpanded
+    }
+    val showTabs = isExpanded && tabsSettled
 
     var isInSearchDestination by remember {
         mutableStateOf(false)
@@ -258,7 +272,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 ).padding(
                     bottom = 8.dp,
                 ).imePadding(),
-        animateChangesSpec = tween(300),
+        animateChangesSpec = tween(BAR_MORPH_MS),
     ) {
         /**
          * LTR: HOME -> MIX FOR YOU -> LIBRARY | SEARCH
@@ -276,7 +290,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         // Expanded: the row spans the screen so the capsule can be told how much
                         // room is left once the FAB has taken its 56dp. Collapsed it is just a
                         // single pill sitting next to the mini player, so it stays wrap-content.
-                        if (isExpanded) {
+                        if (showTabs) {
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                         } else {
                             Modifier.padding(start = 16.dp).wrapContentSize()
@@ -284,7 +298,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                     ).layoutId("toolbar")
                     .onGloballyPositioned { updateConstraints = true },
         ) {
-            if (isExpanded) {
+            if (showTabs) {
                 // The FAB keeps its own slot beside the capsule — overlapping it reads fine on a
                 // bar whose last item is decorative, but here the last item is the Library tab and
                 // the FAB covered it. weight(1f) hands the capsule exactly what is left after the
@@ -372,11 +386,15 @@ private fun decoupledConstraints(
         val toolbar = createRefFor("toolbar")
         constrain(toolbar) {
             bottom.linkTo(parent.bottom)
-            height = Dimension.wrapContent
             if (!isExpanded) {
+                height = Dimension.wrapContent
                 width = Dimension.wrapContent
                 start.linkTo(parent.start)
             } else {
+                // Pinned to the tab bar's height instead of wrapped: the pill is 16dp shorter, and
+                // while it is carried through a morph the mini player would otherwise drop by that
+                // much the moment the content changes, then hop back when the tabs arrive.
+                height = Dimension.value(BarHeight)
                 // fillToConstraints, not wrapContent: wrap let the row size itself to its content
                 // and simply overflow the screen when a tab was added, taking the FAB with it.
                 width = Dimension.fillToConstraints

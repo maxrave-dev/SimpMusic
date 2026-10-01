@@ -114,6 +114,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
@@ -125,12 +126,14 @@ import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
+import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -146,6 +149,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.live_badge
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.seconds
@@ -165,6 +169,8 @@ fun MiniPlayer(
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    // The Desktop capsule's quality line between its timestamps — see toAudioQualityLabel.
+    val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val layer = rememberGraphicsLayer()
     val luminanceAnimation = remember { Animatable(0f) }
@@ -299,8 +305,8 @@ fun MiniPlayer(
             if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
                 Color.Transparent
             } else {
-                // Same 85% as the bottom bar capsule, so the two floating surfaces read as one set.
-                MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)
+                // Same opaque surface as the bottom bar capsule, so the two floating surfaces read as one set.
+                MaterialTheme.colorScheme.surfaceContainer
             }
         // The flat (default) card: round artwork and controls sitting in filled circles. Glass keeps its own look.
         val isFlat = isLiquidGlassEnabled != DataStoreManager.TRUE
@@ -907,19 +913,45 @@ fun MiniPlayer(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                            text = timelineState.elapsedLabel(sliderValue / 100f),
                             style = scrubberDigits,
                             color = textColor.copy(alpha = 0.7f),
                             maxLines = 1,
                         )
+                        // The Now Playing quality line, centred between the times and a step dimmer.
+                        formatState.toAudioQualityLabel()?.let { quality ->
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = SimpIcons.Headphones,
+                                    contentDescription = null,
+                                    tint = textColor.copy(alpha = 0.45f),
+                                    modifier = Modifier.size(13.dp),
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = quality,
+                                    style = scrubberDigits,
+                                    color = textColor.copy(alpha = 0.45f),
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                         Text(
                             // Time REMAINING, signed, which is what Apple's capsule reports on the
                             // right — not the track's total length.
                             text =
-                                "−" +
-                                    formatDuration(
-                                        (timelineState.total * (1f - sliderValue / 100f)).roundToLong(),
-                                    ),
+                                if (timelineState.isLive) {
+                                    stringResource(Res.string.live_badge)
+                                } else {
+                                    "−" +
+                                        formatDuration(
+                                            (timelineState.total * (1f - sliderValue / 100f)).roundToLong(),
+                                        )
+                                },
                             style = scrubberDigits,
                             color = textColor.copy(alpha = 0.7f),
                             maxLines = 1,

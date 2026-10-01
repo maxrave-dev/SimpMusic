@@ -9,7 +9,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +40,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
@@ -161,7 +162,7 @@ private fun StripText(
         style = typography.lyricStrip,
         maxLines = 1,
         softWrap = false,
-        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
     )
 }
 
@@ -194,13 +195,14 @@ private fun SweptLine(
             }
         }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    Box {
+    // The marquee sits on the Box, not on each Text, so the dim and bright copies scroll as one and
+    // the sweep stays over the word it belongs to.
+    Box(modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)) {
         Text(
             text = text,
             style = typography.lyricStrip.copy(color = UNSUNG),
             maxLines = 1,
             softWrap = false,
-            overflow = TextOverflow.Ellipsis,
             onTextLayout = { layout = it },
         )
         Text(
@@ -208,7 +210,6 @@ private fun SweptLine(
             style = typography.lyricStrip,
             maxLines = 1,
             softWrap = false,
-            overflow = TextOverflow.Ellipsis,
             modifier =
                 Modifier.drawWithContent {
                     val measured = layout ?: return@drawWithContent

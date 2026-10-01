@@ -72,7 +72,7 @@ import kotlin.math.sign
 
 private val CapsuleShape = RoundedCornerShape(percent = 50)
 private val TabWidth = 96.dp
-private val BarHeight = 64.dp
+internal val BarHeight = 64.dp
 private val BlobHeight = 56.dp
 // Breathing room between the capsule edge and the pill on the first/last tab. The pill is a full
 // tab wide, so without this it sits flush against the capsule's rounded end.
