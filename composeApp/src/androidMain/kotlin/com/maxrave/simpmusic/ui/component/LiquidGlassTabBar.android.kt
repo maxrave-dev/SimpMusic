@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -102,7 +103,7 @@ fun LiquidGlassTabBar(
     selectedTab: Int,
     backdrop: PlatformBackdrop,
     layer: GraphicsLayer,
-    luminance: Float,
+    luminance: State<Float>,
     modifier: Modifier = Modifier,
     availableWidth: Dp = Dp.Unspecified,
     onTabSelected: (Int) -> Unit,
@@ -198,7 +199,7 @@ fun LiquidGlassTabBar(
         // bar and the mini player read as one material (drawInteractiveGlass, no white veil).
         // barInteraction makes the whole capsule respond to a press (scale + touch glow) like iOS;
         // it's observe-only, so tab taps and the blob drag keep working.
-        Box(Modifier.matchParentSize().drawInteractiveGlass(isDark, backdrop, layer, luminance, CapsuleShape, barInteraction))
+        Box(Modifier.matchParentSize().drawInteractiveGlass(isDark, backdrop, layer, { luminance.value }, CapsuleShape, barInteraction))
 
         // 2) Frosted blob selection indicator — slides behind the icons.
         Box(
@@ -216,7 +217,7 @@ fun LiquidGlassTabBar(
                     effects = {
                         // Luminance only drives the blur here (frosted pill); brightness/contrast stay
                         // neutral and the "đục đen" darkening is applied in onDrawSurface.
-                        val l = (luminance * 2f - 1f).let { sign(it) * it * it }
+                        val l = (luminance.value * 2f - 1f).let { sign(it) * it * it }
                         val progress = dampedDrag.pressProgress
                         vibrancy()
                         colorControls(
@@ -249,7 +250,7 @@ fun LiquidGlassTabBar(
                         // Active pill sits a touch above the bar. Dark theme: "đục đen" (black veil that
                         // scales with the backdrop). Light theme: only a faint grey so the pill stays
                         // clearly lighter than a heavy slab — the highlight/shadow do the separating.
-                        val lumNorm = ((luminance - 0.3f) / 0.5f).coerceIn(0f, 1f)
+                        val lumNorm = ((luminance.value - 0.3f) / 0.5f).coerceIn(0f, 1f)
                         val darken =
                             if (isDark) lerp(0.22f, 0.55f, lumNorm) else lerp(0.06f, 0.14f, lumNorm)
                         drawRect(Color.Black.copy(alpha = darken))

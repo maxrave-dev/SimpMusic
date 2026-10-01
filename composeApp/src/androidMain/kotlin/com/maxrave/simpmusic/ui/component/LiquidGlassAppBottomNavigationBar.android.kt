@@ -1,7 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.graphics.Bitmap
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,16 +29,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.Visibility
-import androidx.core.graphics.scale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -57,13 +52,8 @@ import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
-import java.nio.IntBuffer
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "LiquidGlassAppBottomNavigationBar"
 
@@ -86,40 +76,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
     val layer = rememberGraphicsLayer()
     val toolbarInteraction = rememberGlassInteraction()
     val searchFabInteraction = rememberGlassInteraction()
-    val luminanceAnimation = remember { Animatable(0f) }
-
-    LaunchedEffect(layer) {
-        val buffer = IntBuffer.allocate(25)
-        while (isActive) {
-            try {
-                withContext(Dispatchers.IO) {
-                    val imageBitmap = layer.toImageBitmap()
-                    val thumbnail =
-                        imageBitmap
-                            .asAndroidBitmap()
-                            .scale(5, 5, false)
-                            .copy(Bitmap.Config.ARGB_8888, false)
-                    buffer.rewind()
-                    thumbnail.copyPixelsToBuffer(buffer)
-                }
-            } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.localizedMessage}")
-            }
-            val averageLuminance =
-                (0 until 25).sumOf { index ->
-                    val color = buffer.get(index)
-                    val r = (color shr 16 and 0xFF) / 255f
-                    val g = (color shr 8 and 0xFF) / 255f
-                    val b = (color and 0xFF) / 255f
-                    0.2126 * r + 0.7152 * g + 0.0722 * b
-                } / 25
-            luminanceAnimation.animateTo(
-                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
-                tween(500),
-            )
-            delay(1.seconds)
-        }
-    }
+    val luminance = rememberGlassLuminance(layer)
 
     val nowPlayingData by viewModel.nowPlayingState.collectAsStateWithLifecycle()
     // MiniPlayer visibility: derived, never stored.
@@ -210,27 +167,10 @@ actual fun LiquidGlassAppBottomNavigationBar(
         isExpanded = !isInSearchDestination
     }
 
-    var updateConstraints by remember {
-        mutableStateOf(true)
-    }
-
-    var constraintSet by remember {
-        mutableStateOf(
-            decoupledConstraints(isShowMiniPlayer, isExpanded),
-        )
-    }
-
-    LaunchedEffect(isShowMiniPlayer, isExpanded) {
-        constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
-        updateConstraints = false
-    }
-
-    LaunchedEffect(updateConstraints) {
-        if (updateConstraints) {
-            constraintSet = decoupledConstraints(isShowMiniPlayer, isExpanded)
-            updateConstraints = false
+    val constraintSet =
+        remember(isShowMiniPlayer, isExpanded) {
+            decoupledConstraints(isShowMiniPlayer, isExpanded)
         }
-    }
 
     LaunchedEffect(isScrolledToTop) {
         Logger.d(TAG, "isScrolledToTop: $isScrolledToTop")
@@ -295,8 +235,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         } else {
                             Modifier.padding(start = 16.dp).wrapContentSize()
                         },
-                    ).layoutId("toolbar")
-                    .onGloballyPositioned { updateConstraints = true },
+                    ).layoutId("toolbar"),
         ) {
             if (showTabs) {
                 // The FAB keeps its own slot beside the capsule — overlapping it reads fine on a
@@ -316,7 +255,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                         selectedTab = barTabs.indexOfFirst { it.ordinal == selectedIndex },
                         backdrop = backdrop,
                         layer = layer,
-                        luminance = luminanceAnimation.value,
+                        luminance = luminance,
                         availableWidth = maxWidth,
                         onTabSelected = { position -> selectTab(barTabs[position].ordinal) },
                     )
@@ -330,8 +269,9 @@ actual fun LiquidGlassAppBottomNavigationBar(
                             .drawInteractiveGlass(
                                 LocalIsDarkTheme.current,
                                 backdrop,
-                                layer,
-                                luminanceAnimation.value,
+                                // Only the capsule records the shared sample; Search must not overwrite it.
+                                null,
+                                { luminance.value },
                                 CircleShape,
                                 searchFabInteraction,
                             ).clickable { selectTab(BottomNavScreen.Search.ordinal) },
@@ -350,7 +290,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                                 LocalIsDarkTheme.current,
                                 backdrop,
                                 layer,
-                                luminanceAnimation.value,
+                                { luminance.value },
                                 CircleShape,
                                 toolbarInteraction,
                             ).clickable { isExpanded = true },
@@ -367,6 +307,7 @@ actual fun LiquidGlassAppBottomNavigationBar(
                 .height(56.dp)
                 .layoutId("miniPlayer"),
             backdrop = backdrop,
+            isVisible = isShowMiniPlayer,
             onClick = {
                 onOpenNowPlaying()
             },
