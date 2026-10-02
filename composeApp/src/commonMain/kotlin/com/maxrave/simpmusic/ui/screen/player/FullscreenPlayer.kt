@@ -135,7 +135,7 @@ fun FullscreenPlayer(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(key1 = timelineState, key2 = isSliding) {
+    LaunchedEffect(key1 = timelineState) {
         if (!isSliding) {
             sliderValue =
                 if (timelineState.total > 0L) {
@@ -592,10 +592,10 @@ fun FullscreenPlayer(
                                             sliderValue = value * 100f
                                         },
                                         onValueChangeFinished = {
-                                            isSliding = false
                                             sharedViewModel.onUIEvent(
                                                 UIEvent.UpdateProgress(sliderValue),
                                             )
+                                            isSliding = false
                                         },
                                         modifier =
                                             Modifier
