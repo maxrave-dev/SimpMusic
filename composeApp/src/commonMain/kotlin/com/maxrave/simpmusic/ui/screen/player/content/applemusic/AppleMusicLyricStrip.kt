@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -39,11 +40,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.ResolvedTextDirection
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.parseRichSyncWords
+import com.maxrave.simpmusic.ui.component.rememberLyricLayoutDirection
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
 import kotlin.math.abs
@@ -117,27 +122,31 @@ internal fun AppleMusicLyricStrip(
                     onClick = onClick,
                 ),
     ) { shown ->
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), contentAlignment = Alignment.CenterStart) {
-            // Every branch starts from a one-line Text, which is what keeps the slot the same height.
-            when (shown) {
-                is StripContent.Sung -> {
-                    val parsed =
-                        remember(shown.line, richSynced) {
-                            if (richSynced) parseRichSyncWords(shown.line.words, shown.line.startTimeMs, shown.line.endTimeMs) else null
+        val lineText = (shown as? StripContent.Sung)?.line?.displayText().orEmpty()
+        val lineDirection = rememberLyricLayoutDirection(lineText)
+        CompositionLocalProvider(LocalLayoutDirection provides lineDirection) {
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), contentAlignment = Alignment.CenterStart) {
+                // Every branch starts from a one-line Text, which is what keeps the slot the same height.
+                when (shown) {
+                    is StripContent.Sung -> {
+                        val parsed =
+                            remember(shown.line, richSynced) {
+                                if (richSynced) parseRichSyncWords(shown.line.words, shown.line.startTimeMs, shown.line.endTimeMs) else null
+                            }
+                        if (parsed != null) {
+                            SweptLine(parsed = parsed, playhead = playhead, typography = typography)
+                        } else {
+                            StripText(text = shown.line.displayText(), typography = typography)
                         }
-                    if (parsed != null) {
-                        SweptLine(parsed = parsed, playhead = playhead, typography = typography)
-                    } else {
-                        StripText(text = shown.line.displayText(), typography = typography)
                     }
-                }
 
-                StripContent.Waiting -> {
-                    StripText(text = "", typography = typography)
-                    WaitingDots()
-                }
+                    StripContent.Waiting -> {
+                        StripText(text = "", typography = typography)
+                        WaitingDots()
+                    }
 
-                null -> StripText(text = "", typography = typography)
+                    null -> StripText(text = "", typography = typography)
+                }
             }
         }
     }
@@ -159,7 +168,7 @@ private fun StripText(
 ) {
     Text(
         text = text,
-        style = typography.lyricStrip,
+        style = typography.lyricStrip.copy(textDirection = TextDirection.ContentOrLtr),
         maxLines = 1,
         softWrap = false,
         modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
@@ -194,28 +203,31 @@ private fun SweptLine(
                 range
             }
         }
-    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var layout by remember(text) { mutableStateOf<TextLayoutResult?>(null) }
     // The marquee sits on the Box, not on each Text, so the dim and bright copies scroll as one and
     // the sweep stays over the word it belongs to.
     Box(modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)) {
         Text(
             text = text,
-            style = typography.lyricStrip.copy(color = UNSUNG),
+            style = typography.lyricStrip.copy(color = UNSUNG, textDirection = TextDirection.ContentOrLtr),
             maxLines = 1,
             softWrap = false,
             onTextLayout = { layout = it },
         )
         Text(
             text = text,
-            style = typography.lyricStrip,
+            style = typography.lyricStrip.copy(textDirection = TextDirection.ContentOrLtr),
             maxLines = 1,
             softWrap = false,
             modifier =
                 Modifier.drawWithContent {
                     val measured = layout ?: return@drawWithContent
-                    val sweepX = sweepX(parsed, ranges, measured, playhead.value)
-                    if (sweepX <= 0f) return@drawWithContent
-                    clipRect(right = sweepX) { this@drawWithContent.drawContent() }
+                    val sweepX = sweepX(parsed, ranges, measured, playhead.value) ?: return@drawWithContent
+                    if (measured.getParagraphDirection(0) == ResolvedTextDirection.Rtl) {
+                        clipRect(left = sweepX) { this@drawWithContent.drawContent() }
+                    } else {
+                        clipRect(right = sweepX) { this@drawWithContent.drawContent() }
+                    }
                 },
         )
     }
@@ -228,10 +240,10 @@ private fun sweepX(
     ranges: List<IntRange>,
     layout: TextLayoutResult,
     positionMs: Long,
-): Float {
+): Float? {
     val words = parsed.words
     val current = words.indexOfLast { it.startTimeMs <= positionMs }
-    if (current < 0) return 0f
+    if (current < 0) return null
     val range = ranges[current]
     val startMs = words[current].startTimeMs
     val endMs =

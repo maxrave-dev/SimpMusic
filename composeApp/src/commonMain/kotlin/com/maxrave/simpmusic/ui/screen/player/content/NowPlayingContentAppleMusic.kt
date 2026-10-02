@@ -84,6 +84,7 @@ import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -660,7 +661,7 @@ private fun AppleMusicMainView(
                                         ?.stripRichSyncTimestamps()
                                 if (!lineText.isNullOrBlank()) {
                                     Column(modifier = Modifier.fillMaxWidth()) {
-                                        Text(
+                                        LyricText(
                                             text = lineText,
                                             style = typography.idleLyric,
                                             maxLines = 1,
@@ -680,8 +681,9 @@ private fun AppleMusicMainView(
                                                 ?.words
                                                 ?.stripRichSyncTimestamps()
                                         if (!translatedLineText.isNullOrBlank()) {
-                                            Text(
+                                            LyricText(
                                                 text = translatedLineText,
+                                                alignmentText = lineText,
                                                 style = typography.idleTranslated,
                                                 maxLines = 1,
                                                 modifier =

@@ -93,6 +93,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
@@ -458,7 +459,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                 animationSpec = tween(durationMillis = 300),
                                 label = "inlineLyricLineExpressive",
                             ) { lineText ->
-                                Text(
+                                LyricText(
                                     text = lineText,
                                     style = typo().labelSmall,
                                     color = Color.White,
@@ -573,7 +574,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                 Column(
                                                     modifier = Modifier.fillMaxWidth(),
                                                 ) {
-                                                    Text(
+                                                    LyricText(
                                                         modifier =
                                                             Modifier
                                                                 .fillMaxWidth()
@@ -597,7 +598,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                             ?.words
                                                             ?.stripRichSyncTimestamps()
                                                     if (!translatedLineText.isNullOrBlank()) {
-                                                        Text(
+                                                        LyricText(
                                                             modifier =
                                                                 Modifier
                                                                     .fillMaxWidth()
@@ -608,6 +609,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                                     ).focusable(),
                                                             text = translatedLineText,
+                                                            alignmentText = lineText,
                                                             style = typo().bodyMedium,
                                                             color = Color.Yellow,
                                                             maxLines = 1,
