@@ -123,6 +123,15 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 - ARM64 on Windows and Linux: use the x64 build.
 
 Please report issues on our Discord server if you find any bugs.
+
+### Window behavior & building from source
+- **Window styling**: On Windows and Linux, the desktop app uses native opaque window decorations. macOS window styling is unchanged.
+- **Run from source (Windows)**:
+  ```bat
+  git submodule update --init --recursive
+  .\gradlew.bat :desktopApp:run
+  ```
+  Requires JDK 21.
  
 ## Translation    
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)
