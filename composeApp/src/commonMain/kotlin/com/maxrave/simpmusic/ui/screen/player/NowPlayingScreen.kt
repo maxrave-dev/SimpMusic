@@ -465,7 +465,7 @@ fun NowPlayingScreenContent(
     var sliderValue by rememberSaveable {
         mutableFloatStateOf(0f)
     }
-    LaunchedEffect(key1 = timelineState, key2 = isSliding) {
+    LaunchedEffect(key1 = timelineState) {
         if (!isSliding) {
             sliderValue =
                 if (timelineState.total > 0L) {
@@ -645,10 +645,10 @@ fun NowPlayingScreenContent(
                 sliderValue = newValue
             },
             onSliderChangeFinished = {
-                isSliding = false
                 sharedViewModel.onUIEvent(
                     UIEvent.UpdateProgress(sliderValue),
                 )
+                isSliding = false
             },
             onToggleControls = {
                 showHideJob = true

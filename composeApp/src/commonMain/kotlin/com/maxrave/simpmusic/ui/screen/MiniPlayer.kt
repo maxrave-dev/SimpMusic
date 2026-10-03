@@ -618,7 +618,7 @@ fun MiniPlayer(
         var showQueueBottomSheet by rememberSaveable {
             mutableStateOf(false)
         }
-        LaunchedEffect(key1 = timelineState, key2 = isSliding) {
+        LaunchedEffect(key1 = timelineState) {
             if (!isSliding) {
                 sliderValue =
                     if (timelineState.total > 0L) {
@@ -944,10 +944,10 @@ fun MiniPlayer(
                             sliderValue = it * 100f
                         },
                         onValueChangeFinished = {
-                            isSliding = false
                             sharedViewModel.onUIEvent(
                                 UIEvent.UpdateProgress(sliderValue),
                             )
+                            isSliding = false
                         },
                     )
                 }

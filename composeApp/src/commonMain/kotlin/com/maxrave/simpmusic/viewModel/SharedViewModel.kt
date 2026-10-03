@@ -63,6 +63,7 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toSyncedLyrics
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
+import kotlin.math.roundToLong
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
@@ -952,6 +953,11 @@ class SharedViewModel(
                 }
 
                 is UIEvent.UpdateProgress -> {
+                    if (_timeline.value.total > 0L) {
+                        val newCurrent = (_timeline.value.total * (uiEvent.newProgress / 100f)).roundToLong()
+                            .coerceIn(0L, _timeline.value.total)
+                        _timeline.update { it.copy(current = newCurrent) }
+                    }
                     mediaPlayerHandler.onPlayerEvent(
                         PlayerEvent.UpdateProgress(
                             uiEvent.newProgress,
