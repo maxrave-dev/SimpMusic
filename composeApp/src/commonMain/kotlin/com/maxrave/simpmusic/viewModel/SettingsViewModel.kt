@@ -1287,6 +1287,9 @@ class SettingsViewModel(
                 makeToast(getString(Res.string.error))
                 return@launch
             }
+            // The taste reading in Library was written from the history just wiped; left behind, it
+            // would keep describing a listener the app no longer has any record of.
+            dataStoreManager.setTasteProfile(null)
             makeToast(formatString(Res.string.clear_listening_history_done, removed))
             // Only the database slice of the storage bar moved; getData() would also restart every
             // collecting getter it owns.

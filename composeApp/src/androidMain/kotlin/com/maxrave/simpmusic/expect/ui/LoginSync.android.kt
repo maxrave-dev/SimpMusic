@@ -111,7 +111,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
     val colors = rememberSurfaceDarkColors()
 
     // Permissions belong to the Activity, so they are asked here and only the answer goes to the VM.
-    val permissions = remember { loginSyncPermissions(context) }
+    val permissions = remember { loginSyncPermissions() }
 
     fun hasPermissions() = permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
 
@@ -409,15 +409,14 @@ private fun Context.openAppSettings() {
 }
 
 /**
- * Camera always. Android 17 also gates LAN sockets behind a runtime permission for apps targeting
- * 37+, and without it the connection does not fail — it times out (element-x-android#7694). While
- * targetSdk is 36 there is nothing to ask for, but the check is here so a targetSdk bump cannot
- * silently break this.
+ * Camera always, plus the local network on Android 17+ whatever our targetSdk: below 37 Android
+ * grants ACCESS_LOCAL_NETWORK implicitly with INTERNET, but only to apps that do not declare it, and
+ * our manifest does. Without it the connection does not fail — it times out (element-x-android#7694).
  */
-private fun loginSyncPermissions(context: Context): List<String> =
+private fun loginSyncPermissions(): List<String> =
     buildList {
         add(Manifest.permission.CAMERA)
-        if (Build.VERSION.SDK_INT >= 37 && context.applicationInfo.targetSdkVersion >= 37) {
+        if (Build.VERSION.SDK_INT >= 37) {
             add("android.permission.ACCESS_LOCAL_NETWORK")
         }
     }

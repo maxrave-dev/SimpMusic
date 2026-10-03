@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.screen.home.analytics
 
 import androidx.compose.runtime.Composable
 import com.maxrave.simpmusic.viewModel.AnalyticsUiState
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -40,6 +41,13 @@ import simpmusic.composeapp.generated.resources.month_short_nov
 import simpmusic.composeapp.generated.resources.month_short_oct
 import simpmusic.composeapp.generated.resources.month_short_sep
 import simpmusic.composeapp.generated.resources.this_year
+import simpmusic.composeapp.generated.resources.weekday_friday
+import simpmusic.composeapp.generated.resources.weekday_monday
+import simpmusic.composeapp.generated.resources.weekday_saturday
+import simpmusic.composeapp.generated.resources.weekday_sunday
+import simpmusic.composeapp.generated.resources.weekday_thursday
+import simpmusic.composeapp.generated.resources.weekday_tuesday
+import simpmusic.composeapp.generated.resources.weekday_wednesday
 
 /**
  * A listening total in units a person reads, rather than the raw second count.
@@ -123,6 +131,22 @@ fun monthFullNameResource(month: Month): StringResource =
  */
 @Composable
 fun monthFullName(month: Month): String = stringResource(monthFullNameResource(month))
+
+/** `Sunday` — the listening receipt spells its date out the way a till prints one. */
+@Composable
+fun weekdayFullName(day: DayOfWeek): String =
+    stringResource(
+        when (day) {
+            DayOfWeek.MONDAY -> Res.string.weekday_monday
+            DayOfWeek.TUESDAY -> Res.string.weekday_tuesday
+            DayOfWeek.WEDNESDAY -> Res.string.weekday_wednesday
+            DayOfWeek.THURSDAY -> Res.string.weekday_thursday
+            DayOfWeek.FRIDAY -> Res.string.weekday_friday
+            DayOfWeek.SATURDAY -> Res.string.weekday_saturday
+            DayOfWeek.SUNDAY -> Res.string.weekday_sunday
+            else -> Res.string.weekday_monday
+        },
+    )
 
 /** `22 Aug 2026` — the chart's day bucket. */
 @Composable

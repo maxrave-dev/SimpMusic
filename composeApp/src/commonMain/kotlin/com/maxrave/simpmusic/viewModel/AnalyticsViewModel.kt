@@ -20,10 +20,13 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
@@ -47,6 +50,16 @@ class AnalyticsViewModel(
     private val _analyticsUIState: MutableStateFlow<AnalyticsUiState> =
         MutableStateFlow(AnalyticsUiState())
     val analyticsUIState: StateFlow<AnalyticsUiState> get() = _analyticsUIState.asStateFlow()
+
+    /**
+     * The signed-in YouTube account's name, printed on the listening receipt; null when signed out.
+     * The same key Home reads its account name from — sign-in, account switch and sign-out keep it.
+     */
+    val accountName: StateFlow<String?> =
+        dataStoreManager
+            .getString("AccountName")
+            .map { name -> name?.takeIf { it.isNotBlank() } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     // One job per top list, cancelled before its replacement starts. Each loader collects a flow
     // inside its own launch, and nothing used to stop the previous one: step back two periods

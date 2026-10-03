@@ -3,9 +3,11 @@ package com.maxrave.simpmusic.ui.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,11 +51,6 @@ import simpmusic.composeapp.generated.resources.wrapped_entry_title
  * five-cover mosaic and the year set as a display figure, which made the card taller than half a
  * phone screen — a banner competing with the page it sits on rather than an invitation into it.
  *
- * Built from the app's own vocabulary rather than a shape of its own: the shell is [ElevatedCard]
- * with `CardDefaults`, exactly as [LibraryTilingItem] draws a tappable card in Library; the cover
- * is a plain `AsyncImage` clipped the way every list row in the app clips one; colours are
- * `MaterialTheme.colorScheme` roles and type comes off [typo].
- *
  * The disc carries a play triangle, not a chevron: a chevron promises a page of details, and this
  * opens something that runs.
  */
@@ -61,6 +59,45 @@ fun WrappedEntryCard(
     wrapped: WrappedYear,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+) {
+    EntryCard(
+        title = stringResource(Res.string.wrapped_entry_title, wrapped.year.toString()),
+        subtitle =
+            stringResource(
+                Res.string.wrapped_entry_subtitle,
+                formatCount(wholeMinutes(wrapped.stats.listenedSeconds)),
+                formatCount(wrapped.stats.distinctArtists),
+            ),
+        discIcon = SimpIcons.PlayArrow,
+        onClick = onClick,
+        modifier = modifier,
+    ) {
+        AsyncImage(
+            model = wrapped.entryCover(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+/**
+ * The shell the Analytics screen's entry cards share — Wrapped's and the listening receipt's — so
+ * the two stacked there read as one family: one picture, two lines, and a disc saying what a tap does.
+ *
+ * Built from the app's own vocabulary rather than a shape of its own: the shell is [ElevatedCard]
+ * with `CardDefaults`, exactly as [LibraryTilingItem] draws a tappable card in Library; the picture
+ * is clipped the way every list row in the app clips one; colours are `MaterialTheme.colorScheme`
+ * roles and type comes off [typo].
+ */
+@Composable
+internal fun EntryCard(
+    title: String,
+    subtitle: String,
+    discIcon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    picture: @Composable BoxScope.() -> Unit,
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
@@ -75,11 +112,9 @@ fun WrappedEntryCard(
             modifier = Modifier.fillMaxWidth().padding(GUTTER),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AsyncImage(
-                model = wrapped.entryCover(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier.size(COVER_SIZE).clip(RoundedCornerShape(COVER_RADIUS)),
+                content = picture,
             )
             Spacer(Modifier.width(14.dp))
             Column(
@@ -87,19 +122,14 @@ fun WrappedEntryCard(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = stringResource(Res.string.wrapped_entry_title, wrapped.year.toString()),
+                    text = title,
                     style = typo().titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text =
-                        stringResource(
-                            Res.string.wrapped_entry_subtitle,
-                            formatCount(wholeMinutes(wrapped.stats.listenedSeconds)),
-                            formatCount(wrapped.stats.distinctArtists),
-                        ),
+                    text = subtitle,
                     style = typo().bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
@@ -114,7 +144,7 @@ fun WrappedEntryCard(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = SimpIcons.PlayArrow,
+                        imageVector = discIcon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(DISC_GLYPH_SIZE),

@@ -145,29 +145,41 @@ internal fun ShareLyricsCard(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Disc + glyph, the way Spotify signs its card. The circle is filled with the content
-            // colour and the logo prints on it through shareTintOn — the same rule as every other
-            // inverted surface here, so the mark keeps the song's hue and still reads on a
-            // near-white palette swatch as well as on a dark one.
-            Box(
-                modifier = Modifier.size(14.dp).clip(CircleShape).background(content),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.mono),
-                    contentDescription = null,
-                    tint = background.shareTintOn(content),
-                    modifier = Modifier.size(10.dp),
-                )
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "SimpMusic",
-                color = secondary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
+        ShareCardSignature(content = content, background = background)
+    }
+}
+
+/**
+ * Whose app made the card — the last thing on every share card, lyrics and taste alike.
+ *
+ * Disc + glyph, the way Spotify signs its card. The circle is filled with the content colour and
+ * the logo prints on it through shareTintOn — the same rule as every other inverted surface here,
+ * so the mark keeps the card's hue and still reads on a near-white palette swatch as well as on a
+ * dark one.
+ */
+@Composable
+internal fun ShareCardSignature(
+    content: Color,
+    background: Color,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier.size(14.dp).clip(CircleShape).background(content),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.mono),
+                contentDescription = null,
+                tint = background.shareTintOn(content),
+                modifier = Modifier.size(10.dp),
             )
         }
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "SimpMusic",
+            color = content.copy(alpha = 0.68f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+        )
     }
 }

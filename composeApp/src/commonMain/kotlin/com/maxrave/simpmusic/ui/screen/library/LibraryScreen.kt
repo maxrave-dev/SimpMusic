@@ -10,11 +10,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -53,6 +57,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -62,10 +68,13 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.common.LibraryChipType
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.taste.TasteProfile
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -74,6 +83,8 @@ import com.maxrave.simpmusic.ui.component.LibraryItem
 import com.maxrave.simpmusic.ui.component.LibraryItemState
 import com.maxrave.simpmusic.ui.component.LibraryItemType
 import com.maxrave.simpmusic.ui.component.LibraryTilingBox
+import com.maxrave.simpmusic.ui.component.taste.ShareTasteSheet
+import com.maxrave.simpmusic.ui.component.taste.TasteCard
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
@@ -83,9 +94,12 @@ import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
+import com.maxrave.simpmusic.viewModel.TasteUiState
+import com.maxrave.simpmusic.viewModel.TasteViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
@@ -146,6 +160,10 @@ fun LibraryScreen(
 
     val selectionState = rememberSongSelectionState()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
+    val tasteViewModel: TasteViewModel = koinViewModel()
+    // Held here rather than inside the list item, so the sheet does not close if its card scrolls
+    // out of composition behind it.
+    var sharingTaste by remember { mutableStateOf<TasteProfile?>(null) }
     var showSelectionSheet by rememberSaveable { mutableStateOf(false) }
     var showSelectionAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     val accountThumbnail by viewModel.accountThumbnail.collectAsStateWithLifecycle()
@@ -231,48 +249,82 @@ fun LibraryScreen(
                             }
                         }
                 }
-                LazyColumn(
-                    contentPadding =
-                        innerPadding.copy(
-                            top = topAppBarHeight,
-                        ),
-                    state = state,
-                ) {
-                    item {
-                        LibraryTilingBox(navController)
-                    }
+                // Desktop windows run wide; this tab keeps to the floating capsule player's width
+                // so its cards line up with the capsule instead of stretching edge to edge. Done
+                // as content padding rather than by narrowing the list, so the side gutters stay
+                // part of it and the wheel still scrolls there.
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    val layoutDirection = LocalLayoutDirection.current
+                    val innerStart = innerPadding.calculateStartPadding(layoutDirection)
+                    val innerEnd = innerPadding.calculateEndPadding(layoutDirection)
+                    val sideInset =
+                        if (getPlatform() == Platform.Desktop) {
+                            ((maxWidth - innerStart - innerEnd - YOUR_LIBRARY_MAX_WIDTH) / 2).coerceAtLeast(0.dp)
+                        } else {
+                            0.dp
+                        }
+                    LazyColumn(
+                        contentPadding =
+                            innerPadding.copy(
+                                start = innerStart + sideInset,
+                                top = topAppBarHeight,
+                                end = innerEnd + sideInset,
+                            ),
+                        state = state,
+                    ) {
+                        item {
+                            LibraryTilingBox(navController)
+                        }
 
-                    if (!listCanvasSong.data.isNullOrEmpty()) {
+                        // The reading is drawn from playback_event, so the card follows the same
+                        // setting the Wrapped chip and the Analytics tab do.
+                        if (localTrackingEnabled) {
+                            item(key = "taste") {
+                                val tasteState by tasteViewModel.uiState.collectAsStateWithLifecycle()
+                                if (tasteState != TasteUiState.Hidden) {
+                                    TasteCard(
+                                        state = tasteState,
+                                        onGenerate = tasteViewModel::generate,
+                                        onOpenSettings = { navController.navigate(SettingsDestination) },
+                                        onShare = { sharingTaste = it },
+                                        modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 8.dp),
+                                    )
+                                }
+                            }
+                        }
+
+                        if (!listCanvasSong.data.isNullOrEmpty()) {
+                            item {
+                                LibraryItem(
+                                    state =
+                                        LibraryItemState(
+                                            type = LibraryItemType.CanvasSong,
+                                            data = listCanvasSong.data ?: emptyList(),
+                                            isLoading = listCanvasSong is LocalResource.Loading,
+                                        ),
+                                    navController = navController,
+                                )
+                            }
+                        }
+
                         item {
                             LibraryItem(
                                 state =
                                     LibraryItemState(
-                                        type = LibraryItemType.CanvasSong,
-                                        data = listCanvasSong.data ?: emptyList(),
-                                        isLoading = listCanvasSong is LocalResource.Loading,
+                                        type =
+                                            LibraryItemType.RecentlyAdded(
+                                                playingVideoId = nowPlaying,
+                                            ),
+                                        data = recentlyAdded.data ?: emptyList(),
+                                        isLoading = recentlyAdded is LocalResource.Loading,
                                     ),
                                 navController = navController,
+                                selectionState = selectionState,
                             )
                         }
-                    }
-
-                    item {
-                        LibraryItem(
-                            state =
-                                LibraryItemState(
-                                    type =
-                                        LibraryItemType.RecentlyAdded(
-                                            playingVideoId = nowPlaying,
-                                        ),
-                                    data = recentlyAdded.data ?: emptyList(),
-                                    isLoading = recentlyAdded is LocalResource.Loading,
-                                ),
-                            navController = navController,
-                            selectionState = selectionState,
-                        )
-                    }
-                    item {
-                        EndOfPage()
+                        item {
+                            EndOfPage()
+                        }
                     }
                 }
             }
@@ -367,6 +419,9 @@ fun LibraryScreen(
                 }
             }
         }
+    }
+    sharingTaste?.let { profile ->
+        ShareTasteSheet(profile = profile, onDismiss = { sharingTaste = null })
     }
     val coroutineScope = rememberCoroutineScope()
     if (showAddSheet) {
@@ -599,3 +654,12 @@ fun LibraryScreen(
         }
     }
 }
+
+/**
+ * How wide the Your Library tab may get on Desktop: the floating capsule player's own width plus
+ * the 10dp gutter every row of this list already carries, so the cards' edges land on the
+ * capsule's. The capsule has no width constant of its own — `MiniPlayer`'s Desktop row sums to
+ * 16 + 200 (controls) + 29 (divider) + 300 (track) + 29 (divider) + 232 (heart cell 40 + four
+ * 48dp icon buttons) + 16 = 822dp — so this must follow if that row changes.
+ */
+private val YOUR_LIBRARY_MAX_WIDTH = 842.dp

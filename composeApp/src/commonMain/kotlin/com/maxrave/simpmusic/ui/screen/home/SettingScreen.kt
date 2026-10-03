@@ -115,6 +115,7 @@ import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
 import com.maxrave.simpmusic.expect.ui.openEqResult
+import com.maxrave.simpmusic.expect.ui.rememberLocalNetworkPermission
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
@@ -559,6 +560,7 @@ fun SettingScreen(
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
     val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
     val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
+    val localNetworkPermission = rememberLocalNetworkPermission()
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
@@ -1939,7 +1941,9 @@ fun SettingScreen(
                                     message = "Enter OpenAI-compatible API base URL (e.g., https://api.openai.com/v1/)",
                                     confirm =
                                         runBlocking { getString(Res.string.set) } to { state ->
-                                            viewModel.setCustomOpenAIBaseUrl(state.textField?.value ?: "")
+                                            val baseUrl = state.textField?.value ?: ""
+                                            viewModel.setCustomOpenAIBaseUrl(baseUrl)
+                                            localNetworkPermission.requestIfNeeded(baseUrl)
                                         },
                                     dismiss = runBlocking { getString(Res.string.cancel) },
                                 ),
