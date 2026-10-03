@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -46,10 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -103,6 +106,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.app_name
+import simpmusic.composeapp.generated.resources.live_badge
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.more
 import simpmusic.composeapp.generated.resources.playlist
@@ -920,31 +924,61 @@ fun HomeItemVideo(
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 8.dp),
             )
-            Text(
-                text =
-                    listOfNotNull(
-                        data.artists
-                            .toListName()
-                            .connectArtists()
-                            .takeIf { it.isNotBlank() },
-                        data.views?.takeIf { it.isNotBlank() },
-                    ).joinToString(" • "),
-                style = typo().bodySmall,
-                minLines = 1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier =
-                    textWidth
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            initialDelayMillis = 2000,
-                            repeatDelayMillis = 2000,
-                            velocity = 25.dp,
-                        ).padding(vertical = 2.dp),
-            )
+            Row(
+                modifier = textWidth.padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Ahead of the channel name, where YouTube Music puts it.
+                if (data.isLive) LiveBadge(modifier = Modifier.padding(end = 6.dp))
+                Text(
+                    text =
+                        listOfNotNull(
+                            data.artists
+                                .toListName()
+                                .connectArtists()
+                                .takeIf { it.isNotBlank() },
+                            data.views?.takeIf { it.isNotBlank() },
+                        ).joinToString(" • "),
+                    style = typo().bodySmall,
+                    minLines = 1,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                initialDelayMillis = 2000,
+                                repeatDelayMillis = 2000,
+                                velocity = 25.dp,
+                            ),
+                )
+            }
         }
     }
 }
+
+/**
+ * The red LIVE chip on a broadcast that is on air right now. Sized off the subtitle beside it
+ * (bodySmall, 11sp) and kept a step smaller, as on the web — this app's labelSmall is 14sp
+ * SemiBold, which made the chip taller than the line it sits on.
+ */
+@Composable
+private fun LiveBadge(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(Res.string.live_badge),
+        style = typo().bodySmall.copy(fontSize = 9.sp, lineHeight = 11.sp, fontWeight = FontWeight.Bold),
+        color = Color.White,
+        maxLines = 1,
+        modifier =
+            modifier
+                // YouTube's own live red, so the chip reads the same as on the web.
+                .background(LiveBadgeRed, RoundedCornerShape(2.dp))
+                .padding(horizontal = 3.dp),
+    )
+}
+
+private val LiveBadgeRed = Color(0xFFCC0000)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -1174,6 +1208,9 @@ fun ItemArtistChart(
     onClick: () -> Unit,
     data: ItemArtist,
     widthDp: Dp,
+    // The chart's podcast rows reuse this row: a square cover, and the author shown as-is.
+    thumbnailShape: Shape = CircleShape,
+    subtitle: String? = null,
 ) {
     Box(
         Modifier
@@ -1221,9 +1258,7 @@ fun ItemArtistChart(
                     Modifier
                         .align(Alignment.CenterVertically)
                         .size(60.dp)
-                        .clip(
-                            CircleShape,
-                        ),
+                        .clip(thumbnailShape),
             )
             Column(
                 Modifier
@@ -1242,7 +1277,7 @@ fun ItemArtistChart(
                 )
                 Text(
                     text =
-                        if (data.subscribers.contains(
+                        subtitle ?: if (data.subscribers.contains(
                                 stringResource(Res.string.subscribers).replace("%1\$s ", ""),
                             )
                         ) {

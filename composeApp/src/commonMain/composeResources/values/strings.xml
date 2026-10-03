@@ -24,6 +24,7 @@
     <string name="hide">Hide</string>
     <string name="show">Show</string>
     <string name="na_na">NA:NA</string>
+    <string name="live_badge">LIVE</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Favorite</string>
     <string name="followed">Followed</string>
@@ -730,6 +731,14 @@
     <string name="listen_to_downloaded">Listen to downloaded music</string>
     <string name="playing_on_device">Playing on %1$s</string>
     <string name="not_available_while_casting">Not available while casting</string>
+    <string name="audio_output">Audio output</string>
+    <string name="audio_output_playing_here">Playing here</string>
+    <string name="audio_output_cast">Cast</string>
+    <string name="audio_output_system_default">System default</string>
+    <string name="audio_output_wired">Wired headphones</string>
+    <string name="audio_output_bluetooth">Bluetooth</string>
+    <string name="audio_output_usb">USB audio</string>
+    <string name="audio_output_hdmi">HDMI</string>
     <string name="import_data">Import playlists</string>
     <string name="import_playlists_from_other_apps">Import playlists from another app</string>
     <string name="import_data_intro">Import brings in playlists converted from Spotify or another YT Music client app.\nConverting tool: https://www.simpmusic.org/tools\nIn SimpMusic, only playlist files in our own format can be imported</string>

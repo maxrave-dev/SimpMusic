@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -237,7 +235,7 @@ fun Modifier.appleMusicLyricFocus(
 
 /**
  * One line-synced lyric line, Apple Music style: same size for every line (the Classic renderer
- * swaps headlineLarge/headlineMedium instead), white, hard left, with the translation underneath.
+ * swaps headlineLarge/headlineMedium instead), white, aligned to its text direction, with the translation underneath.
  * Focus is applied by the caller through [appleMusicLyricFocus] so the blur wraps the whole line
  * including its translation.
  */
@@ -254,12 +252,9 @@ fun AppleMusicLyricsLineItem(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.height(AppleMusicLyricGap))
-        Text(
+        LyricText(
             text = originalWords,
-            // fillMaxWidth + Start, both explicit: a wrapped line must break against the SAME left
-            // edge as every other line, and a short line must not drift toward the middle.
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start,
             color = if (isCurrent) Color.White else AppleMusicInactiveLineColor,
             style =
                 typo().headlineLarge.copy(
@@ -269,10 +264,10 @@ fun AppleMusicLyricsLineItem(
         )
         if (romanizedWords != null) {
             Spacer(modifier = Modifier.height(AppleMusicMainToSubGap))
-            Text(
+            LyricText(
                 text = romanizedWords,
+                alignmentText = originalWords,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start,
                 style =
                     typo().bodyMedium.copy(
                         fontSize = AppleMusicSubLineFontSize,
@@ -285,10 +280,10 @@ fun AppleMusicLyricsLineItem(
         }
         if (translatedWords != null) {
             Spacer(modifier = Modifier.height(AppleMusicMainToSubGap))
-            Text(
+            LyricText(
                 text = translatedWords,
+                alignmentText = originalWords,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start,
                 style =
                     typo().bodyMedium.copy(
                         fontSize = AppleMusicSubLineFontSize,

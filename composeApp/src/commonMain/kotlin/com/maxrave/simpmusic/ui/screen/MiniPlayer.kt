@@ -113,9 +113,8 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
-import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.extension.toResizedBitmap
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -123,32 +122,32 @@ import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.component.liquidGlass
+import com.maxrave.simpmusic.ui.component.rememberGlassLuminance
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
+import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.live_badge
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "MiniPlayer"
 
@@ -161,13 +160,16 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
     onOpenFullscreenLyrics: () -> Unit = {},
+    // ConstraintLayout keeps Gone content composed, so its visibility must gate sampling separately.
+    isVisible: Boolean = true,
 ) {
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
+    // The Desktop capsule's quality line between its timestamps — see toAudioQualityLabel.
+    val formatState by sharedViewModel.format.collectAsStateWithLifecycle(initialValue = null)
 
     val layer = rememberGraphicsLayer()
-    val luminanceAnimation = remember { Animatable(0f) }
 
     // The Desktop capsule is always liquid glass, so it needs the glass code paths whatever the
     // setting says — both the luminance sampling loop that drives the glass and the theme-following
@@ -175,6 +177,7 @@ fun MiniPlayer(
     // 0.12 darken, which is why it looked like a smear rather than glass. The setting still governs
     // the Android card below.
     val useGlassSurface = isLiquidGlassEnabled == DataStoreManager.TRUE || getPlatform() == Platform.Desktop
+    val luminance = rememberGlassLuminance(layer, enabled = useGlassSurface && isVisible)
 
     val isDarkTheme = LocalIsDarkTheme.current
     val textColor by animateColorAsState(
@@ -189,34 +192,6 @@ fun MiniPlayer(
         label = "MiniPlayerTextColor",
         animationSpec = tween(500),
     )
-
-    LaunchedEffect(layer, useGlassSurface) {
-        val buffer = IntArray(25)
-        while (isActive && useGlassSurface) {
-            try {
-                withContext(Dispatchers.Main) {
-                    val imageBitmap = layer.toImageBitmap()
-                    val thumbnail = imageBitmap.toResizedBitmap(5, 5)
-                    thumbnail.readPixels(buffer)
-                }
-            } catch (e: Exception) {
-                Logger.e(TAG, "Error getting pixels from layer: ${e.message}")
-            }
-            val averageLuminance =
-                (0 until 25).sumOf { index ->
-                    val color = buffer.get(index)
-                    val r = (color shr 16 and 0xFF) / 255f
-                    val g = (color shr 8 and 0xFF) / 255f
-                    val b = (color and 0xFF) / 255f
-                    0.2126 * r + 0.7152 * g + 0.0722 * b
-                } / 25
-            luminanceAnimation.animateTo(
-                averageLuminance.coerceIn(0.3, 0.8).toFloat(),
-                tween(500),
-            )
-            delay(1.seconds)
-        }
-    }
 
     val (songEntity, setSongEntity) =
         remember {
@@ -299,8 +274,8 @@ fun MiniPlayer(
             if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
                 Color.Transparent
             } else {
-                // Same 85% as the bottom bar capsule, so the two floating surfaces read as one set.
-                MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)
+                // Same opaque surface as the bottom bar capsule, so the two floating surfaces read as one set.
+                MaterialTheme.colorScheme.surfaceContainer
             }
         // The flat (default) card: round artwork and controls sitting in filled circles. Glass keeps its own look.
         val isFlat = isLiquidGlassEnabled != DataStoreManager.TRUE
@@ -315,7 +290,7 @@ fun MiniPlayer(
                 modifier
                     .then(
                         if (isLiquidGlassEnabled == DataStoreManager.TRUE) {
-                            Modifier.liquidGlass(backdrop, layer, luminanceAnimation.value, RoundedCornerShape(16.dp))
+                            Modifier.liquidGlass(backdrop, layer, luminance, RoundedCornerShape(16.dp))
                         } else {
                             Modifier
                         },
@@ -669,7 +644,7 @@ fun MiniPlayer(
         val density = LocalDensity.current
         Box(
             modifier
-                .liquidGlass(backdrop, layer, luminanceAnimation.value, capsuleShape, blurScale = 1.2f)
+                .liquidGlass(backdrop, layer, luminance, capsuleShape, blurScale = 1.2f)
                 .clip(capsuleShape)
                 .clickable {
                     onClick()
@@ -907,19 +882,45 @@ fun MiniPlayer(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                            text = timelineState.elapsedLabel(sliderValue / 100f),
                             style = scrubberDigits,
                             color = textColor.copy(alpha = 0.7f),
                             maxLines = 1,
                         )
+                        // The Now Playing quality line, centred between the times and a step dimmer.
+                        formatState.toAudioQualityLabel()?.let { quality ->
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = SimpIcons.Headphones,
+                                    contentDescription = null,
+                                    tint = textColor.copy(alpha = 0.45f),
+                                    modifier = Modifier.size(13.dp),
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = quality,
+                                    style = scrubberDigits,
+                                    color = textColor.copy(alpha = 0.45f),
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                         Text(
                             // Time REMAINING, signed, which is what Apple's capsule reports on the
                             // right — not the track's total length.
                             text =
-                                "−" +
-                                    formatDuration(
-                                        (timelineState.total * (1f - sliderValue / 100f)).roundToLong(),
-                                    ),
+                                if (timelineState.isLive) {
+                                    stringResource(Res.string.live_badge)
+                                } else {
+                                    "−" +
+                                        formatDuration(
+                                            (timelineState.total * (1f - sliderValue / 100f)).roundToLong(),
+                                        )
+                                },
                             style = scrubberDigits,
                             color = textColor.copy(alpha = 0.7f),
                             maxLines = 1,

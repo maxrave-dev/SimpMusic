@@ -90,6 +90,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.getPlatform
@@ -620,7 +621,7 @@ fun FullscreenLyricsContent(
                                         .padding(horizontal = 40.dp),
                                 ) {
                                     Text(
-                                        text = formatDuration(timelineState.current),
+                                        text = if (timelineState.isLive) "" else formatDuration(timelineState.current),
                                         style = typo().bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Left,
@@ -638,7 +639,7 @@ fun FullscreenLyricsContent(
                                         )
                                     }
                                     Text(
-                                        text = formatDuration(timelineState.total),
+                                        text = timelineState.lengthLabel(),
                                         style = typo().bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Right,
