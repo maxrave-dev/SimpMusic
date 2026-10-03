@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.expect.ui
 
+import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.graphics.Bitmap.CompressFormat.PNG
 import androidx.compose.ui.graphics.ImageBitmap
@@ -24,3 +25,12 @@ actual fun ImageBitmap.toPngByteArray(): ByteArray? {
 }
 
 actual fun Image.toImageBitmap(): ImageBitmap = this.toBitmap().asImageBitmap()
+
+actual fun ImageBitmap.toReadableBitmap(
+    width: Int,
+    height: Int,
+): ImageBitmap {
+    val source = asAndroidBitmap()
+    val readable = if (source.config == Bitmap.Config.HARDWARE) source.copy(Bitmap.Config.ARGB_8888, false) else source
+    return Bitmap.createScaledBitmap(readable, width, height, true).asImageBitmap()
+}

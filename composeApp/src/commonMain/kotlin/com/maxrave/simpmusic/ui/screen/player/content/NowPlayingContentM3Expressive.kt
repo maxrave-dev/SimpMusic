@@ -87,12 +87,15 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.PlatformCastButton
 import com.maxrave.simpmusic.expect.ui.PlatformRemoteDeviceButton
 import com.maxrave.simpmusic.expect.ui.isPlatformCastAvailable
+import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.expect.ui.isPlatformRemoteDeviceAvailable
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
@@ -114,7 +117,6 @@ import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
-import kotlin.math.roundToLong
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
@@ -459,7 +461,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                 animationSpec = tween(durationMillis = 300),
                                 label = "inlineLyricLineExpressive",
                             ) { lineText ->
-                                Text(
+                                LyricText(
                                     text = lineText,
                                     style = typo().labelSmall,
                                     color = Color.White,
@@ -574,7 +576,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                 Column(
                                                     modifier = Modifier.fillMaxWidth(),
                                                 ) {
-                                                    Text(
+                                                    LyricText(
                                                         modifier =
                                                             Modifier
                                                                 .fillMaxWidth()
@@ -598,7 +600,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                             ?.words
                                                             ?.stripRichSyncTimestamps()
                                                     if (!translatedLineText.isNullOrBlank()) {
-                                                        Text(
+                                                        LyricText(
                                                             modifier =
                                                                 Modifier
                                                                     .fillMaxWidth()
@@ -609,6 +611,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                                     ).focusable(),
                                                             text = translatedLineText,
+                                                            alignmentText = lineText,
                                                             style = typo().bodyMedium,
                                                             color = Color.Yellow,
                                                             maxLines = 1,
@@ -829,7 +832,7 @@ internal fun ColumnScope.ExpressivePlaybackControls(
             .padding(horizontal = 20.dp),
     ) {
         Text(
-            text = formatDuration((state.timelineState.total * (state.sliderValue / 100f)).roundToLong()),
+            text = state.timelineState.elapsedLabel(state.sliderValue / 100f),
             style = typo().bodyMedium,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Left,
@@ -880,7 +883,7 @@ internal fun ColumnScope.ExpressivePlaybackControls(
             )
         }
         Text(
-            text = formatDuration(state.timelineState.total),
+            text = state.timelineState.lengthLabel(),
             style = typo().bodyMedium,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Right,

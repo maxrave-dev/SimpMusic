@@ -138,6 +138,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestina
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
@@ -1262,5 +1263,42 @@ fun ChartData(
             scrollState = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         )
+        // Ranked podcast shows, laid out exactly like the artist chart above.
+        chart.podcasts?.let { podcasts ->
+            Text(
+                text = podcasts.title,
+                style = typo().headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+            )
+            val podcastGridState = rememberLazyGridState()
+            val podcastFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = podcastGridState))
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(3),
+                modifier = Modifier.height(240.dp),
+                state = podcastGridState,
+                flingBehavior = podcastFlingBehavior,
+            ) {
+                items(podcasts.shows.size, key = { index -> podcasts.shows[index].browseId + index }) {
+                    val data = podcasts.shows[it]
+                    ItemArtistChart(
+                        onClick = { navController.navigate(PodcastDestination(podcastId = data.browseId)) },
+                        data = data,
+                        widthDp = if (isPortrait) gridWidthDp else minOf(gridWidthDp, LandscapeGridItemMaxWidth),
+                        thumbnailShape = RoundedCornerShape(8.dp),
+                        subtitle = data.subscribers,
+                    )
+                }
+            }
+            HorizontalScrollBar(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                scrollState = podcastGridState,
+                flingBehavior = podcastFlingBehavior,
+            )
+        }
     }
 }

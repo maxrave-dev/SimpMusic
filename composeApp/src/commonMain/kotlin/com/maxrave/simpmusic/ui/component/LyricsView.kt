@@ -38,6 +38,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -48,14 +49,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +88,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import java.text.Bidi
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.sqrt
@@ -822,14 +830,17 @@ fun LyricsLineItem(
             modifier = modifier,
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            Text(
+            LyricText(
                 text = originalWords,
+                modifier = Modifier.fillMaxWidth(),
                 style = if (bold) typo().headlineLarge else typo().headlineMedium,
                 color = if (bold && isCurrent) Color.White else DimOriginalColor,
             )
             if (romanizedWords != null) {
-                Text(
+                LyricText(
                     text = romanizedWords,
+                    alignmentText = originalWords,
+                    modifier = Modifier.fillMaxWidth(),
                     style = typo().bodyMedium,
                     // Neither the original's white nor the translation's yellow: a reading is a
                     // third KIND of thing, and giving it the translation's colour would read as
@@ -838,8 +849,10 @@ fun LyricsLineItem(
                 )
             }
             if (translatedWords != null) {
-                Text(
+                LyricText(
                     text = translatedWords,
+                    alignmentText = originalWords,
+                    modifier = Modifier.fillMaxWidth(),
                     style = typo().bodyMedium,
                     color = if (bold && isCurrent) Color.Yellow else DimTranslatedColor,
                 )
@@ -924,6 +937,8 @@ fun RichSyncLyricsLineItem(
     modifier: Modifier = Modifier,
 ) {
     val playhead = rememberSmoothPlayhead(currentTimeMs, enabled = isCurrent)
+    val originalWords = remember(parsedLine.words) { parsedLine.words.joinToString(" ") { it.text } }
+    val lineDirection = rememberLyricLayoutDirection(originalWords)
 
     // Remembered on the LINE rather than on the clock. The previous `remember(currentTimeMs, …)`
     // rebuilt this derived state on every tick, which gave away the one thing derivedStateOf is
@@ -941,50 +956,56 @@ fun RichSyncLyricsLineItem(
     ) {
         Spacer(modifier = Modifier.height(customPadding))
 
-        // Original lyrics with rich sync highlighting - using FlowRow for word wrapping
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement =
-                if (wrappedLineSpacing > 0.dp) Arrangement.spacedBy(wrappedLineSpacing) else Arrangement.Center,
-        ) {
-            parsedLine.words.forEachIndexed { index, wordTiming ->
-                // Calculate word end time (start time of next word or line end time)
-                // If last word and lineEndTimeMs is invalid (Long.MAX_VALUE), estimate based on previous word duration
-                val wordEndTimeMs =
-                    if (index < parsedLine.words.size - 1) {
-                        parsedLine.words[index + 1].startTimeMs
-                    } else if (parsedLine.lineEndTimeMs == Long.MAX_VALUE || parsedLine.lineEndTimeMs <= wordTiming.startTimeMs) {
-                        // Estimate: use previous word duration or default 500ms
-                        if (index > 0 && parsedLine.words[index - 1].startTimeMs < wordTiming.startTimeMs) {
-                            val prevWordDuration = wordTiming.startTimeMs - parsedLine.words[index - 1].startTimeMs
-                            wordTiming.startTimeMs + prevWordDuration
+        // Word order follows the original; subtitles share its edge but keep their own reading direction.
+        CompositionLocalProvider(LocalLayoutDirection provides lineDirection) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement =
+                    if (wrappedLineSpacing > 0.dp) Arrangement.spacedBy(wrappedLineSpacing) else Arrangement.Center,
+            ) {
+                parsedLine.words.forEachIndexed { index, wordTiming ->
+                    // Calculate word end time (start time of next word or line end time)
+                    // If last word and lineEndTimeMs is invalid (Long.MAX_VALUE), estimate based on previous word duration
+                    val wordEndTimeMs =
+                        if (index < parsedLine.words.size - 1) {
+                            parsedLine.words[index + 1].startTimeMs
+                        } else if (parsedLine.lineEndTimeMs == Long.MAX_VALUE || parsedLine.lineEndTimeMs <= wordTiming.startTimeMs) {
+                            // Estimate: use previous word duration or default 500ms
+                            if (index > 0 && parsedLine.words[index - 1].startTimeMs < wordTiming.startTimeMs) {
+                                val prevWordDuration = wordTiming.startTimeMs - parsedLine.words[index - 1].startTimeMs
+                                wordTiming.startTimeMs + prevWordDuration
+                            } else {
+                                wordTiming.startTimeMs + 500L // Default 500ms if no reference
+                            }
                         } else {
-                            wordTiming.startTimeMs + 500L // Default 500ms if no reference
+                            parsedLine.lineEndTimeMs
                         }
-                    } else {
-                        parsedLine.lineEndTimeMs
-                    }
-                AnimatedWord(
-                    word = wordTiming.text,
-                    wordIndex = index,
-                    wordStartTimeMs = wordTiming.startTimeMs,
-                    wordEndTimeMs = wordEndTimeMs,
-                    currentTimeMs = currentTimeMs,
-                    playheadMs = playhead,
-                    isActive = isCurrent && index == currentWordIndex,
-                    isPast = isCurrent && index < currentWordIndex,
-                    isCurrent = isCurrent,
-                    customFontSize = customFontSize,
-                    glow = glow,
-                    isLastWord = index == parsedLine.words.lastIndex,
-                    pendingColorOverride = pendingColorOverride,
-                )
+                    AnimatedWord(
+                        word = wordTiming.text,
+                        lineDirection = lineDirection,
+                        wordIndex = index,
+                        wordStartTimeMs = wordTiming.startTimeMs,
+                        wordEndTimeMs = wordEndTimeMs,
+                        currentTimeMs = currentTimeMs,
+                        playheadMs = playhead,
+                        isActive = isCurrent && index == currentWordIndex,
+                        isPast = isCurrent && index < currentWordIndex,
+                        isCurrent = isCurrent,
+                        customFontSize = customFontSize,
+                        glow = glow,
+                        isLastWord = index == parsedLine.words.lastIndex,
+                        pendingColorOverride = pendingColorOverride,
+                    )
+                }
             }
         }
 
         if (romanizedWords != null) {
-            Text(
+            LyricText(
                 text = romanizedWords,
+                alignmentText = originalWords,
+                modifier = Modifier.fillMaxWidth(),
                 style = translatedStyleOverride ?: typo().bodyMedium,
                 color = if (isCurrent) DimRomanizedCurrentColor else DimRomanizedColor,
             )
@@ -992,8 +1013,10 @@ fun RichSyncLyricsLineItem(
 
         // Translated lyrics (line-level, no word sync)
         if (translatedWords != null) {
-            Text(
+            LyricText(
                 text = translatedWords,
+                alignmentText = originalWords,
+                modifier = Modifier.fillMaxWidth(),
                 style = translatedStyleOverride ?: typo().bodyMedium,
                 color = translatedColorOverride ?: if (isCurrent) Color.Yellow else DimTranslatedColor,
             )
@@ -1006,6 +1029,7 @@ fun RichSyncLyricsLineItem(
 @Composable
 private fun AnimatedWord(
     word: String,
+    lineDirection: LayoutDirection,
     wordIndex: Int,
     wordStartTimeMs: Long,
     wordEndTimeMs: Long,
@@ -1024,9 +1048,17 @@ private fun AnimatedWord(
     // Null keeps Classic's DimRichPendingColor untouched.
     pendingColorOverride: Color? = null,
 ) {
+    val wordBidi =
+        remember(word, lineDirection) {
+            val fallback =
+                if (lineDirection == LayoutDirection.Rtl) Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT else Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT
+            Bidi(word, fallback)
+        }
+    val wordDirection = if (wordBidi.baseIsLeftToRight()) TextDirection.Ltr else TextDirection.Rtl
     val style =
         typo().headlineLarge.copy(
             fontSize = customFontSize ?: typo().headlineLarge.fontSize,
+            textDirection = wordDirection,
         )
 
     if (!isCurrent) {
@@ -1153,96 +1185,160 @@ private fun AnimatedWord(
                 translationY = -eased * EMP_RISE_EM * amount * fontPx
             },
     ) {
-        val chars = word.toCharArray()
-        val charCount = chars.size.coerceAtLeast(1)
-        Row {
-            chars.forEachIndexed { charIndex, ch ->
-                val charFrom = charIndex.toFloat() / charCount
-                val charTo = (charIndex + 1).toFloat() / charCount
-                val charProgress = ((wordProgress - charFrom) / (charTo - charFrom)).coerceIn(0f, 1f)
-                val charPast = wordProgress >= charTo
-                val charActive = isActive && wordProgress >= charFrom && wordProgress < charTo
-                // The flare is a CONTINUOUS falloff from the playhead, not an on/off per character:
-                // switching per character killed the light at every boundary and lit it again on the
-                // next one, which read as flicker. Fading by distance lets the brightness hand over
-                // between neighbours, so one travelling point of light moves across the word.
-                val charCenter = (charFrom + charTo) / 2f
-                val reach = (FLARE_REACH_CHARS / charCount).coerceAtLeast(0.0001f)
-                val charFlare =
-                    if (flareGate <= 0f || glow == null) {
-                        0f
-                    } else {
-                        // Ahead of the light, a short linear ramp so a character brightens as it
-                        // is approached; behind it, an exponential wake.
-                        val delta = wordProgress - charCenter
-                        val shape =
-                            if (delta > 0f) {
-                                exp(-delta / (FLARE_TAIL_CHARS / charCount))
+        if (!wordBidi.isLeftToRight) {
+            // Keep Arabic shaping and combining marks intact, including RTL words in an LTR line.
+            ShapedLyricsWord(
+                word = word,
+                style = style,
+                progress = wordProgress,
+                isRtl = wordDirection == TextDirection.Rtl,
+                restingColor = pendingColorOverride ?: DimRichPendingColor,
+                glow = heldGlow ?: glow?.copy(blurRadius = SUNG_BASE_GLOW_EM * fontPx),
+                flare = flareGate,
+                fontPx = fontPx,
+            )
+        } else {
+            val chars = word.toCharArray()
+            val charCount = chars.size.coerceAtLeast(1)
+            // A Latin word keeps its character order even inside an RTL line.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Row {
+                    chars.forEachIndexed { charIndex, ch ->
+                        val charFrom = charIndex.toFloat() / charCount
+                        val charTo = (charIndex + 1).toFloat() / charCount
+                        val charProgress = ((wordProgress - charFrom) / (charTo - charFrom)).coerceIn(0f, 1f)
+                        val charPast = wordProgress >= charTo
+                        val charActive = isActive && wordProgress >= charFrom && wordProgress < charTo
+                        // The flare is a CONTINUOUS falloff from the playhead, not an on/off per character:
+                        // switching per character killed the light at every boundary and lit it again on the
+                        // next one, which read as flicker. Fading by distance lets the brightness hand over
+                        // between neighbours, so one travelling point of light moves across the word.
+                        val charCenter = (charFrom + charTo) / 2f
+                        val reach = (FLARE_REACH_CHARS / charCount).coerceAtLeast(0.0001f)
+                        val charFlare =
+                            if (flareGate <= 0f || glow == null) {
+                                0f
                             } else {
-                                (1f - abs(delta) / reach).coerceIn(0f, 1f)
+                                // Ahead of the light, a short linear ramp so a character brightens as it
+                                // is approached; behind it, an exponential wake.
+                                val delta = wordProgress - charCenter
+                                val shape =
+                                    if (delta > 0f) {
+                                        exp(-delta / (FLARE_TAIL_CHARS / charCount))
+                                    } else {
+                                        (1f - abs(delta) / reach).coerceIn(0f, 1f)
+                                    }
+                                shape * flareGate
                             }
-                        shape * flareGate
-                    }
-                // Lifted when the light touches it, over CHAR_RISE_MS, and LEFT THERE. Apple
-                // never brings the glyph back down — the sung half of a line simply sits higher
-                // than the half still to come — so there is no fall to animate, only an arrival.
-                //
-                // The trigger is instant, the travel is not: the light moves on long before the
-                // character has finished rising, which is exactly what makes the line ripple
-                // instead of stepping. Its own animation, on its own clock, so a word sung faster
-                // than the rise still completes.
-                val charRise by animateFloatAsState(
-                    targetValue = if (glow != null && charProgress > 0f) 1f else 0f,
-                    animationSpec = tween(CHAR_RISE_MS, easing = FastOutSlowInEasing),
-                    label = "charRise",
-                )
-                val restingColor = pendingColorOverride ?: DimRichPendingColor
-                Box(
-                    modifier =
-                        Modifier.graphicsLayer {
-                            translationY = -charRise * CHAR_RISE_EM * fontPx
-                        },
-                ) {
-                    // Glow: transparent ink, so only the Shadow lands and it follows the glyph
-                    // outline instead of boxing the character.
-                    //
-                    val glowShadow = heldGlow ?: glow?.copy(blurRadius = SUNG_BASE_GLOW_EM * fontPx)
-                    if (glowShadow != null) {
-                        Text(
-                            text = ch.toString(),
-                            // Intensity goes into the Shadow's own alpha. NOT graphicsLayer.alpha:
-                            // any alpha below 1 forces Compose to render the node into an offscreen
-                            // layer first, and that layer is only as big as the Text's bounds — so
-                            // the bloom, which by definition spills outside them, comes back sliced
-                            // into a rectangle.
-                            //
-                            // The node is still composed unconditionally, at alpha 0 when the
-                            // playhead is far away. That is what stops the hand-over from
-                            // flickering: A fades down and B fades up, neither is ever added to or
-                            // removed from the tree.
-                            style =
-                                style.copy(
-                                    shadow =
-                                        glowShadow.copy(
-                                            color = glowShadow.color.copy(alpha = SUNG_BASE_GLOW_ALPHA * charFlare),
-                                        ),
-                                ),
-                            color = Color.Transparent,
+                        // Lifted when the light touches it, over CHAR_RISE_MS, and LEFT THERE. Apple
+                        // never brings the glyph back down — the sung half of a line simply sits higher
+                        // than the half still to come — so there is no fall to animate, only an arrival.
+                        //
+                        // The trigger is instant, the travel is not: the light moves on long before the
+                        // character has finished rising, which is exactly what makes the line ripple
+                        // instead of stepping. Its own animation, on its own clock, so a word sung faster
+                        // than the rise still completes.
+                        val charRise by animateFloatAsState(
+                            targetValue = if (glow != null && charProgress > 0f) 1f else 0f,
+                            animationSpec = tween(CHAR_RISE_MS, easing = FastOutSlowInEasing),
+                            label = "charRise",
                         )
+                        val restingColor = pendingColorOverride ?: DimRichPendingColor
+                        Box(
+                            modifier =
+                                Modifier.graphicsLayer {
+                                    translationY = -charRise * CHAR_RISE_EM * fontPx
+                                },
+                        ) {
+                            // Glow: transparent ink, so only the Shadow lands and it follows the glyph
+                            // outline instead of boxing the character.
+                            //
+                            val glowShadow = heldGlow ?: glow?.copy(blurRadius = SUNG_BASE_GLOW_EM * fontPx)
+                            if (glowShadow != null) {
+                                Text(
+                                    text = ch.toString(),
+                                    // Intensity goes into the Shadow's own alpha. NOT graphicsLayer.alpha:
+                                    // any alpha below 1 forces Compose to render the node into an offscreen
+                                    // layer first, and that layer is only as big as the Text's bounds — so
+                                    // the bloom, which by definition spills outside them, comes back sliced
+                                    // into a rectangle.
+                                    //
+                                    // The node is still composed unconditionally, at alpha 0 when the
+                                    // playhead is far away. That is what stops the hand-over from
+                                    // flickering: A fades down and B fades up, neither is ever added to or
+                                    // removed from the tree.
+                                    style =
+                                        style.copy(
+                                            shadow =
+                                                glowShadow.copy(
+                                                    color = glowShadow.color.copy(alpha = SUNG_BASE_GLOW_ALPHA * charFlare),
+                                                ),
+                                        ),
+                                    color = Color.Transparent,
+                                )
+                            }
+                            Text(
+                                text = ch.toString(),
+                                style = style,
+                                color =
+                                    when {
+                                        charPast -> Color.White
+                                        charActive -> lerp(restingColor, Color.White, charProgress)
+                                        else -> restingColor
+                                    },
+                            )
+                        }
                     }
-                    Text(
-                        text = ch.toString(),
-                        style = style,
-                        color =
-                            when {
-                                charPast -> Color.White
-                                charActive -> lerp(restingColor, Color.White, charProgress)
-                                else -> restingColor
-                            },
-                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ShapedLyricsWord(
+    word: String,
+    style: TextStyle,
+    progress: Float,
+    isRtl: Boolean,
+    restingColor: Color,
+    glow: Shadow?,
+    flare: Float,
+    fontPx: Float,
+) {
+    val rise by animateFloatAsState(
+        targetValue = if (glow != null && progress > 0f) 1f else 0f,
+        animationSpec = tween(CHAR_RISE_MS, easing = FastOutSlowInEasing),
+        label = "shapedWordRise",
+    )
+    Box(Modifier.graphicsLayer { translationY = -rise * CHAR_RISE_EM * fontPx }) {
+        Text(text = word, style = style, color = restingColor)
+        if (glow != null) {
+            Text(
+                text = word,
+                modifier = Modifier.clearAndSetSemantics {},
+                style = style.copy(shadow = glow.copy(color = glow.color.copy(alpha = SUNG_BASE_GLOW_ALPHA * flare))),
+                color = Color.Transparent,
+            )
+        }
+        Text(
+            text = word,
+            style = style,
+            color = Color.White,
+            modifier =
+                Modifier
+                    .clearAndSetSemantics {}
+                    .drawWithContent {
+                        if (progress >= 1f) {
+                            drawContent()
+                        } else if (progress > 0f) {
+                            clipRect(
+                                left = if (isRtl) size.width * (1f - progress) else 0f,
+                                right = if (isRtl) size.width else size.width * progress,
+                            ) { this@drawWithContent.drawContent() }
+                        }
+                    },
+        )
     }
 }
 
