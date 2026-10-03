@@ -166,7 +166,9 @@ internal fun ExpressiveArtworkCardPage(
     val colorScheme = MaterialTheme.colorScheme
     val pageTrack = state.artworkQueue.getOrNull(page)
     val isCurrentArtworkPage = page == state.currentOrderIndex
-    val pageHasCanvas = isCurrentArtworkPage && state.screenData.canvasData != null
+    // A canvas that fills the page; Apple Music's animated artwork is drawn separately, last.
+    val pageHasCanvas = isCurrentArtworkPage && state.screenData.fullscreenCanvas() != null
+    val pageAnimatedArtwork = state.screenData.canvasData?.takeIf { isCurrentArtworkPage && it.isAnimatedArtwork() }
     // While a video plays, the card itself takes the video's shape — no letterbox bands inside a
     // square card — fitted into a slot no taller than the square card a song gets, so a tall video
     // narrows the card instead of pushing the page past the fold. Every page shares the slot so the
@@ -528,6 +530,17 @@ internal fun ExpressiveArtworkCardPage(
                     )
                 }
             }
+        }
+
+        // Apple Music's animated artwork (current track) — Classic's Layer 3: edge to edge at the
+        // top of the page under controls that never hide, covering the card once its still is up.
+        if (pageAnimatedArtwork != null) {
+            AppleMusicAnimatedArtworkPage(
+                canvas = pageAnimatedArtwork,
+                cover = state.screenData.bitmap,
+                topChrome = topAppBarHeightDp.dp,
+                pageColor = colorScheme.surface,
+            )
         }
     }
 }

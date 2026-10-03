@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,12 +40,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.data.player.AudioOutput
 import com.maxrave.domain.data.player.AudioOutputKind
 import com.maxrave.domain.data.player.GenericCastState
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.rememberCastReceivers
+import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.SurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
@@ -57,6 +61,7 @@ import com.maxrave.simpmusic.ui.icon.Speaker
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.audio_output
 import simpmusic.composeapp.generated.resources.audio_output_bluetooth
@@ -66,6 +71,27 @@ import simpmusic.composeapp.generated.resources.audio_output_playing_here
 import simpmusic.composeapp.generated.resources.audio_output_system_default
 import simpmusic.composeapp.generated.resources.audio_output_usb
 import simpmusic.composeapp.generated.resources.audio_output_wired
+
+/**
+ * [AppleMusicOutputSheet] wired straight to the player, for the Now Playing styles that only need
+ * the output list inside the sheet (Classic and M3 Expressive open it from their headphones button).
+ */
+@Composable
+internal fun AudioOutputSheetHost(
+    castState: GenericCastState,
+    onDismiss: () -> Unit,
+) {
+    val player = koinInject<MediaPlayerHandler>().player
+    val audioOutputs by player.audioOutputs.collectAsStateWithLifecycle()
+    AppleMusicOutputSheet(
+        outputs = audioOutputs,
+        castState = castState,
+        deviceVolumeController = rememberDeviceVolumeController(),
+        onSelectOutput = { output -> player.selectAudioOutput(output.id) },
+        onRefresh = { player.refreshAudioOutputs() },
+        onDismiss = onDismiss,
+    )
+}
 
 /**
  * Where the sound goes — opened from the headphones half of the action row's capsule.

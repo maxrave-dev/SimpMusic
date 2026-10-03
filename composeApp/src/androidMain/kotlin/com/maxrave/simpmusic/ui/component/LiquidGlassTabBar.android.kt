@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -96,6 +98,7 @@ private val BarInset = 6.dp
  * @param layer shared graphics layer the capsule records into for luminance sampling.
  * @param luminance current sampled luminance (0..1) driving the glass brightness.
  * @param onTabSelected fired when the user taps a tab or drag-snaps the blob.
+ * @param collapsedContent shown in the circle when the bar is given only [CollapsedBarSize] of width.
  */
 @Composable
 fun LiquidGlassTabBar(
@@ -107,6 +110,7 @@ fun LiquidGlassTabBar(
     modifier: Modifier = Modifier,
     availableWidth: Dp = Dp.Unspecified,
     onTabSelected: (Int) -> Unit,
+    collapsedContent: (@Composable () -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val tabsCount = tabs.size
@@ -117,12 +121,8 @@ fun LiquidGlassTabBar(
     // [availableWidth] is the space the row actually hands this capsule, so the tabs divide up
     // what exists instead of a guess. TabWidth stays as the cap, so 2 tabs on a tablet do not
     // stretch into slabs.
-    val tabWidth =
-        if (availableWidth.isSpecified && availableWidth > 0.dp) {
-            ((availableWidth - BarInset * 2) / tabsCount).coerceAtMost(TabWidth)
-        } else {
-            TabWidth
-        }
+    val tabWidth = tabWidthFor(tabsCount, availableWidth)
+    val fullWidth = tabWidth * tabsCount + BarInset * 2
     val tabWidthPx = with(density) { tabWidth.toPx() }
     // The lambdas below are remembered; without this they would keep the width from first layout.
     val currentTabWidthPx by rememberUpdatedState(tabWidthPx)
@@ -187,7 +187,7 @@ fun LiquidGlassTabBar(
         modifier =
             modifier
                 .height(BarHeight)
-                .width(tabWidth * tabsCount + BarInset * 2)
+                .width(fullWidth)
                 // Press detection for the whole capsule lives on the outer Box — it's the common
                 // ancestor of the glass, blob and tab Row, so it sees the touch on the Initial pass
                 // before the children. The capsule glass sits underneath the Row and would never get
@@ -201,96 +201,133 @@ fun LiquidGlassTabBar(
         // it's observe-only, so tab taps and the blob drag keep working.
         Box(Modifier.matchParentSize().drawInteractiveGlass(isDark, backdrop, layer, { luminance.value }, CapsuleShape, barInteraction))
 
-        // 2) Frosted blob selection indicator — slides behind the icons.
-        Box(
-            Modifier
-                .graphicsLayer {
-                    // Per-tab slot start, no inset: the pill is exactly one tab wide, so any bias
-                    // here shifts it off its own tab (it used to be inset 4dp to match a pill that
-                    // was 8dp narrower than the slot).
-                    translationX =
-                        (if (isLtr) dampedDrag.value else (tabsCount - 1) - dampedDrag.value) * tabWidthPx +
-                        BarInset.toPx()
-                }.drawBackdrop(
-                    backdrop = backdrop,
-                    shape = { CapsuleShape },
-                    effects = {
-                        // Luminance only drives the blur here (frosted pill); brightness/contrast stay
-                        // neutral and the "đục đen" darkening is applied in onDrawSurface.
-                        val l = (luminance.value * 2f - 1f).let { sign(it) * it * it }
-                        val progress = dampedDrag.pressProgress
-                        vibrancy()
-                        colorControls(
-                            brightness = 0.05f,
-                            contrast = 1f,
-                            saturation = 1.5f,
-                        )
-                        blur(
-                            // Stronger than the bar's blur so the active pill reads as a clearly
-                            // frosted surface (the previous amount was too weak / too close to the bar).
-                            (if (l > 0f) lerp(8f.dp.toPx(), 16f.dp.toPx(), l) else lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)) +
-                                20f.dp.toPx(),
-                        )
-                        lens(10f.dp.toPx() * progress, 14f.dp.toPx() * progress, chromaticAberration = true)
-                    },
-                    highlight = { Highlight.Default.copy(alpha = 0.6f) },
-                    shadow = { Shadow(radius = 4f.dp, alpha = 0.4f) },
-                    innerShadow = {
-                        val progress = dampedDrag.pressProgress
-                        InnerShadow(radius = 8f.dp * progress, alpha = progress)
-                    },
-                    layerBlock = {
-                        scaleX = dampedDrag.scaleX
-                        scaleY = dampedDrag.scaleY
-                        val velocity = dampedDrag.velocity / 10f
-                        scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
-                        scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
-                    },
-                    onDrawSurface = {
-                        // Active pill sits a touch above the bar. Dark theme: "đục đen" (black veil that
-                        // scales with the backdrop). Light theme: only a faint grey so the pill stays
-                        // clearly lighter than a heavy slab — the highlight/shadow do the separating.
-                        val lumNorm = ((luminance.value - 0.3f) / 0.5f).coerceIn(0f, 1f)
-                        val darken =
-                            if (isDark) lerp(0.22f, 0.55f, lumNorm) else lerp(0.06f, 0.14f, lumNorm)
-                        drawRect(Color.Black.copy(alpha = darken))
-                    },
-                ).width(tabWidth)
-                .height(BlobHeight),
-        )
+        // The bar may be handed any width from the folded circle up to its full width, and the glass
+        // above follows it. The blob and the tabs keep their full-width layout and are clipped to
+        // the glass instead, so a growing glass uncovers them from the start edge. The clip is off
+        // at rest, where the pressed blob has to bulge out of the capsule.
+        Box(Modifier.matchParentSize().unfoldingTabs(fullWidth, CapsuleShape)) {
+            Box(
+                Modifier
+                    .wrapContentSize(Alignment.CenterStart, unbounded = true)
+                    .size(fullWidth, BarHeight),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                // 2) Frosted blob selection indicator — slides behind the icons.
+                Box(
+                    Modifier
+                        .graphicsLayer {
+                            // Per-tab slot start, no inset: the pill is exactly one tab wide, so any bias
+                            // here shifts it off its own tab (it used to be inset 4dp to match a pill that
+                            // was 8dp narrower than the slot).
+                            translationX =
+                                (if (isLtr) dampedDrag.value else (tabsCount - 1) - dampedDrag.value) * tabWidthPx +
+                                BarInset.toPx()
+                        }.drawBackdrop(
+                            backdrop = backdrop,
+                            shape = { CapsuleShape },
+                            effects = {
+                                // Luminance only drives the blur here (frosted pill); brightness/contrast stay
+                                // neutral and the "đục đen" darkening is applied in onDrawSurface.
+                                val l = (luminance.value * 2f - 1f).let { sign(it) * it * it }
+                                val progress = dampedDrag.pressProgress
+                                vibrancy()
+                                colorControls(
+                                    brightness = 0.05f,
+                                    contrast = 1f,
+                                    saturation = 1.5f,
+                                )
+                                blur(
+                                    // Stronger than the bar's blur so the active pill reads as a clearly
+                                    // frosted surface (the previous amount was too weak / too close to the bar).
+                                    (if (l > 0f) lerp(8f.dp.toPx(), 16f.dp.toPx(), l) else lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)) +
+                                        20f.dp.toPx(),
+                                )
+                                lens(10f.dp.toPx() * progress, 14f.dp.toPx() * progress, chromaticAberration = true)
+                            },
+                            highlight = { Highlight.Default.copy(alpha = 0.6f) },
+                            shadow = { Shadow(radius = 4f.dp, alpha = 0.4f) },
+                            innerShadow = {
+                                val progress = dampedDrag.pressProgress
+                                InnerShadow(radius = 8f.dp * progress, alpha = progress)
+                            },
+                            layerBlock = {
+                                scaleX = dampedDrag.scaleX
+                                scaleY = dampedDrag.scaleY
+                                val velocity = dampedDrag.velocity / 10f
+                                scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
+                                scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
+                            },
+                            onDrawSurface = {
+                                // Active pill sits a touch above the bar. Dark theme: "đục đen" (black veil that
+                                // scales with the backdrop). Light theme: only a faint grey so the pill stays
+                                // clearly lighter than a heavy slab — the highlight/shadow do the separating.
+                                val lumNorm = ((luminance.value - 0.3f) / 0.5f).coerceIn(0f, 1f)
+                                val darken =
+                                    if (isDark) lerp(0.22f, 0.55f, lumNorm) else lerp(0.06f, 0.14f, lumNorm)
+                                drawRect(Color.Black.copy(alpha = darken))
+                            },
+                        ).width(tabWidth)
+                        .height(BlobHeight),
+                )
 
-        // 3) Crisp icons + labels on top, carrying the blob drag gesture.
-        Row(
-            // Tabs tile exactly [BarInset..+tabWidth..], the same origin the blob uses above — any
-            // mismatch here puts the icon off the centre of its own pill.
-            Modifier
-                .matchParentSize()
-                .padding(horizontal = BarInset)
-                .then(dampedDrag.modifier),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            tabs.forEachIndexed { position, screen ->
-                LiquidGlassTab(
-                    screen = screen,
-                    selected = currentIndex == position,
-                    width = tabWidth,
+                // 3) Crisp icons + labels on top, carrying the blob drag gesture.
+                Row(
+                    // Tabs tile exactly [BarInset..+tabWidth..], the same origin the blob uses above — any
+                    // mismatch here puts the icon off the centre of its own pill.
+                    Modifier
+                        .matchParentSize()
+                        .padding(horizontal = BarInset)
+                        .then(dampedDrag.modifier),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (position == currentIndex) {
-                        // Re-tapping the active tab: snapshotFlow won't fire (state unchanged),
-                        // so call onTabSelected directly to keep the reload / scroll-to-top behaviour.
-                        onTabSelected(position)
-                    } else {
-                        // Navigate immediately on tap. Don't route this through snapshotFlow: a
-                        // concurrent drag-stop on the same Row can reset currentIndex back before the
-                        // flow emits, which silently drops the tap (observed: currentIndex stuck at 0).
-                        currentIndex = position
-                        onTabSelected(position)
+                    tabs.forEachIndexed { position, screen ->
+                        LiquidGlassTab(
+                            screen = screen,
+                            selected = currentIndex == position,
+                            width = tabWidth,
+                        ) {
+                            if (position == currentIndex) {
+                                // Re-tapping the active tab: snapshotFlow won't fire (state unchanged),
+                                // so call onTabSelected directly to keep the reload / scroll-to-top behaviour.
+                                onTabSelected(position)
+                            } else {
+                                // Navigate immediately on tap. Don't route this through snapshotFlow: a
+                                // concurrent drag-stop on the same Row can reset currentIndex back before the
+                                // flow emits, which silently drops the tap (observed: currentIndex stuck at 0).
+                                currentIndex = position
+                                onTabSelected(position)
+                            }
+                        }
                     }
                 }
             }
         }
+
+        // 4) Folded into the circle, the bar shows [collapsedContent] in place of its tabs.
+        if (collapsedContent != null) {
+            Box(Modifier.matchParentSize().foldedCircle(fullWidth), contentAlignment = Alignment.Center) {
+                collapsedContent()
+            }
+        }
     }
 }
+
+// Every tab is the same width; see the note where LiquidGlassTabBar reads it.
+private fun tabWidthFor(
+    tabsCount: Int,
+    availableWidth: Dp,
+): Dp =
+    if (availableWidth.isSpecified && availableWidth > 0.dp) {
+        ((availableWidth - BarInset * 2) / tabsCount).coerceAtMost(TabWidth)
+    } else {
+        TabWidth
+    }
+
+/** Full width of the expanded [LiquidGlassTabBar] for [tabsCount] tabs given [availableWidth]. */
+internal fun liquidGlassTabBarWidth(
+    tabsCount: Int,
+    availableWidth: Dp,
+): Dp = tabWidthFor(tabsCount, availableWidth) * tabsCount + BarInset * 2
 
 @Composable
 private fun LiquidGlassTab(

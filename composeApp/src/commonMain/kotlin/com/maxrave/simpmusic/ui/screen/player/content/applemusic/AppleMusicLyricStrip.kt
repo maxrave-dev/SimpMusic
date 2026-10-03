@@ -56,8 +56,7 @@ import kotlin.math.max
 import kotlin.math.roundToLong
 
 /**
- * The line being sung, directly over the progress bar — BitChord's strip. Tapping it opens the
- * Lyrics tab.
+ * The line being sung, directly over the progress bar. Tapping it opens the Lyrics tab.
  *
  * Word-synced lyrics are lit as they are sung: the line is drawn twice, dim and bright, and the
  * bright copy is clipped to where the singer has got to. Clipping in the draw phase, off a playhead
@@ -316,7 +315,7 @@ private val UNSUNG = Color.White.copy(alpha = 0.45f)
 private val WAITING_DOT_SIZE = 5.dp
 private val WAITING_DOT_GAP = 4.dp
 
-// BitChord's line change: long enough to read as travel, short enough that fast lines do not queue.
+// Line change: long enough to read as travel, short enough that fast lines do not queue.
 private const val LINE_CHANGE_MS = 340
 
 // A line's end time is often absent; the last word is then given this long to light.

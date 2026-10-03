@@ -333,11 +333,6 @@ fun NowPlayingContentAppleMusic(
     }
 }
 
-// Apple Music's animated covers arrive as HLS (.m3u8) from Apple's video CDN; Spotify's canvases
-// are MP4. Only the former is album art, shaped like album art (3:4 or 1:1), and so plays in the
-// artwork's own frame instead of filling the page.
-private fun NowPlayingScreenData.CanvasData.isAnimatedArtwork(): Boolean = url.contains(".m3u8")
-
 /**
  * MAIN: the artwork edge to edge at the top — uncropped, at its own proportions — dissolving into
  * a mesh of its own colours, with the title row, the current lyric and the shared cluster hung
@@ -376,8 +371,7 @@ private fun AppleMusicMainView(
     val isVideoBackdrop = canvasData == null && state.screenData.isVideo && state.shouldShowVideo
 
     // Same fade/half-blended-frame fix M3E uses: fast fade-in, relaxed fade-out. Only a fullscreen
-    // canvas ever hides the controls — every other artwork sits above them, not behind them, even
-    // though the shell's auto-hide fires for any canvas.
+    // canvas ever hides the controls — every other artwork sits above them, not behind them.
     val controlsAlpha by animateFloatAsState(
         targetValue = if (!fullscreenCanvas || state.showControlLayout) 1f else 0f,
         animationSpec = tween(durationMillis = if (!fullscreenCanvas || state.showControlLayout) 180 else 500, easing = LinearEasing),
@@ -484,9 +478,8 @@ private fun AppleMusicMainView(
             )
         }
 
-        // The wash under the status bar: as dark as the sleeve's own top band is bright, BitChord's
-        // 16%–65% (topBandScrimAlpha), so a dark cover is left almost untouched and a bright one
-        // still carries white icons.
+        // The wash under the status bar: as dark as the sleeve's own top band is bright, 16%–65%,
+        // so a dark cover is left almost untouched and a bright one still carries white icons.
         if (topBand > 0.dp) {
             val topWashAlpha by animateFloatAsState(
                 targetValue = TOP_WASH_MIN_ALPHA + (TOP_WASH_MAX_ALPHA - TOP_WASH_MIN_ALPHA) * (mesh?.topLuminance ?: 1f),
@@ -910,8 +903,8 @@ private fun AppleMusicArtworkPage(
     val isCurrentPage = page == state.currentOrderIndex
     val pageShowsFullscreen = isCurrentPage && (fullscreenCanvas || isVideoBackdrop)
     val pageShowsClip = isCurrentPage && animatedArtwork != null
-    // How much of the artwork dissolves into the page: BitChord's 42% of the frame, on a
-    // smoothstep curve (appleMusicVerticalFadeEdges), so there is no line where the fade starts.
+    // How much of the artwork dissolves into the page: 42% of the frame, on a smoothstep curve
+    // (appleMusicVerticalFadeEdges), so there is no line where the fade starts.
     val artworkFade = artworkHeight * ARTWORK_FADE_FRACTION
 
     // The animated artwork fades in over the cover once its still is up, rather than cutting in.
@@ -1196,6 +1189,94 @@ private fun AppleMusicArtworkPage(
 }
 
 /**
+ * Apple Music's animated artwork played this style's way, for the Classic and Material 3 Expressive
+ * styles to lay over their own page: the clip edge to edge at the top, dissolving into a mesh of its
+ * own colours, with the band under the style's top bar (which ends at [topChrome]) blurred and
+ * darkened so the bar's white glyphs survive a bright sleeve. Fills its parent, the style's first
+ * screen, and fades into [pageColor] at the bottom so scrolling past the fold shows no seam.
+ *
+ * Nothing shows until the clip's still is up: the style's own page stays in view until then, and
+ * this page fades in over it instead of jumping from a square cover to a full-width one. [cover]
+ * seeds the mesh until the still has been read.
+ */
+@Composable
+internal fun AppleMusicAnimatedArtworkPage(
+    canvas: NowPlayingScreenData.CanvasData,
+    cover: ImageBitmap?,
+    topChrome: Dp,
+    pageColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    val statusBarHeight = with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    var clipStill by remember(canvas.url) { mutableStateOf<ImageBitmap?>(null) }
+    var clipFrameHeight by remember(canvas.url) { mutableStateOf(0.dp) }
+    val mesh = rememberAppleMusicMesh(artwork = clipStill ?: cover, seed = canvas.url.hashCode())
+    val pageAlpha by animateFloatAsState(
+        targetValue = if (clipFrameHeight > 0.dp && mesh != null) 1f else 0f,
+        animationSpec = tween(ARTWORK_FADE_IN_MS),
+        label = "animatedArtworkPageIn",
+    )
+    BoxWithConstraints(modifier = modifier.fillMaxSize().alpha(pageAlpha)) {
+        val artworkFade = minOf(maxWidth, maxHeight * ARTWORK_MAX_HEIGHT_FRACTION) * ARTWORK_FADE_FRACTION
+        val topBand = topChrome + TOP_BAND_STRIP
+        AppleMusicMeshBackdrop(mesh = mesh, seam = clipFrameHeight)
+        AnimatedArtworkFrame(
+            canvas = canvas,
+            heightLimit = maxHeight * ANIMATED_ARTWORK_MAX_HEIGHT_FRACTION,
+            topBandSolid = statusBarHeight,
+            topBand = topBand,
+            alpha = 1f,
+            onStill = { still, height ->
+                clipStill = still
+                clipFrameHeight = height
+            },
+        )
+        // The page laid back over the clip's lower part, as in AppleMusicMainView: a mask never
+        // reaches the video surface.
+        if (clipFrameHeight > 0.dp) {
+            AppleMusicMeshBackdrop(
+                mesh = mesh,
+                seam = clipFrameHeight,
+                modifier = Modifier.appleMusicFadeBetween(transparentAt = clipFrameHeight - artworkFade, opaqueAt = clipFrameHeight),
+            )
+        }
+        // The wash under the top bar, held through the status bar and eased out by the band's end:
+        // the bar's title sits inside it, so it cannot fall off as fast as the grabber's does.
+        val washAlpha by animateFloatAsState(
+            targetValue = TOP_WASH_MIN_ALPHA + (TOP_WASH_MAX_ALPHA - TOP_WASH_MIN_ALPHA) * (mesh?.topLuminance ?: 1f),
+            animationSpec = tween(TOP_WASH_FADE_MS),
+            label = "animatedArtworkTopWash",
+        )
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(topBand)
+                    .background(
+                        smoothScrimBrush(
+                            from = Color.Black.copy(alpha = washAlpha),
+                            to = Color.Black.copy(alpha = 0f),
+                            startFraction = statusBarHeight / topBand,
+                        ),
+                    ),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        smoothScrimBrush(
+                            from = pageColor.copy(alpha = 0f),
+                            to = pageColor,
+                            startFraction = PAGE_COLOR_FADE_START,
+                        ),
+                    ),
+        )
+    }
+}
+
+/**
  * Apple Music's animated artwork in a frame of its own shape, full width and top-aligned, so none
  * of it is cropped. The clip's still sits under it: it sizes the frame (its proportions ARE the
  * clip's) and shows while the clip loads, so the frame never opens as a black box. [onStill] hands
@@ -1290,8 +1371,8 @@ private fun TopBandBlur(
     )
 }
 
-// BitChord's status-bar gradient (NowPlayingScreen.kt): alpha × (1 − p)^1.5, dark right at the top
-// and falling off fast. The same curve at 24 stops rather than its 8, so no step shows.
+// The status-bar gradient: alpha × (1 − p)^1.5, dark right at the top and falling off fast, drawn
+// at 24 stops so no step shows.
 private fun topWashBrush(alpha: Float): Brush =
     Brush.verticalGradient(
         colorStops =
@@ -1301,9 +1382,9 @@ private fun topWashBrush(alpha: Float): Brush =
             },
     )
 
-// The top band's length below the status bar (BitChord's DISMISS_STRIP_HEIGHT), the wash's range
-// (BitChord's topBandScrimAlpha, 16% on a black sleeve to 65% on a white one), its stops, its
-// change on a skip (the mesh's own crossfade), and the band's blur (the artist page's).
+// The top band's length below the status bar, the wash's range (16% on a black sleeve to 65% on a
+// white one), its stops, its change on a skip (the mesh's own crossfade), and the band's blur (the
+// artist page's).
 private val TOP_BAND_STRIP = 32.dp
 private const val TOP_WASH_STEPS = 24
 private const val TOP_WASH_MIN_ALPHA = 0.16f
@@ -1332,7 +1413,7 @@ private val VIDEO_FRAME_TOP_GAP = 16.dp
 // towards the bottom so the transport stays readable; not so much that it hides the art again.
 private const val BACKDROP_TINT_ALPHA = 0.62f
 
-// The bottom share of the artwork that dissolves into the page — BitChord's HERO_FADE_FRACTION.
+// The bottom share of the artwork that dissolves into the page.
 private const val ARTWORK_FADE_FRACTION = 0.42f
 
 // A full-width square cover fits a portrait page with room to spare; only a landscape window is
@@ -1347,8 +1428,12 @@ private const val ANIMATED_ARTWORK_MAX_HEIGHT_FRACTION = 0.75f
 // shape until the clip's still says otherwise.
 private const val DEFAULT_ANIMATED_ARTWORK_ASPECT = 3f / 4f
 
-// How long an animated artwork takes to replace the cover once it is ready — BitChord's hero fade.
+// How long an animated artwork takes to replace the cover once it is ready.
 private const val ARTWORK_FADE_IN_MS = 420
+
+// Where, down the first screen, the animated artwork's page starts fading into the page below the
+// fold — late enough that the mesh still reaches the controls at the bottom of the screen.
+private const val PAGE_COLOR_FADE_START = 0.92f
 
 // How long the LYRICS tab waits for a track's lyrics before deciding the track has none. Long
 // enough to cover a normal fetch on a normal connection, short enough that a song with no lyrics

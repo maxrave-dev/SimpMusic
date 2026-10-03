@@ -143,8 +143,7 @@ internal fun appleMusicGradientColorAt(
 
 internal val AppleMusicTextSecondary = Color.White.copy(alpha = 0.72f)
 
-// Artist, times and captions — BitChord's value for the same lines (PlayerControls.kt,
-// NowPlayingScreen.kt).
+// Artist, times and captions.
 internal val AppleMusicSecondaryText = Color.White.copy(alpha = 0.55f)
 internal val AppleMusicPillInactive = Color.White.copy(alpha = 0.24f)
 internal val AppleMusicTrackInactive = Color.White.copy(alpha = 0.26f)
@@ -172,7 +171,7 @@ internal data class AppleMusicTypography(
  * in-player line (headlineMedium), SongFullWidthItems rows (titleSmall/bodySmall), the queue
  * sheet's section headers (titleMedium) and M3E's canvas overlay lines (bodyMedium white/yellow).
  *
- * Secondary text is BitChord's translucent white rather than typo()'s body grey: an opaque
+ * Secondary text is a translucent white rather than typo()'s body grey: an opaque
  * #A8A8A8 is darker than a bright sleeve's page and read as a dark grey smudge on it, where a
  * translucent white stays lighter than whatever it sits on.
  */
@@ -627,7 +626,7 @@ internal fun AppleMusicTimesRow(
                     textAlign = TextAlign.Center,
                 )
             }
-            // BitChord's quality line: a small headphones glyph ahead of the stream's own figures,
+            // The quality line: a small headphones glyph ahead of the stream's own figures,
             // bare on the page and dimmer than the times either side of it. The figures change
             // with the track and so crossfade in with it rather than snapping.
             Crossfade(
@@ -658,7 +657,7 @@ internal fun AppleMusicTimesRow(
     }
 }
 
-// The quality line sits a step below the times either side of it, as BitChord's does.
+// The quality line sits a step below the times either side of it.
 private val AppleMusicQualityLabel = Color.White.copy(alpha = 0.45f)
 
 /** FastRewind(44dp) → Previous, Play/Pause(62dp, plain white — no container disc), FastForward(44dp) → Next. */
@@ -814,7 +813,7 @@ internal fun AppleMusicDockButton(
 }
 
 /**
- * Lyrics · [Output | Listen Together] · Queue — BitChord's arrangement. The capsule holds the two
+ * Lyrics · [Output | Listen Together] · Queue. The capsule holds the two
  * answers to "where is this playing": which speaker (the output sheet, which is also where Cast
  * lives now) and which people (Listen Together). Joined by a hairline rather than a gap, so the
  * two read as one object.
@@ -835,7 +834,7 @@ internal fun AppleMusicActionRow(
     val listenTogether = koinInject<ListenTogetherRepository>()
     val room by listenTogether.room.collectAsStateWithLifecycle()
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        // A quarter of the spare width at each end, the rest between — BitChord's spacing. SpaceEvenly
+        // A quarter of the spare width at each end, the rest between. SpaceEvenly
         // over the full row pushed the two glyphs out to the gutters, away from the capsule.
         val content = DOCK_BUTTON_SIZE * 2 + CAPSULE_SEGMENT_WIDTH * 2 + 1.dp
         val edgeInset = ((maxWidth - content) / 4).coerceAtLeast(0.dp)
@@ -1029,7 +1028,7 @@ internal fun AppleMusicBottomCluster(
         )
         Spacer(modifier = Modifier.height(14.dp))
         // Crossfaded, since it changes on its own — a headset connecting renames the line under the
-        // user's thumb. Tappable like BitChord's: it names the output, so it opens the output sheet.
+        // user's thumb. Tappable: it names the output, so it opens the output sheet.
         Crossfade(
             targetState = outputName.orEmpty(),
             animationSpec = tween(300),

@@ -41,8 +41,7 @@ import kotlin.random.Random
  * from where the artwork stops. The colour directly under the picture is the colour the picture
  * ended on, so there is no join to hide.
  *
- * Ported from BitChord's ArtworkMeshBackdrop (github.com/kushagrasinghx/BitChord, GPL-3.0 — the
- * same licence as this project). How it is built:
+ * How it is built:
  *  - the artwork is averaged into a MESH_GRID square of means, read bottom-up, so row 0 is its
  *    bottom edge;
  *  - every row but row 0 is shifted sideways by a seeded amount, and mirrored half the time. A flip
@@ -340,8 +339,8 @@ private const val MESH_FLOOR = 0.045f
 /** How long the page takes to change colour on a skip: long enough to read as a change, not a cut. */
 private const val MESH_FADE_MS = 900
 
-// Wider than BitChord's 32dp: the owner asked for the page to be visibly smooth, and at 44dp no
-// cell edge survives even on a cover with hard colour blocks.
+// The owner asked for the page to be visibly smooth, and at 44dp no cell edge survives even on a
+// cover with hard colour blocks.
 private val MESH_BLUR = 44.dp
 
 /** Drawn only until an artwork has been read. */

@@ -93,6 +93,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentM3Express
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentSpotify
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.PlayerBackdropColor
+import com.maxrave.simpmusic.ui.screen.player.content.fullscreenCanvas
 import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
@@ -423,7 +424,8 @@ fun NowPlayingScreenContent(
 
     LaunchedEffect(screenDataState) {
         Logger.d(TAG, "ScreenDataState: $screenDataState")
-        showHideMiddleLayout = screenDataState.canvasData == null
+        // Only a canvas that fills the page replaces it; animated artwork sits at its top.
+        showHideMiddleLayout = screenDataState.fullscreenCanvas() == null
     }
 
     // Palette generation lives in its own NEVER-restarting effect. Keyed on screenDataState it
@@ -525,7 +527,7 @@ fun NowPlayingScreenContent(
         }.distinctUntilChangedBy {
             it.canvasData?.url
         }.collectLatest {
-            if (it.canvasData != null && mainScrollState.value == 0) {
+            if (it.fullscreenCanvas() != null && mainScrollState.value == 0) {
                 showHideJob = false
             } else {
                 showHideJob = true
@@ -535,7 +537,7 @@ fun NowPlayingScreenContent(
     }
 
     LaunchedEffect(key1 = showHideControlLayout) {
-        if (showHideControlLayout && screenDataState.canvasData != null && mainScrollState.value == 0) {
+        if (showHideControlLayout && screenDataState.fullscreenCanvas() != null && mainScrollState.value == 0) {
             showHideJob = false
         }
     }
@@ -544,10 +546,10 @@ fun NowPlayingScreenContent(
         snapshotFlow { mainScrollState.value }
             .distinctUntilChanged()
             .collect {
-                if (it > 0 && !showHideControlLayout && screenDataState.canvasData != null) {
+                if (it > 0 && !showHideControlLayout && screenDataState.fullscreenCanvas() != null) {
                     showHideJob = true
                     showHideControlLayout = true
-                } else if (showHideControlLayout && it == 0 && screenDataState.canvasData != null) {
+                } else if (showHideControlLayout && it == 0 && screenDataState.fullscreenCanvas() != null) {
                     showHideJob = false
                 }
             }

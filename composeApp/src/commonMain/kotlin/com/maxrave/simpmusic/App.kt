@@ -458,9 +458,12 @@ fun App(
                         enter = fadeIn() + slideInHorizontally(),
                         exit = fadeOut(),
                     ) {
+                        // On Android both materials go through the folding bar, which draws the mini
+                        // player itself. Desktop keeps the always-open flat bar under its own one.
+                        val useFoldingBar = getPlatform() == Platform.Android || isLiquidGlassEnabled == TRUE
                         Column {
                             AnimatedVisibility(
-                                isShowMiniPlayer && isLiquidGlassEnabled == DataStoreManager.FALSE,
+                                isShowMiniPlayer && !useFoldingBar && isLiquidGlassEnabled == DataStoreManager.FALSE,
                                 enter = fadeIn() + slideInHorizontally(),
                                 exit = fadeOut(),
                             ) {
@@ -485,7 +488,7 @@ fun App(
                                     },
                                 )
                             }
-                            if (isLiquidGlassEnabled == TRUE) {
+                            if (useFoldingBar) {
                                 LiquidGlassAppBottomNavigationBar(
                                     navController = navController,
                                     backdrop = backdrop,
@@ -494,6 +497,7 @@ fun App(
                                     isScrolledToTop = isScrolledToTop,
                                     showAnalyticsTab = showAnalyticsTab,
                                     showMixForYouTab = showMixForYouTab,
+                                    liquidGlass = isLiquidGlassEnabled == TRUE,
                                 ) { klass ->
                                     viewModel.reloadDestination(klass)
                                 }
