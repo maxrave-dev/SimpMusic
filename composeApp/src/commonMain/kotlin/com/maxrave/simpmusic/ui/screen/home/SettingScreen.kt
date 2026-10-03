@@ -1,12 +1,11 @@
 package com.maxrave.simpmusic.ui.screen.home
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -74,7 +73,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.LinkAnnotation
@@ -126,8 +127,8 @@ import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SettingGroup
 import com.maxrave.simpmusic.ui.component.SettingItem
-import com.maxrave.simpmusic.ui.component.rememberNowPlayingGlowTint
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Error
@@ -636,19 +637,26 @@ fun SettingScreen(
     }
 
     val settingListState = rememberLazyListState()
-    // Home's rule: transparent only while pixel-0 is on screen. The frost itself is kept LIGHT
-    // (below) so frosting over the glow reads as a veil, not a lid.
-    val isAtTop by remember {
-        derivedStateOf { settingListState.firstVisibleItemIndex == 0 && settingListState.firstVisibleItemScrollOffset == 0 }
+    // The toolbar is part of the list and scrolls away with it; a pinned, frosted copy takes over
+    // once the Devices group has gone under it — Playlist's and Artist's way. The group's height
+    // (top padding, header, card) is the scroll that carries it fully under the bar.
+    var devicesGroupHeightPx by remember { mutableIntStateOf(0) }
+    val showPinnedBar by remember {
+        derivedStateOf {
+            settingListState.firstVisibleItemIndex > 0 ||
+                settingListState.firstVisibleItemScrollOffset > devicesGroupHeightPx
+        }
     }
+    // The list's side margin, which the in-list toolbar stretches back across.
+    val listSidePadding = 16.dp
     // Home-family ambient ground, and like Home's it SCROLLS AWAY with the content instead of
     // hanging off the ceiling. Still a sibling (so it sits behind the floating bar), but its draw
     // rides the list: exact tracking while item 0 is on screen, parked off-screen after. Item 0 is
     // taller than the glow, so the glow has fully left before the branch ever switches — no jump.
     // graphicsLayer reads the state in the DRAW phase, so scrolling redraws without recomposing.
-    val glowNowPlaying by sharedViewModel.nowPlayingState.collectAsStateWithLifecycle()
+    // Tinted with the app's own primary rather than the song playing: this page is about the app.
     AmbientThemeGlow(
-        tint = rememberNowPlayingGlowTint(glowNowPlaying?.songEntity?.thumbnails),
+        tint = MaterialTheme.colorScheme.primary,
         modifier =
             Modifier.graphicsLayer {
                 translationY =
@@ -664,7 +672,7 @@ fun SettingScreen(
         contentPadding = innerPadding,
         modifier =
             Modifier
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = listSidePadding)
                 .hazeSource(hazeState),
     ) {
         item(key = "user_interface") {
@@ -672,119 +680,64 @@ fun SettingScreen(
                 // Was its own item. Folded in so item 0 is taller than the glow — the glow's
                 // translation tracks item 0's offset exactly and parks once it scrolls past, and a
                 // 64dp item 0 would have switched branches while the glow was still half-visible.
-                Spacer(Modifier.height(64.dp))
-                Spacer(Modifier.height(16.dp))
+                // The toolbar's in-list copy, stretched across the list's side margin so it sits exactly
+                // where the pinned copy appears; the list's top padding already clears the status bar.
+                SettingTopBar(
+                    onBack = { navController.navigateUp() },
+                    windowInsets = WindowInsets(0),
+                    modifier =
+                        Modifier.layout { measurable, constraints ->
+                            val bleed = listSidePadding.roundToPx()
+                            val width = constraints.maxWidth + 2 * bleed
+                            val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+                            layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+                        },
+                )
                 // Above every section, and inside item 0 rather than an item of its own, for the
                 // glow reason above.
-                Text(text = stringResource(Res.string.login_sync_section), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
-                SettingItem(
-                    title =
-                        stringResource(
-                            if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
-                        ),
-                    subtitle =
-                        stringResource(
-                            if (getPlatform() == Platform.Android) {
-                                Res.string.login_sync_android_description
-                            } else {
-                                Res.string.login_sync_desktop_description
-                            },
-                        ),
-                    onClick = { showLoginSyncDialog = true },
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(text = stringResource(Res.string.user_interface), style = typo().labelMedium, color = MaterialTheme.colorScheme.onBackground)
-                val themeModeLabels =
-                    listOf(
-                        DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
-                        DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
-                        DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
-                    )
-                SettingItem(
-                    title = stringResource(Res.string.theme),
-                    subtitle = themeModeLabels.firstOrNull { it.first == themeMode }?.second ?: "",
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.theme) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect = themeModeLabels.map { (it.first == themeMode) to it.second },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        val selected = state.selectOne?.getSelected()
-                                        themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
-                                            sharedViewModel.setThemeMode(it)
-                                        }
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                SettingGroup(
+                    title = stringResource(Res.string.login_sync_section),
+                    modifier = Modifier.onSizeChanged { devicesGroupHeightPx = it.height },
+                ) {
+                    SettingItem(
+                        title =
+                            stringResource(
+                                if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
                             ),
-                        )
-                    },
-                )
-                // The Apple Music treatments ARE the blur — the frosted page behind the player, and
-                // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
-                // Android 12, so on an older device they render as a flat, wrong-looking version of
-                // themselves. The requirement is spelled out on the option itself rather than left
-                // for the user to discover after switching.
-                val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
-                val nowPlayingStyleLabels =
-                    listOf(
-                        DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
-                        DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
-                        DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
-                            stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
-                    )
-                SettingItem(
-                    title = stringResource(Res.string.now_playing_style),
-                    subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.now_playing_style) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        val selected = state.selectOne?.getSelected()
-                                        nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
-                                            sharedViewModel.setNowPlayingStyle(it)
-                                        }
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
+                        subtitle =
+                            stringResource(
+                                if (getPlatform() == Platform.Android) {
+                                    Res.string.login_sync_android_description
+                                } else {
+                                    Res.string.login_sync_desktop_description
+                                },
                             ),
-                        )
-                    },
-                )
-                // Hidden outright below Android 12 rather than offered with one option: the Apple
-                // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
-                // the choice would be between Classic and a broken-looking Classic.
-                if (isLyricsBlurSupported()) {
-                    val lyricsStyleLabels =
+                        onClick = { showLoginSyncDialog = true },
+                    )
+                }
+                SettingGroup(title = stringResource(Res.string.user_interface)) {
+                    val themeModeLabels =
                         listOf(
-                            DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
-                            DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to
-                                stringResource(Res.string.lyrics_style_apple_music) + requiresAndroid12,
+                            DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
+                            DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
+                            DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
                         )
                     SettingItem(
-                        title = stringResource(Res.string.lyrics_style),
-                        subtitle = lyricsStyleLabels.firstOrNull { it.first == lyricsStyle }?.second ?: "",
+                        title = stringResource(Res.string.theme),
+                        subtitle = themeModeLabels.firstOrNull { it.first == themeMode }?.second ?: "",
                         onClick = {
                             viewModel.setAlertData(
                                 SettingAlertState(
-                                    title = runBlocking { getString(Res.string.lyrics_style) },
+                                    title = runBlocking { getString(Res.string.theme) },
                                     selectOne =
                                         SettingAlertState.SelectData(
-                                            listSelect = lyricsStyleLabels.map { (it.first == lyricsStyle) to it.second },
+                                            listSelect = themeModeLabels.map { (it.first == themeMode) to it.second },
                                         ),
                                     confirm =
                                         runBlocking { getString(Res.string.change) } to { state ->
                                             val selected = state.selectOne?.getSelected()
-                                            lyricsStyleLabels.firstOrNull { it.second == selected }?.first?.let {
-                                                sharedViewModel.setLyricsStyle(it)
+                                            themeModeLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                sharedViewModel.setThemeMode(it)
                                             }
                                         },
                                     dismiss = runBlocking { getString(Res.string.cancel) },
@@ -792,147 +745,211 @@ fun SettingScreen(
                             )
                         },
                     )
-                }
-
-                // Independent of BOTH style settings, and not gated on Android 12: this changes
-                // what the words SAY, not how they are drawn, so it applies to every style on
-                // every version. Sits next to them because a user looking for "something about
-                // lyrics" looks in one place.
-                val romanizationLabels =
-                    listOf(
-                        RomanizationLanguage.JAPANESE to stringResource(Res.string.romanization_japanese),
-                        RomanizationLanguage.KOREAN to stringResource(Res.string.romanization_korean),
-                        RomanizationLanguage.CHINESE to stringResource(Res.string.romanization_chinese),
-                        RomanizationLanguage.HINDI to stringResource(Res.string.romanization_hindi),
-                        RomanizationLanguage.PUNJABI to stringResource(Res.string.romanization_punjabi),
-                        RomanizationLanguage.RUSSIAN to stringResource(Res.string.romanization_russian),
-                        RomanizationLanguage.UKRAINIAN to stringResource(Res.string.romanization_ukrainian),
-                        RomanizationLanguage.SERBIAN to stringResource(Res.string.romanization_serbian),
-                        RomanizationLanguage.BULGARIAN to stringResource(Res.string.romanization_bulgarian),
-                        RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
-                        RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
-                        RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
-                    )
-                val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
-                SettingItem(
-                    title = stringResource(Res.string.lyrics_romanization),
-                    // Two different jobs for one line. Off, the row has to explain what the
-                    // feature IS — nobody guesses "romanization" from the title alone. On, the only
-                    // question worth answering at a glance is which of the twelve are picked, and
-                    // the explanation has served its purpose.
-                    subtitle =
-                        if (romanizationSelected.isEmpty()) {
-                            stringResource(Res.string.lyrics_romanization_description)
-                        } else {
-                            val selectedNames =
-                                romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
-                            // Japanese is the one language with a dictionary pack to fetch; while
-                            // that is in flight — or has failed — the row says so, instead of
-                            // listing Japanese as if it were already live.
-                            when {
-                                RomanizationLanguage.JAPANESE !in romanizationSelected -> selectedNames
-                                japaneseDictionaryState == RomanizationDictionaryState.DOWNLOADING ->
-                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_downloading)}"
-                                japaneseDictionaryState == RomanizationDictionaryState.FAILED ->
-                                    "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_failed)}"
-                                else -> selectedNames
-                            }
-                        },
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.lyrics_romanization) },
-                                // NO `message` here, deliberately. The dialog picks its body with
-                                // an if/else-if chain that tests `message` FIRST, and that branch
-                                // renders only the text and an optional textField — a multipleSelect
-                                // passed alongside it is never reached, so the dialog came up with
-                                // the description and no languages at all.
-                                multipleSelect =
-                                    SettingAlertState.SelectData(
-                                        listSelect =
-                                            romanizationLabels.map { (language, label) ->
-                                                (language in romanizationSelected) to label
-                                            },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.save) } to { state ->
-                                        val chosen = state.multipleSelect?.getListSelected().orEmpty()
-                                        val languages =
-                                            romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet()
-                                        sharedViewModel.setRomanizationLanguages(languages)
-                                        // Japanese needs its dictionary pack on disk. A no-op when
-                                        // it is already there (or bundled, as on Desktop) — and the
-                                        // retry after a FAILED attempt is simply confirming again.
-                                        if (RomanizationLanguage.JAPANESE in languages) {
-                                            viewModel.downloadJapaneseDictionaryIfNeeded()
-                                        }
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
+                    // The Apple Music treatments ARE the blur — the frosted page behind the player, and
+                    // the depth of field on the lyrics — and Modifier.blur is a documented no-op below
+                    // Android 12, so on an older device they render as a flat, wrong-looking version of
+                    // themselves. The requirement is spelled out on the option itself rather than left
+                    // for the user to discover after switching.
+                    val requiresAndroid12 = " (" + stringResource(Res.string.requires_android_12) + ")"
+                    val nowPlayingStyleLabels =
+                        listOf(
+                            DataStoreManager.NOW_PLAYING_STYLE_SPOTIFY to stringResource(Res.string.now_playing_style_spotify),
+                            DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
+                            DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
+                                stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
                         )
-                    },
-                )
-                val colorSourceLabels =
-                    buildList {
-                        add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
-                        if (isWallpaperDynamicColorSupported()) {
-                            add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
-                        }
-                        add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
-                    }
-                SettingItem(
-                    title = stringResource(Res.string.theme_color),
-                    subtitle = colorSourceLabels.firstOrNull { it.first == themeColorSource }?.second ?: "",
-                    onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.theme_color) },
-                                selectOne =
-                                    SettingAlertState.SelectData(
-                                        listSelect = colorSourceLabels.map { (it.first == themeColorSource) to it.second },
-                                    ),
-                                confirm =
-                                    runBlocking { getString(Res.string.change) } to { state ->
-                                        val selected = state.selectOne?.getSelected()
-                                        colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
-                                            sharedViewModel.setThemeColorSource(it)
-                                            if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
-                                                showColorPickerDialog = true
+                    SettingItem(
+                        title = stringResource(Res.string.now_playing_style),
+                        subtitle = nowPlayingStyleLabels.firstOrNull { it.first == nowPlayingStyle }?.second ?: "",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.now_playing_style) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect = nowPlayingStyleLabels.map { (it.first == nowPlayingStyle) to it.second },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            val selected = state.selectOne?.getSelected()
+                                            nowPlayingStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                sharedViewModel.setNowPlayingStyle(it)
                                             }
-                                        }
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                    // Hidden outright below Android 12 rather than offered with one option: the Apple
+                    // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
+                    // the choice would be between Classic and a broken-looking Classic.
+                    if (isLyricsBlurSupported()) {
+                        val lyricsStyleLabels =
+                            listOf(
+                                DataStoreManager.LYRICS_STYLE_CLASSIC to stringResource(Res.string.lyrics_style_classic),
+                                DataStoreManager.LYRICS_STYLE_APPLE_MUSIC to
+                                    stringResource(Res.string.lyrics_style_apple_music) + requiresAndroid12,
+                            )
+                        SettingItem(
+                            title = stringResource(Res.string.lyrics_style),
+                            subtitle = lyricsStyleLabels.firstOrNull { it.first == lyricsStyle }?.second ?: "",
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = runBlocking { getString(Res.string.lyrics_style) },
+                                        selectOne =
+                                            SettingAlertState.SelectData(
+                                                listSelect = lyricsStyleLabels.map { (it.first == lyricsStyle) to it.second },
+                                            ),
+                                        confirm =
+                                            runBlocking { getString(Res.string.change) } to { state ->
+                                                val selected = state.selectOne?.getSelected()
+                                                lyricsStyleLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                    sharedViewModel.setLyricsStyle(it)
+                                                }
+                                            },
+                                        dismiss = runBlocking { getString(Res.string.cancel) },
+                                    ),
+                                )
+                            },
                         )
-                    },
-                )
-                if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                    }
+
+                    // Independent of BOTH style settings, and not gated on Android 12: this changes
+                    // what the words SAY, not how they are drawn, so it applies to every style on
+                    // every version. Sits next to them because a user looking for "something about
+                    // lyrics" looks in one place.
+                    val romanizationLabels =
+                        listOf(
+                            RomanizationLanguage.JAPANESE to stringResource(Res.string.romanization_japanese),
+                            RomanizationLanguage.KOREAN to stringResource(Res.string.romanization_korean),
+                            RomanizationLanguage.CHINESE to stringResource(Res.string.romanization_chinese),
+                            RomanizationLanguage.HINDI to stringResource(Res.string.romanization_hindi),
+                            RomanizationLanguage.PUNJABI to stringResource(Res.string.romanization_punjabi),
+                            RomanizationLanguage.RUSSIAN to stringResource(Res.string.romanization_russian),
+                            RomanizationLanguage.UKRAINIAN to stringResource(Res.string.romanization_ukrainian),
+                            RomanizationLanguage.SERBIAN to stringResource(Res.string.romanization_serbian),
+                            RomanizationLanguage.BULGARIAN to stringResource(Res.string.romanization_bulgarian),
+                            RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
+                            RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
+                            RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
+                        )
+                    val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
                     SettingItem(
-                        title = stringResource(Res.string.custom_color),
-                        subtitle = "#${customThemeColorHex.takeLast(6)}",
-                        smallSubtitle = true,
-                        onClick = { showColorPickerDialog = true },
+                        title = stringResource(Res.string.lyrics_romanization),
+                        // Two different jobs for one line. Off, the row has to explain what the
+                        // feature IS — nobody guesses "romanization" from the title alone. On, the only
+                        // question worth answering at a glance is which of the twelve are picked, and
+                        // the explanation has served its purpose.
+                        subtitle =
+                            if (romanizationSelected.isEmpty()) {
+                                stringResource(Res.string.lyrics_romanization_description)
+                            } else {
+                                val selectedNames =
+                                    romanizationLabels.filter { it.first in romanizationSelected }.joinToString(", ") { it.second }
+                                // Japanese is the one language with a dictionary pack to fetch; while
+                                // that is in flight — or has failed — the row says so, instead of
+                                // listing Japanese as if it were already live.
+                                when {
+                                    RomanizationLanguage.JAPANESE !in romanizationSelected -> selectedNames
+                                    japaneseDictionaryState == RomanizationDictionaryState.DOWNLOADING ->
+                                        "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_downloading)}"
+                                    japaneseDictionaryState == RomanizationDictionaryState.FAILED ->
+                                        "$selectedNames — ${stringResource(Res.string.romanization_japanese_dict_failed)}"
+                                    else -> selectedNames
+                                }
+                            },
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.lyrics_romanization) },
+                                    // NO `message` here, deliberately. The dialog picks its body with
+                                    // an if/else-if chain that tests `message` FIRST, and that branch
+                                    // renders only the text and an optional textField — a multipleSelect
+                                    // passed alongside it is never reached, so the dialog came up with
+                                    // the description and no languages at all.
+                                    multipleSelect =
+                                        SettingAlertState.SelectData(
+                                            listSelect =
+                                                romanizationLabels.map { (language, label) ->
+                                                    (language in romanizationSelected) to label
+                                                },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.save) } to { state ->
+                                            val chosen = state.multipleSelect?.getListSelected().orEmpty()
+                                            val languages =
+                                                romanizationLabels.filter { it.second in chosen }.map { it.first }.toSet()
+                                            sharedViewModel.setRomanizationLanguages(languages)
+                                            // Japanese needs its dictionary pack on disk. A no-op when
+                                            // it is already there (or bundled, as on Desktop) — and the
+                                            // retry after a FAILED attempt is simply confirming again.
+                                            if (RomanizationLanguage.JAPANESE in languages) {
+                                                viewModel.downloadJapaneseDictionaryIfNeeded()
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
                     )
-                }
-                if (getPlatform() == Platform.Android) {
+                    val colorSourceLabels =
+                        buildList {
+                            add(DataStoreManager.THEME_COLOR_DEFAULT to stringResource(Res.string.theme_color_default))
+                            if (isWallpaperDynamicColorSupported()) {
+                                add(DataStoreManager.THEME_COLOR_WALLPAPER to stringResource(Res.string.theme_color_wallpaper))
+                            }
+                            add(DataStoreManager.THEME_COLOR_CUSTOM to stringResource(Res.string.theme_color_custom))
+                        }
                     SettingItem(
-                        title = stringResource(Res.string.enable_liquid_glass_effect),
-                        subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
-                        smallSubtitle = true,
-                        switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
-                        isEnable = getPlatform() == Platform.Android,
+                        title = stringResource(Res.string.theme_color),
+                        subtitle = colorSourceLabels.firstOrNull { it.first == themeColorSource }?.second ?: "",
+                        onClick = {
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.theme_color) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect = colorSourceLabels.map { (it.first == themeColorSource) to it.second },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            val selected = state.selectOne?.getSelected()
+                                            colorSourceLabels.firstOrNull { it.second == selected }?.first?.let {
+                                                sharedViewModel.setThemeColorSource(it)
+                                                if (it == DataStoreManager.THEME_COLOR_CUSTOM) {
+                                                    showColorPickerDialog = true
+                                                }
+                                            }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
                     )
+                    if (themeColorSource == DataStoreManager.THEME_COLOR_CUSTOM) {
+                        SettingItem(
+                            title = stringResource(Res.string.custom_color),
+                            subtitle = "#${customThemeColorHex.takeLast(6)}",
+                            smallSubtitle = true,
+                            onClick = { showColorPickerDialog = true },
+                        )
+                    }
+                    if (getPlatform() == Platform.Android) {
+                        SettingItem(
+                            title = stringResource(Res.string.enable_liquid_glass_effect),
+                            subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
+                            smallSubtitle = true,
+                            switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
+                            isEnable = getPlatform() == Platform.Android,
+                        )
+                    }
                 }
             }
         }
         item(key = "content") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.content),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.content)) {
                 SettingItem(
                     title = stringResource(Res.string.youtube_account),
                     subtitle = stringResource(Res.string.manage_your_youtube_accounts),
@@ -1184,180 +1201,172 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.proxy_description),
                     switch = (usingProxy to { viewModel.setUsingProxy(it) }),
                 )
-            }
-        }
-        item(key = "proxy") {
-            Crossfade(usingProxy) { it ->
-                if (it) {
-                    Column {
-                        SettingItem(
-                            title = stringResource(Res.string.proxy_type),
-                            subtitle =
-                                when (proxyType) {
-                                    DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(Res.string.http)
-                                    DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(Res.string.socks)
+                Crossfade(usingProxy) { it ->
+                    if (it) {
+                        Column {
+                            SettingItem(
+                                title = stringResource(Res.string.proxy_type),
+                                subtitle =
+                                    when (proxyType) {
+                                        DataStoreManager.ProxyType.PROXY_TYPE_HTTP -> stringResource(Res.string.http)
+                                        DataStoreManager.ProxyType.PROXY_TYPE_SOCKS -> stringResource(Res.string.socks)
+                                    },
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.proxy_type) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect =
+                                                        listOf(
+                                                            (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_HTTP) to
+                                                                runBlocking {
+                                                                    getString(
+                                                                        Res.string.http,
+                                                                    )
+                                                                },
+                                                            (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
+                                                                runBlocking { getString(Res.string.socks) },
+                                                        ),
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setProxy(
+                                                        if (state.selectOne?.getSelected() == runBlocking { getString(Res.string.socks) }) {
+                                                            DataStoreManager.ProxyType.PROXY_TYPE_SOCKS
+                                                        } else {
+                                                            DataStoreManager.ProxyType.PROXY_TYPE_HTTP
+                                                        },
+                                                        proxyHost,
+                                                        proxyPort,
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
                                 },
-                            onClick = {
-                                viewModel.setAlertData(
-                                    SettingAlertState(
-                                        title = runBlocking { getString(Res.string.proxy_type) },
-                                        selectOne =
-                                            SettingAlertState.SelectData(
-                                                listSelect =
-                                                    listOf(
-                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_HTTP) to
-                                                            runBlocking {
-                                                                getString(
-                                                                    Res.string.http,
-                                                                )
-                                                            },
-                                                        (proxyType == DataStoreManager.ProxyType.PROXY_TYPE_SOCKS) to
-                                                            runBlocking { getString(Res.string.socks) },
-                                                    ),
-                                            ),
-                                        confirm =
-                                            runBlocking { getString(Res.string.change) } to { state ->
-                                                viewModel.setProxy(
-                                                    if (state.selectOne?.getSelected() == runBlocking { getString(Res.string.socks) }) {
-                                                        DataStoreManager.ProxyType.PROXY_TYPE_SOCKS
-                                                    } else {
-                                                        DataStoreManager.ProxyType.PROXY_TYPE_HTTP
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.proxy_host),
+                                subtitle = proxyHost,
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.proxy_host) },
+                                            message = runBlocking { getString(Res.string.proxy_host_message) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.proxy_host) },
+                                                    value = proxyHost,
+                                                    verifyCodeBlock = {
+                                                        isValidProxyHost(it) to runBlocking { getString(Res.string.invalid_host) }
                                                     },
-                                                    proxyHost,
-                                                    proxyPort,
-                                                )
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            },
-                        )
-                        SettingItem(
-                            title = stringResource(Res.string.proxy_host),
-                            subtitle = proxyHost,
-                            onClick = {
-                                viewModel.setAlertData(
-                                    SettingAlertState(
-                                        title = runBlocking { getString(Res.string.proxy_host) },
-                                        message = runBlocking { getString(Res.string.proxy_host_message) },
-                                        textField =
-                                            SettingAlertState.TextFieldData(
-                                                label = runBlocking { getString(Res.string.proxy_host) },
-                                                value = proxyHost,
-                                                verifyCodeBlock = {
-                                                    isValidProxyHost(it) to runBlocking { getString(Res.string.invalid_host) }
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setProxy(
+                                                        proxyType,
+                                                        state.textField?.value ?: "",
+                                                        proxyPort,
+                                                    )
                                                 },
-                                            ),
-                                        confirm =
-                                            runBlocking { getString(Res.string.change) } to { state ->
-                                                viewModel.setProxy(
-                                                    proxyType,
-                                                    state.textField?.value ?: "",
-                                                    proxyPort,
-                                                )
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            },
-                        )
-                        SettingItem(
-                            title = stringResource(Res.string.proxy_port),
-                            subtitle = proxyPort.toString(),
-                            onClick = {
-                                viewModel.setAlertData(
-                                    SettingAlertState(
-                                        title = runBlocking { getString(Res.string.proxy_port) },
-                                        message = runBlocking { getString(Res.string.proxy_port_message) },
-                                        textField =
-                                            SettingAlertState.TextFieldData(
-                                                label = runBlocking { getString(Res.string.proxy_port) },
-                                                value = proxyPort.toString(),
-                                                verifyCodeBlock = {
-                                                    (it.toIntOrNull() != null) to runBlocking { getString(Res.string.invalid_port) }
-                                                },
-                                            ),
-                                        confirm =
-                                            runBlocking { getString(Res.string.change) } to { state ->
-                                                viewModel.setProxy(
-                                                    proxyType,
-                                                    proxyHost,
-                                                    state.textField?.value?.toIntOrNull() ?: 0,
-                                                )
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            },
-                        )
-                        SettingItem(
-                            title = stringResource(Res.string.proxy_username),
-                            subtitle = proxyUsername,
-                            onClick = {
-                                viewModel.setAlertData(
-                                    SettingAlertState(
-                                        title = runBlocking { getString(Res.string.proxy_username) },
-                                        message = runBlocking { getString(Res.string.proxy_username_message) },
-                                        textField =
-                                            SettingAlertState.TextFieldData(
-                                                label = runBlocking { getString(Res.string.proxy_username) },
-                                                value = proxyUsername,
-                                            ),
-                                        confirm =
-                                            runBlocking { getString(Res.string.change) } to { state ->
-                                                viewModel.setProxyCredentials(
-                                                    state.textField?.value ?: "",
-                                                    proxyPassword,
-                                                )
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            },
-                        )
-                        SettingItem(
-                            title = stringResource(Res.string.proxy_password),
-                            subtitle =
-                                if (proxyPassword.isEmpty()) {
-                                    ""
-                                } else {
-                                    "\u2022".repeat(proxyPassword.length)
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
                                 },
-                            onClick = {
-                                viewModel.setAlertData(
-                                    SettingAlertState(
-                                        title = runBlocking { getString(Res.string.proxy_password) },
-                                        message = runBlocking { getString(Res.string.proxy_password_message) },
-                                        textField =
-                                            SettingAlertState.TextFieldData(
-                                                label = runBlocking { getString(Res.string.proxy_password) },
-                                                value = proxyPassword,
-                                            ),
-                                        confirm =
-                                            runBlocking { getString(Res.string.change) } to { state ->
-                                                viewModel.setProxyCredentials(
-                                                    proxyUsername,
-                                                    state.textField?.value ?: "",
-                                                )
-                                            },
-                                        dismiss = runBlocking { getString(Res.string.cancel) },
-                                    ),
-                                )
-                            },
-                        )
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.proxy_port),
+                                subtitle = proxyPort.toString(),
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.proxy_port) },
+                                            message = runBlocking { getString(Res.string.proxy_port_message) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.proxy_port) },
+                                                    value = proxyPort.toString(),
+                                                    verifyCodeBlock = {
+                                                        (it.toIntOrNull() != null) to runBlocking { getString(Res.string.invalid_port) }
+                                                    },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setProxy(
+                                                        proxyType,
+                                                        proxyHost,
+                                                        state.textField?.value?.toIntOrNull() ?: 0,
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.proxy_username),
+                                subtitle = proxyUsername,
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.proxy_username) },
+                                            message = runBlocking { getString(Res.string.proxy_username_message) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.proxy_username) },
+                                                    value = proxyUsername,
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setProxyCredentials(
+                                                        state.textField?.value ?: "",
+                                                        proxyPassword,
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                            SettingItem(
+                                title = stringResource(Res.string.proxy_password),
+                                subtitle =
+                                    if (proxyPassword.isEmpty()) {
+                                        ""
+                                    } else {
+                                        "\u2022".repeat(proxyPassword.length)
+                                    },
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.proxy_password) },
+                                            message = runBlocking { getString(Res.string.proxy_password_message) },
+                                            textField =
+                                                SettingAlertState.TextFieldData(
+                                                    label = runBlocking { getString(Res.string.proxy_password) },
+                                                    value = proxyPassword,
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    viewModel.setProxyCredentials(
+                                                        proxyUsername,
+                                                        state.textField?.value ?: "",
+                                                    )
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }
         }
         if (getPlatform() == Platform.Android) {
             item(key = "audio") {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.audio),
-                        style = typo().labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
+                SettingGroup(title = stringResource(Res.string.audio)) {
                     SettingItem(
                         title = stringResource(Res.string.normalize_volume),
                         subtitle = stringResource(Res.string.balance_media_loudness),
@@ -1417,13 +1426,7 @@ fun SettingScreen(
             }
         }
         item(key = "playback") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.playback),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.playback)) {
                 // Under Playback rather than Audio because that whole group sits inside an
                 // Android-only branch — "Open system equalizer" is an Android feature — and this
                 // one is on both platforms: mpv's `af` chain on Desktop, an AudioProcessor in the
@@ -1481,11 +1484,7 @@ fun SettingScreen(
                         switch = (killServiceOnExit to { viewModel.setKillServiceOnExit(it) }),
                     )
                 }
-            }
-        }
-        // Crossfade Settings (all platforms)
-        item(key = "crossfade_settings") {
-            Column {
+                // Crossfade (all platforms)
                 SettingItem(
                     title = stringResource(Res.string.crossfade),
                     subtitle =
@@ -1596,13 +1595,7 @@ fun SettingScreen(
         // rows it leaves behind exist on Desktop just the same. The switch that produces the history
         // and the button that erases it belong together.
         item(key = "listening_history") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.listening_history),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.listening_history)) {
                 SettingItem(
                     title = stringResource(Res.string.local_tracking_title),
                     subtitle = stringResource(Res.string.local_tracking_description),
@@ -1628,13 +1621,7 @@ fun SettingScreen(
             }
         }
         item(key = "lyrics") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.lyrics),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.lyrics)) {
                 SettingItem(
                     title = stringResource(Res.string.main_lyrics_provider),
                     subtitle =
@@ -1834,13 +1821,7 @@ fun SettingScreen(
             }
         }
         item(key = "AI") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.ai),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.ai)) {
                 SettingItem(
                     title = stringResource(Res.string.ai_provider),
                     subtitle =
@@ -2010,13 +1991,7 @@ fun SettingScreen(
             }
         }
         item(key = "spotify") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.spotify),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.spotify)) {
                 SettingItem(
                     // The title follows the state: a row that still reads "Log in" while logged in
                     // gives no clue that tapping it signs you out.
@@ -2065,13 +2040,7 @@ fun SettingScreen(
             }
         }
         item(key = "discord") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.discord_integration),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.discord_integration)) {
                 SettingItem(
                     title =
                         if (discordLoggedIn) {
@@ -2107,13 +2076,7 @@ fun SettingScreen(
         // build whose local.properties has no key.
         if (viewModel.lastfmAvailable) {
             item(key = "lastfm") {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.lastfm_integration),
-                        style = typo().labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
+                SettingGroup(title = stringResource(Res.string.lastfm_integration)) {
                     SettingItem(
                         title =
                             if (lastfmLoggedIn) {
@@ -2147,13 +2110,29 @@ fun SettingScreen(
             }
         }
         item(key = "sponsor_block") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.sponsorBlock),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(
+                title = stringResource(Res.string.sponsorBlock),
+                // The project's note sits under the card, where a grouped list keeps its explanations.
+                footer = {
+                    val beforeUrl = stringResource(Res.string.sponsor_block_intro).substringBefore("https://sponsor.ajay.app/")
+                    val afterUrl = stringResource(Res.string.sponsor_block_intro).substringAfter("https://sponsor.ajay.app/")
+                    Text(
+                        buildAnnotatedString {
+                            append(beforeUrl)
+                            withLink(
+                                LinkAnnotation.Url(
+                                    "https://sponsor.ajay.app/",
+                                    TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                                ),
+                            ) {
+                                append("https://sponsor.ajay.app/")
+                            }
+                            append(afterUrl)
+                        },
+                        style = typo().bodySmall,
+                    )
+                },
+            ) {
                 SettingItem(
                     title = stringResource(Res.string.enable_sponsor_block),
                     subtitle = stringResource(Res.string.skip_sponsor_part_of_video),
@@ -2203,35 +2182,11 @@ fun SettingScreen(
                     },
                     isEnable = enableSponsorBlock,
                 )
-                val beforeUrl = stringResource(Res.string.sponsor_block_intro).substringBefore("https://sponsor.ajay.app/")
-                val afterUrl = stringResource(Res.string.sponsor_block_intro).substringAfter("https://sponsor.ajay.app/")
-                Text(
-                    buildAnnotatedString {
-                        append(beforeUrl)
-                        withLink(
-                            LinkAnnotation.Url(
-                                "https://sponsor.ajay.app/",
-                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-                            ),
-                        ) {
-                            append("https://sponsor.ajay.app/")
-                        }
-                        append(afterUrl)
-                    },
-                    style = typo().bodySmall,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                )
             }
         }
         if (getPlatform() == Platform.Android) {
             item(key = "storage") {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.storage),
-                        style = typo().labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
+                SettingGroup(title = stringResource(Res.string.storage)) {
                     SettingItem(
                         title = stringResource(Res.string.player_cache),
                         subtitle = "${playerCache.bytesToMB()} MB",
@@ -2327,7 +2282,7 @@ fun SettingScreen(
                     )
                     Box(
                         Modifier.padding(
-                            horizontal = 24.dp,
+                            horizontal = 16.dp,
                             vertical = 16.dp,
                         ),
                     ) {
@@ -2429,7 +2384,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2444,7 +2399,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2459,7 +2414,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2474,7 +2429,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2489,7 +2444,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2504,7 +2459,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2519,7 +2474,7 @@ fun SettingScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     ) {
                         Box(
                             Modifier
@@ -2532,17 +2487,33 @@ fun SettingScreen(
                         Spacer(Modifier.width(8.dp))
                         Text(text = stringResource(Res.string.free_space), style = typo().bodySmall)
                     }
+                    Spacer(Modifier.height(12.dp))
                 }
             }
         }
         item(key = "backup") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.backup),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(
+                title = stringResource(Res.string.backup),
+                footer = {
+                    val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
+                    val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
+                    Text(
+                        buildAnnotatedString {
+                            append(beforeUrl)
+                            withLink(
+                                LinkAnnotation.Url(
+                                    "https://www.simpmusic.org/tools",
+                                    TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                                ),
+                            ) {
+                                append("https://www.simpmusic.org/tools")
+                            }
+                            append(afterUrl)
+                        },
+                        style = typo().bodySmall,
+                    )
+                },
+            ) {
                 SettingItem(
                     title = stringResource(Res.string.backup_downloaded),
                     subtitle = stringResource(Res.string.backup_downloaded_description),
@@ -2682,34 +2653,10 @@ fun SettingScreen(
                         }
                     },
                 )
-                val beforeUrl = stringResource(Res.string.import_data_intro).substringBefore("https://www.simpmusic.org/tools")
-                val afterUrl = stringResource(Res.string.import_data_intro).substringAfter("https://www.simpmusic.org/tools")
-                Text(
-                    buildAnnotatedString {
-                        append(beforeUrl)
-                        withLink(
-                            LinkAnnotation.Url(
-                                "https://www.simpmusic.org/tools",
-                                TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-                            ),
-                        ) {
-                            append("https://www.simpmusic.org/tools")
-                        }
-                        append(afterUrl)
-                    },
-                    style = typo().bodySmall,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                )
             }
         }
         item(key = "about_us") {
-            Column {
-                Text(
-                    text = stringResource(Res.string.about_us),
-                    style = typo().labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
+            SettingGroup(title = stringResource(Res.string.about_us)) {
                 SettingItem(
                     title = stringResource(Res.string.version),
                     subtitle = stringResource(Res.string.version_format, VersionManager.getVersionName()),
@@ -3384,59 +3331,64 @@ fun SettingScreen(
         }
     }
 
-    // Transparent while the list sits at the top — an always-on frost dimmed the glow behind the
-    // bar into a black band, which is exactly where the glow carries its colour. Same crossfade
-    // Home, Search and Mix run on their bars.
+    // The pinned copy of the toolbar, frosted: the frost waits for the Devices group to go under it,
+    // because an always-on frost dimmed the glow behind the bar into a black band, which is exactly
+    // where the glow carries its colour.
     // Captured outside the haze scope — HazeEffectScope is not composable (same move as
     // AlbumScreen's mutedPaletteBg capture).
     val settingBarTint = MaterialTheme.colorScheme.background
-    AnimatedContent(
-        targetState = isAtTop,
-        transitionSpec = {
-            fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
-        },
-    ) { atTop ->
-        TopAppBar(
-            title = {
-                Text(
-                    text =
-                        stringResource(
-                            Res.string.settings,
-                        ),
-                    style = typo().titleMedium,
-                )
-            },
-            navigationIcon = {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    RippleIconButton(
-                        SimpIcons.ArrowBackIosNew,
-                        Modifier
-                            .size(32.dp),
-                        true,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    ) {
-                        navController.navigateUp()
-                    }
-                }
-            },
-            modifier =
-                Modifier
-                    .then(
-                        if (atTop) {
-                            Modifier
-                        } else {
-                            // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in
-                            // tint stacked on this page's dark ground read as a solid lid. 0.3 keeps
-                            // the blur doing the work and the tint only settling legibility.
-                            Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(settingBarTint, 0.3f))
-                        },
-                    ),
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
+    AnimatedVisibility(
+        visible = showPinnedBar,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically(),
+    ) {
+        SettingTopBar(
+            onBack = { navController.navigateUp() },
+            // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in tint stacked
+            // on this page's dark ground read as a solid lid. 0.3 keeps the blur doing the work and
+            // the tint only settling legibility.
+            modifier = Modifier.hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(settingBarTint, 0.3f)),
         )
     }
+}
+
+/**
+ * The page's toolbar. Drawn twice, the way Playlist and Artist draw theirs: once inside the list,
+ * where it scrolls away with the content, and once pinned above it.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingTopBar(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(Res.string.settings),
+                style = typo().titleMedium,
+            )
+        },
+        navigationIcon = {
+            Box(Modifier.padding(horizontal = 5.dp)) {
+                RippleIconButton(
+                    SimpIcons.ArrowBackIosNew,
+                    Modifier.size(32.dp),
+                    true,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    onBack()
+                }
+            }
+        },
+        windowInsets = windowInsets,
+        modifier = modifier,
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
+    )
 }
 
 /**
