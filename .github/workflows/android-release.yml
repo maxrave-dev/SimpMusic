@@ -75,6 +75,66 @@ jobs:
           name: app-full-release
           path: androidApp/build/outputs/apk/release/*.apk
 
+  # SimpMusic for vivo: androidApp under a package vivo's Origin Island follows (vivoAndroidApp),
+  # Full build, arm64-v8a only, signed with the same key so the official-build check accepts it.
+  build-vivo-release:
+    name: Build vivo release version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "microsoft"
+          cache: 'gradle'
+
+      - name: Update Sentry Secrets
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          echo 'SENTRY_DSN=${{ secrets.SENTRY_DSN }}' > ./local.properties
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> ./local.properties
+
+      - name: Update Last.fm secrets
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
+          echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
+
+      - name: Update environment variables
+        env:
+          BASE_64_SIGNING_KEY: ${{ secrets.BASE_64_SIGNING_KEY }}
+        run:
+          echo $BASE_64_SIGNING_KEY | base64 -d > simpmusic.jks
+
+      - name: Update build product flavor
+        run: |
+          echo "" >> ./gradle.properties
+          echo "isFullBuild=true" >> ./gradle.properties
+
+      - name: Build vivo release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./build_and_sign_apk.sh --release --full --vivo
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-vivo-release
+          path: vivoAndroidApp/build/outputs/apk/release/*.apk
+
   build-foss-release:
     name: Build foss release version
     runs-on: ubuntu-latest

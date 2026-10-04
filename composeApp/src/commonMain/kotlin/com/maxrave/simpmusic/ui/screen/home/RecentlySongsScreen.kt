@@ -35,6 +35,7 @@ import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.ArtistFullWidthItems
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -56,7 +57,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
-import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.map
@@ -234,7 +234,7 @@ fun RecentlySongsScreen(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .hazeBlur(HazeInput.Sources(hazeState), HazeMaterials.ultraThin().then { blurEnabled(true) }),
+                    .hazeBlur(HazeInput.Sources(hazeState), ultraThinBarStyle()),
             title = {
                 Text(
                     text = stringResource(Res.string.recently_added),

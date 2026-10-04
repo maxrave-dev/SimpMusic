@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -65,6 +66,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.LocalAppColors
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -531,8 +533,13 @@ fun Palette?.toImmersiveBackground(): Color {
 
 /**
  * The frosted top bar of the immersive screens: their own page colour behind a 24dp blur, washed
- * with that colour again at [tintAlpha]. Blur is forced on, so Android 8–11 takes haze's
- * RenderScript path instead of a flat scrim.
+ * with that colour again at [tintAlpha]. Where haze does not blur (Android 11 and below), the bar is
+ * that colour, opaque.
+ *
+ * Blur is left at haze's default (Android 12+ and Desktop) on purpose. Forcing it on sends older
+ * Android through haze's RenderScript blur, which crashes natively (SIGSEGV in
+ * `GrallocConsumer::lockNextBuffer`) while one blurred screen replaces another, Library into the
+ * four tiles screen above all. A native crash leaves haze no chance to fall back.
  *
  * A plain function, not remembered: `HazeBlurStyle { }` records its writes into a list and compares
  * by them, so an unchanged tint recomposes into an equal Style and leaves the node alone.
@@ -542,11 +549,18 @@ fun barBlurStyle(
     tintAlpha: Float,
 ): HazeBlurStyle =
     HazeBlurStyle {
-        blurEnabled(true)
         blurRadius(24.dp)
         backgroundColor(tint)
         colorEffects(listOf(HazeColorEffect.tint(tint.copy(alpha = tintAlpha))))
+        fallbackColorEffect(HazeColorEffect.tint(tint.copy(alpha = 1f)))
     }
+
+/** [HazeMaterials.ultraThin] for the plain top bars, with the same opaque fallback as [barBlurStyle]. */
+@Composable
+fun ultraThinBarStyle(): HazeBlurStyle {
+    val surface = MaterialTheme.colorScheme.surface
+    return HazeMaterials.ultraThin(surface).then { fallbackColorEffect(HazeColorEffect.tint(surface)) }
+}
 
 /**
  * Vertical scrim from [from] to [to] that fades without showing an edge.
