@@ -111,6 +111,7 @@ import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
+import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.expect.ui.isWallpaperDynamicColorSupported
@@ -156,11 +157,6 @@ import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import com.mohamedrejeb.calf.core.ExperimentalCalfApi
-import com.mohamedrejeb.calf.io.getPath
-import com.mohamedrejeb.calf.picker.FilePickerFileType
-import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
-import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -178,6 +174,17 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.base_url
+import simpmusic.composeapp.generated.resources.configured
+import simpmusic.composeapp.generated.resources.custom_base_url
+import simpmusic.composeapp.generated.resources.custom_base_url_message
+import simpmusic.composeapp.generated.resources.custom_headers
+import simpmusic.composeapp.generated.resources.custom_headers_json
+import simpmusic.composeapp.generated.resources.custom_headers_message
+import simpmusic.composeapp.generated.resources.headers_json
+import simpmusic.composeapp.generated.resources.invalid_json_format
+import simpmusic.composeapp.generated.resources.invalid_url_format
+import simpmusic.composeapp.generated.resources.not_set
 import simpmusic.composeapp.generated.resources.about_us
 import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.ai
@@ -441,7 +448,6 @@ import java.time.format.DateTimeFormatter
     ExperimentalMaterial3Api::class,
     ExperimentalCoilApi::class,
     FormatStringsInDatetimeFormats::class,
-    ExperimentalCalfApi::class,
 )
 @Composable
 fun SettingScreen(
@@ -451,7 +457,6 @@ fun SettingScreen(
     sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val platformContext = LocalPlatformContext.current
-    val pl = com.mohamedrejeb.calf.core.LocalPlatformContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
@@ -480,30 +485,21 @@ fun SettingScreen(
         }
 
     val restoreLauncher =
-        rememberFilePickerLauncher(
-            type =
-                FilePickerFileType.All,
-            selectionMode = FilePickerSelectionMode.Single,
-        ) { file ->
-            file.firstOrNull()?.getPath(pl)?.toKmpUri()?.let {
-                viewModel.restore(it)
+        filePickerResult { uri ->
+            uri?.let {
+                viewModel.restore(it.toKmpUri())
             }
         }
 
-    // Import playlists converted on the web. Unlike restore, the file is read through Calf's
-    // KmpFile rather than a Uri, so no expect/actual is needed. The type stays All because a
+    // Import playlists converted on the web. filePickerResult offers every file type, because a
     // converted .json arrives with whatever MIME its source assigned it, and an application/json
     // filter would hide it on some hosts.
     val importViewModel: ImportViewModel = koinViewModel()
     val importState by importViewModel.importState.collectAsStateWithLifecycle()
     val importLauncher =
-        rememberFilePickerLauncher(
-            type =
-                FilePickerFileType.All,
-            selectionMode = FilePickerSelectionMode.Single,
-        ) { file ->
-            file.firstOrNull()?.let {
-                importViewModel.import(it, pl)
+        filePickerResult { uri ->
+            uri?.let {
+                importViewModel.import(it.toKmpUri())
             }
         }
 
@@ -1923,22 +1919,33 @@ fun SettingScreen(
                 )
                 // Custom OpenAI Base URL - only show when Custom OpenAI is selected
                 if (aiProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) {
+                    val defaultBaseUrl = "https://api.openai.com/v1/"
+                    val customBaseUrlTitle = stringResource(Res.string.custom_base_url)
+                    val baseUrlLabel = stringResource(Res.string.base_url)
+                    val invalidUrlFormat = stringResource(Res.string.invalid_url_format)
+                    val customBaseUrlMessage = stringResource(Res.string.custom_base_url_message, defaultBaseUrl)
+                    val customHeadersJsonTitle = stringResource(Res.string.custom_headers_json)
+                    val headersJsonLabel = stringResource(Res.string.headers_json)
+                    val invalidJsonFormat = stringResource(Res.string.invalid_json_format)
+                    // The example JSON stays out of the translated text, so no translation can break it.
+                    val customHeadersMessage =
+                        stringResource(Res.string.custom_headers_message) + "\n{\"key1\":\"value1\",\"key2\":\"value2\"}"
                     SettingItem(
-                        title = "Custom Base URL",
-                        subtitle = customOpenAIBaseUrl.ifEmpty { "https://api.openai.com/v1/" },
+                        title = customBaseUrlTitle,
+                        subtitle = customOpenAIBaseUrl.ifEmpty { defaultBaseUrl },
                         onClick = {
                             viewModel.setAlertData(
                                 SettingAlertState(
-                                    title = "Custom Base URL",
+                                    title = customBaseUrlTitle,
                                     textField =
                                         SettingAlertState.TextFieldData(
-                                            label = "Base URL",
+                                            label = baseUrlLabel,
                                             value = customOpenAIBaseUrl,
                                             verifyCodeBlock = {
-                                                (it.isEmpty() || it.startsWith("http")) to "Invalid URL format"
+                                                (it.isEmpty() || it.startsWith("http")) to invalidUrlFormat
                                             },
                                         ),
-                                    message = "Enter OpenAI-compatible API base URL (e.g., https://api.openai.com/v1/)",
+                                    message = customBaseUrlMessage,
                                     confirm =
                                         runBlocking { getString(Res.string.set) } to { state ->
                                             val baseUrl = state.textField?.value ?: ""
@@ -1951,15 +1958,15 @@ fun SettingScreen(
                         },
                     )
                     SettingItem(
-                        title = "Custom Headers",
-                        subtitle = if (customOpenAIHeaders.isNotEmpty()) "Configured" else "Not set",
+                        title = stringResource(Res.string.custom_headers),
+                        subtitle = stringResource(if (customOpenAIHeaders.isNotEmpty()) Res.string.configured else Res.string.not_set),
                         onClick = {
                             viewModel.setAlertData(
                                 SettingAlertState(
-                                    title = "Custom Headers (JSON)",
+                                    title = customHeadersJsonTitle,
                                     textField =
                                         SettingAlertState.TextFieldData(
-                                            label = "Headers JSON",
+                                            label = headersJsonLabel,
                                             value = customOpenAIHeaders,
                                             verifyCodeBlock = { input ->
                                                 if (input.isEmpty()) {
@@ -1968,14 +1975,14 @@ fun SettingScreen(
                                                     try {
                                                         // Simple validation: check if it looks like JSON
                                                         val trimmed = input.trim()
-                                                        (trimmed.startsWith("{") && trimmed.endsWith("}")) to "Invalid JSON format"
+                                                        (trimmed.startsWith("{") && trimmed.endsWith("}")) to invalidJsonFormat
                                                     } catch (e: Exception) {
-                                                        false to "Invalid JSON format"
+                                                        false to invalidJsonFormat
                                                     }
                                                 }
                                             },
                                         ),
-                                    message = "Enter custom headers in JSON format:\n{\"key1\":\"value1\",\"key2\":\"value2\"}",
+                                    message = customHeadersMessage,
                                     confirm =
                                         runBlocking { getString(Res.string.set) } to { state ->
                                             viewModel.setCustomOpenAIHeaders(state.textField?.value ?: "")

@@ -245,6 +245,7 @@ fun LastfmLoginScreen(
                         SimpIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     ) {
                         navController.navigateUp()
                     }

@@ -750,6 +750,11 @@ fun FullscreenLyricsContent(
             onDismiss = {
                 showQueueBottomSheet = false
             },
+            navController = navController,
+            onNavigateToOtherScreen = {
+                showQueueBottomSheet = false
+                onDismiss()
+            },
         )
     }
     if (showInfoBottomSheet) {

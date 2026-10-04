@@ -1003,7 +1003,8 @@ private fun AppleMusicArtworkPage(
                                 ) { onToggleVideoOverlay() },
                     ) {
                         val ratio = state.videoAspectRatio
-                        val frameHeight = minOf(maxWidth / ratio, (maxHeight - topChrome).coerceAtLeast(0.dp))
+                        val frameHeight =
+                            minOf(maxWidth / ratio, (maxHeight - topChrome - VIDEO_FRAME_BOTTOM_GAP).coerceAtLeast(0.dp))
                         val frameWidth = frameHeight * ratio
                         val frameTop = maxOf((maxHeight - frameHeight) / 2, topChrome)
                         // THE VIDEO FRAME. Everything over-video — the surface, the subtitle and
@@ -1408,6 +1409,9 @@ private val DISMISS_BUTTON_SIZE = 48.dp
 
 // Breathing room between that top chrome and a tall video frame.
 private val VIDEO_FRAME_TOP_GAP = 16.dp
+
+// The same room between a tall video frame and the title below it, which it otherwise touches.
+private val VIDEO_FRAME_BOTTOM_GAP = 16.dp
 
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.

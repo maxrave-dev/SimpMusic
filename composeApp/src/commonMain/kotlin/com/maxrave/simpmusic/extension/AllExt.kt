@@ -10,7 +10,9 @@ import com.maxrave.domain.utils.toTrack
 import kotlin.math.roundToLong
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toInstant
@@ -62,10 +64,21 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     return map
 }
 
-infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
-    val left = this subtract other
-    val right = other subtract this
-    return left union right
+/**
+ * Whether a release from an artist's discography page is worth announcing. An unseen id is not
+ * enough on its own, because YouTube re-keys old releases and pages them in and out, so only
+ * releases dated this year count — plus last year's during January, so one that came out in
+ * the last days of December is not lost.
+ */
+fun isNewRelease(
+    browseId: String,
+    year: String,
+    known: Set<String>,
+    today: LocalDate = now().date,
+): Boolean {
+    if (browseId in known) return false
+    val released = year.toIntOrNull() ?: return false
+    return released == today.year || (today.month == Month.JANUARY && released == today.year - 1)
 }
 
 @OptIn(ExperimentalTime::class)

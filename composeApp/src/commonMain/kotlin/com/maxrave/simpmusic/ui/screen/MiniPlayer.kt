@@ -101,6 +101,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.navigation.NavController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -162,6 +163,8 @@ fun MiniPlayer(
     onOpenFullscreenLyrics: () -> Unit = {},
     // ConstraintLayout keeps Gone content composed, so its visibility must gate sampling separately.
     isVisible: Boolean = true,
+    /** Lets the queue's song sheets open artist and album pages; the Desktop capsule's queue needs it. */
+    navController: NavController? = null,
 ) {
     val isLiquidGlassEnabled by sharedViewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -628,11 +631,14 @@ fun MiniPlayer(
                     }
             }
         }
-        if (showQueueBottomSheet) {
+        // Only the Desktop capsule has a queue button, and App.kt hands that capsule the nav controller.
+        if (showQueueBottomSheet && navController != null) {
             QueueBottomSheet(
                 onDismiss = {
                     showQueueBottomSheet = false
                 },
+                navController = navController,
+                onNavigateToOtherScreen = { showQueueBottomSheet = false },
             )
         }
         // Apple Music-style floating capsule: transport on the left, the track and its slim

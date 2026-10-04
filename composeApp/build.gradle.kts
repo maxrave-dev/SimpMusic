@@ -176,7 +176,6 @@ kotlin {
             implementation(libs.haze.material)
 
             api(libs.cmptoast)
-            implementation(libs.file.picker)
 
             // Liquid glass
             implementation(libs.liquid.glass)

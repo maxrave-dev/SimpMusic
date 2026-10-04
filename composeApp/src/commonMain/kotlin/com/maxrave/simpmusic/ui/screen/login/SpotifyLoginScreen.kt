@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -207,6 +208,7 @@ fun SpotifyLoginScreen(
                         SimpIcons.ArrowBackIosNew,
                         Modifier.size(32.dp),
                         true,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     ) {
                         navController.navigateUp()
                     }

@@ -1,12 +1,10 @@
 package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
+import com.eygraber.uri.Uri
 import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.repository.ImportRepository
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import com.mohamedrejeb.calf.core.PlatformContext
-import com.mohamedrejeb.calf.io.KmpFile
-import com.mohamedrejeb.calf.io.readByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +19,8 @@ import simpmusic.composeapp.generated.resources.import_invalid_file
  * Drives an import of a file produced by the SimpMusic web converter.
  *
  * The picked file is read here rather than in the repository because only the app module knows
- * what a picked file is. [KmpFile] comes from the same Calf picker the backup/restore flow uses,
- * and its `readByteArray` is already cross-platform, so no expect/actual is needed.
+ * what a picked file is: a content Uri on Android, a plain path on Desktop. [readPickedFile] opens
+ * either, the same way restoreNative opens a backup.
  */
 class ImportViewModel(
     private val importRepository: ImportRepository,
@@ -34,10 +32,7 @@ class ImportViewModel(
 
     private var importJob: Job? = null
 
-    fun import(
-        file: KmpFile,
-        context: PlatformContext,
-    ) {
+    fun import(uri: Uri) {
         importJob?.cancel()
         importJob =
             viewModelScope.launch {
@@ -45,7 +40,7 @@ class ImportViewModel(
                 val invalidFileMessage = getString(Res.string.import_invalid_file)
                 val json =
                     withContext(Dispatchers.IO) {
-                        runCatching { file.readByteArray(context).decodeToString() }
+                        runCatching { readPickedFile(uri).decodeToString() }
                     }.getOrElse { throwable ->
                         log("import: cannot read picked file - ${throwable.message}")
                         _importState.value = ImportProgress.Error(invalidFileMessage)

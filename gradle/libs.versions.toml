@@ -87,7 +87,6 @@ uri = "0.0.21"
 buildkonfig = "0.23.0"
 jna = "5.19.1"
 jnaPlatform = "5.19.1"
-calf = "0.14.0"
 material = "1.14.0"
 osdetector = "1.7.3"
 tray = "2.1.6"
@@ -229,7 +228,6 @@ androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecyc
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines-android" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf" }
 native-tray = { module = "dev.nucleusframework:composenativetray", version.ref = "tray" }
 # SingleInstanceManager moved here from the tray in 2.0; the tray only pulls it at runtime.
 nucleus-core-runtime = { module = "dev.nucleusframework:nucleus.core-runtime", version.ref = "nucleus-notification" }

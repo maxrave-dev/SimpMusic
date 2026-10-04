@@ -58,7 +58,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
-import coil3.toUri
 import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
@@ -205,7 +204,7 @@ fun App(
         val data = intent.data
         Logger.d("MainActivity", "onCreate: $data")
         if (data != null) {
-            if (data == "simpmusic://notification".toUri()) {
+            if (data.scheme == "simpmusic" && data.host == "notification") {
                 viewModel.setIntent(null)
                 navController.navigate(
                     NotificationDestination,
@@ -479,6 +478,7 @@ fun App(
                                             bottom = 4.dp,
                                         ),
                                     backdrop = backdrop,
+                                    navController = navController,
                                     onClick = {
                                         isShowNowPlaylistScreen = true
                                     },
@@ -631,6 +631,7 @@ fun App(
                                             .height(60.dp)
                                     },
                                     backdrop = backdrop,
+                                    navController = navController,
                                     onClick = {
                                         isShowNowPlaylistScreen = true
                                     },

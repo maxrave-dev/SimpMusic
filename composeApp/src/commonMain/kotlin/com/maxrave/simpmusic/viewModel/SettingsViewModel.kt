@@ -2115,6 +2115,9 @@ expect suspend fun restoreNative(
     getData: () -> Unit = {},
 )
 
+/** Reads the whole of a file the user picked: a content Uri on Android, a plain path on Desktop. */
+expect suspend fun readPickedFile(uri: Uri): ByteArray
+
 expect suspend fun backupNative(
     commonRepository: CommonRepository,
     uri: Uri,

@@ -176,4 +176,6 @@ class NowPlayingContentActions(
     val onMoveQueueItem: (from: Int, to: Int) -> Unit,
     /** Removes one queue entry. `index` is an absolute index into [NowPlayingContentState.artworkQueue]. */
     val onRemoveQueueItem: (index: Int) -> Unit,
+    /** Opens the full song sheet for one queue entry; `index` is absolute, as above. */
+    val onQueueItemMore: (index: Int, track: Track) -> Unit,
 )
