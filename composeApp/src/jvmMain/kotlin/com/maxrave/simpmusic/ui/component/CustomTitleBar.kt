@@ -78,6 +78,43 @@ fun CustomTitleBar(
         isMaximized = windowState.placement == WindowPlacement.Maximized
     }
 
+    val toggleMaximize: () -> Unit = {
+        val frame = window as? javax.swing.JFrame
+        val gc = frame?.graphicsConfiguration ?: window.graphicsConfiguration
+        val bounds = gc?.bounds ?: java.awt.Rectangle(0, 0, 1920, 1080)
+        val insets =
+            runCatching { java.awt.Toolkit.getDefaultToolkit().getScreenInsets(gc) }.getOrNull()
+                ?: java.awt.Insets(0, 0, 0, 0)
+        val maxBounds =
+            java.awt.Rectangle(
+                bounds.x + insets.left,
+                bounds.y + insets.top,
+                bounds.width - insets.left - insets.right,
+                bounds.height - insets.top - insets.bottom,
+            )
+        frame?.maximizedBounds = maxBounds
+
+        if (windowState.placement == WindowPlacement.Maximized) {
+            windowState.placement = WindowPlacement.Floating
+            val floatSize = com.maxrave.simpmusic.DesktopWindowStateStore.getFloatingSize()
+            windowState.size = floatSize
+            val floatPos = com.maxrave.simpmusic.DesktopWindowStateStore.getFloatingPosition()
+            if (floatPos.isSpecified) {
+                windowState.position = floatPos
+            } else {
+                val screenW = bounds.width - insets.left - insets.right
+                val screenH = bounds.height - insets.top - insets.bottom
+                val targetW = floatSize.width.value.toInt()
+                val targetH = floatSize.height.value.toInt()
+                val centerX = bounds.x + insets.left + (screenW - targetW).coerceAtLeast(0) / 2
+                val centerY = bounds.y + insets.top + (screenH - targetH).coerceAtLeast(0) / 2
+                windowState.position = androidx.compose.ui.window.WindowPosition(centerX.dp, centerY.dp)
+            }
+        } else {
+            windowState.placement = WindowPlacement.Maximized
+        }
+    }
+
     Box(
         modifier =
             modifier
@@ -87,12 +124,7 @@ fun CustomTitleBar(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
-                            // Double-click to maximize/restore
-                            if (windowState.placement == WindowPlacement.Maximized) {
-                                windowState.placement = WindowPlacement.Floating
-                            } else {
-                                windowState.placement = WindowPlacement.Maximized
-                            }
+                            toggleMaximize()
                         },
                     )
                 }.pointerInput(Unit) {
@@ -108,6 +140,7 @@ fun CustomTitleBar(
                             // If maximized, restore before moving
                             if (windowState.placement == WindowPlacement.Maximized) {
                                 windowState.placement = WindowPlacement.Floating
+                                windowState.size = com.maxrave.simpmusic.DesktopWindowStateStore.getFloatingSize()
                                 // Recalculate drag offset after restore
                                 dragStartX = (windowState.size.width.value / 2).toInt()
                                 dragStartY = 20
@@ -125,24 +158,23 @@ fun CustomTitleBar(
                 Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Window control buttons
+            // Title text on the left
+            Text(
+                text = title,
+                style = typo().labelSmall,
+                color = titleColor,
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Window control buttons on the RIGHT: Minimize first, Maximize/Restore in middle, Close last
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Close button
-                WindowControlButton(
-                    onClick = onCloseRequest,
-                    backgroundColor = windowCloseButton,
-                    hoverColor = windowCloseButtonHover,
-                    icon = WindowControlIcon.Close,
-                )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Minimize button
+                // Minimize button (yellow)
                 WindowControlButton(
                     onClick = {
                         windowState.isMinimized = true
@@ -154,28 +186,24 @@ fun CustomTitleBar(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Maximize/Restore button
+                // Maximize/Restore button (green in the middle)
                 WindowControlButton(
-                    onClick = {
-                        if (windowState.placement == WindowPlacement.Maximized) {
-                            windowState.placement = WindowPlacement.Floating
-                        } else {
-                            windowState.placement = WindowPlacement.Maximized
-                        }
-                    },
+                    onClick = toggleMaximize,
                     backgroundColor = windowMaximiseButton,
                     hoverColor = windowMaximiseButtonHover,
                     icon = if (isMaximized) WindowControlIcon.Restore else WindowControlIcon.Maximize,
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Close button (red)
+                WindowControlButton(
+                    onClick = onCloseRequest,
+                    backgroundColor = windowCloseButton,
+                    hoverColor = windowCloseButtonHover,
+                    icon = WindowControlIcon.Close,
+                )
             }
-            Spacer(modifier = Modifier.weight(1f))
-            // Title text (optional)
-            Text(
-                text = title,
-                style = typo().labelSmall,
-                color = titleColor,
-            )
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
