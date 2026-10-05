@@ -252,6 +252,8 @@ import simpmusic.composeapp.generated.resources.developer_blog
 import simpmusic.composeapp.generated.resources.developer_blog_tagline
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
+import simpmusic.composeapp.generated.resources.save_playback_diagnostics
+import simpmusic.composeapp.generated.resources.save_playback_diagnostics_description
 import simpmusic.composeapp.generated.resources.download_quality
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_animated_artwork
@@ -482,6 +484,18 @@ fun SettingScreen(
             uri?.let {
                 viewModel.backup(it.toKmpUri())
             }
+        }
+
+    val playbackDiagnosticsLauncher =
+        if (getPlatform() == Platform.Android && Logger.hasPlaybackDiagnostics()) {
+            fileSaverResult(
+                "SimpMusic_Playback_Diagnostics_${now().format(formatter)}.txt",
+                "text/plain",
+            ) { uri ->
+                uri?.let { viewModel.savePlaybackDiagnostics(it.toKmpUri()) }
+            }
+        } else {
+            null
         }
 
     val restoreLauncher =
@@ -2675,6 +2689,13 @@ fun SettingScreen(
                         navController.navigate(CreditDestination)
                     },
                 )
+                if (playbackDiagnosticsLauncher != null) {
+                    SettingItem(
+                        title = stringResource(Res.string.save_playback_diagnostics),
+                        subtitle = stringResource(Res.string.save_playback_diagnostics_description),
+                        onClick = { playbackDiagnosticsLauncher.launch() },
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.auto_check_for_update),
                     subtitle = stringResource(Res.string.auto_check_for_update_description),

@@ -236,3 +236,53 @@ This project is tested with BrowserStack
 *This project is a part of SimpMusic.org Open-source project by me [maxrave-dev](https://github.com/maxrave-dev)*
 
 <!-- GitAds-Verify: 9788276LHF131ESPL12SWLJ8LACOJE89 -->
+
+
+## Fixes in this personal fork
+
+This section records the user-requested changes in [`bensmithgb53/SimpMusic-Changes`](https://github.com/bensmithgb53/SimpMusic-Changes). It does not describe changes made to the upstream `maxrave-dev/SimpMusic` repository.
+
+### Repeated songs in radio and endless queues
+
+- Deduplicate radio recommendations by their stable YouTube video ID, rather than by the complete song metadata object.
+- Filter new recommendation pages against the retained radio queue history and remove duplicates within each page. A song that was skipped should not be added again while it is still represented in that retained history.
+- Apply the queue-history filtering in the Android and JVM/Desktop playback handlers.
+- This prevents repeats the app can identify from its current queue/history; it is not a permanent, all-time blacklist of every song ever skipped.
+
+### Song actions from search suggestions
+
+- Long-pressing a song in the search autocomplete dropdown opens the existing song-actions sheet, like the one available for Home songs.
+- Normal tap-to-search behavior is unchanged. The sheet provides the existing actions, such as playlist and queue actions.
+
+### Faster playback startup
+
+- When a saved YouTube stream URL is still within its expiry time, use it directly instead of making a separate HTTP `HEAD` request before playback.
+- Avoid an additional `is403Url` validation probe in the YouTube wrapper after stream formats are decoded. The existing Android extractor's random stream check remains; this change does not remove every URL-validation check.
+- If the actual media request shows that a cached URL is invalid or expired, the existing player recovery path refreshes the format and retries.
+- Run the optional Tidal BPM/key lookup used for AutoMix in the background, so that lookup does not hold up the initial playable YouTube URL.
+- No playback-time display or `NA:NA` placeholder changes are included. The work here is intended to reduce avoidable waits before audio starts; YouTube resolution and network buffering can still take time.
+
+### Shuffle playback and preloading
+
+- Shuffle creates a randomized order for the current queue, places the current song first, and displays the shuffled order in the queue. Next advances through that permutation; it does not pick a fresh random track independently on each tap.
+- Pre-caching now follows the upcoming shuffled order instead of warming the next original queue indices. It refreshes when shuffle is toggled or shuffled queue contents change, preventing a cold stream lookup on shuffle-selected tracks.
+
+### In-app playback diagnostics
+
+- Android Settings includes **Save playback diagnostics**, which exports a bounded in-memory window of playback-related app logs; it is not privileged full-device logcat.
+- URL queries, cookies/authorization headers, and common auth tokens are redacted. Track names and playback/queue identifiers may still appear, so review the exported file before sharing it.
+
+### Verification
+
+- The data and domain JVM test tasks passed, including the radio de-duplication and queue-history regression tests.
+- The Android debug APK built successfully after the shuffle-aware pre-cache changes.
+- User testing reported that the search action sheet works, shuffle now advances through the randomized queue without the earlier long wait, and startup is faster. Radio duplicate suppression appears improved, but long-run queue behavior remains worth testing.
+- Occasional `NA:NA` at automatic advance is a separate duration-reporting issue and is not changed by these playback-start fixes.
+
+### Repository note
+
+The queue and stream-resolution code lives in the `core` Git submodule. This fork points that submodule to [`bensmithgb53/core`](https://github.com/bensmithgb53/core), on the `fix/radio-endless-queue-dedup` branch. Clone with submodules enabled to get the complete source:
+
+```sh
+git clone --recurse-submodules git@github.com:bensmithgb53/SimpMusic-Changes.git
+```

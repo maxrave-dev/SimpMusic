@@ -61,6 +61,8 @@ import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.downloading_liked_songs
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.log_out_confirm_message
+import simpmusic.composeapp.generated.resources.playback_diagnostics_failed
+import simpmusic.composeapp.generated.resources.playback_diagnostics_saved
 import simpmusic.composeapp.generated.resources.restore_failed
 import simpmusic.composeapp.generated.resources.restore_in_progress
 import simpmusic.composeapp.generated.resources.romanization_japanese_dict_failed
@@ -1317,6 +1319,26 @@ class SettingsViewModel(
         }
     }
 
+    fun savePlaybackDiagnostics(uri: Uri) {
+        val snapshot = Logger.playbackDiagnosticsSnapshot()
+        viewModelScope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    savePlaybackDiagnosticsNative(uri, snapshot)
+                }
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    makeToast(getString(Res.string.playback_diagnostics_saved))
+                }
+            }.onFailure { error ->
+                Logger.e(tag, "Could not save playback diagnostics: ${error.message}", error)
+                withContext(Dispatchers.Main) {
+                    makeToast(getString(Res.string.playback_diagnostics_failed))
+                }
+            }
+        }
+    }
+
     fun restore(uri: Uri) {
         viewModelScope.launch {
             makeToast(getString(Res.string.restore_in_progress))
@@ -2123,6 +2145,8 @@ expect suspend fun backupNative(
     uri: Uri,
     backupDownloaded: Boolean,
 )
+
+expect suspend fun savePlaybackDiagnosticsNative(uri: Uri, contents: String)
 
 expect fun getPackageName(): String
 

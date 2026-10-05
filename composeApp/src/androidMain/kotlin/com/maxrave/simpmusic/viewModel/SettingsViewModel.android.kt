@@ -324,6 +324,16 @@ actual suspend fun backupNative(
     }
 }
 
+actual suspend fun savePlaybackDiagnosticsNative(uri: Uri, contents: String) {
+    val application: Context = getKoin().get()
+    val outputStream =
+        application.applicationContext.contentResolver.openOutputStream(uri.toAndroidUri())
+            ?: error("Could not open the selected file for writing")
+    outputStream.bufferedWriter(Charsets.UTF_8).use { writer ->
+        writer.write(contents)
+    }
+}
+
 actual fun getPackageName(): String {
     val application: Context = getKoin().get()
     return application.packageName

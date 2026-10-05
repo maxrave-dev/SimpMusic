@@ -126,6 +126,10 @@
     <string name="restore_your_data">Restore Your Data</string>
     <string name="restore_your_saved_data">Restore your saved data</string>
     <string name="about_us">About us</string>
+    <string name="save_playback_diagnostics">Save playback diagnostics</string>
+    <string name="save_playback_diagnostics_description">Save recent SimpMusic playback logs for troubleshooting. URL queries and auth headers are redacted; song names may be included.</string>
+    <string name="playback_diagnostics_saved">Playback diagnostics saved</string>
+    <string name="playback_diagnostics_failed">Could not save playback diagnostics</string>
     <string name="version">Version</string>
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>

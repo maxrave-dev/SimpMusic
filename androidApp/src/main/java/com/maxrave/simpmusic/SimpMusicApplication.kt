@@ -50,6 +50,12 @@ class SimpMusicApplication :
 
     override fun onCreate() {
         super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Logger.installPlaybackDiagnostics(
+                sink = PlaybackDiagnosticLog::record,
+                snapshot = PlaybackDiagnosticLog::snapshot,
+            )
+        }
         configCrashlytics(this, BuildKonfig.sentryDsn)
         configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
         startKoin {

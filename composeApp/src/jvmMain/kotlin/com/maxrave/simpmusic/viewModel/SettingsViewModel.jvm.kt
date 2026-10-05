@@ -100,6 +100,10 @@ actual suspend fun backupNative(
     }
 }
 
+actual suspend fun savePlaybackDiagnosticsNative(uri: Uri, contents: String) {
+    File(uri.toString()).writeText(contents, Charsets.UTF_8)
+}
+
 actual fun getPackageName(): String = ""
 
 actual fun getFileDir(): String = ""
