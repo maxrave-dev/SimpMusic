@@ -45,10 +45,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -116,7 +118,8 @@ internal fun AppleMusicLyricsView(
     // unchanged, the LaunchedEffect never restarts, and the controls vanish mid-gesture.
     var interactionTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(showCluster, interactionTick) {
-        if (showCluster) {
+        // A remote has nothing to tap the controls back with, so a TV never hides them.
+        if (showCluster && !isTv()) {
             delay(CLUSTER_AUTO_HIDE_MS)
             showCluster = false
         }
@@ -162,6 +165,7 @@ internal fun AppleMusicLyricsView(
                     // The lyric LINES consume their own taps to seek, so this only ever fires on
                     // the gutter and the gaps between lines — which is exactly the "tap the page,
                     // not a lyric" gesture. No ripple: this is a whole page, not a button.
+                    .skipFocusOnTv()
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },

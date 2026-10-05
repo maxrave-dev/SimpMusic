@@ -45,16 +45,25 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -69,8 +78,10 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.FullscreenExit
@@ -134,6 +145,8 @@ fun FullscreenPlayer(
     var showHideFullscreenOverlay by rememberSaveable {
         mutableStateOf(false)
     }
+    // TV only: bumped by every key press while the overlay is up, so it stays up while in use.
+    var overlayKeyTick by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(key1 = timelineState, key2 = isSliding) {
         if (!isSliding) {
@@ -146,7 +159,7 @@ fun FullscreenPlayer(
         }
     }
 
-    LaunchedEffect(key1 = showHideFullscreenOverlay, key2 = isSliding) {
+    LaunchedEffect(key1 = showHideFullscreenOverlay, key2 = isSliding, key3 = overlayKeyTick) {
         if (showHideFullscreenOverlay && !isSliding) {
             delay(3000)
             showHideFullscreenOverlay = false
@@ -182,7 +195,49 @@ fun FullscreenPlayer(
         mutableStateOf(true)
     }
 
-    Box {
+    // TV: the remote is the only input. While the overlay is hidden the player itself holds focus:
+    // left/right seek like the double-taps do and any other key raises the overlay. Its buttons
+    // only exist while it is up, so focus is handed to them and back again.
+    val playerFocus = remember { FocusRequester() }
+    val overlayFocus = remember { FocusRequester() }
+    if (isTv()) {
+        LaunchedEffect(showHideFullscreenOverlay) {
+            withFrameNanos { }
+            if (showHideFullscreenOverlay) overlayFocus.requestFocus() else playerFocus.requestFocus()
+        }
+    }
+
+    Box(
+        if (isTv()) {
+            Modifier
+                .focusRequester(playerFocus)
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    if (showHideFullscreenOverlay) {
+                        overlayKeyTick++
+                        return@onPreviewKeyEvent false
+                    }
+                    when (event.key) {
+                        Key.DirectionLeft -> {
+                            sharedViewModel.onUIEvent(UIEvent.Backward)
+                            showBackwardText = true
+                        }
+                        Key.DirectionRight -> {
+                            sharedViewModel.onUIEvent(UIEvent.Forward)
+                            showForwardText = true
+                        }
+                        Key.DirectionUp, Key.DirectionDown, Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                            showHideFullscreenOverlay = true
+                        }
+                        // Back and the media keys keep doing what they always do.
+                        else -> return@onPreviewKeyEvent false
+                    }
+                    true
+                }.focusable()
+        } else {
+            Modifier
+        },
+    ) {
         MediaPlayerViewWithSubtitle(
             playerName = MAIN_PLAYER,
             modifier =
@@ -348,7 +403,8 @@ fun FullscreenPlayer(
                                             .basicMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
-                                            ).focusable(),
+                                            ).skipFocusOnTv()
+                                            .focusable(),
                                 )
                             },
                             navigationIcon = {
@@ -436,6 +492,7 @@ fun FullscreenPlayer(
                                     ),
                                 modifier =
                                     Modifier
+                                        .focusRequester(overlayFocus)
                                         .size(64.dp)
                                         .aspectRatio(1f)
                                         .clip(

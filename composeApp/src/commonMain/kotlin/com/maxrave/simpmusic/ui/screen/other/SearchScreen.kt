@@ -68,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -611,7 +612,8 @@ fun SearchScreen(
                                 Modifier
                                     .fillMaxHeight()
                                     .widthIn(max = 1100.dp)
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = 16.dp)
+                                    .focusRestorer(),
                             state = moodGridState,
                             contentPadding = PaddingValues(top = searchBarHeight),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -768,6 +770,7 @@ fun SearchScreen(
                                             Crossfade(targetState = currentResults.isNotEmpty()) {
                                                 if (it) {
                                                     LazyColumn(
+                                                        modifier = Modifier.focusRestorer(),
                                                         contentPadding =
                                                             PaddingValues(
                                                                 start = 4.dp,

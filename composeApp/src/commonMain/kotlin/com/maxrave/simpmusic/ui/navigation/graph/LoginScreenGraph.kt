@@ -3,7 +3,7 @@ package com.maxrave.simpmusic.ui.navigation.graph
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import com.maxrave.simpmusic.ui.component.tvComposable
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
@@ -19,7 +19,7 @@ fun NavGraphBuilder.loginScreenGraph(
     hideBottomBar: () -> Unit,
     showBottomBar: () -> Unit,
 ) {
-    composable<LoginDestination> {
+    tvComposable<LoginDestination> {
         LoginScreen(
             innerPadding = innerPadding,
             navController = navController,
@@ -28,7 +28,7 @@ fun NavGraphBuilder.loginScreenGraph(
         )
     }
 
-    composable<SpotifyLoginDestination> {
+    tvComposable<SpotifyLoginDestination> {
         SpotifyLoginScreen(
             innerPadding = innerPadding,
             navController = navController,
@@ -37,7 +37,7 @@ fun NavGraphBuilder.loginScreenGraph(
         )
     }
 
-    composable<DiscordLoginDestination> {
+    tvComposable<DiscordLoginDestination> {
         DiscordLoginScreen(
             innerPadding = innerPadding,
             navController = navController,
@@ -46,7 +46,7 @@ fun NavGraphBuilder.loginScreenGraph(
         )
     }
 
-    composable<LastfmLoginDestination> {
+    tvComposable<LastfmLoginDestination> {
         LastfmLoginScreen(
             innerPadding = innerPadding,
             navController = navController,

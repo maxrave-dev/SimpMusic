@@ -70,6 +70,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
@@ -573,6 +574,7 @@ fun HomeScreen(
                         return@Crossfade
                     }
                     LazyColumn(
+                        modifier = Modifier.focusRestorer(),
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
@@ -1051,7 +1053,7 @@ fun QuickPicks(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
-            modifier = Modifier.height(256.dp),
+            modifier = Modifier.height(256.dp).focusRestorer(),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -1125,7 +1127,7 @@ fun MoodMomentAndGenre(
             )
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(3),
-                modifier = Modifier.height(210.dp),
+                modifier = Modifier.height(210.dp).focusRestorer(),
                 state = gridState,
                 flingBehavior = flingBehavior,
             ) {
@@ -1205,7 +1207,7 @@ fun ChartData(
             )
             val lazyListState = rememberLazyListState()
             val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
-            LazyRow(flingBehavior = snapperFlingBehavior) {
+            LazyRow(modifier = Modifier.focusRestorer(), flingBehavior = snapperFlingBehavior) {
                 items(item.playlists.size, key = { index ->
                     val data = item.playlists[index]
                     data.id + data.title + index
@@ -1236,7 +1238,7 @@ fun ChartData(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(3),
-            modifier = Modifier.height(240.dp),
+            modifier = Modifier.height(240.dp).focusRestorer(),
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
@@ -1279,7 +1281,7 @@ fun ChartData(
             val podcastFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = podcastGridState))
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(3),
-                modifier = Modifier.height(240.dp),
+                modifier = Modifier.height(240.dp).focusRestorer(),
                 state = podcastGridState,
                 flingBehavior = podcastFlingBehavior,
             ) {

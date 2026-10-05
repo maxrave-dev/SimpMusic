@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -84,6 +85,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -93,6 +95,7 @@ import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Replay5
@@ -185,6 +188,7 @@ internal fun ExpressiveArtworkCardPage(
                 .clipToBounds()
                 // Tap toggles controls only when the canvas is covering this page;
                 // otherwise no-op — Classic verbatim.
+                .skipFocusOnTv()
                 .clickable(
                     enabled = pageHasCanvas,
                     onClick = {
@@ -391,7 +395,7 @@ internal fun ExpressiveArtworkCardPage(
                                         .fillMaxSize()
                                         .clickable(
                                             onClick = onToggleFullscreenOverlay,
-                                            indication = null,
+                                            indication = if (isTv()) LocalIndication.current else null,
                                             interactionSource =
                                                 remember {
                                                     MutableInteractionSource()

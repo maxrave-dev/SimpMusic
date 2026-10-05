@@ -123,6 +123,7 @@ import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -697,14 +698,16 @@ fun SettingScreen(
                     title = stringResource(Res.string.login_sync_section),
                     modifier = Modifier.onSizeChanged { devicesGroupHeightPx = it.height },
                 ) {
+                    // A phone sends; Desktop and a TV, which has no camera to scan with, receive.
+                    val sendsSignIns = getPlatform() == Platform.Android && !isTv()
                     SettingItem(
                         title =
                             stringResource(
-                                if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
+                                if (sendsSignIns) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
                             ),
                         subtitle =
                             stringResource(
-                                if (getPlatform() == Platform.Android) {
+                                if (sendsSignIns) {
                                     Res.string.login_sync_android_description
                                 } else {
                                     Res.string.login_sync_desktop_description

@@ -49,6 +49,7 @@ import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.rememberLyricLayoutDirection
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
 import kotlin.math.abs
@@ -114,6 +115,7 @@ internal fun AppleMusicLyricStrip(
         modifier =
             modifier
                 .fillMaxWidth()
+                .skipFocusOnTv()
                 .clickable(
                     enabled = synced,
                     interactionSource = remember { MutableInteractionSource() },

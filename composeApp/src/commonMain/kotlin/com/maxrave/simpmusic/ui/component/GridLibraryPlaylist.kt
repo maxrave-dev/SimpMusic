@@ -37,6 +37,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Density
@@ -159,6 +160,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
             if ((data is LocalResource.Success && list.isNotEmpty()) || createNewPlaylist != null || header != null) {
                 LazyVerticalGrid(
                     columns = LibraryGridCells,
+                    modifier = Modifier.focusRestorer(),
                     contentPadding = contentPadding,
                     state = state,
                 ) {

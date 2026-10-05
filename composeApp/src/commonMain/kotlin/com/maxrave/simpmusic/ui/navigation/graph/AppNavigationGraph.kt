@@ -10,7 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import com.maxrave.simpmusic.ui.component.tvComposable
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
@@ -56,18 +56,18 @@ fun AppNavigationGraph(
         },
     ) {
         // Bottom bar destinations
-        composable<HomeDestination> {
+        tvComposable<HomeDestination> {
             HomeScreen(
                 onScrolling = onScrolling,
                 navController = navController,
             )
         }
-        composable<SearchDestination> {
+        tvComposable<SearchDestination> {
             SearchScreen(
                 navController = navController,
             )
         }
-        composable<LibraryDestination> {
+        tvComposable<LibraryDestination> {
             LibraryScreen(
                 innerPadding = innerPadding,
                 navController = navController,
@@ -75,7 +75,7 @@ fun AppNavigationGraph(
             )
         }
         // Only reachable as a tab while signed in to YouTube
-        composable<MixForYouDestination> {
+        tvComposable<MixForYouDestination> {
             MixForYouScreen(
                 innerPadding = innerPadding,
                 navController = navController,
@@ -86,7 +86,7 @@ fun AppNavigationGraph(
         // ForceDarkContent for the same reason as album/playlist/artist: the page background comes
         // from the artwork via toImmersiveBackground(), which always lands dark, so the light
         // theme's dark-on-light text and icons would be unreadable on it.
-        composable<AnalyticsDestination> {
+        tvComposable<AnalyticsDestination> {
             ForceDarkContent {
                 AnalyticsScreen(
                     navController = navController,
@@ -98,7 +98,7 @@ fun AppNavigationGraph(
         // gate on local tracking. ForceDarkContent for a different reason than Analytics: the reel
         // is drawn on its own near-black ground whatever the user's theme is, because it is an
         // event and because every card is also a share image that has to survive leaving the app.
-        composable<WrappedDestination> {
+        tvComposable<WrappedDestination> {
             ForceDarkContent {
                 WrappedScreen(
                     navController = navController,
@@ -110,7 +110,7 @@ fun AppNavigationGraph(
                 )
             }
         }
-        composable<FullscreenDestination> {
+        tvComposable<FullscreenDestination> {
             ForceDarkContent {
                 FullscreenPlayer(
                     navController,

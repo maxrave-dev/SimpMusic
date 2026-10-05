@@ -19,12 +19,14 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -122,6 +124,7 @@ import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -133,6 +136,7 @@ import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.Forward5
@@ -367,6 +371,7 @@ fun NowPlayingContentSpotify(
                                 // Tap toggles controls only when the canvas is covering this page;
                                 // otherwise no-op (matches the legacy behaviour where the touch
                                 // overlay only appeared in canvas mode).
+                                .skipFocusOnTv()
                                 .clickable(
                                     enabled = pageHasCanvas,
                                     onClick = {
@@ -636,7 +641,7 @@ fun NowPlayingContentSpotify(
                                                         .fillMaxSize()
                                                         .clickable(
                                                             onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
-                                                            indication = null,
+                                                            indication = if (isTv()) LocalIndication.current else null,
                                                             interactionSource =
                                                                 remember {
                                                                     MutableInteractionSource()
@@ -1143,6 +1148,7 @@ fun NowPlayingContentSpotify(
                                                 .height(
                                                     infoLayoutHeightDp.dp,
                                                 ).fillMaxWidth()
+                                                .skipFocusOnTv()
                                                 .clickable(
                                                     onClick = {
                                                         if (state.mainScrollState.value == 0) {
@@ -1948,6 +1954,10 @@ internal fun ColumnScope.SpotifyPlaybackControls(
                 }
             }
         }
+        // The track swells while the bar has focus: with a remote that is the only sign the arrow
+        // keys now seek (material3's Slider steps 1% per press on its own).
+        val seekInteraction = remember { MutableInteractionSource() }
+        val seekFocused by seekInteraction.collectIsFocusedAsState()
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             Slider(
                 // material3 1.5.0-alpha25 keeps a
@@ -1966,6 +1976,7 @@ internal fun ColumnScope.SpotifyPlaybackControls(
                 onValueChange = {
                     actions.onSliderChange(it * 100f)
                 },
+                interactionSource = seekInteraction,
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -1977,7 +1988,7 @@ internal fun ColumnScope.SpotifyPlaybackControls(
                     SliderDefaults.Track(
                         modifier =
                             Modifier
-                                .height(5.dp),
+                                .height(if (seekFocused) 8.dp else 5.dp),
                         enabled = true,
                         sliderState = sliderState,
                         colors =

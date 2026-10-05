@@ -43,6 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -295,7 +300,17 @@ private fun WrappedReel(
         modifier =
             Modifier
                 .fillMaxSize()
-                .pointerInput(cards) {
+                // A remote's left/right step through the cards the way taps on either half do. Read
+                // before the focused button sees them: nothing in the reel moves sideways otherwise.
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    when (event.key) {
+                        Key.DirectionLeft -> goTo(pagerState.targetPage - 1)
+                        Key.DirectionRight -> goTo(pagerState.targetPage + 1)
+                        else -> return@onPreviewKeyEvent false
+                    }
+                    true
+                }.pointerInput(cards) {
                     detectTapGestures(
                         onPress = {
                             pressed = true

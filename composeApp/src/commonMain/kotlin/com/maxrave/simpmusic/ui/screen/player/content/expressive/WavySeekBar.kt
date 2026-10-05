@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.screen.player.content.expressive
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
@@ -40,7 +47,10 @@ import kotlin.math.roundToInt
  *   (the scale [onSliderChange] / UIEvent.UpdateProgress are built around). While the user
  *   is interacting the displayed fraction comes from the drag, not from the player, so the
  *   bar never fights the position updates that keep streaming in mid-scrub.
- * - The thumb morphs from a Ø14dp circle into a 6×22dp rounded bar while dragging.
+ * - The thumb morphs from a Ø14dp circle into a 6×22dp rounded bar while dragging, and holds
+ *   the bar while focused so a remote can see where it is.
+ * - Left/right keys step 1% per press and commit on release — what material3's Slider does in
+ *   the other two styles, so every seek bar answers a remote the same way.
  *
  * @param progressFraction current playback progress in 0..1 (shell's sliderValue / 100f).
  * @param onSliderChange scrub callback on the 0..100 scale, called during drag and on tap.
@@ -58,6 +68,7 @@ fun WavySeekBar(
     modifier: Modifier = Modifier,
 ) {
     var isInteracting by remember { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
     var dragFraction by remember { mutableFloatStateOf(0f) }
     var widthPx by remember { mutableIntStateOf(0) }
 
@@ -73,7 +84,7 @@ fun WavySeekBar(
     val targetAmplitude = if (isPlaying && !isInteracting) 1f else 0f
     // 0f = idle circle, 1f = dragging tall bar.
     val thumbMorph by animateFloatAsState(
-        targetValue = if (isInteracting) 1f else 0f,
+        targetValue = if (isInteracting || isFocused) 1f else 0f,
         animationSpec = tween(250),
         label = "wavySeekBarThumbMorph",
     )
@@ -88,6 +99,32 @@ fun WavySeekBar(
                 // ~40dp hit area — comfortably taller than the wave itself.
                 .height(40.dp)
                 .onSizeChanged { widthPx = it.width }
+                .onFocusChanged { isFocused = it.isFocused }
+                .onKeyEvent { event ->
+                    val step =
+                        when (event.key) {
+                            Key.DirectionRight -> 0.01f
+                            Key.DirectionLeft -> -0.01f
+                            else -> return@onKeyEvent false
+                        }
+                    when (event.type) {
+                        KeyEventType.KeyDown -> {
+                            dragFraction = ((if (isInteracting) dragFraction else progressFraction) + step).coerceIn(0f, 1f)
+                            isInteracting = true
+                            onSliderChange(dragFraction * 100f)
+                            true
+                        }
+                        // Only a press this bar started: the release of the key that moved focus
+                        // here would otherwise commit a seek to where playback already is.
+                        KeyEventType.KeyUp -> {
+                            if (!isInteracting) return@onKeyEvent false
+                            isInteracting = false
+                            onSliderChangeFinished()
+                            true
+                        }
+                        else -> false
+                    }
+                }.focusable()
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
                         val fraction = fractionAt(offset.x)

@@ -19,6 +19,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,6 +87,7 @@ import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.FastForward
@@ -468,10 +470,13 @@ internal fun AppleMusicThinSlider(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val dragged by interactionSource.collectIsDraggedAsState()
+    // Focus swells it too: on a remote the thick bar is the only sign the seek bar is the one
+    // the arrow keys now move (material3's Slider steps 1% per press on its own).
+    val focused by interactionSource.collectIsFocusedAsState()
     // 20% thicker than the original 7dp/14dp at the owner's request, so the bar is easier to hit.
     // The swollen height still fits the 18dp shells both callers wrap it in.
     val trackHeight by animateDpAsState(
-        targetValue = if (pressed || dragged) 16.8.dp else 8.4.dp,
+        targetValue = if (pressed || dragged || focused) 16.8.dp else 8.4.dp,
         animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
         label = "appleMusicSliderInflate",
     )
@@ -1045,6 +1050,7 @@ internal fun AppleMusicBottomCluster(
                     modifier =
                         Modifier
                             .fillMaxWidth(0.65f)
+                            .skipFocusOnTv()
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,

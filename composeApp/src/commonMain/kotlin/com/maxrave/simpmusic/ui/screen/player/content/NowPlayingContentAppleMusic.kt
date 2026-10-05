@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -84,10 +85,12 @@ import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Replay5
@@ -304,6 +307,7 @@ fun NowPlayingContentAppleMusic(
                         .align(Alignment.TopCenter)
                         .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
                         .size(width = 64.dp, height = GRABBER_HEIGHT)
+                        .skipFocusOnTv()
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() },
@@ -600,6 +604,7 @@ private fun AppleMusicMainView(
                             Modifier
                                 .fillMaxWidth()
                                 .height(bottomContentHeightDp.dp)
+                                .skipFocusOnTv()
                                 .clickable(
                                     onClick = { actions.onToggleControls() },
                                     indication = null,
@@ -998,7 +1003,7 @@ private fun AppleMusicArtworkPage(
                                 .fillMaxSize()
                                 .padding(bottom = bottomContentHeightDp.dp)
                                 .clickable(
-                                    indication = null,
+                                    indication = if (isTv()) LocalIndication.current else null,
                                     interactionSource = remember { MutableInteractionSource() },
                                 ) { onToggleVideoOverlay() },
                     ) {
@@ -1150,6 +1155,7 @@ private fun AppleMusicArtworkPage(
                         modifier =
                             Modifier
                                 .fillMaxSize()
+                                .skipFocusOnTv()
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },

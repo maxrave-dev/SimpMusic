@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -305,7 +306,8 @@ fun AnalyticsScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .layerBackdrop(headerBackdrop),
+                    .layerBackdrop(headerBackdrop)
+                    .focusRestorer(),
             // A LazyColumn puts NOTHING between its items. The old screen hid that by giving every
             // section header its own `.padding(top = 12.dp)`; the shared SectionHeader dropped it,
             // and every section went flush against the one above.

@@ -448,6 +448,16 @@ fun App(
         val desktopPanel =
             if (isLightScheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
         Scaffold(
+            // TV overscan: Android TV's layout guideline keeps everything 5% in from the edges.
+            // Fullscreen video and the Wrapped reel are meant to fill the screen, so they keep it.
+            modifier =
+                if (isTv() && !isInFullscreen) {
+                    Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 48.dp, vertical = 27.dp)
+                } else {
+                    Modifier
+                },
             containerColor =
                 if (isDesktopShell) desktopWindow else MaterialTheme.colorScheme.background,
             bottomBar = {

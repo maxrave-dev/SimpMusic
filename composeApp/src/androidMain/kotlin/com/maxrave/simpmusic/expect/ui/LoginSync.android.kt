@@ -64,6 +64,8 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.data.model.loginsync.LoginSyncException
 import com.maxrave.simpmusic.extension.findActivity
+import com.maxrave.simpmusic.isTv
+import com.maxrave.simpmusic.ui.component.LoginSyncHostDialog
 import com.maxrave.simpmusic.ui.component.QrScanner
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Close
@@ -102,6 +104,8 @@ import simpmusic.composeapp.generated.resources.retry
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 actual fun LoginSyncDialog(onDismiss: () -> Unit) {
+    // A TV has no camera to scan with: it shows the code and receives, the way Desktop does.
+    if (isTv()) return LoginSyncHostDialog(onDismiss)
     val context = LocalContext.current
     val viewModel: LoginSyncSenderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

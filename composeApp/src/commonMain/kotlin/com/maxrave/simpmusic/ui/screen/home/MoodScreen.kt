@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -60,7 +61,7 @@ fun MoodScreen(
         )
         AnimatedVisibility(visible = !loading) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().focusRestorer(),
             ) {
                 items(moodData?.items ?: emptyList()) { item ->
                     MoodAndGenresContentItem(

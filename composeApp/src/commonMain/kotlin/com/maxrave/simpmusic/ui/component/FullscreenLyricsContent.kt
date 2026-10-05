@@ -94,6 +94,7 @@ import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.icon.Close
@@ -200,7 +201,8 @@ fun FullscreenLyricsContent(
 
     // Reset auto-hide timer when controls are shown
     LaunchedEffect(key1 = showControlButtons) {
-        if (showControlButtons) {
+        // A remote has nothing to tap the controls back with, so a TV never hides them.
+        if (showControlButtons && !isTv()) {
             delay(4000) // Hide after 4 seconds
             showControlButtons = false
         }
@@ -260,6 +262,7 @@ fun FullscreenLyricsContent(
                 // The sheet host paints black under this page. The Popup host on Desktop paints
                 // nothing, and the gradient's translucent stops would let the app show through.
                 .background(Color.Black)
+                .skipFocusOnTv()
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },

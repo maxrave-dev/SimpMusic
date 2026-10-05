@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -218,7 +219,7 @@ fun BrowseScreen(
                                 }
                             LazyColumn(
                                 state = listState,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().focusRestorer(),
                                 // Padding rather than a spacer item, so the first item is a real row and
                                 // the glow hands off once a row has scrolled by, as on Mix for you.
                                 contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 64.dp),

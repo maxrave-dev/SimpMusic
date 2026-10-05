@@ -75,6 +75,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsContent
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
@@ -520,7 +521,8 @@ fun NowPlayingScreenContent(
     }
 
     LaunchedEffect(key1 = showHideJob) {
-        if (!showHideJob) {
+        // A remote has nothing to tap the controls back with, so a TV never hides them.
+        if (!showHideJob && !isTv()) {
             delay(5000)
             if (mainScrollState.value == 0) showHideControlLayout = false
             showHideJob = true

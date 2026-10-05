@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -280,7 +281,8 @@ fun ArtistScreen(
                             Modifier
                                 .fillMaxWidth()
                                 .background(mutedPaletteBg)
-                                .hazeSource(hazeState),
+                                .hazeSource(hazeState)
+                                .focusRestorer(),
                         state = lazyState,
                     ) {
                         item(contentType = "header") {
@@ -901,6 +903,7 @@ private fun ArtistSections(
                     }
                 }
                 LazyRow(
+                    modifier = Modifier.focusRestorer(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -969,6 +972,7 @@ private fun ArtistSections(
                     }
                 }
                 LazyRow(
+                    modifier = Modifier.focusRestorer(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1036,6 +1040,7 @@ private fun ArtistSections(
                     }
                 }
                 LazyRow(
+                    modifier = Modifier.focusRestorer(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1103,6 +1108,7 @@ private fun ArtistSections(
                     )
                 }
                 LazyRow(
+                    modifier = Modifier.focusRestorer(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1151,6 +1157,7 @@ private fun ArtistSections(
                     )
                 }
                 LazyRow(
+                    modifier = Modifier.focusRestorer(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {

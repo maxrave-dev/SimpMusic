@@ -43,6 +43,13 @@
     <uses-feature
         android:name="android.software.car.templates_host.media"
         android:required="false" />
+    <!-- Android TV. Every app implies a required touchscreen unless it says otherwise, and TVs have none. -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
 
     <queries>
         <intent>
@@ -62,6 +69,7 @@
         android:name=".SimpMusicApplication"
         android:allowBackup="true"
         android:appCategory="audio"
+        android:banner="@drawable/tv_banner"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -89,6 +97,8 @@
                 <action android:name="android.intent.action.MUSIC_PLAYER" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <!-- Without it the TV home screen never lists the app, sideloaded or not. -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
                 <category android:name="android.intent.category.APP_MUSIC" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

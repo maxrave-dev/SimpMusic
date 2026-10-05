@@ -99,6 +99,7 @@ import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.heartBurst
 import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.component.skipFocusOnTv
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.Favorite
@@ -550,6 +551,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                             .height(
                                                 infoLayoutHeightDp.dp,
                                             ).fillMaxWidth()
+                                            .skipFocusOnTv()
                                             .clickable(
                                                 onClick = {
                                                     if (state.mainScrollState.value == 0) {

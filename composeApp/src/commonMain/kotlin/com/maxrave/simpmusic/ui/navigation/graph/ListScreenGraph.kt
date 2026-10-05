@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.maxrave.simpmusic.ui.component.tvComposable
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.BrowseDestination
@@ -29,7 +29,7 @@ fun NavGraphBuilder.listScreenGraph(
     innerPadding: PaddingValues,
     navController: NavController,
 ) {
-    composable<AlbumDestination> { entry ->
+    tvComposable<AlbumDestination> { entry ->
         val data = entry.toRoute<AlbumDestination>()
         ForceDarkContent {
             AlbumScreen(
@@ -38,7 +38,7 @@ fun NavGraphBuilder.listScreenGraph(
             )
         }
     }
-    composable<ArtistDestination> { entry ->
+    tvComposable<ArtistDestination> { entry ->
         val data = entry.toRoute<ArtistDestination>()
         ForceDarkContent {
             ArtistScreen(
@@ -47,7 +47,7 @@ fun NavGraphBuilder.listScreenGraph(
             )
         }
     }
-    composable<LocalPlaylistDestination> { entry ->
+    tvComposable<LocalPlaylistDestination> { entry ->
         val data = entry.toRoute<LocalPlaylistDestination>()
         ForceDarkContent {
             LocalPlaylistScreen(
@@ -56,7 +56,7 @@ fun NavGraphBuilder.listScreenGraph(
             )
         }
     }
-    composable<MoreAlbumsDestination> { entry ->
+    tvComposable<MoreAlbumsDestination> { entry ->
         val data = entry.toRoute<MoreAlbumsDestination>()
         MoreAlbumsScreen(
             innerPadding = innerPadding,
@@ -65,7 +65,7 @@ fun NavGraphBuilder.listScreenGraph(
             id = data.id,
         )
     }
-    composable<BrowseDestination> { entry ->
+    tvComposable<BrowseDestination> { entry ->
         val data = entry.toRoute<BrowseDestination>()
         BrowseScreen(
             innerPadding = innerPadding,
@@ -75,7 +75,7 @@ fun NavGraphBuilder.listScreenGraph(
             title = data.title,
         )
     }
-    composable<PlaylistDestination> { entry ->
+    tvComposable<PlaylistDestination> { entry ->
         val data = entry.toRoute<PlaylistDestination>()
         ForceDarkContent {
             PlaylistScreen(
@@ -85,7 +85,7 @@ fun NavGraphBuilder.listScreenGraph(
             )
         }
     }
-    composable<PodcastDestination> { entry ->
+    tvComposable<PodcastDestination> { entry ->
         val data = entry.toRoute<PodcastDestination>()
         ForceDarkContent {
             PodcastScreen(

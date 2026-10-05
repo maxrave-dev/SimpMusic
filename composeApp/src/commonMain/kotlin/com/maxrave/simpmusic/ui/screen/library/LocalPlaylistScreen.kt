@@ -49,6 +49,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.focus.focusRestorer
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.simpmusic.ui.icon.Search
@@ -452,6 +453,7 @@ fun LocalPlaylistScreen(
                 .fillMaxWidth()
                 .background(mutedPaletteBg)
                 .hazeSource(hazeState)
+                .focusRestorer()
                 .pointerInput(changingOrder) {
                     if (!changingOrder) return@pointerInput
                     val onDrag: (change: androidx.compose.ui.input.pointer.PointerInputChange, offset: Offset) -> Unit =

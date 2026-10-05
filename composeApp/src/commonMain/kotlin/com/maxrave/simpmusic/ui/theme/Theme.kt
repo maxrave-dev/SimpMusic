@@ -20,6 +20,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.SystemBarAppearanceEffect
 import com.maxrave.simpmusic.expect.ui.platformDynamicColorScheme
+import com.maxrave.simpmusic.isTv
 
 /**
  * Semantic colors that sit outside the Material 3 ColorScheme.
@@ -168,7 +169,7 @@ fun AppTheme(
         colorScheme = colorScheme,
         content = {
             CompositionLocalProvider(
-                LocalRippleConfiguration provides SoftRippleConfiguration,
+                LocalRippleConfiguration provides if (isTv()) TvRippleConfiguration else SoftRippleConfiguration,
                 LocalContentColor provides colorScheme.onSurfaceVariant,
                 LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
                 LocalIsDarkTheme provides isDark,
@@ -214,6 +215,24 @@ private val SoftRippleConfiguration =
             RippleAlpha(
                 draggedAlpha = 0.06f,
                 focusedAlpha = 0.04f,
+                hoveredAlpha = 0.03f,
+                pressedAlpha = 0.04f,
+            ),
+    )
+
+/**
+ * [SoftRippleConfiguration] with a focus state a TV can see. With a remote the focus highlight is
+ * the only cursor there is, and at 4% nobody on the sofa can find it: D-pad focus was moving
+ * correctly while the app looked impossible to navigate (#2499).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Suppress("DEPRECATION")
+private val TvRippleConfiguration =
+    RippleConfiguration(
+        rippleAlpha =
+            RippleAlpha(
+                draggedAlpha = 0.06f,
+                focusedAlpha = 0.3f,
                 hoveredAlpha = 0.03f,
                 pressedAlpha = 0.04f,
             ),

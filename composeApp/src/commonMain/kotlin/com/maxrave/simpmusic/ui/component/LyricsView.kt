@@ -653,7 +653,7 @@ fun LyricsView(
                                             if (appleStyle) {
                                                 Modifier
                                             } else {
-                                                Modifier.clickable {
+                                                Modifier.skipFocusOnTv().clickable {
                                                     onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
                                                 }
                                             },
@@ -682,6 +682,7 @@ fun LyricsView(
                                         romanizedWords = romanizedWords,
                                         modifier =
                                             Modifier
+                                                .skipFocusOnTv()
                                                 .clickable {
                                                     onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
                                                 },
@@ -715,6 +716,7 @@ fun LyricsView(
                                     isCurrent = index == currentLineIndex || lyricsData.lyrics.syncType != "LINE_SYNCED",
                                     modifier =
                                         Modifier
+                                            .skipFocusOnTv()
                                             .clickable(enabled = lyricsData.lyrics.syncType == "LINE_SYNCED") {
                                                 onLineClick(line.startTimeMs.toFloat() * 100 / timeLine.value.total)
                                             },
@@ -742,7 +744,8 @@ fun LyricsView(
                                     .background(
                                         color = if (linePressed) AppleMusicLyricPressedBackground else Color.Transparent,
                                         shape = RoundedCornerShape(AppleMusicLyricCornerRadius),
-                                    ).clickable(
+                                    ).skipFocusOnTv()
+                                    .clickable(
                                         interactionSource = lineInteraction,
                                         indication = null,
                                         enabled = lyricsData.lyrics.syncType == "LINE_SYNCED" ||

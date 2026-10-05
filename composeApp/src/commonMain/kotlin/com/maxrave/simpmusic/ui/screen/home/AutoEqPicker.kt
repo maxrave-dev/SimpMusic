@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.screen.home
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.simpmusic.isTv
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DownloadForOfflineOutlined
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
@@ -162,7 +164,7 @@ fun AutoEqPicker(
                                                 // every keystroke and an unkeyed remember here
                                                 // would hand a row the previous one's slot.
                                                 interactionSource = remember(entry.path) { MutableInteractionSource() },
-                                                indication = null,
+                                                indication = if (isTv()) LocalIndication.current else null,
                                             ) {
                                                 failed = false
                                                 viewModel.apply(entry) { ok ->

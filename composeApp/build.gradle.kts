@@ -104,7 +104,6 @@ kotlin {
             implementation(libs.camera.camera2)
             implementation(libs.camera.lifecycle)
             implementation(libs.camera.view)
-            implementation(libs.zxing.core)
         }
         commonMain.dependencies {
             implementation(libs.runtime)
@@ -180,6 +179,8 @@ kotlin {
             // Liquid glass
             implementation(libs.liquid.glass)
             implementation(libs.liquid.glass.shape)
+            // Login sync QR: drawn by Desktop and Android TV, decoded by the phone's scanner
+            implementation(libs.zxing.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -195,8 +196,6 @@ kotlin {
             implementation(libs.native.tray)
             implementation(libs.nucleus.core.runtime)
             implementation(projects.mediaJvmUi)
-            // Login sync QR code
-            implementation(libs.zxing.core)
         }
     }
 }

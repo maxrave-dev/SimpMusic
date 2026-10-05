@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -218,6 +219,7 @@ fun HomeItem(
             }
         }
         LazyRow(
+            modifier = Modifier.focusRestorer(),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -1441,9 +1443,10 @@ fun MoodAndGenresContentItem(
         )
         LazyRow(
             modifier =
-                Modifier.padding(
-                    10.dp,
-                ),
+                Modifier
+                    .padding(
+                        10.dp,
+                    ).focusRestorer(),
         ) {
             val itemList =
                 when (data) {

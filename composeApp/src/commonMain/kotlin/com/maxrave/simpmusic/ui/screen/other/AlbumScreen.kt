@@ -53,6 +53,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -227,7 +228,8 @@ fun AlbumScreen(
                         Modifier
                             .fillMaxWidth()
                             .background(mutedPaletteBg)
-                            .hazeSource(hazeState),
+                            .hazeSource(hazeState)
+                            .focusRestorer(),
                     state = lazyState,
                 ) {
                     item(contentType = "header") {
@@ -905,7 +907,7 @@ fun AlbumScreen(
                                 )
                                 LazyRow(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    modifier = Modifier.padding(horizontal = 12.dp).focusRestorer(),
                                 ) {
                                     items(uiState.otherVersion) { album ->
                                         HomeItemContentPlaylist(

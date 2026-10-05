@@ -3,8 +3,8 @@ package com.maxrave.simpmusic.ui.navigation.graph
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.maxrave.simpmusic.ui.component.tvComposable
 import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherSettingsDestination
@@ -24,43 +24,43 @@ fun NavGraphBuilder.homeScreenGraph(
     innerPadding: PaddingValues,
     navController: NavController,
 ) {
-    composable<CreditDestination> {
+    tvComposable<CreditDestination> {
         CreditScreen(
             paddingValues = innerPadding,
             navController = navController,
         )
     }
-    composable<MoodDestination> { entry ->
+    tvComposable<MoodDestination> { entry ->
         val params = entry.toRoute<MoodDestination>().params
         MoodScreen(
             navController = navController,
             params = params,
         )
     }
-    composable<ListenTogetherDestination> {
+    tvComposable<ListenTogetherDestination> {
         ListenTogetherScreen(
             navController = navController,
             innerPadding = innerPadding,
         )
     }
-    composable<ListenTogetherSettingsDestination> {
+    tvComposable<ListenTogetherSettingsDestination> {
         ListenTogetherSettingsScreen(
             navController = navController,
             innerPadding = innerPadding,
         )
     }
-    composable<NotificationDestination> {
+    tvComposable<NotificationDestination> {
         NotificationScreen(
             navController = navController,
         )
     }
-    composable<RecentlySongsDestination> {
+    tvComposable<RecentlySongsDestination> {
         RecentlySongsScreen(
             navController = navController,
             innerPadding = innerPadding,
         )
     }
-    composable<SettingsDestination> {
+    tvComposable<SettingsDestination> {
         SettingScreen(
             navController = navController,
             innerPadding = innerPadding,
