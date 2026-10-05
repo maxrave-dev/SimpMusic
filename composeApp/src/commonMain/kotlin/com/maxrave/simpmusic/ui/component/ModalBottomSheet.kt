@@ -160,6 +160,7 @@ import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Remove
 import com.maxrave.simpmusic.ui.icon.Sensors
+import com.maxrave.simpmusic.ui.icon.SelectAll
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Speed
@@ -251,6 +252,7 @@ import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
 import simpmusic.composeapp.generated.resources.scale
+import simpmusic.composeapp.generated.resources.select_multiple
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.share
 import simpmusic.composeapp.generated.resources.share_url
@@ -1334,6 +1336,8 @@ fun NowPlayingBottomSheet(
     onLibraryDelete: (() -> Unit)? = null,
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
+    /** Optional entry point for callers that support selecting several songs at once. */
+    onSelectForBatch: (() -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -1687,6 +1691,15 @@ fun NowPlayingBottomSheet(
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
                     )
+                    if (onSelectForBatch != null) {
+                        ActionButton(
+                            icon = SimpIcons.SelectAll,
+                            text = Res.string.select_multiple,
+                        ) {
+                            onSelectForBatch.invoke()
+                            hideModalBottomSheet()
+                        }
+                    }
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {

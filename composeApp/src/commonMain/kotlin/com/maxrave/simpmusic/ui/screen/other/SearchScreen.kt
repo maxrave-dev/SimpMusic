@@ -9,8 +9,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.WindowInsets
@@ -379,6 +381,7 @@ fun SearchScreen(
             },
             navController = navController,
             song = sheetSong,
+            onSelectForBatch = { sheetSong?.videoId?.let(selectionState::start) },
         )
     }
 
@@ -440,6 +443,13 @@ fun SearchScreen(
                                                 ),
                                             )
                                         }
+                                    }
+                                },
+                                onItemLongClick = { result ->
+                                    when (result) {
+                                        is SongsResult -> onMoreClick(result.toTrack().toSongEntity())
+                                        is VideosResult -> onMoreClick(result.toTrack().toSongEntity())
+                                        else -> Unit
                                     }
                                 },
                             )
@@ -813,7 +823,7 @@ fun SearchScreen(
                                                                         },
                                                                         selectionMode = selectionState.isActive,
                                                                         isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { selectionState.start(it) },
+                                                                        onLongClick = { onMoreClick(result.toTrack().toSongEntity()) },
                                                                         onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
@@ -852,7 +862,7 @@ fun SearchScreen(
                                                                         },
                                                                         selectionMode = selectionState.isActive,
                                                                         isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { selectionState.start(it) },
+                                                                        onLongClick = { onMoreClick(result.toTrack().toSongEntity()) },
                                                                         onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
@@ -1174,16 +1184,27 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuggestItemRow(
     searchResult: SearchResultType,
     onItemClick: (SearchResultType) -> Unit,
+    onItemLongClick: ((SearchResultType) -> Unit)? = null,
 ) {
+    val onLongClick: (() -> Unit)? =
+        if (searchResult is SongsResult || searchResult is VideosResult) {
+            onItemLongClick?.let { callback -> { callback(searchResult) } }
+        } else {
+            null
+        }
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable { onItemClick(searchResult) }
+                .combinedClickable(
+                    onClick = { onItemClick(searchResult) },
+                    onLongClick = onLongClick,
+                )
                 .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
