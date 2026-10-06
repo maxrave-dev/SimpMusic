@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.ui.theme.isDarkTheme
 import com.maxrave.simpmusic.utils.ComposeResUtils
+import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
@@ -463,26 +464,30 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
 
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {
-                    ImageLoader
-                        .Builder(context)
-                        .components {
-                            add(
-                                OkHttpNetworkFetcherFactory(
-                                    callFactory = {
-                                        OkHttpClient()
-                                    },
-                                ),
-                            )
-                        }.diskCachePolicy(CachePolicy.ENABLED)
-                        .networkCachePolicy(CachePolicy.ENABLED)
-                        .diskCache(
-                            DiskCache
-                                .Builder()
-                                .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                                .maxSizeBytes(512L * 1024 * 1024)
-                                .build(),
-                        ).crossfade(true)
-                        .build()
+                    lateinit var imageLoader: ImageLoader
+                    imageLoader =
+                        ImageLoader
+                            .Builder(context)
+                            .components {
+                                add(NetworkFirstInterceptor { imageLoader })
+                                add(
+                                    OkHttpNetworkFetcherFactory(
+                                        callFactory = {
+                                            OkHttpClient()
+                                        },
+                                    ),
+                                )
+                            }.diskCachePolicy(CachePolicy.ENABLED)
+                            .networkCachePolicy(CachePolicy.ENABLED)
+                            .diskCache(
+                                DiskCache
+                                    .Builder()
+                                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                                    .maxSizeBytes(512L * 1024 * 1024)
+                                    .build(),
+                            ).crossfade(true)
+                            .build()
+                    imageLoader
                 }
                 App(
                     showDesktopNotificationPermissionDialog = showNotificationPermissionDialog,
