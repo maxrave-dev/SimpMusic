@@ -340,70 +340,13 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 exitApplication()
             }
         }
-        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.).
-        // Transparent + undecorated Compose windows don't render on VM
-        // GPU drivers — the window stays invisible while the JVM keeps
-        // running, so we must detect the VM and fall back to a normal
-        // decorated window.
-        //
-        // We probe Manufacturer + Model because brand strings live in
-        // different fields per hypervisor (Parallels-on-ARM puts
-        // "Parallels Software International Inc." in Manufacturer and
-        // "Parallels ARM Virtual Machine" in Model; VirtualBox uses
-        // "innotek GmbH" + "VirtualBox"; etc).
-        //
-        // Microsoft removed `wmic` from Windows 11 (deprecated since
-        // 10 21H1), so on modern Windows it returns "command not
-        // recognized" and our previous detection always saw an empty
-        // vendor — Parallels Win 11 ARM users hit this and got an
-        // invisible window. PowerShell `Get-CimInstance` is the modern
-        // replacement; we try it first and fall back to wmic for older
-        // hosts.
-        val isVM =
-            remember {
-                val osName = System.getProperty("os.name", "")
-                // Linux takes the VM branch too: undecorated + transparent breaks on some
-                // distros/WMs, so like Spotify it keeps the native title bar there.
-                if (osName.contains("Linux", ignoreCase = true)) {
-                    return@remember true
-                }
-                if (!osName.contains("Windows", ignoreCase = true)) {
-                    return@remember false
-                }
-                val probes =
-                    listOf(
-                        listOf(
-                            "powershell",
-                            "-NoProfile",
-                            "-Command",
-                            "(Get-CimInstance Win32_ComputerSystem | " +
-                                "Select-Object Manufacturer,Model | " +
-                                "Format-List | Out-String).Trim()",
-                        ),
-                        listOf("wmic", "computersystem", "get", "manufacturer,model"),
-                    )
-                val sysInfo =
-                    probes
-                        .asSequence()
-                        .mapNotNull { cmd ->
-                            runCatching {
-                                val p =
-                                    ProcessBuilder(cmd)
-                                        .redirectErrorStream(true)
-                                        .start()
-                                val out = p.inputStream.bufferedReader().readText()
-                                if (p.waitFor() == 0 && out.isNotBlank()) out else null
-                            }.getOrNull()
-                        }.firstOrNull()
-                        .orEmpty()
-                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
-                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
-                    System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
-            }
+        // Windows and Linux keep the native title bar (on Linux, undecorated + transparent
+        // breaks on some distros/WMs). Only macOS draws the custom one.
+        val nativeTitleBar = !isMacOS
         // Publish whether the custom title bar will be mounted so getScreenSizeInfo() can
         // subtract the 40dp strip it occupies above the content (see DesktopWindowChrome).
-        LaunchedEffect(isVM) {
-            DesktopWindowChrome.customTitleBarVisible = !isVM
+        LaunchedEffect(nativeTitleBar) {
+            DesktopWindowChrome.customTitleBarVisible = !nativeTitleBar
         }
         Window(
             onCloseRequest = {
@@ -411,8 +354,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = !isVM,
-            transparent = !isVM,
+            undecorated = !nativeTitleBar,
+            transparent = !nativeTitleBar,
             state = windowState,
             visible = isVisible,
         ) {
@@ -488,14 +431,14 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     Modifier
                         .fillMaxSize()
                         .then(
-                            if (!isVM) {
+                            if (!nativeTitleBar) {
                                 Modifier.clip(RoundedCornerShape(12.dp))
                             } else {
                                 Modifier
                             },
                         ),
             ) {
-                if (!isVM) {
+                if (!nativeTitleBar) {
                     // The bar sits outside AppTheme, so the colours are resolved here from the
                     // same stored setting AppTheme uses and handed down. Pure black / pure white
                     // to match the window colour the shell paints behind the panels.

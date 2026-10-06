@@ -402,7 +402,7 @@ filled states render identically.
   - Deep link support (`simpmusic://` and `simpmusic.org`)
   - Mini Player window (always-on-top, resizable, draggable)
   - Crash dialog
-  - Custom title bar (disabled on Linux and in VM environments)
+  - Custom title bar (macOS only; Windows and Linux keep the native title bar)
 - **Limitations**:
   - No offline playback
 
@@ -956,6 +956,7 @@ if (getPlatform() == Platform.Android) {
     - The in-app update link still opens the regular download page.
     - The Listen Together user agent reports `com.spotify.music`, because `AppIdentity` takes the real `applicationId`.
     - The rolled-back alternative (a Shizuku switch that wrote vivo's list from the regular app) needed Developer options, which users rejected.
+- **Windows keeps the native title bar (2026-10-06)**: the custom title bar (undecorated + transparent window, 12dp corners, the 40dp `CustomTitleBar`) is now macOS-only. `DesktopApp.kt` gates it on `nativeTitleBar = !isMacOS`, the same path Linux has taken since 2026-09-22. That turned the Windows VM probe into dead code, so it is gone: it ran PowerShell `Get-CimInstance` (then `wmic`) inside `remember {}` during the first composition, so every Windows launch waited for it before the window appeared. The `-Dcompose.window.no-transparent` override went with it, since all it did was force Windows onto the native bar. `getScreenSizeInfo()` subtracts nothing there, because native decorations sit outside `containerSize`. The bar's colour is Windows' own: nothing tells DWM about the app's theme.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -981,6 +982,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-04
+**Last updated**: 2026-10-06
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

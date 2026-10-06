@@ -713,7 +713,7 @@ fun NowPlayingScreenContent(
             val windowSize = LocalWindowInfo.current.containerSize
             val density = LocalDensity.current
             // DesktopApp makes the window transparent and clips its content to 12dp corners exactly
-            // when it draws the custom title bar (both gated on !isVM). A Popup is a layer of its own
+            // when it draws the custom title bar (both macOS-only). A Popup is a layer of its own
             // that clip never reaches, so the page rounds itself. getScreenSizeInfo() subtracts that
             // same bar, which makes the height difference the one signal commonMain can read.
             val windowIsRounded = windowSize.height > getScreenSizeInfo().hPX
