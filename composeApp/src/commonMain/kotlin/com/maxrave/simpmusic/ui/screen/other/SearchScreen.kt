@@ -823,7 +823,7 @@ fun SearchScreen(
                                                                         },
                                                                         selectionMode = selectionState.isActive,
                                                                         isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { onMoreClick(result.toTrack().toSongEntity()) },
+                                                                        onLongClick = { selectionState.start(it) },
                                                                         onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
@@ -862,7 +862,7 @@ fun SearchScreen(
                                                                         },
                                                                         selectionMode = selectionState.isActive,
                                                                         isSelected = selectionState.isSelected(result.videoId),
-                                                                        onLongClick = { onMoreClick(result.toTrack().toSongEntity()) },
+                                                                        onLongClick = { selectionState.start(it) },
                                                                         onSelectToggle = { selectionState.toggle(it) },
                                                                     )
                                                                 }
