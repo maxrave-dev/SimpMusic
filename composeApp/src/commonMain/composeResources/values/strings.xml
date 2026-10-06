@@ -974,4 +974,18 @@
     <string name="weekday_friday">Friday</string>
     <string name="weekday_saturday">Saturday</string>
     <string name="weekday_sunday">Sunday</string>
+    <string name="developer_option">Developer option</string>
+    <string name="app_log">App log</string>
+    <string name="app_log_description">View, filter and export the app's log</string>
+    <string name="log_errors">Errors</string>
+    <string name="log_search_hint">Search tag or message</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warn">Warn</string>
+    <string name="log_live">Live · %1$s lines</string>
+    <string name="log_paused">Paused · %1$s lines</string>
+    <string name="log_empty">Nothing logged yet</string>
+    <string name="log_no_stack_trace">No stack trace</string>
+    <string name="log_stack_trace_lines">Stack trace · %1$s lines</string>
+    <string name="log_hide_stack_trace">Hide stack trace</string>
+    <string name="log_export_failed">Could not export the log</string>
 </resources>

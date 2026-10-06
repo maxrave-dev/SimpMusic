@@ -43,7 +43,7 @@ abstract class BaseViewModel :
      */
     protected fun log(
         message: String,
-        logType: LogLevel = LogLevel.WARN,
+        logType: LogLevel = LogLevel.DEBUG,
     ) {
         when (logType) {
             LogLevel.DEBUG -> Logger.d(tag, message)

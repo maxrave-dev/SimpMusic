@@ -87,7 +87,6 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
-import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.getPlatform
@@ -791,7 +790,6 @@ fun HomeItemSong(
                         it
                     }
                 }
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -890,7 +888,6 @@ fun HomeItemVideo(
                     .heightIn(min = 230.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1007,7 +1004,6 @@ fun HomeItemArtist(
                     .heightIn(min = 230.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1126,7 +1122,6 @@ fun ItemVideoChart(
                     .padding(10.dp),
         ) {
             val thumb = data.thumbnails.lastOrNull()?.url
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1240,7 +1235,6 @@ fun ItemArtistChart(
                         .padding(end = 20.dp),
             )
             val thumb = data.thumbnails.lastOrNull()?.url
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest
@@ -1349,7 +1343,6 @@ fun ItemTrackChart(
                 }
             }
             val thumb = data.thumbnails?.lastOrNull()?.url
-            Logger.w("AsyncImage", "HomeItemSong: $thumb")
             AsyncImage(
                 model =
                     ImageRequest

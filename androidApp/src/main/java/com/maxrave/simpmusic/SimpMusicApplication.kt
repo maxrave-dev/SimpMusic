@@ -37,6 +37,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.simpmusic.crashlytics.configCrashlytics
 import org.simpmusic.lastfm.configLastfm
+import java.io.File
 import java.lang.reflect.Field
 
 class SimpMusicApplication :
@@ -50,6 +51,8 @@ class SimpMusicApplication :
 
     override fun onCreate() {
         super.onCreate()
+        // First, so the rest of startup reaches the App log too (Settings → Developer option).
+        Logger.enableFileLogging(File(filesDir, "logs").path)
         configCrashlytics(this, BuildKonfig.sentryDsn)
         configLastfm(BuildKonfig.lastfmApiKey, BuildKonfig.lastfmSecret)
         startKoin {

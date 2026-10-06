@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.eygraber.uri.Uri
 import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.repository.ImportRepository
+import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,7 +43,7 @@ class ImportViewModel(
                     withContext(Dispatchers.IO) {
                         runCatching { readPickedFile(uri).decodeToString() }
                     }.getOrElse { throwable ->
-                        log("import: cannot read picked file - ${throwable.message}")
+                        log("import: cannot read picked file - ${throwable.message}", LogLevel.WARN)
                         _importState.value = ImportProgress.Error(invalidFileMessage)
                         return@launch
                     }

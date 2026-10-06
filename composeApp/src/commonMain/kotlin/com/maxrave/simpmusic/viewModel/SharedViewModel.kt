@@ -309,7 +309,6 @@ class SharedViewModel(
             val checkGetVideoJob =
                 launch {
                     dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
-                        Logger.w(tag, "GetVideo is $it")
                         _getVideo.value = it == TRUE
                     }
                 }
@@ -358,7 +357,6 @@ class SharedViewModel(
                 .distinctUntilChangedBy {
                     it.songEntity?.videoId
                 }.collectLatest { state ->
-                    Logger.w(tag, "NowPlayingState is $state")
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
 
@@ -665,7 +663,7 @@ class SharedViewModel(
                         // Save canvas thumb url
                         data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
                     } else {
-                        log("Get canvas miss from a source: ${response.message}", LogLevel.WARN)
+                        log("Get canvas miss from a source: ${response.message}")
                     }
                 }
             }
@@ -1052,7 +1050,7 @@ class SharedViewModel(
             getFormatFlowJob =
                 viewModelScope.launch {
                     streamRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
-                        Logger.w(tag, "Get format for $mediaId: $f")
+                        Logger.d(tag, "Get format for $mediaId: itag ${f?.itag}, expires ${f?.expiredTime}")
                         if (f != null) {
                             _format.emit(f)
                         } else {
@@ -1328,7 +1326,7 @@ class SharedViewModel(
                                 ).collect {
                                     when (it) {
                                         is Resource.Error -> {
-                                            log("Insert SimpMusic Translated Lyrics Error ${it.message}")
+                                            log("Insert SimpMusic Translated Lyrics Error ${it.message}", LogLevel.WARN)
                                         }
 
                                         is Resource.Success -> {
@@ -1468,7 +1466,7 @@ class SharedViewModel(
         duration: Int,
     ) {
         lyricsCanvasRepository.getSimpMusicLyrics(videoId).collectLatest {
-            Logger.w(tag, "Get SimpMusic Lyrics for $videoId: $it")
+            Logger.d(tag, "Get SimpMusic Lyrics for $videoId: ${it::class.simpleName}")
             val data = it.data
             if (it is Resource.Success && data != null) {
                 Logger.d(tag, "Get SimpMusic Lyrics Success")
@@ -1634,7 +1632,7 @@ class SharedViewModel(
                         }
 
                         else -> {
-                            log("Get BetterLyrics Error: ${res.message}")
+                            log("Get BetterLyrics Error: ${res.message}", LogLevel.WARN)
                             getSimpMusicLyrics(
                                 song.videoId,
                                 song,
@@ -1689,7 +1687,7 @@ class SharedViewModel(
                 }
 
                 else -> {
-                    Logger.w(tag, "Get SimpMusic Translated Lyrics Error: ${response.message}")
+                    Logger.d(tag, "Get SimpMusic Translated Lyrics Error: ${response.message}")
                     getAITranslationLyrics(
                         videoId,
                         lyrics,

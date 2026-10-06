@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,7 @@ class LogInViewModel(
                     val (key, value) = it.split("=")
                     key to value
                 }.let {
+                    if (it["sp_dc"].isNullOrEmpty()) Logger.w("Auth", "Spotify: sign-in finished without an sp_dc cookie")
                     dataStoreManager.setSpdc(it["sp_dc"] ?: "")
                     _spotifyStatus.value = true
                 }

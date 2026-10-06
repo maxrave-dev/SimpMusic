@@ -817,7 +817,6 @@ class SettingsViewModel(
             dataStoreManager.aiApiKey.collect { aiApiKey ->
                 if (aiApiKey.isNotEmpty()) {
                     _isHasApiKey.value = true
-                    log("getAIApiKey: $aiApiKey")
                 } else {
                     _isHasApiKey.value = false
                 }
@@ -1432,11 +1431,12 @@ class SettingsViewModel(
     val googleAccounts: StateFlow<LocalResource<List<GoogleAccountEntity>>> = _googleAccounts
 
     fun getAllGoogleAccount() {
-        Logger.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
+        Logger.d("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
         viewModelScope.launch {
             _googleAccounts.emit(LocalResource.Loading())
             accountRepository.getGoogleAccounts().collectLatest { accounts ->
-                Logger.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
+                // Counts only: every account row carries the session cookie.
+                Logger.d("getAllGoogleAccount", "getAllGoogleAccount: ${accounts?.size ?: 0} saved account(s)")
                 if (!accounts.isNullOrEmpty()) {
                     _googleAccounts.emit(LocalResource.Success(accounts))
                 } else {
@@ -1445,7 +1445,7 @@ class SettingsViewModel(
                             .getAccountInfo(
                                 dataStoreManager.cookie.first(),
                             ).collect {
-                                Logger.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
+                                Logger.d("getAllGoogleAccount", "getAllGoogleAccount: ${it.size} account(s) from YouTube")
                                 if (it.isNotEmpty()) {
                                     dataStoreManager.putString("AccountName", it.first().name)
                                     dataStoreManager.putString(
@@ -1474,10 +1474,11 @@ class SettingsViewModel(
                                             ),
                                         ).singleOrNull()
                                         ?.let { account ->
-                                            Logger.w("getAllGoogleAccount", "inserted: $account")
+                                            Logger.d("getAllGoogleAccount", "inserted: $account")
                                         }
                                     getAllGoogleAccount()
                                 } else {
+                                    Logger.w("Auth", "YouTube: marked signed in, but the saved cookie returned no account — likely signed out or expired")
                                     _googleAccounts.emit(LocalResource.Success(emptyList()))
                                 }
                             }
@@ -1509,14 +1510,14 @@ class SettingsViewModel(
                 ?.takeIf {
                     it.isNotEmpty()
                 }?.let { accountInfoList ->
-                    Logger.d("getAllGoogleAccount", "addAccount: $accountInfoList")
+                    Logger.d("getAllGoogleAccount", "addAccount: ${accountInfoList.size} account(s)")
                     accountRepository.getGoogleAccounts().lastOrNull()?.forEach {
-                        Logger.d("getAllGoogleAccount", "set used: $it start")
+                        Logger.d("getAllGoogleAccount", "set used: start")
                         accountRepository
                             .updateGoogleAccountUsed(it.email, false)
                             .singleOrNull()
                             ?.let {
-                                Logger.w("getAllGoogleAccount", "set used: $it")
+                                Logger.d("getAllGoogleAccount", "set used: $it")
                             }
                     }
                     dataStoreManager.putString("AccountName", accountInfoList.first().name)
@@ -1554,16 +1555,17 @@ class SettingsViewModel(
                                 ),
                             ).firstOrNull()
                             ?.let {
-                                log("addAccount: $it", LogLevel.WARN)
+                                log("addAccount: inserted $it")
                             }
                     }
                     dataStoreManager.setLoggedIn(true)
                     dataStoreManager.setCookie(cookie, accountInfoList.first().pageId, accountInfoList.first().authUser)
+                    Logger.i("Auth", "YouTube: signed in, ${accountInfoList.size} account(s) on this cookie")
                     getAllGoogleAccount()
                     getLoggedIn()
                     true
                 } ?: run {
-                Logger.w("getAllGoogleAccount", "addAccount: Account info is null")
+                Logger.w("Auth", "YouTube: sign-in failed, YouTube returned no account for this cookie")
                 runBlocking {
                     dataStoreManager.setCookie(currentCookie, currentPageId, currentAuthUser)
                     dataStoreManager.setLoggedIn(currentLoggedIn)
@@ -1572,7 +1574,7 @@ class SettingsViewModel(
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Logger.e("getAllGoogleAccount", "addAccount: ${e.message}")
+            Logger.e("Auth", "YouTube: sign-in failed: ${e.message}")
             runBlocking {
                 dataStoreManager.setCookie(currentCookie, currentPageId, currentAuthUser)
                 dataStoreManager.setLoggedIn(currentLoggedIn)
@@ -1589,7 +1591,7 @@ class SettingsViewModel(
                         .updateGoogleAccountUsed(it.email, false)
                         .singleOrNull()
                         ?.let {
-                            Logger.w("getAllGoogleAccount", "set used: $it")
+                            Logger.d("getAllGoogleAccount", "set used: $it")
                         }
                 }
                 dataStoreManager.putString("AccountName", acc.name)
@@ -1598,13 +1600,14 @@ class SettingsViewModel(
                     .updateGoogleAccountUsed(acc.email, true)
                     .singleOrNull()
                     ?.let {
-                        Logger.w("getAllGoogleAccount", "set used: $it")
+                        Logger.d("getAllGoogleAccount", "set used: $it")
                     }
                 acc.netscapeCookie?.let { commonRepository.writeTextToFile(it, (getFileDir() + "/ytdlp-cookie.txt")) }.let {
                     Logger.d("getAllGoogleAccount", "addAccount: write cookie file: $it")
                 }
                 dataStoreManager.setCookie(acc.cache ?: "", acc.pageId, acc.authUser)
                 dataStoreManager.setLoggedIn(true)
+                Logger.i("Auth", "YouTube: switched account")
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -1614,13 +1617,14 @@ class SettingsViewModel(
                         .updateGoogleAccountUsed(it.email, false)
                         .singleOrNull()
                         ?.let {
-                            Logger.w("getAllGoogleAccount", "set used: $it")
+                            Logger.d("getAllGoogleAccount", "set used: $it")
                         }
                 }
                 dataStoreManager.putString("AccountName", "")
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("", null)
+                Logger.i("Auth", "YouTube: signed out")
                 // Mirroring follows needs a session to write to, so signing out clears the flag
                 // here rather than from the Settings row — same teardown as setSpotifyLogIn and
                 // logOutDiscord. Only this branch: acc != null is switching account, not logout.
@@ -1641,6 +1645,7 @@ class SettingsViewModel(
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("", null)
+            Logger.i("Auth", "YouTube: signed out of all accounts")
             dataStoreManager.setSyncFollowToYouTube(false)
             delay(500)
             getAllGoogleAccount()

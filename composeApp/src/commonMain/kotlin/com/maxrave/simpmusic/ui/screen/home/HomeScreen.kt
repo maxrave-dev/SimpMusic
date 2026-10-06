@@ -732,7 +732,6 @@ fun HomeScreen(
                                     ChartTitle()
                                     Spacer(modifier = Modifier.height(5.dp))
                                     Crossfade(targetState = regionChart) {
-                                        Logger.w("HomeScreen", "regionChart: $it")
                                         if (it != null) {
                                             DropdownButton(
                                                 items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
