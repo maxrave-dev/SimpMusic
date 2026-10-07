@@ -685,6 +685,7 @@ fun NowPlayingScreenContent(
             onShowAddToPlaylist = { showAddToPlaylistDirectly = true },
             onShowFullscreenLyrics = { showFullscreenLyrics = true },
             onShowVoteDialog = { showVoteDialog = true },
+            onLyricsOffsetChange = { sharedViewModel.setLyricsOffsetMs(it) },
             onEnterFullscreenVideo = {
                 onDismiss()
                 navController.navigate(FullscreenDestination)

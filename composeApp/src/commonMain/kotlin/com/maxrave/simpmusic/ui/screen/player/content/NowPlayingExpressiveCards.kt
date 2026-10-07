@@ -88,11 +88,14 @@ import com.maxrave.simpmusic.ui.component.AIBadge
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
+import com.maxrave.simpmusic.ui.component.LyricsOffsetBar
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
+import com.maxrave.simpmusic.ui.component.hasTiming
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Replay5
@@ -113,6 +116,7 @@ import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.like_and_dislike
 import simpmusic.composeapp.generated.resources.line_synced
 import simpmusic.composeapp.generated.resources.lyrics
+import simpmusic.composeapp.generated.resources.lyrics_offset
 import simpmusic.composeapp.generated.resources.lyrics_provider_betterlyrics
 import simpmusic.composeapp.generated.resources.lyrics_provider_lrc
 import simpmusic.composeapp.generated.resources.lyrics_provider_simpmusic
@@ -559,6 +563,7 @@ internal fun ExpressiveBelowTheFold(
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
     var showShareLyricsSheet by rememberSaveable { mutableStateOf(false) }
+    var showLyricsOffsetBar by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.padding(horizontal = 20.dp)) {
         // Lyrics card
         AnimatedVisibility(
@@ -602,6 +607,21 @@ internal fun ExpressiveBelowTheFold(
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                         }
+                        if (state.screenData.lyricsData.hasTiming()) {
+                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                IconButton(
+                                    onClick = { showLyricsOffsetBar = !showLyricsOffsetBar },
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.AvTimer,
+                                        contentDescription = stringResource(Res.string.lyrics_offset),
+                                        tint = colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                             IconButton(
                                 onClick = { showShareLyricsSheet = true },
@@ -628,6 +648,21 @@ internal fun ExpressiveBelowTheFold(
                             ) {
                                 Text(text = stringResource(Res.string.show), color = Color.White)
                             }
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = showLyricsOffsetBar && state.screenData.lyricsData.hasTiming(),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            LyricsOffsetBar(
+                                offsetMs = state.lyricsOffsetMs.toInt(),
+                                onOffsetChange = actions.onLyricsOffsetChange,
+                                containerColor = colorScheme.surfaceContainerHighest,
+                                contentColor = colorScheme.onSurface,
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(18.dp))

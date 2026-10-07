@@ -81,6 +81,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
@@ -102,6 +103,7 @@ import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
@@ -117,6 +119,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingTrackInfoRow
 import com.maxrave.simpmusic.ui.screen.player.content.SpotifyPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
+import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -305,10 +308,11 @@ fun FullscreenLyricsContent(
                 label = "sliderCrossfadeColor",
             )
             Box(modifier = Modifier.fillMaxSize()) {
-                // Animated gradient background
+                // Animated gradient background. The glass source whenever glass is on: the Desktop
+                // chrome draws from it, and so does the lyrics timing button on both platforms.
                 AnimatedLyricsGradientBackground(
                     color = color,
-                    modifier = if (isDesktop) Modifier.layerBackdrop(backdrop) else Modifier,
+                    modifier = if (LocalLiquidGlassEnabled.current) Modifier.layerBackdrop(backdrop) else Modifier,
                 )
 
                 // ── Foreground content column ─────────────────────────────────────
@@ -491,6 +495,7 @@ fun FullscreenLyricsContent(
                             lyricsData = screenDataState.lyricsData,
                             sharedViewModel = sharedViewModel,
                             color = color,
+                            backdrop = backdrop,
                         )
                     }
 
@@ -955,6 +960,7 @@ private fun FullscreenLyricsLandscape(
                     lyricsData = state.screenData.lyricsData,
                     sharedViewModel = sharedViewModel,
                     color = color,
+                    backdrop = backdrop,
                 )
             }
         }
@@ -1109,34 +1115,59 @@ private fun FullscreenLyricsList(
     lyricsData: NowPlayingScreenData.LyricsData?,
     sharedViewModel: SharedViewModel,
     color: Color,
+    backdrop: PlatformBackdrop,
 ) {
-    Crossfade(
-        targetState = lyricsData != null,
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        if (it) {
-            lyricsData?.let { lyrics ->
-                LyricsView(
-                    lyricsData = lyrics,
-                    timeLine = sharedViewModel.timeline,
-                    onLineClick = { f ->
-                        sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
-                    },
+    val lyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Crossfade(
+            targetState = lyricsData != null,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            if (it) {
+                lyricsData?.let { lyrics ->
+                    LyricsView(
+                        lyricsData = lyrics,
+                        timeLine = sharedViewModel.timeline,
+                        onLineClick = { f ->
+                            sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        showScrollShadows = true,
+                        backgroundColor = color,
+                    )
+                }
+            } else {
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    showScrollShadows = true,
-                    backgroundColor = color,
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(Res.string.unavailable),
+                        style = typo().bodyMedium,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(Res.string.unavailable),
-                    style = typo().bodyMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
+        }
+        // Here rather than in either layout, so portrait, landscape and Desktop all get it. Bottom-end,
+        // over the dimmest lines. Glass, like the rest of this page's floating chrome.
+        if (lyricsData.hasTiming()) {
+            LyricsOffsetFloatingControl(
+                offsetMs = lyricsOffsetMs,
+                onOffsetChange = { sharedViewModel.setLyricsOffsetMs(it) },
+                backdrop = backdrop,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 12.dp),
+            ) { onClick ->
+                LiquidGlassIconButton(
+                    backdrop = backdrop,
+                    imageVector = SimpIcons.AvTimer,
+                    // A round button's rim, as on the Apple Music player's Desktop dismiss button.
+                    highlight = Highlight(width = 1.dp),
+                    onClick = onClick,
                 )
             }
         }

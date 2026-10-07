@@ -1895,6 +1895,12 @@ class SharedViewModel(
 
     fun getLyricsOffsetMs() = dataStoreManager.lyricsOffsetMs
 
+    fun setLyricsOffsetMs(offsetMs: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setLyricsOffsetMs(offsetMs)
+        }
+    }
+
     fun setThemeMode(mode: String) {
         viewModelScope.launch {
             dataStoreManager.setThemeMode(mode)
