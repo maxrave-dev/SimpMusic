@@ -15,6 +15,11 @@
         <item quantity="one">%1$d song</item>
         <item quantity="other">%1$d songs</item>
     </plurals>
+    <plurals name="library_artist_count">
+        <item quantity="one">%1$d artist</item>
+        <item quantity="other">%1$d artists</item>
+    </plurals>
+    <string name="library_favorite_empty_hint">Tap the heart on any song to keep it here.</string>
     <string name="like">Like</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="download">Download</string>
@@ -99,6 +104,7 @@
     <string name="move_down">Move down</string>
     <string name="delete_from_queue">Delete from queue</string>
     <string name="more">More</string>
+    <string name="play_all">Play all</string>
     <string name="singles">Singles</string>
     <string name="related_artists">Related Artists</string>
     <string name="about">About</string>

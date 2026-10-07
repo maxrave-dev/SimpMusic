@@ -46,6 +46,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -113,6 +114,7 @@ import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.FootgunsStarDialog
+import com.maxrave.simpmusic.ui.component.HomeDiscoverSection
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
@@ -125,6 +127,7 @@ import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
+import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.History
@@ -190,6 +193,7 @@ import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
 import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_warning
 import simpmusic.composeapp.generated.resources.party
+import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.relax
 import simpmusic.composeapp.generated.resources.romance
@@ -664,6 +668,12 @@ fun HomeScreen(
                                                 viewModel = viewModel,
                                             )
                                         }
+                                    } else if (item.isSongCardShelf()) {
+                                        HomeDiscoverSection(
+                                            data = item,
+                                            navController = navController,
+                                            homeViewModel = viewModel,
+                                        )
                                     } else {
                                         HomeItem(
                                             navController = navController,
@@ -1000,6 +1010,15 @@ fun AccountLayout(
 // column stretched across the whole screen, so every row there is capped instead.
 private val LandscapeGridItemMaxWidth = 400.dp
 
+// A card shelf of songs only that leads to no page of its own ("Your daily discover"). List shelves
+// (Quick picks, Heard in Shorts) carry itemsPerColumn and keep their own look; a shelf with a More
+// page (Listen again can be all songs) keeps its cards; videos draw as wide cards, so never match.
+private fun HomeItem.isSongCardShelf(): Boolean =
+    itemsPerColumn == null &&
+        moreEndpoint == null &&
+        contents.isNotEmpty() &&
+        contents.all { it != null && !it.videoId.isNullOrEmpty() && it.homeCardAspectRatio() == 1f }
+
 @ExperimentalFoundationApi
 @Composable
 fun QuickPicks(
@@ -1034,20 +1053,35 @@ fun QuickPicks(
                 }
             },
     ) {
-        Text(
-            text = stringResource(Res.string.let_s_start_with_a_radio),
-            style = typo().bodySmall,
-        )
-        Text(
-            text = stringResource(Res.string.quick_picks),
-            style = typo().headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(Res.string.let_s_start_with_a_radio),
+                    style = typo().bodySmall,
+                )
+                Text(
+                    text = stringResource(Res.string.quick_picks),
+                    style = typo().headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp),
+                )
+            }
+            if (homeItem.playAllEndpoint != null) {
+                TextButton(
+                    onClick = { viewModel.playAll(homeItem) },
+                    colors =
+                        ButtonDefaults
+                            .textButtonColors()
+                            .copy(contentColor = MaterialTheme.colorScheme.onSurface),
+                ) {
+                    Text(stringResource(Res.string.play_all), style = typo().bodySmall)
+                }
+            }
+        }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
             modifier = Modifier.height(256.dp),

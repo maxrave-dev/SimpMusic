@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.library.LibraryOverview
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.MonthlyRecapItem
@@ -119,6 +120,10 @@ class LibraryViewModel(
     private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
     val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
 
+    /** Counts and newest artwork for the four Your library cards; null until the first read lands. */
+    private val _libraryOverview: MutableStateFlow<LibraryOverview?> = MutableStateFlow(null)
+    val libraryOverview: StateFlow<LibraryOverview?> get() = _libraryOverview.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
 
@@ -149,6 +154,9 @@ class LibraryViewModel(
                 }
             currentScreenJob.join()
             cookieJob.join()
+        }
+        viewModelScope.launch {
+            commonRepository.getLibraryOverview().collect { _libraryOverview.value = it }
         }
     }
 

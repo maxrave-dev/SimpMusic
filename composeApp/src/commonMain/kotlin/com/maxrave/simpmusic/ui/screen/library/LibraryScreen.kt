@@ -157,6 +157,7 @@ fun LibraryScreen(
     val favoritePodcasts by viewModel.favoritePodcasts.collectAsStateWithLifecycle()
     val chartPlaylists by viewModel.chartPlaylists.collectAsStateWithLifecycle()
     val recentlyAdded by viewModel.recentlyAdded.collectAsStateWithLifecycle()
+    val libraryOverview by viewModel.libraryOverview.collectAsStateWithLifecycle()
 
     val selectionState = rememberSongSelectionState()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
@@ -273,7 +274,7 @@ fun LibraryScreen(
                         state = state,
                     ) {
                         item {
-                            LibraryTilingBox(navController)
+                            LibraryTilingBox(navController, libraryOverview)
                         }
 
                         // The reading is drawn from playback_event, so the card follows the same

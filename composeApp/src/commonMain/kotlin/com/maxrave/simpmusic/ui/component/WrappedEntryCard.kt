@@ -86,9 +86,8 @@ fun WrappedEntryCard(
  * the two stacked there read as one family: one picture, two lines, and a disc saying what a tap does.
  *
  * Built from the app's own vocabulary rather than a shape of its own: the shell is [ElevatedCard]
- * with `CardDefaults`, exactly as [LibraryTilingItem] draws a tappable card in Library; the picture
- * is clipped the way every list row in the app clips one; colours are `MaterialTheme.colorScheme`
- * roles and type comes off [typo].
+ * with `CardDefaults`; the picture is clipped the way every list row in the app clips one; colours
+ * are `MaterialTheme.colorScheme` roles and type comes off [typo].
  */
 @Composable
 internal fun EntryCard(

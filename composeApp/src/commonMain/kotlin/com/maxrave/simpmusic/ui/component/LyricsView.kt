@@ -77,6 +77,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
 import org.koin.compose.koinInject
 import androidx.navigation.NavController
 import com.maxrave.domain.data.model.streams.TimeLine
+import com.maxrave.simpmusic.extension.LyricsStagger
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.animateScrollAndAnchorItemTop
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
@@ -536,7 +537,11 @@ fun LyricsView(
                 thresholdMs = 1000L,
             )
         }
-    LaunchedEffect(currentLineIndex, lyricsData.lyrics.syncType, appleStyle) {
+    // The Apple Music handover: rows set off one behind another instead of as one block. Per sheet,
+    // so a new song's first line counts as the next line rather than as a jump.
+    val stagger = remember(displayLines) { LyricsStagger() }
+
+    LaunchedEffect(currentLineIndex, lyricsData.lyrics.syncType, appleStyle, stagger) {
         if (currentLineIndex > -1 &&
             (lyricsData.lyrics.syncType == "LINE_SYNCED" || lyricsData.lyrics.syncType == "RICH_SYNCED")
         ) {
@@ -547,7 +552,7 @@ fun LyricsView(
                 // lyric that wraps is one item spanning two or three rows, so the entire wrapped
                 // block hung above the sung line. Anchoring the sung line itself and backing off by
                 // one row's height is row-accurate no matter how the previous line wrapped.
-                listState.animateScrollAndAnchorItemTop(currentLineIndex, -exposedRowPx)
+                listState.animateScrollAndAnchorItemTop(currentLineIndex, -exposedRowPx, stagger)
             } else {
                 listState.animateScrollAndCentralizeItem(currentLineIndex)
             }
@@ -733,6 +738,10 @@ fun LyricsView(
                         Column(
                             modifier =
                                 Modifier
+                                    // Trails the list while a handover runs (LyricsStagger). A
+                                    // translation only — no clip — so the blur and the glow below
+                                    // still spill past the line's own box.
+                                    .graphicsLayer { translationY = stagger.lagPx(index) }
                                     // background(colour, shape), NOT clip(shape) + background().
                                     // clip() cuts everything that leaves this line's box — which is
                                     // exactly what blur and glow are supposed to do. It sliced the
@@ -791,6 +800,9 @@ fun LyricsView(
                         Box(
                             modifier =
                                 Modifier
+                                    // The row after the last line: it trails with the lines, or
+                                    // the lines would run into it while they catch up.
+                                    .graphicsLayer { translationY = stagger.lagPx(displayLines.lines.size) }
                                     .padding(horizontal = AppleMusicLyricPaddingX)
                                     .alpha(FOOTER_ALPHA),
                         ) {

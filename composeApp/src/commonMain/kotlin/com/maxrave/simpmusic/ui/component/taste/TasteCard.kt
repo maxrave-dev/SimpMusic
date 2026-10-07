@@ -174,11 +174,12 @@ private fun TasteRowCard(
     onClick: (() -> Unit)? = null,
     trailing: @Composable () -> Unit,
 ) {
-    val container = tasteCardColor()
+    val container = libraryCardColor()
     ElevatedCard(
         modifier = Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = RoundedCornerShape(CARD_RADIUS),
-        elevation = CardDefaults.elevatedCardElevation(),
+        // Flat, like the collection cards above it on the Your library tab.
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.elevatedCardColors().copy(containerColor = container),
     ) {
         Row(
@@ -263,11 +264,12 @@ private fun TasteReadingCard(
     onRegenerate: () -> Unit,
     onShare: () -> Unit,
 ) {
-    val container = tasteCardColor()
+    val container = libraryCardColor()
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(CARD_RADIUS),
-        elevation = CardDefaults.elevatedCardElevation(),
+        // Flat, like the collection cards above it on the Your library tab.
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.elevatedCardColors().copy(containerColor = container),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(GUTTER)) {
@@ -390,12 +392,13 @@ internal fun ArtistStack(
 }
 
 /**
- * [com.maxrave.simpmusic.ui.component.WrappedEntryCard]'s container, except on a light Desktop:
+ * The container every card on the Your library tab shares — this one and the collection cards above
+ * it. [com.maxrave.simpmusic.ui.component.WrappedEntryCard]'s container, except on a light Desktop:
  * there the panel underneath already is a light grey, and the card would only show as a shadow, so
  * it lifts to white — the same rule the grouped Settings cards follow.
  */
 @Composable
-private fun tasteCardColor(): Color =
+internal fun libraryCardColor(): Color =
     if (getPlatform() == Platform.Desktop && !LocalIsDarkTheme.current) {
         MaterialTheme.colorScheme.surfaceContainerLowest
     } else {
@@ -404,7 +407,7 @@ private fun tasteCardColor(): Color =
 
 private val GUTTER = 14.dp
 
-private val CARD_RADIUS = 12.dp
+private val CARD_RADIUS = 20.dp
 
 private val DISC_SIZE = 44.dp
 

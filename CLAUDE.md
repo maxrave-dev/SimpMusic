@@ -972,6 +972,23 @@ if (getPlatform() == Platform.Android) {
   - The directory (`SYSTEM_TEMPORARY_DIRECTORY/image_cache`), 512 MiB limit, original cache keys and image quality are unchanged. There is no new cover store, database field, dependency or download format. Widget/notification/download thumbnail code that constructs a separate `ImageLoader(context)` is deliberately unchanged. Existing entries remain available for offline fallback; this does not pin them against ordinary LRU eviction or manual cache clearing. A process killed mid-request can leave a staging entry until normal cache eviction.
   - `composeApp/src/jvmTest/.../NetworkFirstInterceptorTest.kt` has 14 cases against real Coil memory/disk caches and its network fetcher with an in-process fake client/decoder: fresh RAM/disk hits skip the network, disk-to-RAM warming preserves age, exact 24-hour expiry refreshes and starts a new TTL, failed refresh forces expired cache without renewing TTL, plus HTTP/decode errors, cache miss, custom keys, local files, cache-only requests and cancellation. Tests were added but not run by the agent (no-auto-build rule); generic kotlin-lsp diagnostics are not a KMP compile gate.
 
+- **Your library cards redesigned (2026-10-07)**: the four pastel tiles at the top of the Your library tab (hardcoded `Color(0xff…)` fills, black text, blind to the theme) became one wide Favorite card plus Followed / Most played / Downloaded cards, each fanning the artwork of its newest items (`SleeveFan` in `LibraryTilingBox.kt`: newest drawn last so it lands on top). An empty collection draws dashed empty sleeves in the same slots, so a new user sees the shapes waiting to be filled; a null overview (first read not landed) draws titles only, so a full library never flashes as empty.
+  - Data is `CommonRepository.getLibraryOverview()`: COUNT + newest-thumbnail DAO Flows for liked songs, downloaded songs and followed artists, plus the existing most-played Flow (already `LIMIT 50`, so its size is the count). All are Flows, so a like, follow or finished download updates the card at once.
+  - The card container is `libraryCardColor()` (formerly TasteCard's private `tasteCardColor()`, white on a light Desktop); the taste card went to the same 20dp radius and lost its elevation so the tab reads as one flat family.
+  - Rejected by the owner on the way, do not bring back: Apple Music's category list ("ko phải library đẹp"), an icon inside a tinted rounded square ("AI slop"), and 2×2 cover mosaics (YouTube Music's style).
+
+- **Home: Your daily discover hero, "Play all" and hover play buttons (2026-10-07)**: three Home changes, all driven by what YouTube's Home response actually declares (measured on a signed-in and an anonymous Home).
+  - **What YouTube declares about each shelf.** `numItemsPerColumn: "4"` appears only on song-list shelves (Quick picks, Heard in Shorts, Trending songs for you), and `itemSize` is `COLLECTION_STYLE_ITEM_SIZE_MEDIUM` on every shelf, so it carries no information. The header button is "More" when it holds a `browseEndpoint` and "Play all" when it holds a `watchEndpoint`. The Play all endpoint has `videoId` + `params` and no `playlistId`, and `/next` turns it into a finite `TLGG…` queue with no continuation. `HomeParser` used to read only the browse form, so Play all was dropped. These now land on `HomeItem.itemsPerColumn` and `HomeItem.playAllEndpoint`, and every shelf header (`HomeSectionHeader`, plus Quick picks') shows Play all as a text button, the same as More.
+  - **"Your daily discover" is ArchiveTune's hero carousel** (`HomeDiscoverSection` in `HomeSectionStyles.kt`, M3 `HorizontalCenteredHeroCarousel`, which the pinned material3 ships). It applies to any card shelf of songs only that has no More page and no `itemsPerColumn`.
+    - It shows one large card with narrow neighbours, the title on the art over a `colorScheme.scrim` gradient in `ForceDarkContent`. Tapping a neighbour brings it to the middle, and tapping the middle card plays its radio.
+    - The large width is 0.74 of the row on phones and 0.6 on wide rows. Below half the row, the carousel lays two large cards side by side on a desktop window, which is not the look.
+    - "Mixed for you" deliberately stays on square cards: mix covers print their own title ("My Mix 06", "Supermix") along the bottom, so a hero crops it and an overlay duplicates it.
+  - **Spotify-style hover on Home cards** (`rememberCardHover` + `HoverPlayButton` in `AdapterItems.kt`): pointer hover or keyboard focus tints the card with `onSurface` and raises a `primary` / `onPrimary` play button onto the artwork. Phones never hover, so they are unchanged.
+    - Songs and videos play exactly as a tap does.
+    - Playlists and albums play `Content.playEndpoint` through `BaseViewModel.playFromEndpoint` (an `RD…` id is queued as a radio, anything else as a playlist). That endpoint is the card's own play target, read off `thumbnailOverlay…musicPlayButtonRenderer.playNavigationEndpoint`: songs get `RDAMVM…`, playlists `PL…`, albums `OLAK5u…`, and artists none.
+    - App-built new-release albums carry their `OLAK…` id. A playlist card without a target plays by its id.
+  - **Do not copy how Vivi and ArchiveTune pick their special sections.** Both match the section title text ("cover" and "remix", a translated "community"). That breaks per language; our own Quick picks title match already fails in French ("Sélection rapide" vs "Sélection Rapide").
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -996,6 +1013,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-06
+**Last updated**: 2026-10-07
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

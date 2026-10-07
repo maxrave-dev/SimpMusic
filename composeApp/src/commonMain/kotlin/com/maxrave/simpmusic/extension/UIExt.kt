@@ -1,7 +1,9 @@
 package com.maxrave.simpmusic.extension
 
+import androidx.compose.animation.core.FloatSpringSpec
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -354,6 +358,111 @@ fun NonLazyGrid(
 }
 
 /**
+ * Apple Music's handover between two lyric lines: the page does not move as one block. The row
+ * at the top of the page sets off first and every row below it a little after the one above it,
+ * so the spacing opens as the page leaves and closes as it lands. The schedule is AMLL's
+ * (`calcLayout` in packages/core/src/lyric-player/base/index.ts): nothing for the first row still
+ * on the page, then 50 ms more per row, the step shrinking by 1/1.05 a row once past the sung line.
+ *
+ * Done inside a LazyColumn the way BitChord does it: the list itself scrolls by the undelayed
+ * curve, and each row draws itself back ([lagPx]) by what its own delayed curve has not covered
+ * yet. A row with no delay therefore sits still against the list — the line leaving through the
+ * top is clipped like any scroll — and a row with one only ever trails downwards, into space the
+ * list has already laid out, so nothing pops in at either edge.
+ *
+ * One handover at a time: a new line ends the running one, and any row still trailing snaps into
+ * place. With lines a second or more apart nothing is left to snap; under about 0.7 s apart a few
+ * pixels are, mostly on the blurred rows further down.
+ */
+class LyricsStagger {
+    // The curve the list scrolls on AND the one every row trails on: two different curves, and a
+    // row with no delay would still drift against the list it sits in.
+    //
+    // A spring, not a tween. A tween covers a fixed distance in a fixed time, so a one-line step
+    // and a six-line jump after a seek both take 650ms — the short one crawls, the long one races.
+    // A spring is driven by the distance itself, which is why Apple's page settles the same way
+    // whether it moved a little or a lot. Damping just under 1 keeps it soft without bouncing, and
+    // low stiffness is what makes it read as gliding rather than snapping into place.
+    private val spring =
+        FloatSpringSpec(dampingRatio = 0.9f, stiffness = 180f, visibilityThreshold = 0.001f)
+    private val springMs = spring.getDurationNanos(0f, 1f, 0f) / 1_000_000f
+
+    // Read inside the rows' graphicsLayer, so a handover re-runs only those layers — draw phase,
+    // no recomposition and no layout.
+    private var lagDistance by mutableFloatStateOf(0f)
+    internal var elapsedMs by mutableFloatStateOf(0f)
+
+    private var firstOnPage = 0
+    private var target = -1
+
+    /** How far along the scroll is, 0..1, [ms] into the handover. */
+    internal fun progress(ms: Float): Float =
+        when {
+            ms <= 0f -> 0f
+            ms >= springMs -> 1f
+            else -> spring.getValueFromNanos((ms * 1_000_000f).toLong(), 0f, 1f, 0f)
+        }
+
+    /**
+     * Starts a handover of [distance] px to [index]; returns how long until the last row on the
+     * page has landed, in ms. Only a step to the NEXT line staggers: a seek, a tapped line or a
+     * jump from off screen moves as one block, as AMLL turns the stagger off on a seek.
+     */
+    internal fun begin(
+        layoutInfo: LazyListLayoutInfo,
+        index: Int,
+        distance: Float,
+        wasVisible: Boolean,
+    ): Float {
+        val staggered = wasVisible && index == target + 1
+        target = index
+        // The first row still on the page once it lands. AMLL counts the delays from there, at
+        // zero, so every row above it — the one about to leave through the top included — moves
+        // with the list.
+        val pageTop = layoutInfo.viewportStartOffset + distance
+        firstOnPage =
+            layoutInfo.visibleItemsInfo
+                .firstOrNull { it.offset + it.size > pageTop }
+                ?.index ?: index
+        elapsedMs = 0f
+        lagDistance = if (staggered) distance else 0f
+        if (!staggered) return springMs
+        // Two rows past the bottom: the ones the scroll is about to bring in.
+        val lastRow = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: index) + 2
+        return springMs + delayMs(lastRow)
+    }
+
+    internal fun end() {
+        lagDistance = 0f
+        elapsedMs = 0f
+    }
+
+    /** How far below its laid-out place row [index] is drawn right now, in px. */
+    fun lagPx(index: Int): Float {
+        val distance = lagDistance
+        if (distance == 0f) return 0f
+        val delay = delayMs(index)
+        if (delay == 0f) return 0f
+        // Read only past the early returns: a row with nothing to trail never reads the clock, so
+        // a handover invalidates only the layers that actually move against the list.
+        val ms = elapsedMs
+        return distance * (progress(ms) - progress(ms - delay))
+    }
+
+    // AMLL calcLayout: 0 for the first row on the page, then 50 ms more per row; from the sung
+    // line down the step shrinks by 1/1.05 a row.
+    private fun delayMs(index: Int): Float {
+        var delay = 0f
+        var step = 50f
+        for (row in firstOnPage until index) {
+            delay += step
+            if (row >= target) step /= 1.05f
+        }
+        return delay
+    }
+}
+
+/**
  * Scrolls [index] to the TOP edge of the viewport, the counterpart to
  * [animateScrollAndCentralizeItem]. Used by the Apple Music lyrics style, which anchors the page
  * near the top rather than around the middle.
@@ -363,6 +472,8 @@ fun NonLazyGrid(
  * line, where a spring reads as the page drifting with the song. The one-frame wait and the
  * jump-if-offscreen guard are kept verbatim; both are needed for layoutInfo to hold the target
  * item before its offset is measured.
+ *
+ * [stagger] lets the rows trail the scroll; see [LyricsStagger].
  */
 suspend fun LazyListState.animateScrollAndAnchorItemTop(
     index: Int,
@@ -372,6 +483,7 @@ suspend fun LazyListState.animateScrollAndAnchorItemTop(
      * scrolling to the previous item: a lyric line that wraps is one item but several rows.
      */
     extraOffsetPx: Float = 0f,
+    stagger: LyricsStagger,
 ) {
     if (index < 0) return
     val initiallyVisible = this.layoutInfo.visibleItemsInfo.any { it.index == index }
@@ -381,16 +493,25 @@ suspend fun LazyListState.animateScrollAndAnchorItemTop(
     withFrameNanos { }
     val itemInfo =
         this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index } ?: return
-    this.animateScrollBy(
-        value = (itemInfo.offset - this.layoutInfo.viewportStartOffset).toFloat() + extraOffsetPx,
-        // A spring, not a tween. A tween covers a fixed distance in a fixed time, so a one-line
-        // step and a six-line jump after a seek both take 650ms — the short one crawls, the long
-        // one races. A spring is driven by the distance itself, which is why Apple's page settles
-        // the same way whether it moved a little or a lot. Damping just under 1 keeps it soft
-        // without bouncing, and low stiffness is what makes it read as gliding rather than
-        // snapping into place.
-        animationSpec = spring(dampingRatio = 0.9f, stiffness = 180f),
-    )
+    val distance =
+        (itemInfo.offset - this.layoutInfo.viewportStartOffset).toFloat() + extraOffsetPx
+    val spanMs = stagger.begin(this.layoutInfo, index, distance, initiallyVisible)
+    try {
+        // animateScrollBy's own loop, but stepped by the clock rather than by the spring, so the
+        // rows can read the same clock and run the same curve a little behind it.
+        var scrolled = 0f
+        scroll {
+            val clock = tween<Float>(spanMs.toInt(), easing = LinearEasing)
+            animate(0f, spanMs, animationSpec = clock) { ms, _ ->
+                stagger.elapsedMs = ms
+                scrolled += scrollBy(distance * stagger.progress(ms) - scrolled)
+            }
+        }
+    } finally {
+        // Done, or cut short — by the next line, or by a finger taking the list. Either way every
+        // row goes back to where the list has it.
+        stagger.end()
+    }
 }
 
 suspend fun LazyListState.animateScrollAndCentralizeItem(index: Int) {
