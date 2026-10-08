@@ -19,6 +19,8 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 > SimpMusic is available on Desktop now!
 >
 > [kotlin-footguns](https://github.com/maxrave-dev/kotlin-footguns) — the Kotlin, Compose Multiplatform and desktop JVM traps this project ran into the hard way. Star it if it saves you a night.
+
+[![Sponsor](https://readme.cash/i/janwgx1dnp.svg)](https://readme.cash/c/janwgx1dnp)
   
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background
