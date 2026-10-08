@@ -989,6 +989,9 @@ if (getPlatform() == Platform.Android) {
     - App-built new-release albums carry their `OLAK…` id. A playlist card without a target plays by its id.
   - **Do not copy how Vivi and ArchiveTune pick their special sections.** Both match the section title text ("cover" and "remix", a translated "community"). That breaks per language; our own Quick picks title match already fails in French ("Sélection rapide" vs "Sélection Rapide").
 
+- **Linux slice: libbz2 bundled, the AppImage excludelist left to the host (2026-10-08, issue #2462)**: `scripts/mpv-linux/stage.sh` listed `libbz2.so.1.0` in `SYSTEM_LIBS`, but that soname exists only on Debian/Ubuntu (Fedora/RHEL ship `libbz2.so.1`), so libmpv could not load there and every song timed out. It is now bundled. In the other direction, the 11 AppImage community excludelist libraries this closure pulls in (fontconfig, freetype, harfbuzz, expat, fribidi, X11, X11-xcb, xcb, asound, gpg-error, uuid), plus Xau and Xdmcp which only libxcb needs, are now left to the host. libmpv loads at startup, before the Compose window exists, and glibc reuses an already-loaded soname even under `RTLD_LOCAL`, so a bundled copy of any of them replaces the host's for the whole process: on Fedora 44, once libmpv could load (a user symlinked `libbz2.so.1.0`), Skia drew a black window.
+  - **Nothing reaches users until the slice is rebuilt.** CI only downloads the tarball pinned in `mpvNativesChecksums`, so the Linux slice must be rebuilt, the asset replaced on the `abc` release of `simpmusic-files`, and its new SHA-256 pinned.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -1013,6 +1016,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-07
+**Last updated**: 2026-10-08
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
