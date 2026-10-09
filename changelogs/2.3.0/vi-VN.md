@@ -1,0 +1,41 @@
+# SimpMusic 2.3.0
+
+## Mới
+- **Trình phát Apple Music làm mới**: artwork hiện trọn không bị cắt, artwork động nằm trong khung đúng tỉ lệ của nó, nền lấy từ màu của artwork, dòng lời đang hát nằm trên thanh tua, hiện bitrate và tần số lấy mẫu của luồng phát, và nút đầu ra âm thanh (kèm Cast) cạnh Listen Together. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Lời bài hát kiểu Apple Music**: khi chuyển dòng đang hát, các dòng lần lượt trôi lên nối tiếp nhau như Apple Music, thay vì cả khối cùng nhảy. ([#2408](https://github.com/maxrave-dev/SimpMusic/issues/2408))
+- **Home làm mới**: "Your daily discover" thành carousel cỡ lớn, nút "Play all" ở những mục có hỗ trợ, nút phát hiện ra khi rê chuột trên máy tính, và thẻ Thư viện mới cho Yêu thích, Đang theo dõi, Nghe nhiều nhất và Đã tải, hiện các mục mới nhất của bạn. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Hoá đơn nghe nhạc**: chia sẻ những bài bạn nghe nhiều nhất trong một khoảng thời gian dưới dạng một tờ hoá đơn in, ngay trong màn Analytics. ([#2598](https://github.com/maxrave-dev/SimpMusic/issues/2598))
+- **Gu nhạc của bạn**: thẻ AI trong Thư viện đọc lịch sử nghe 12 tháng gần nhất và mô tả gu nhạc của bạn, dùng nhà cung cấp AI bạn đã cài trong Cài đặt. ([#2568](https://github.com/maxrave-dev/SimpMusic/issues/2568))
+- **Đầu ra âm thanh**: chọn loa, tai nghe hoặc thiết bị Cast ngay trong trình phát, ở cả ba giao diện trình phát. Chỉ âm thanh của SimpMusic được chuyển. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Phát trực tiếp**: các kênh phát trực tiếp của YouTube Music phát được, thẻ của chúng có nhãn LIVE. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Artwork động trên trang nghệ sĩ**: trang nghệ sĩ phát artwork động của nghệ sĩ lấy từ Apple Music. ([#2579](https://github.com/maxrave-dev/SimpMusic/issues/2579))
+- **Nhật ký ứng dụng**: Cài đặt → Developer option → App log hiện nhật ký của app. Bạn có thể xuất ra để gửi kèm báo lỗi; key, cookie và địa chỉ IP được xoá khỏi file xuất. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Tuỳ chọn bài hát trong hàng chờ**: nút ⋯ ở mỗi bài trong hàng chờ mở đầy đủ menu bài hát, có chuyển lên, chuyển xuống, chuyển thành bài phát tiếp theo và xoá khỏi hàng chờ. ([#2599](https://github.com/maxrave-dev/SimpMusic/issues/2599), [#2542](https://github.com/maxrave-dev/SimpMusic/issues/2542))
+- **SimpMusic cho vivo**: một bản APK riêng mà Origin Island và widget nhạc của máy vivo nhận được. ([#2074](https://github.com/maxrave-dev/SimpMusic/issues/2074), [#2316](https://github.com/maxrave-dev/SimpMusic/issues/2316))
+
+## Cải thiện
+- **Trình phát Classic và Material 3 Expressive**: artwork động của album phát giống như ở trình phát Apple Music, và Material 3 Expressive lấy màu theo artwork. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Cài đặt**: các mục được gom thành từng nhóm thẻ. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Bù trễ thời gian lời bài hát**: chỉnh ngay trong màn lời bài hát, không chỉ trong Cài đặt. ([#2338](https://github.com/maxrave-dev/SimpMusic/issues/2338))
+- **Windows**: thanh tiêu đề chuẩn của Windows với các nút thu nhỏ, phóng to và đóng của hệ thống. ([#2075](https://github.com/maxrave-dev/SimpMusic/issues/2075), [#2597](https://github.com/maxrave-dev/SimpMusic/issues/2597))
+- **Hình ảnh**: artwork được giữ lại một ngày và vẫn hiện khi bạn mất mạng. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Tải xuống**: chỉ tải âm thanh khi bạn đang tắt chế độ phát video. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **UI mượt hơn**: thanh điều hướng dưới, mini player và hiệu ứng glass vẽ lại ít hơn khi màn hình không có gì thay đổi. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Developer blog**: blog và thông báo bài mới giờ lấy từ simpmusic.org. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+
+## Sửa lỗi
+- Windows: crash với lỗi "Unable to rename settings.preferences_pb.tmp". ([#2357](https://github.com/maxrave-dev/SimpMusic/issues/2357), [#2406](https://github.com/maxrave-dev/SimpMusic/issues/2406), [#2158](https://github.com/maxrave-dev/SimpMusic/issues/2158), [#2145](https://github.com/maxrave-dev/SimpMusic/issues/2145), [#2459](https://github.com/maxrave-dev/SimpMusic/issues/2459))
+- Máy tính: crash khi mở Cài đặt hoặc menu của playlist, và cảnh báo của phần mềm diệt virus, đều do thư viện chọn file gây ra. ([#2546](https://github.com/maxrave-dev/SimpMusic/issues/2546), [#2559](https://github.com/maxrave-dev/SimpMusic/issues/2559), [#2580](https://github.com/maxrave-dev/SimpMusic/issues/2580), [#2593](https://github.com/maxrave-dev/SimpMusic/issues/2593), [#2595](https://github.com/maxrave-dev/SimpMusic/issues/2595), [#2603](https://github.com/maxrave-dev/SimpMusic/issues/2603), [#2609](https://github.com/maxrave-dev/SimpMusic/issues/2609))
+- Linux: không có tiếng trên Fedora và các bản phân phối không dựa trên Ubuntu. ([#2462](https://github.com/maxrave-dev/SimpMusic/issues/2462))
+- Android 11 trở xuống: crash khi chuyển qua lại giữa một số màn hình. ([#1987](https://github.com/maxrave-dev/SimpMusic/issues/1987))
+- Thanh tua không chạy theo khi bạn tua lúc đang tạm dừng. ([#2480](https://github.com/maxrave-dev/SimpMusic/issues/2480))
+- Lịch sử tìm kiếm bị đóng khi bạn cuộn. ([#2572](https://github.com/maxrave-dev/SimpMusic/issues/2572))
+- Lời chạy theo từng từ với tiếng Ả Rập và các ngôn ngữ viết từ phải sang trái. ([#2584](https://github.com/maxrave-dev/SimpMusic/issues/2584))
+- Shuffle: kéo một bài, thêm bài hoặc dùng "Phát tiếp theo" làm xáo trộn lại cả hàng chờ. ([#2360](https://github.com/maxrave-dev/SimpMusic/issues/2360), [#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Thông báo bản phát hành mới báo cả bản cũ, và hiện "This link is not supported" khi bấm vào. ([#1999](https://github.com/maxrave-dev/SimpMusic/issues/1999), [#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Bảng xếp hạng: bảng của Mỹ bị trống. Giờ bảng còn có thêm top podcast của tuần. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Phiên âm tiếng Nhật biến mất sau khi cài lại app. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Sửa playlist YouTube đã đồng bộ bị lỗi với các bài nằm sau trang đầu. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Login Sync trên Android 17: app giờ xin quyền mạng cục bộ. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Nút quay lại vẫn màu trắng khi dùng giao diện sáng, và artwork bị bóp méo trong menu tuỳ chọn bài hát. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Trình phát Apple Music: video dọc chạm vào tên bài bên dưới. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))

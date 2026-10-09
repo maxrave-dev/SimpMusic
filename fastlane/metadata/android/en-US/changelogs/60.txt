@@ -1,0 +1,11 @@
+New:
+- Redesigned Apple Music player and Apple Music-style lyrics
+- Redesigned Home and Library cards
+- Listening receipt, AI taste card, audio output picker
+- Live broadcasts, animated artist artwork, App log
+Improved:
+- Classic and M3E animated artwork, Settings cards, queue song menu
+- Lyrics offset in lyrics view, Windows title bar, offline artwork
+Fixed:
+- Windows settings crash, desktop file picker crash, Android 11 crash
+- Fedora sound, seek bar while paused, search history, RTL lyrics
