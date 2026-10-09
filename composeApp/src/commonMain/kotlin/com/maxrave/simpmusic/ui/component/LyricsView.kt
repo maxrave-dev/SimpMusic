@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
@@ -469,6 +470,23 @@ fun LyricsView(
     val romanizationStored by dataStoreManager.romanizationLanguages.collectAsStateWithLifecycle("")
     val romanizationLanguages =
         remember(romanizationStored) { RomanizationLanguage.parse(romanizationStored) }
+    // Lyrics on screen with Japanese selected is when the dictionary pack is needed, so a missing
+    // one is fetched from here: after a reinstall that restored a backup the selection is back but
+    // the pack is not, and before this only the settings dialog ever started a download. Keyed on
+    // the lyrics too, so a failed attempt is tried again on a later song (the repository spaces
+    // those retries out).
+    LaunchedEffect(romanizationLanguages, lyricsData.lyrics) {
+        if (RomanizationLanguage.JAPANESE in romanizationLanguages) romanizer.ensureJapaneseDictionary()
+    }
+    // A Japanese line read before the pack is on disk comes back null, and the remember on each
+    // line would keep that null for as long as the line stays on screen. Keyed on this, the
+    // visible lines are read again the moment the pack lands — usually with these lyrics open,
+    // since the effect above is what started the download. Derived, so the other state changes
+    // (downloading, failed) do not touch the lines at all.
+    val japaneseDictionaryState by romanizer.japaneseDictionaryState.collectAsStateWithLifecycle()
+    val japaneseDictionaryReady by remember {
+        derivedStateOf { japaneseDictionaryState == RomanizationDictionaryState.READY }
+    }
 
     // One text row plus the padding that separates two lyric items — the exact amount of the
     // previous line that stays on screen above the sung one.
@@ -608,7 +626,7 @@ fun LyricsView(
                         if (isInterlude || romanizationLanguages.isEmpty()) {
                             null
                         } else {
-                            remember(words, romanizationLanguages) {
+                            remember(words, romanizationLanguages, japaneseDictionaryReady) {
                                 val source =
                                     if (lyricsData.lyrics.syncType == "RICH_SYNCED") words.stripRichSyncTimestamps() else words
                                 romanizer.romanize(source, romanizationLanguages)

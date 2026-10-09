@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -1057,21 +1058,33 @@ class SettingsViewModel(
         }
     }
 
+    private var japaneseDictionaryWaiter: Job? = null
+
     /**
      * Fetches the Japanese romanization dictionary if this platform needs one and does not have
      * it yet. Called from the settings screen every time a saved selection includes Japanese, so
-     * a FAILED attempt is retried by simply confirming the dialog again; READY and an already
-     * running download make this a no-op. Progress and outcome live in [japaneseDictionaryState],
-     * which the romanization row's subtitle watches.
+     * a FAILED attempt is retried by simply confirming the dialog again; READY makes this a no-op.
+     * A download already running — the repository starts one by itself when it finds Japanese
+     * selected and the pack missing — is joined rather than skipped, so its outcome still gets a
+     * toast. Progress and outcome live in [japaneseDictionaryState], which the romanization row's
+     * subtitle watches. The download runs in the repository's own scope, so leaving Settings
+     * mid-way only loses the toast below, not the download.
      */
     fun downloadJapaneseDictionaryIfNeeded() {
-        val state = japaneseDictionaryState.value
-        if (state == RomanizationDictionaryState.READY || state == RomanizationDictionaryState.DOWNLOADING) return
-        viewModelScope.launch {
-            lyricsRomanizerRepository.downloadJapaneseDictionary()
-            // The repository settles the state before returning, so reading it back here is the
-            // completion signal — no separate callback needed for the two toasts.
-            when (japaneseDictionaryState.value) {
+        if (japaneseDictionaryState.value == RomanizationDictionaryState.READY) return
+        // Saving the dialog again mid-download (say, to add Korean) would otherwise queue a
+        // second waiter and show the same toast twice. Checked against DOWNLOADING as well: a
+        // waiter outlives its download by the moment it takes to show the toast, and a save in
+        // that moment, after a failure, is a real retry.
+        if (japaneseDictionaryWaiter?.isActive == true &&
+            japaneseDictionaryState.value == RomanizationDictionaryState.DOWNLOADING
+        ) {
+            return
+        }
+        japaneseDictionaryWaiter = viewModelScope.launch {
+            // The state the download settled on, as the repository saw it end. Reading
+            // japaneseDictionaryState back afterwards could already show the next attempt.
+            when (lyricsRomanizerRepository.downloadJapaneseDictionary()) {
                 RomanizationDictionaryState.READY ->
                     makeToast(getString(Res.string.romanization_japanese_dict_ready))
                 RomanizationDictionaryState.FAILED ->
