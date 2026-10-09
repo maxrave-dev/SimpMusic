@@ -126,7 +126,7 @@
     <string name="developer_blog">开发者博客</string>
     <string name="developer_blog_tagline">阅读开发日志、教程及幕后花絮</string>
     <string name="blog_promo_title">开发中的一些新内容</string>
-    <string name="blog_promo_message">我刚刚上线了个人博客 maxrave.dev，内容涵盖 SimpMusic 背后的故事、音乐科技深度解析以及工程技术笔记。感兴趣的话不妨去看看 ✨</string>
+    <string name="blog_promo_message">我刚刚上线了SimpMusic 博客 simpmusic.org，内容涵盖 SimpMusic 背后的故事、音乐科技深度解析以及工程技术笔记。感兴趣的话不妨去看看 ✨</string>
     <string name="visit_blog">访问博客</string>
     <string name="paypal">PayPal</string>
     <string name="title">标题</string>
