@@ -79,6 +79,7 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -95,6 +96,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.playlist
@@ -121,6 +123,7 @@ fun SongFullWidthItems(
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
+    onRemoveFromQueue: ((videoId: String) -> Unit)? = null,
     selectionMode: Boolean = false,
     isSelected: Boolean = false,
     onLongClick: ((videoId: String) -> Unit)? = null,
@@ -141,15 +144,18 @@ fun SongFullWidthItems(
         .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
     val offsetX = remember { Animatable(initialValue = 0f) }
     var heightDp by remember { mutableStateOf(0.dp) }
+    val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
 
     Box(
         modifier =
-        modifier,
+            modifier,
     ) {
+        // Add to queue (right swipe)
         Crossfade(
             offsetX.value >= maxOffset / 2,
+            modifier = Modifier.align(Alignment.CenterStart)
         ) { shouldShowAddToQueue ->
-            if (shouldShowAddToQueue) {
+            if (shouldShowAddToQueue && onAddToQueue != null) {
                 Box(
                     modifier =
                         Modifier
@@ -167,7 +173,29 @@ fun SongFullWidthItems(
                 }
             }
         }
-        val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
+        // Remove from queue (left swipe)
+        Crossfade(
+            offsetX.value <= -maxOffset / 2,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) { shouldShowRemoveFromQueue ->
+            if (shouldShowRemoveFromQueue && onRemoveFromQueue != null) {
+                Box(
+                    modifier =
+                        Modifier
+                            .height(heightDp)
+                            .aspectRatio(1f)
+                            .padding(end = 15.dp)
+                            .align(Alignment.CenterEnd),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        tint = MaterialTheme.colorScheme.error,
+                        imageVector = SimpIcons.Delete,
+                        contentDescription = stringResource(Res.string.delete_from_queue),
+                    )
+                }
+            }
+        }
         Box(
             modifier =
                 modifier
@@ -192,23 +220,24 @@ fun SongFullWidthItems(
                     // Keyed on selectionMode so the swipe detector is torn down when selection
                     // starts — keyed on Unit it would keep running with the stale flag captured.
                     .pointerInput(selectionMode) {
-                        if (!isPlaying && onAddToQueue != null && !selectionMode) {
+                        if (!isPlaying && (onAddToQueue != null || onRemoveFromQueue != null) && !selectionMode) {
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
-                                    if (offsetX.value + dragAmount > 0) {
+                                    val newOffset = offsetX.value + dragAmount
+                                    val allowed =
+                                        (newOffset > 0f && onAddToQueue != null) ||
+                                            (newOffset < 0f && onRemoveFromQueue != null)
+                                    if (allowed) {
                                         change.consume()
                                         coroutineScope.launch {
-                                            offsetX.snapTo(
-                                                (offsetX.value + dragAmount).coerceAtMost(maxOffset),
-                                            )
+                                            offsetX.snapTo(newOffset.coerceIn(-maxOffset, maxOffset))
                                         }
                                     }
                                 },
                                 onDragEnd = {
-                                    if (offsetX.value == maxOffset) {
-                                        onAddToQueue(
-                                            track?.videoId ?: songEntity?.videoId ?: "",
-                                        )
+                                    when (offsetX.value) {
+                                        maxOffset -> onAddToQueue?.invoke(itemVideoId)
+                                        -maxOffset -> onRemoveFromQueue?.invoke(itemVideoId)
                                     }
                                     coroutineScope.launch {
                                         offsetX.animateTo(0f)
@@ -356,7 +385,7 @@ fun SongFullWidthItems(
                                 (
                                     track?.artists?.toListName()?.connectArtists()
                                         ?: songEntity?.artistName?.connectArtists()
-                                ) ?: "",
+                                    ) ?: "",
                             style = typo().bodySmall,
                             maxLines = 1,
                             color = subtitleColor,
