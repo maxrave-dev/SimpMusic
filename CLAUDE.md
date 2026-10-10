@@ -1008,6 +1008,10 @@ if (getPlatform() == Platform.Android) {
   - **The swipe on a song row** goes through `SharedViewModel.addListToQueue`, which plays a single song next whenever Add to queue is blocked (it used to do so only under Endless queue). Its icon switches to Play next while that applies.
   - The owner decided against a Spotify-style Add to queue that plays before the rest of the queue, against a two-way swipe, and against a setting for the default action. Report those requests as decided, not as missing work.
 
+- **FOSS builds no longer get Sentry bytecode injected (2026-10-11)**: the Sentry Android Gradle plugin runs on androidApp in BOTH builds, and its tracing instrumentation rewrites classes at build time, dependencies included — it inserts `AppStartMetrics.onContentProviderCreate/PostCreate` into every `ContentProvider.onCreate`, `androidx.startup.InitializationProvider` among them. FOSS ships `crashlytics-empty`, so those calls name classes its APK does not contain: after the 2026-10-10 bump (AGP 9.2.1 → 9.4.1, plugin 6.22.0 → 6.23.0) the FOSS build crashed at launch with `NoClassDefFoundError: Failed resolution of: Lio/sentry/android/core/performance/AppStartMetrics;` from `InitializationProvider.onCreate`. The FOSS branch of the `sentry {}` block now sets `tracingInstrumentation.enabled.set(false)`, which keeps the plugin from registering its class transform at all (`if (tracingInstrumentationEnabled)` in its `AndroidComponentsConfig.kt`).
+  - **`ignoredFlavors.set(setOf("foss"))` in that block never excluded anything**: the project has no product flavors — Full/FOSS is the `isFullBuild` property — so the plugin has always run on the FOSS release variant.
+  - **An un-obfuscated Sentry class name in a release stack trace means the class is not in the APK.** R8 renames every class it has (the Full build turns `AppStartMetrics` into `io.sentry.android.core.performance.g`); a reference to a missing class keeps its original name.
+
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
 After completing any of the following types of changes, the AI agent **MUST** update this CLAUDE.md file:
@@ -1032,6 +1036,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-10
+**Last updated**: 2026-10-11
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
