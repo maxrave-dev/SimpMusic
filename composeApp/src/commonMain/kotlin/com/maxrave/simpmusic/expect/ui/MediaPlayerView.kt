@@ -14,6 +14,9 @@ expect fun MediaPlayerView(
     // and clips the overflow. Default false keeps the legacy fit-height-by-screen
     // behavior used by NowPlaying / Fullscreen.
     cropToBounds: Boolean = false,
+    // Called once the video has drawn its first frame. Until then the view shows a black shutter,
+    // so a caller with a picture to show meanwhile keeps it on top until this fires.
+    onFirstFrame: () -> Unit = {},
 )
 
 @Composable

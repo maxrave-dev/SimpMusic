@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.EndOfModalBottomSheet
+import com.maxrave.simpmusic.ui.component.addToQueueLabel
+import com.maxrave.simpmusic.ui.component.rememberAddToQueueBlock
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Download
 import com.maxrave.simpmusic.ui.icon.Favorite
@@ -37,7 +39,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
-import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.download
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.n_songs_selected
@@ -126,9 +127,11 @@ fun SelectedSongsBottomSheet(
                         ) { hideThen(onPlayNext) }
                     }
                     if (onAddToQueue != null) {
+                        val addToQueueBlock = rememberAddToQueueBlock()
                         ActionButton(
                             icon = SimpIcons.QueueMusic,
-                            text = Res.string.add_to_queue,
+                            text = addToQueueBlock.addToQueueLabel(),
+                            enable = addToQueueBlock == null,
                         ) { hideThen(onAddToQueue) }
                     }
                     if (onAddToPlaylist != null) {

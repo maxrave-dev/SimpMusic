@@ -3,12 +3,16 @@ package com.maxrave.simpmusic.extension
 import androidx.compose.runtime.Composable
 import com.maxrave.common.SponsorBlockType
 import com.maxrave.domain.data.model.browse.artist.ArtistBrowse
+import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
+import kotlin.math.roundToLong
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.ArtistScreenData
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toInstant
@@ -23,6 +27,7 @@ import simpmusic.composeapp.generated.resources.interaction
 import simpmusic.composeapp.generated.resources.intro
 import simpmusic.composeapp.generated.resources.month_s_ago
 import simpmusic.composeapp.generated.resources.music_off_topic
+import simpmusic.composeapp.generated.resources.live_badge
 import simpmusic.composeapp.generated.resources.na_na
 import simpmusic.composeapp.generated.resources.newer_first
 import simpmusic.composeapp.generated.resources.older_first
@@ -59,10 +64,21 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     return map
 }
 
-infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
-    val left = this subtract other
-    val right = other subtract this
-    return left union right
+/**
+ * Whether a release from an artist's discography page is worth announcing. An unseen id is not
+ * enough on its own, because YouTube re-keys old releases and pages them in and out, so only
+ * releases dated this year count — plus last year's during January, so one that came out in
+ * the last days of December is not lost.
+ */
+fun isNewRelease(
+    browseId: String,
+    year: String,
+    known: Set<String>,
+    today: LocalDate = now().date,
+): Boolean {
+    if (browseId in known) return false
+    val released = year.toIntOrNull() ?: return false
+    return released == today.year || (today.month == Month.JANUARY && released == today.year - 1)
 }
 
 @OptIn(ExperimentalTime::class)
@@ -89,6 +105,17 @@ fun LocalDateTime.formatTimeAgo(): String {
         else -> stringResource(Res.string.recently)
     }
 }
+
+/**
+ * The elapsed-time label under a seek bar sitting at [progress] (0..1) of the track. Blank for a live
+ * broadcast: where playback sits in the broadcast's seek window means nothing to a listener.
+ */
+@Composable
+fun TimeLine.elapsedLabel(progress: Float): String = if (isLive) "" else formatDuration((total * progress).roundToLong())
+
+/** The track's length under a seek bar, or LIVE for a live broadcast, which has none. */
+@Composable
+fun TimeLine.lengthLabel(): String = if (isLive) stringResource(Res.string.live_badge) else formatDuration(total)
 
 @Composable
 fun formatDuration(duration: Long): String {

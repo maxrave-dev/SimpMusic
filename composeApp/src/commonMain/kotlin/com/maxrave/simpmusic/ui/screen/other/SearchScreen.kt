@@ -103,7 +103,9 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.PlatformBackHandler
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -122,6 +124,7 @@ import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
+import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.ArrowOutward
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.History
@@ -142,7 +145,6 @@ import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.toStringRes
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
-import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
@@ -176,6 +178,7 @@ fun SearchScreen(
 ) {
     val uriHandler = LocalUriHandler.current
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val searchScreenState by searchViewModel.searchScreenState.collectAsStateWithLifecycle()
     val uiState by searchViewModel.searchScreenUIState.collectAsStateWithLifecycle()
     val searchHistory by searchViewModel.searchHistory.collectAsStateWithLifecycle()
@@ -190,6 +193,15 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
 
     var isFocused by rememberSaveable { mutableStateOf(false) }
+
+    val isSearchPanelVisible =
+        searchUIType == SearchUIType.SEARCH_HISTORY || searchUIType == SearchUIType.SEARCH_SUGGESTIONS
+    val dismissSearchPanel: () -> Unit = {
+        isExpanded = false
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    }
+    PlatformBackHandler(enabled = isSearchPanelVisible, onBack = dismissSearchPanel)
 
     // The bar floats OVER the content (a Box, not a Column) so there is something behind it to
     // blur — same arrangement HomeScreen uses. Each branch owns a scroll state, hoisted here so
@@ -308,7 +320,6 @@ fun SearchScreen(
     //On search icon click while on search screen, open keyboard. Android only feature
     if (getPlatform() == Platform.Android) {
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
-        val keyboardController = LocalSoftwareKeyboardController.current
         LaunchedEffect(reloadDestination) {
             if (reloadDestination == SearchDestination::class) {
                 if (!selectionState.isActive && searchUIType == SearchUIType.EMPTY) {
@@ -961,28 +972,32 @@ fun SearchScreen(
                 }
             }
         }
-        AnimatedContent(
-            targetState = isContentAtTop,
-            transitionSpec = {
-                fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
-            },
+        Box(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
                     .onGloballyPositioned { searchBarHeightPx = it.size.height },
-            label = "search_bar_scrim",
-        ) { atTop ->
+        ) {
+            // Animate only the background so scrolling keeps the search input and its focus.
+            AnimatedVisibility(
+                visible = !isContentAtTop,
+                modifier = Modifier.matchParentSize(),
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(300)),
+                label = "search_bar_scrim",
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .hazeBlur(HazeInput.Sources(hazeState), ultraThinBarStyle()),
+                )
+            }
             Column(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .then(
-                            if (atTop) {
-                                Modifier.background(Color.Transparent)
-                            } else {
-                                Modifier.hazeBlur(HazeInput.Sources(hazeState), HazeMaterials.ultraThin().then { blurEnabled(true) })
-                            },
-                        ).windowInsetsPadding(WindowInsets.statusBars)
+                        .windowInsetsPadding(WindowInsets.statusBars)
                         .padding(vertical = 10.dp),
             ) {
         AnimatedVisibility(visible = selectionState.isActive) {
@@ -1067,10 +1082,34 @@ fun SearchScreen(
                         }
                     },
                     leadingIcon = {
-                        Icon(
-                            imageVector = SimpIcons.Search,
-                            contentDescription = "Search",
-                        )
+                        Crossfade(
+                            targetState = isSearchPanelVisible,
+                            modifier = Modifier.size(48.dp),
+                            animationSpec = tween(200),
+                            label = "search_back_icon",
+                        ) { showBack ->
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (showBack) {
+                                    IconButton(
+                                        onClick = dismissSearchPanel,
+                                        enabled = isSearchPanelVisible,
+                                    ) {
+                                        Icon(
+                                            imageVector = SimpIcons.ArrowBackIosNew,
+                                            contentDescription = "Back",
+                                        )
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = SimpIcons.Search,
+                                        contentDescription = "Search",
+                                    )
+                                }
+                            }
+                        }
                     },
                     trailingIcon = {
                         // X button only shows when there's text

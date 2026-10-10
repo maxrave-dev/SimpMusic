@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maxrave.domain.extension.now
 import com.maxrave.simpmusic.expect.openUrl
+import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -53,7 +54,6 @@ import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
-import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import org.jetbrains.compose.resources.painterResource
@@ -149,7 +149,7 @@ fun CreditScreen(
             // Developer blog button
             TextButton(
                 onClick = {
-                    openUrl("https://maxrave.dev")
+                    openUrl("https://www.simpmusic.org/blogs")
                 },
                 modifier =
                     Modifier
@@ -252,7 +252,7 @@ fun CreditScreen(
     TopAppBar(
         modifier =
             Modifier
-                .hazeBlur(HazeInput.Sources(hazeState), HazeMaterials.ultraThin().then { blurEnabled(true) }),
+                .hazeBlur(HazeInput.Sources(hazeState), ultraThinBarStyle()),
         title = {
             Text(
                 text = stringResource(Res.string.app_name),

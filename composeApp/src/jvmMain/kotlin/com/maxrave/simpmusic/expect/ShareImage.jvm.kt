@@ -24,12 +24,14 @@ actual suspend fun saveImageToDevice(
 
 /**
  * Desktop has no share sheet, so the honest equivalent is: write the file, then put the user in
- * front of it. [chooserTitle] is unused here for the same reason — there is no chooser to title.
+ * front of it. [chooserTitle] and [mimeType] are unused here for the same reason — there is no
+ * chooser to title, and no receiving app to tell what the file is.
  */
 actual suspend fun shareImage(
     bytes: ByteArray,
     fileName: String,
     chooserTitle: String,
+    mimeType: String,
 ): Boolean =
     withContext(Dispatchers.IO) {
         runCatching {

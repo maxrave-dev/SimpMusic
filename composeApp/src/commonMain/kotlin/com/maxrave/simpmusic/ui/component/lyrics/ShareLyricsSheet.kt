@@ -244,7 +244,7 @@ fun ShareLyricsSheet(
  * under the title as a sentence rather than as a "3 / 3" fraction, which reads like a form field.
  */
 @Composable
-private fun ShareLyricsSheetHeader(
+internal fun ShareLyricsSheetHeader(
     title: String,
     subtitle: String?,
     content: Color,
@@ -454,7 +454,7 @@ private fun ShareLyricsPreview(
  * actually is — and it lets the list keep scrolling visibly underneath it.
  */
 @Composable
-private fun ShareLyricsPill(
+internal fun ShareLyricsPill(
     text: String,
     container: Color,
     label: Color,
@@ -501,7 +501,7 @@ private fun ShareLyricsPill(
  * so there is always something to fall back on when the artwork is grey.
  */
 @Composable
-private fun ShareLyricsPalette(
+internal fun ShareLyricsPalette(
     seedColor: Color,
     selected: Color,
     content: Color,

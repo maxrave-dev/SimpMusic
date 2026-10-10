@@ -19,9 +19,13 @@ expect suspend fun saveImageToDevice(
  * Android opens the system share sheet. Desktop has no such thing, so it writes the file out and
  * reveals it in the file manager — the closest honest equivalent, and the reason this returns a
  * plain Boolean instead of pretending a chooser appeared.
+ *
+ * [mimeType] tells the receiving app what it gets: a PNG unless said otherwise (the App log shares
+ * text).
  */
 expect suspend fun shareImage(
     bytes: ByteArray,
     fileName: String,
     chooserTitle: String,
+    mimeType: String = "image/png",
 ): Boolean

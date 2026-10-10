@@ -2,13 +2,21 @@ package com.maxrave.simpmusic.viewModel.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maxrave.common.Config
+import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
+import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.isRadioQueueId
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -19,6 +27,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.loading
 
 abstract class BaseViewModel :
@@ -43,7 +52,7 @@ abstract class BaseViewModel :
      */
     protected fun log(
         message: String,
-        logType: LogLevel = LogLevel.WARN,
+        logType: LogLevel = LogLevel.DEBUG,
     ) {
         when (logType) {
             LogLevel.DEBUG -> Logger.d(tag, message)
@@ -130,5 +139,39 @@ abstract class BaseViewModel :
 
     fun shufflePlaylist(firstPlayIndex: Int = 0) {
         mediaPlayerHandler.shufflePlaylist(firstPlayIndex)
+    }
+
+    private val playbackSongRepository: SongRepository by inject<SongRepository>()
+
+    /**
+     * Plays what a YouTube play button points at, as the queue `/next` returns for it: a song's
+     * radio (an `RD…` id), or a playlist, an album, a shelf's "Play all" as a plain list. Used by
+     * Home's card play buttons and shelf headers, so they never need to open a page first.
+     */
+    fun playFromEndpoint(
+        endpoint: YouTubeWatchEndpoint,
+        name: String,
+    ) {
+        viewModelScope.launch {
+            playbackSongRepository.getRadioFromEndpoint(endpoint).collectLatest { res ->
+                val tracks = res.data?.first
+                if (res is Resource.Success && !tracks.isNullOrEmpty()) {
+                    val isRadio = endpoint.playlistId?.isRadioQueueId() == true
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks.toCollection(arrayListOf<Track>()),
+                            firstPlayedTrack = tracks.first(),
+                            playlistId = endpoint.playlistId,
+                            playlistName = name,
+                            playlistType = if (isRadio) PlaylistType.RADIO else PlaylistType.PLAYLIST,
+                            continuation = res.data?.second,
+                        ),
+                    )
+                    loadMediaItem(tracks.first(), if (isRadio) Config.RADIO_CLICK else Config.PLAYLIST_CLICK, 0)
+                } else {
+                    makeToast(res.message ?: getString(Res.string.error))
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.library.LibraryOverview
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.MonthlyRecapItem
@@ -67,6 +68,9 @@ class LibraryViewModel(
 ) : BaseViewModel() {
     private val _currentScreen: MutableStateFlow<LibraryChipType> = MutableStateFlow(LibraryChipType.YOUR_LIBRARY)
     val currentScreen: StateFlow<LibraryChipType> get() = _currentScreen.asStateFlow()
+
+    // A chip was picked (a tap, or a deep link) before the one saved last time finished loading.
+    private var screenChosen = false
     private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
         MutableStateFlow(LocalResource.Loading())
     val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded.asStateFlow()
@@ -119,6 +123,10 @@ class LibraryViewModel(
     private val _accountThumbnail: MutableStateFlow<String?> = MutableStateFlow(null)
     val accountThumbnail: StateFlow<String?> get() = _accountThumbnail.asStateFlow()
 
+    /** Counts and newest artwork for the four Your library cards; null until the first read lands. */
+    private val _libraryOverview: MutableStateFlow<LibraryOverview?> = MutableStateFlow(null)
+    val libraryOverview: StateFlow<LibraryOverview?> get() = _libraryOverview.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
 
@@ -137,7 +145,8 @@ class LibraryViewModel(
                 launch {
                     dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
                         LibraryChipType.fromStringValue(chipType)?.let {
-                            _currentScreen.value = it
+                            // The chip picked meanwhile wins over the one saved last time.
+                            if (!screenChosen) _currentScreen.value = it
                         }
                     }
                 }
@@ -150,9 +159,13 @@ class LibraryViewModel(
             currentScreenJob.join()
             cookieJob.join()
         }
+        viewModelScope.launch {
+            commonRepository.getLibraryOverview().collect { _libraryOverview.value = it }
+        }
     }
 
     fun setCurrentScreen(chipType: LibraryChipType) {
+        screenChosen = true
         _currentScreen.value = chipType
         viewModelScope.launch {
             dataStoreManager.putString("library_current_screen", chipType.toStringValue())

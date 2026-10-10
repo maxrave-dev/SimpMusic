@@ -66,6 +66,7 @@ actual suspend fun shareImage(
     bytes: ByteArray,
     fileName: String,
     chooserTitle: String,
+    mimeType: String,
 ): Boolean =
     withContext(Dispatchers.IO) {
         runCatching {
@@ -80,7 +81,7 @@ actual suspend fun shareImage(
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
             val sendIntent =
                 Intent(Intent.ACTION_SEND).apply {
-                    type = MIME_PNG
+                    type = mimeType
                     putExtra(Intent.EXTRA_STREAM, uri)
                     // Without this the receiving app gets a uri it is not allowed to open.
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

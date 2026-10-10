@@ -8,6 +8,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.maxrave.domain.data.entities.NewFormatEntity
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.player.GenericCastState
@@ -17,6 +18,7 @@ import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.roundToInt
 
 /**
  * Whether the lyrics currently on screen can be rated.
@@ -41,6 +43,25 @@ internal fun NowPlayingScreenData.LyricsData?.canVote(): Boolean {
     return votableLyrics || votableTranslation
 }
 
+// Apple Music's animated covers arrive as HLS (.m3u8) from Apple's video CDN; Spotify's canvases
+// are MP4. Only the former is album art, shaped like album art (3:4 or 1:1), so every style plays it
+// at the top of the page in a frame of its own shape, under controls that never hide.
+internal fun NowPlayingScreenData.CanvasData.isAnimatedArtwork(): Boolean = url.contains(".m3u8")
+
+/**
+ * The canvas that takes the whole page and hides the controls — a Spotify canvas (9:16, made to fill
+ * a phone) — or null when there is none or it is Apple Music's animated artwork.
+ */
+internal fun NowPlayingScreenData.fullscreenCanvas(): NowPlayingScreenData.CanvasData? = canvasData?.takeUnless { it.isAnimatedArtwork() }
+
+/**
+ * Colour of the secondary text in the track and time rows. Over animated artwork the page is a mesh
+ * of the sleeve's own colours and can be bright, which turns the body grey into a smudge, so the text
+ * becomes a veil of white instead. Unspecified elsewhere: the style's own text style decides.
+ */
+internal fun NowPlayingContentState.secondaryTextColor(): Color =
+    if (screenData.canvasData?.isAnimatedArtwork() == true) Color.White.copy(alpha = 0.7f) else Color.Unspecified
+
 // Backdrop behind the player. A dark surface rather than pure black: #000000 reads as a hole
 // next to the artwork-tinted gradient and cards, which is why Spotify sits its player on a
 // near-black surface instead. Used for the gradient's end colour, the fade-to target and the
@@ -58,20 +79,26 @@ internal fun String.stripRichSyncTimestamps(): String =
         .replace(WHITESPACE_REGEX, " ")
         .trim()
 
-// Codec label for the Apple Music style's progress-bar badge. Derived from the stream's
-// mimeType (e.g. `audio/webm; codecs="opus"`, `audio/mp4; codecs="mp4a.40.2"`) rather than the
-// itag, which the two YouTube audio families always encode as one of these two codecs. Returns
-// null for anything else so the badge hides instead of showing a guess.
-internal fun String?.toAudioCodecLabel(): String? {
-    // Fed NewFormatEntity.codecs — "opus", or "mp4a.40.2" for AAC. The regex that fills that
-    // column falls back to the WHOLE mimeType when it fails to match, so both shapes have to be
-    // recognised here; "aac" covers the Piped path, which reports the codec by name.
-    val codec = this ?: return null
-    return when {
-        codec.contains("opus", ignoreCase = true) -> "OPUS"
-        codec.contains("mp4a", ignoreCase = true) || codec.contains("aac", ignoreCase = true) -> "AAC"
-        else -> null
-    }
+/**
+ * "154 kbps · 48 kHz" — the Apple Music style's quality line, read off the format YouTube served
+ * for the track now playing: its `bitrate` (the figure the Info sheet prints in bps) and its
+ * `sampleRate`. A figure the format does not carry is dropped rather than guessed, and null comes
+ * back when neither is known, so the line hides instead of showing a placeholder.
+ */
+internal fun NewFormatEntity?.toAudioQualityLabel(): String? {
+    val format = this ?: return null
+    val parts =
+        buildList {
+            format.bitrate?.takeIf { it > 0 }?.let { add("${(it / 1000.0).roundToInt()} kbps") }
+            format.sampleRate?.takeIf { it > 0 }?.let { add(it.toKhzLabel()) }
+        }
+    return parts.joinToString(" · ").takeIf { it.isNotEmpty() }
+}
+
+// 48000 → "48 kHz", 44100 → "44.1 kHz": one decimal, and none when it would be ".0".
+private fun Int.toKhzLabel(): String {
+    val tenths = (this + 50) / 100
+    return if (tenths % 10 == 0) "${tenths / 10} kHz" else "${tenths / 10}.${tenths % 10} kHz"
 }
 
 /**
@@ -107,8 +134,13 @@ class NowPlayingContentState(
     val mainScrollState: ScrollState,
     val isExpanded: Boolean,
     val dismissIcon: ImageVector,
-    /** Current track's audio codec ("OPUS"/"AAC"), or null while unknown — see [toAudioCodecLabel]. */
-    val audioCodecLabel: String? = null,
+    /** "154 kbps · 48 kHz" for the stream now playing, or null while unknown — see [toAudioQualityLabel]. */
+    val audioQualityLabel: String? = null,
+    /**
+     * The user's lyrics delay, applied at read time. [currentLyricLineIndex] already has it baked in;
+     * this is for anything that times WITHIN a line (the Apple Music lyric strip's word sweep).
+     */
+    val lyricsOffsetMs: Long = 0L,
     /**
      * Width / height of the video now playing, 16:9 until the player knows it. Every style sizes
      * its video frame from this one value, so a frame and the spacer that measures it cannot drift.
@@ -129,6 +161,7 @@ class NowPlayingContentActions(
     val onSliderChangeFinished: () -> Unit,
     val onToggleControls: () -> Unit,
     val onNavigateToArtist: () -> Unit,
+    val onOpenListenTogether: () -> Unit,
     val onAddToYouTubeLiked: () -> Unit,
     val onShowMoreSheet: () -> Unit,
     val onShowQueue: () -> Unit,
@@ -136,6 +169,8 @@ class NowPlayingContentActions(
     val onShowAddToPlaylist: () -> Unit,
     val onShowFullscreenLyrics: () -> Unit,
     val onShowVoteDialog: () -> Unit,
+    /** Writes the lyrics timing offset — the same value Settings › Lyrics edits. */
+    val onLyricsOffsetChange: (Int) -> Unit,
     val onEnterFullscreenVideo: () -> Unit,
     val onDismiss: () -> Unit,
     val onToolbarVisibilityChange: (Boolean) -> Unit,
@@ -143,4 +178,6 @@ class NowPlayingContentActions(
     val onMoveQueueItem: (from: Int, to: Int) -> Unit,
     /** Removes one queue entry. `index` is an absolute index into [NowPlayingContentState.artworkQueue]. */
     val onRemoveQueueItem: (index: Int) -> Unit,
+    /** Opens the full song sheet for one queue entry; `index` is absolute, as above. */
+    val onQueueItemMore: (index: Int, track: Track) -> Unit,
 )

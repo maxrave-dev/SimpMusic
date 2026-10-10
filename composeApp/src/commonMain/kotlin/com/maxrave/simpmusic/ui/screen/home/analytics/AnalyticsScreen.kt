@@ -64,6 +64,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.kyant.backdrop.highlight.Highlight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.AlbumEntity
 import com.maxrave.domain.data.entities.ArtistEntity
@@ -85,7 +87,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.smoothScrimBrush
-import com.maxrave.simpmusic.extension.toImmersiveBackground
+import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -101,6 +103,7 @@ import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
+import com.maxrave.simpmusic.ui.icon.ReceiptLong
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
@@ -124,6 +127,7 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.date_range
 import simpmusic.composeapp.generated.resources.last_30_days
+import simpmusic.composeapp.generated.resources.receipt_open
 import simpmusic.composeapp.generated.resources.last_7_days
 import simpmusic.composeapp.generated.resources.last_90_days
 import simpmusic.composeapp.generated.resources.listened_time
@@ -174,6 +178,10 @@ fun AnalyticsScreen(
 ) {
     val screenSizeInfo = getScreenSizeInfo()
     val uiState by analyticsViewModel.analyticsUIState.collectAsStateWithLifecycle()
+    val accountName by analyticsViewModel.accountName.collectAsStateWithLifecycle()
+    var showReceipt by rememberSaveable { mutableStateOf(false) }
+    // The receipt has something to print once the period's top tracks and its totals are both in.
+    val receiptReady = uiState.topTracks.data?.isNotEmpty() == true && uiState.stats.data != null
     // Held only to decide whether the Wrapped banner has anything to point at. The entry needs
     // this year's own figures to say what is waiting, so there is no cheaper question to ask —
     // and the banner must be absent, not empty, when the year is too thin to fill a reel.
@@ -223,13 +231,10 @@ fun AnalyticsScreen(
             paletteGeneratedFor = topTrackArtwork
         }
     }
-    // The last colour that actually resolved. Reading paletteState.palette straight would paint the
-    // page black for the whole duration of every generate(), because null is what it reads until the
-    // result is Success — and Color.Black is what a null palette resolves to.
-    var pageBackground by remember { mutableStateOf(Color.Black) }
-    LaunchedEffect(paletteState.palette) {
-        paletteState.palette?.let { pageBackground = it.toImmersiveBackground() }
-    }
+    // The last colour that actually resolved, faded on change (see UIExt.rememberPaletteColor).
+    // Reading paletteState.palette straight would paint the page black for the whole duration of
+    // every generate(), because null is what it reads until the result is Success.
+    val pageBackground = rememberPaletteColor(paletteState.palette)
 
     if (showSelectionSheet) {
         val selectedIds = selectionState.selected.toList()
@@ -329,17 +334,32 @@ fun AnalyticsScreen(
             }
 
             // Declared outside `item` on purpose: an item that renders nothing is still an item,
-            // and the list's 32dp SECTION_GAP would leave a hole where the banner is not shown.
-            (wrappedState as? WrappedUiState.Ready)?.let { ready ->
+            // and the list's 32dp SECTION_GAP would leave a hole where no banner is shown. The two
+            // banners share ONE item so they sit 12dp apart as a pair, not a section gap apart.
+            val wrappedReady = wrappedState as? WrappedUiState.Ready
+            if (receiptReady || wrappedReady != null) {
                 item {
-                    WrappedEntryCard(
-                        wrapped = ready.wrapped,
-                        onClick = { navController.navigate(WrappedDestination) },
+                    Column(
                         modifier =
                             Modifier.padding(
                                 horizontal = if (isPortrait) CONTENT_INSET else LANDSCAPE_GUTTER + CONTENT_INSET,
                             ),
-                    )
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (receiptReady) {
+                            ReceiptEntryCard(
+                                uiState = uiState,
+                                accountName = accountName,
+                                onClick = { showReceipt = true },
+                            )
+                        }
+                        wrappedReady?.let { ready ->
+                            WrappedEntryCard(
+                                wrapped = ready.wrapped,
+                                onClick = { navController.navigate(WrappedDestination) },
+                            )
+                        }
+                    }
                 }
             }
 
@@ -454,16 +474,42 @@ fun AnalyticsScreen(
             navController.navigateUp()
         }
 
-        DayRangePill(
-            uiState = uiState,
-            backdrop = headerBackdrop,
-            onPick = { analyticsViewModel.setDayRange(it) },
+        // The receipt button shares the pill's row instead of taking a corner of its own, so the pill
+        // keeps its place and the button appears beside it once there is a list to print.
+        Row(
             modifier =
                 Modifier
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(end = pillGutter, top = 16.dp),
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (receiptReady) {
+                val receiptLabel = stringResource(Res.string.receipt_open)
+                LiquidGlassIconButton(
+                    backdrop = headerBackdrop,
+                    imageVector = SimpIcons.ReceiptLong,
+                    highlight = Highlight(width = 1.dp),
+                    modifier = Modifier.size(48.dp).semantics { contentDescription = receiptLabel },
+                ) {
+                    showReceipt = true
+                }
+            }
+            DayRangePill(
+                uiState = uiState,
+                backdrop = headerBackdrop,
+                onPick = { analyticsViewModel.setDayRange(it) },
+            )
+        }
+
+        if (showReceipt) {
+            ShareReceiptSheet(
+                uiState = uiState,
+                accountName = accountName,
+                seedColor = pageBackground,
+                onDismiss = { showReceipt = false },
+            )
+        }
     }
 }
 

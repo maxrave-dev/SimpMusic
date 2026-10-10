@@ -12,7 +12,7 @@ import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.logger.Logger
-import com.maxrave.simpmusic.extension.symmetricDifference
+import com.maxrave.simpmusic.extension.isNewRelease
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -55,52 +55,43 @@ class NotifyWork(
                     val singleItem =
                         pair.second
                             ?.second
-                    val savedAlbum = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.album
-                    if (!savedAlbum.isNullOrEmpty() && !albumItem.isNullOrEmpty()) {
-                        val differentAlbum =
-                            albumItem
-                                .filter { ytItem ->
-                                    (
-                                        albumItem.map { item ->
-                                            item.browseId
-                                        } symmetricDifference (savedAlbum.map { it["browseId"] })
-                                    ).contains(ytItem.browseId)
-                                }
+                    val saved = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }
+                    // Everything ever seen for this artist, in BOTH grids. YouTube moves EPs between
+                    // Albums and Singles, re-keys old releases and lists only the first 100, so
+                    // comparing against the last fetch alone kept announcing old releases.
+                    val known =
+                        saved
+                            ?.let { it.album + it.single }
+                            .orEmpty()
+                            .mapNotNull { it["browseId"] }
+                            .toSet()
+                    // The first check of an artist only records what already exists.
+                    if (known.isNotEmpty()) {
                         mapOfNotification.add(
                             NotificationModel(
                                 name = art.name,
                                 channelId = art.channelId,
                                 single = listOf(),
-                                album = differentAlbum,
+                                album = albumItem.orEmpty().filter { isNewRelease(it.browseId, it.year, known) },
                             ),
                         )
-                    }
-                    val savedSingle = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.single
-                    if (!savedSingle.isNullOrEmpty() && !singleItem.isNullOrEmpty()) {
-                        val differentSingle =
-                            singleItem
-                                .filter { ytItem ->
-                                    (
-                                        singleItem.map { item ->
-                                            item.browseId
-                                        } symmetricDifference (savedSingle.map { it["browseId"] })
-                                    ).contains(ytItem.browseId)
-                                }
                         mapOfNotification.add(
                             NotificationModel(
                                 name = art.name,
                                 channelId = art.channelId,
-                                single = differentSingle,
+                                single = singleItem.orEmpty().filter { isNewRelease(it.browseId, it.year, known) },
                                 album = listOf(),
                             ),
                         )
                     }
+                    // A union, never overwritten: a failed or partial fetch must not erase what was
+                    // already seen, or those releases come back as "new" on the next run.
                     albumRepository.insertFollowedArtistSingleAndAlbum(
                         FollowedArtistSingleAndAlbum(
                             channelId = art.channelId,
                             name = art.name,
-                            single = singleItem.toMap(),
-                            album = albumItem.toMap(),
+                            single = (saved?.single.orEmpty() + singleItem.toMap()).distinctBy { it["browseId"] },
+                            album = (saved?.album.orEmpty() + albumItem.toMap()).distinctBy { it["browseId"] },
                         ),
                     )
                 }

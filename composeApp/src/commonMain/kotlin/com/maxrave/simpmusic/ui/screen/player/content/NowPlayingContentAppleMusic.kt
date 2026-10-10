@@ -15,7 +15,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,12 +24,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
@@ -43,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,19 +50,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
@@ -70,6 +72,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.common.Config.MAIN_PLAYER
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
@@ -79,40 +82,47 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicBottomCluster
-import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicHeaderActions
-import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicLyricsView
-import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicQueueView
-import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicTypography
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Replay5
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Subtitles
 import com.maxrave.simpmusic.ui.icon.SubtitlesOff
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicBottomCluster
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicHeaderActions
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicLyricStrip
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicLyricsView
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicMeshBackdrop
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicOutputSheet
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicQueueView
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicTypography
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicView
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.appleMusicFadeBetween
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.appleMusicGradientColorAt
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.appleMusicVerticalFadeEdges
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.displayName
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicMesh
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
+import kotlin.math.pow
 
 /**
- * The Apple Music Now Playing style: a style-internal dock (Lyrics · Cast · Queue) swaps the
- * BODY between three full-screen views instead of scrolling a single column, à la
- * [NowPlayingContentSpotify]/[NowPlayingContentM3Expressive]. The page background is the
- * artwork's own tint (a vertical gradient), not a Material scheme — see the color-system note on
- * [AppleMusicMainView] for the canvas/video exception.
+ * The Apple Music Now Playing style: a style-internal dock (Lyrics · [Output | Listen Together] ·
+ * Queue) swaps the BODY between three full-screen views instead of scrolling a single column, à la
+ * [NowPlayingContentSpotify]/[NowPlayingContentM3Expressive]. MAIN stands on a mesh made of the
+ * artwork's own colours; LYRICS and QUEUE on the frosted cover art — see [AppleMusicMainView].
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -162,10 +172,13 @@ fun NowPlayingContentAppleMusic(
     val activePillContainer = remember(seedColor) { lerp(seedColor, Color.White, 0.75f) }
     val activePillContent = remember(seedColor) { lerp(seedColor, Color.Black, 0.6f) }
 
+    // Only a Spotify canvas takes the whole page now; Apple Music's animated artwork plays in the
+    // artwork's own frame (see AppleMusicMainView), so it neither blacks the page out nor hides the
+    // controls.
+    val fullscreenCanvas = state.screenData.canvasData?.let { !it.isAnimatedArtwork() } == true
     val showCanvasBackdrop =
         viewState == AppleMusicView.MAIN &&
-            (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
-    val isVideoBackdropTop = showCanvasBackdrop && state.screenData.canvasData == null
+            (fullscreenCanvas || (state.screenData.canvasData == null && state.screenData.isVideo && state.shouldShowVideo))
 
     val deviceVolumeController = rememberDeviceVolumeController()
     val typography = rememberAppleMusicTypography()
@@ -177,10 +190,20 @@ fun NowPlayingContentAppleMusic(
     // is still on screen, which is the flicker when leaving MAIN for Queue/Lyrics and again on the
     // way back. Fading the black layer on the SAME 300ms curve keeps the two in step.
     val canvasBackdropAlpha by animateFloatAsState(
-        targetValue = if (showCanvasBackdrop && !isVideoBackdropTop) 1f else 0f,
+        targetValue = if (showCanvasBackdrop && fullscreenCanvas) 1f else 0f,
         animationSpec = tween(300),
         label = "appleMusicCanvasBackdrop",
     )
+
+    // Where the sound leaves by. The player lists its own outputs; while casting, the receiver is
+    // the answer instead. Named by the same rule the output sheet uses, so the caption and the
+    // ticked row can never disagree.
+    val player = koinInject<MediaPlayerHandler>().player
+    val audioOutputs by player.audioOutputs.collectAsStateWithLifecycle()
+    val activeOutputName = audioOutputs.firstOrNull { it.isActive }?.displayName()
+    val outputName = if (state.castState.isRemote) state.castState.deviceName else activeOutputName
+    var showOutputSheet by rememberSaveable { mutableStateOf(false) }
+    val openOutput = { showOutputSheet = true }
 
     // Backdrop source for the Desktop dismiss button below. The glass layers MUST be a sibling of
     // the button, never its parent: nesting the button inside the source is the render-feedback
@@ -210,6 +233,8 @@ fun NowPlayingContentAppleMusic(
                         activePillContainer = activePillContainer,
                         activePillContent = activePillContent,
                         deviceVolumeController = deviceVolumeController,
+                        outputName = outputName,
+                        onOpenOutput = openOutput,
                     )
 
                 AppleMusicView.LYRICS ->
@@ -222,6 +247,8 @@ fun NowPlayingContentAppleMusic(
                         activePillContainer = activePillContainer,
                         activePillContent = activePillContent,
                         deviceVolumeController = deviceVolumeController,
+                        outputName = outputName,
+                        onOpenOutput = openOutput,
                     )
 
                 AppleMusicView.QUEUE ->
@@ -234,6 +261,8 @@ fun NowPlayingContentAppleMusic(
                         activePillContainer = activePillContainer,
                         activePillContent = activePillContent,
                         deviceVolumeController = deviceVolumeController,
+                        outputName = outputName,
+                        onOpenOutput = openOutput,
                     )
             }
         }
@@ -290,20 +319,33 @@ fun NowPlayingContentAppleMusic(
                 )
             }
         }
+
+        if (showOutputSheet) {
+            AppleMusicOutputSheet(
+                outputs = audioOutputs,
+                castState = state.castState,
+                deviceVolumeController = deviceVolumeController,
+                onSelectOutput = { output -> player.selectAudioOutput(output.id) },
+                onRefresh = { player.refreshAudioOutputs() },
+                onDismiss = { showOutputSheet = false },
+            )
+        }
     }
 }
 
 /**
- * MAIN: full-bleed artwork pager (top ~60%, fading into the page gradient) with the shell's
- * artwork-pager sync, a title row, and the shared bottom cluster.
+ * MAIN: the artwork edge to edge at the top — uncropped, at its own proportions — dissolving into
+ * a mesh of its own colours, with the title row, the current lyric and the shared cluster hung
+ * from the bottom of the page.
  *
- * Canvas/video mode (design decision A — full screen): when [NowPlayingScreenData.canvasData] is
- * set or the track is a shown video, the CURRENT page's canvas/video fills the entire pager
- * (bottom layer, page background goes black) and this same title-row-plus-cluster layout floats
- * on top with a scrim, auto-hiding via [NowPlayingContentState.showControlLayout] exactly like
- * [NowPlayingContentM3Expressive] does for its info block. A tap re-shows hidden controls; a tap
- * on an already-shown VIDEO (not canvas) enters the existing fullscreen video route instead of
- * rebuilding Classic's ±5s/subtitle overlay here.
+ * The artwork is square for a still cover: a full-width square, with everything else below it.
+ * Apple Music's animated artwork (3:4 or 1:1) plays in a frame of its own shape, top-aligned, and
+ * keeps the controls exactly where the still cover put them — they must not jump when the clip
+ * arrives a few seconds into the track — so a tall clip's lower part fades out behind the title.
+ *
+ * A Spotify canvas (9:16, made to fill a phone) still takes the whole page: the controls float on
+ * top of it with a scrim and auto-hide via [NowPlayingContentState.showControlLayout]. A tap re-shows
+ * hidden controls; a tap on an already-shown VIDEO (not canvas) enters the fullscreen video route.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -317,19 +359,22 @@ private fun AppleMusicMainView(
     activePillContainer: Color,
     activePillContent: Color,
     deviceVolumeController: DeviceVolumeController?,
+    outputName: String?,
+    onOpenOutput: () -> Unit,
 ) {
-    val screenInfo = getScreenSizeInfo()
     val localDensity = LocalDensity.current
     val isRepeatOne = state.controllerState.repeatState is RepeatState.One
 
-    val showCanvasBackdrop =
-        state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo)
-    val isVideoBackdrop = showCanvasBackdrop && state.screenData.canvasData == null
+    val canvasData = state.screenData.canvasData
+    val animatedArtwork = canvasData?.takeIf { it.isAnimatedArtwork() }
+    val fullscreenCanvas = canvasData != null && animatedArtwork == null
+    val isVideoBackdrop = canvasData == null && state.screenData.isVideo && state.shouldShowVideo
 
-    // Same fade/half-blended-frame fix M3E uses: fast fade-in, relaxed fade-out.
+    // Same fade/half-blended-frame fix M3E uses: fast fade-in, relaxed fade-out. Only a fullscreen
+    // canvas ever hides the controls — every other artwork sits above them, not behind them.
     val controlsAlpha by animateFloatAsState(
-        targetValue = if (state.showControlLayout) 1f else 0f,
-        animationSpec = tween(durationMillis = if (state.showControlLayout) 180 else 500, easing = LinearEasing),
+        targetValue = if (!fullscreenCanvas || state.showControlLayout) 1f else 0f,
+        animationSpec = tween(durationMillis = if (!fullscreenCanvas || state.showControlLayout) 180 else 500, easing = LinearEasing),
         label = "appleMusicControlsAlpha",
     )
 
@@ -344,15 +389,47 @@ private fun AppleMusicMainView(
         }
     }
 
-    // The artwork zone is whatever's left above the measured title-row+cluster block, so the
-    // whole MAIN view always totals exactly one screen height — no scroll, per spec.
-    // remember, not rememberSaveable: a measured height must not survive a rotation, or a portrait
-    // cluster height is paired with a landscape screen height for a frame. Seeded near its real
-    // value so the FIRST frame doesn't draw a full-screen artwork that then snaps up.
-    var bottomContentHeightDp by remember { mutableIntStateOf(330) }
-    val artworkZoneHeightDp = (screenInfo.hDP - bottomContentHeightDp).coerceAtLeast(200)
+    // Height of the controls block, for fitting a video above it and sizing the canvas idle overlay.
+    // remember, not rememberSaveable: a measured height must not survive a rotation. Seeded near its
+    // real value so the first frame does not lay a video out against a wrong one.
+    var bottomContentHeightDp by remember { mutableIntStateOf(430) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // What the page's mesh is read from: the cover, or the animated artwork's still once it is up —
+    // the page should continue whatever is actually on screen above it.
+    var coverBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var clipStill by remember(animatedArtwork?.url) { mutableStateOf<ImageBitmap?>(null) }
+    var clipFrameHeight by remember(animatedArtwork?.url) { mutableStateOf(0.dp) }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        // A full-width square: the cover at its own proportions, nothing cut off either side. Capped
+        // for a landscape window, where a full-width square would be taller than the page.
+        val artworkHeight = minOf(maxWidth, maxHeight * ARTWORK_MAX_HEIGHT_FRACTION)
+        val clipMaxHeight = maxHeight * ANIMATED_ARTWORK_MAX_HEIGHT_FRACTION
+        val artworkFade = artworkHeight * ARTWORK_FADE_FRACTION
+        val showsClip = animatedArtwork != null && clipStill != null
+
+        // The page itself. A video keeps the frosted cover behind it and a fullscreen canvas the black
+        // page, as before; everything else stands on the mesh, hung from where the artwork ends.
+        val meshPage = !fullscreenCanvas && !isVideoBackdrop
+        val mesh =
+            if (meshPage) {
+                rememberAppleMusicMesh(
+                    artwork = if (showsClip) clipStill else coverBitmap,
+                    seed = (animatedArtwork?.url ?: state.screenData.thumbnailURL).hashCode(),
+                )
+            } else {
+                null
+            }
+        val meshSeam = if (showsClip) clipFrameHeight else artworkHeight
+        if (meshPage) AppleMusicMeshBackdrop(mesh = mesh, seam = meshSeam)
+
+        // The band under the status bar and the grabber, where a bright or busy sleeve drowns their
+        // white glyphs: blurred (TopBandBlur, inside each page so it moves with it) and darkened
+        // (the wash below). Android only — Desktop has neither, and its dismiss button is glass.
+        val statusBarHeight = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() }
+        val topBand =
+            if (meshPage && getPlatform() == Platform.Android) statusBarHeight + TOP_BAND_STRIP else 0.dp
+
         HorizontalPager(
             state = state.artworkPagerState,
             modifier = Modifier.fillMaxSize(),
@@ -368,31 +445,61 @@ private fun AppleMusicMainView(
                 actions = actions,
                 localDensity = localDensity,
                 page = page,
-                artworkZoneHeightDp = artworkZoneHeightDp,
+                artworkHeight = artworkHeight,
+                clipMaxHeight = clipMaxHeight,
+                topBandSolid = statusBarHeight,
+                topBand = topBand,
                 bottomContentHeightDp = bottomContentHeightDp,
+                fullscreenCanvas = fullscreenCanvas,
+                animatedArtwork = animatedArtwork,
                 isVideoBackdrop = isVideoBackdrop,
                 showVideoOverlay = showVideoOverlay,
                 onToggleVideoOverlay = { showVideoOverlay = !showVideoOverlay },
                 showSubtitle = showSubtitle,
                 onToggleSubtitle = { showSubtitle = !showSubtitle },
+                onCoverBitmap = { coverBitmap = it },
+                onClipStill = { still, height ->
+                    clipStill = still
+                    clipFrameHeight = height
+                },
             )
         }
 
-        // Top scrim, CANVAS ONLY — same rule the flat black backdrop above follows: a canvas
-        // replaces the whole page, so the status bar and grabber would otherwise float on raw
-        // picture; a video letterboxes and the strip around it is still the artwork gradient,
-        // which is exactly what a plain-artwork track's controls already sit on. Painting these
-        // over a video only dimmed the picture — measured on a 480x830 panel, the top 25% of the
-        // 16:9 frame under up to 0.20 black and the bottom 20% under up to 0.22.
-        //
-        // Rides controlsAlpha, like the scrim below it. A scrim is an accessory of the CONTROLS,
-        // not of the canvas: gating it on showCanvasBackdrop alone left both scrims painted at full
-        // strength after the controls auto-hid, so 82% of the screen height stayed covered — 0.55
-        // black down to y=22%, then 0.45 at y=53% ramping to 0.97 at the bottom — with nothing left
-        // underneath them to make readable. That is the whole of "đen thui cả canvas". The idle
-        // overlay that replaces the controls carries its own page-tint scrim, so the bottom stays
-        // readable without these.
-        if (showCanvasBackdrop && !isVideoBackdrop && controlsAlpha > 0f) {
+        // Android plays the animated artwork on a SurfaceView, which no Compose mask or alpha reaches:
+        // masked like the cover, the clip still ended in a hard edge across the page. So the page is
+        // laid back OVER the clip's lower part instead — the same mesh at the same size and seam, so it
+        // matches the page beneath it pixel for pixel — faded in over the stretch the cover dissolves
+        // over, ending at the clip's bottom edge.
+        if (meshPage && animatedArtwork != null && clipFrameHeight > 0.dp) {
+            AppleMusicMeshBackdrop(
+                mesh = mesh,
+                seam = meshSeam,
+                modifier = Modifier.appleMusicFadeBetween(transparentAt = clipFrameHeight - artworkFade, opaqueAt = clipFrameHeight),
+            )
+        }
+
+        // The wash under the status bar: as dark as the sleeve's own top band is bright, 16%–65%,
+        // so a dark cover is left almost untouched and a bright one still carries white icons.
+        if (topBand > 0.dp) {
+            val topWashAlpha by animateFloatAsState(
+                targetValue = TOP_WASH_MIN_ALPHA + (TOP_WASH_MAX_ALPHA - TOP_WASH_MIN_ALPHA) * (mesh?.topLuminance ?: 1f),
+                animationSpec = tween(TOP_WASH_FADE_MS),
+                label = "appleMusicTopWash",
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(topBand)
+                        .background(topWashBrush(topWashAlpha)),
+            )
+        }
+
+        // Top scrim, fullscreen CANVAS ONLY: a canvas replaces the whole page, so the status bar and
+        // grabber would otherwise float on raw picture; a video letterboxes and the strip around it
+        // is still the artwork gradient. Rides controlsAlpha — a scrim is an accessory of the
+        // controls, and left painted after they auto-hid it covered most of the canvas for nothing.
+        if (fullscreenCanvas && controlsAlpha > 0f) {
             Box(
                 modifier =
                     Modifier
@@ -413,15 +520,18 @@ private fun AppleMusicMainView(
         // while a canvas plays — solid black at the very bottom, fading out upward.
         // Height is a FRACTION of this Box, never a dp computed from screenInfo: a zero/stale
         // hDP silently collapsed this scrim to nothing, which is why it kept "not existing".
-        // Canvas only, for the reason spelled out on the top scrim.
-        if (showCanvasBackdrop && !isVideoBackdrop && controlsAlpha > 0f) {
+        if (fullscreenCanvas && controlsAlpha > 0f) {
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
                         .alpha(controlsAlpha)
                         .fillMaxWidth()
-                        .fillMaxHeight(0.6f)
+                        // Tall enough that the controls fill its lower 60%, so the title always sits
+                        // at the same depth in it. A fixed 60% of the page left the title in the
+                        // faint top of the ramp once the lyric strip and the action row made the
+                        // controls taller.
+                        .fillMaxHeight(((bottomContentHeightDp.dp / 0.6f) / maxHeight.coerceAtLeast(1.dp)).coerceIn(0.6f, 1f))
                         .background(
                             Brush.verticalGradient(
                                 // Ramps harder early: at the old stops the TITLE row sat at only
@@ -444,6 +554,8 @@ private fun AppleMusicMainView(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(),
         ) {
+            // Hung from the bottom of the page. Whatever height is left above it and below the
+            // artwork is the mesh continuing the artwork's own colours.
             Column(
                 modifier =
                     Modifier
@@ -453,9 +565,13 @@ private fun AppleMusicMainView(
                                 with(localDensity) { coords.size.height.toDp().value.toInt() }
                         },
             ) {
-                Spacer(modifier = Modifier.height(20.dp))
                 AppleMusicMainTitleRow(state = state, actions = actions, typography = typography)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+                AppleMusicLyricStrip(
+                    state = state,
+                    typography = typography,
+                    onClick = { onSelectView(AppleMusicView.LYRICS) },
+                )
                 AppleMusicBottomCluster(
                     state = state,
                     actions = actions,
@@ -465,11 +581,15 @@ private fun AppleMusicMainView(
                     activePillContainer = activePillContainer,
                     activePillContent = activePillContent,
                     deviceVolumeController = deviceVolumeController,
+                    outputName = outputName,
+                    onOpenOutput = onOpenOutput,
+                    // The lyric sits right on the progress bar: it is read with the bar, not the title.
+                    topPadding = 2.dp,
                 )
             }
-            // Idle overlay — replaces the (now invisible) title row + cluster while canvas/video
-            // controls are auto-hidden, mirroring M3E's canvas-unfocused overlay verbatim.
-            if (showCanvasBackdrop) {
+            // Idle overlay — replaces the (now invisible) title row + cluster while a fullscreen
+            // canvas has auto-hidden them, mirroring M3E's canvas-unfocused overlay verbatim.
+            if (fullscreenCanvas) {
                 AnimatedVisibility(
                     visible = !state.showControlLayout,
                     enter = fadeIn(),
@@ -534,7 +654,7 @@ private fun AppleMusicMainView(
                                         ?.stripRichSyncTimestamps()
                                 if (!lineText.isNullOrBlank()) {
                                     Column(modifier = Modifier.fillMaxWidth()) {
-                                        Text(
+                                        LyricText(
                                             text = lineText,
                                             style = typography.idleLyric,
                                             maxLines = 1,
@@ -554,8 +674,9 @@ private fun AppleMusicMainView(
                                                 ?.words
                                                 ?.stripRichSyncTimestamps()
                                         if (!translatedLineText.isNullOrBlank()) {
-                                            Text(
+                                            LyricText(
                                                 text = translatedLineText,
+                                                alignmentText = lineText,
                                                 style = typography.idleTranslated,
                                                 maxLines = 1,
                                                 modifier =
@@ -752,11 +873,10 @@ internal fun AppleMusicMainTitleRow(
 }
 
 /**
- * One pager page. Current page: the live artwork stays composed (alpha 0 under canvas/video) so
- * [NowPlayingContentActions.onArtworkBitmap] keeps feeding the palette that drives the page
- * background even while a canvas/video is the visible backdrop — otherwise the background would
- * go stale on the next track if it also opens on a canvas. Adjacent pages: a static thumbnail,
- * bounded the same way non-canvas artwork is.
+ * One pager page. Current page: the cover stays composed (alpha 0 under a fullscreen canvas/video,
+ * or once an animated artwork has faded in over it) so [NowPlayingContentActions.onArtworkBitmap]
+ * keeps feeding the palette — otherwise the page colours would go stale on the next track if it
+ * also opens on a canvas. Adjacent pages: a static thumbnail in the same full-width square.
  */
 @Composable
 private fun AppleMusicArtworkPage(
@@ -764,40 +884,64 @@ private fun AppleMusicArtworkPage(
     actions: NowPlayingContentActions,
     localDensity: Density,
     page: Int,
-    artworkZoneHeightDp: Int,
+    artworkHeight: Dp,
+    clipMaxHeight: Dp,
+    topBandSolid: Dp,
+    topBand: Dp,
     bottomContentHeightDp: Int,
+    fullscreenCanvas: Boolean,
+    animatedArtwork: NowPlayingScreenData.CanvasData?,
     isVideoBackdrop: Boolean,
     showVideoOverlay: Boolean,
     onToggleVideoOverlay: () -> Unit,
     showSubtitle: Boolean,
     onToggleSubtitle: () -> Unit,
+    onCoverBitmap: (ImageBitmap) -> Unit,
+    onClipStill: (ImageBitmap?, Dp) -> Unit,
 ) {
     val pageTrack = state.artworkQueue.getOrNull(page)
     val isCurrentPage = page == state.currentOrderIndex
-    val pageShowsCanvasOrVideo =
-        isCurrentPage && (state.screenData.canvasData != null || (state.screenData.isVideo && state.shouldShowVideo))
+    val pageShowsFullscreen = isCurrentPage && (fullscreenCanvas || isVideoBackdrop)
+    val pageShowsClip = isCurrentPage && animatedArtwork != null
+    // How much of the artwork dissolves into the page: 42% of the frame, on a smoothstep curve
+    // (appleMusicVerticalFadeEdges), so there is no line where the fade starts.
+    val artworkFade = artworkHeight * ARTWORK_FADE_FRACTION
+
+    // The animated artwork fades in over the cover once its still is up, rather than cutting in.
+    var clipReady by remember(animatedArtwork?.url) { mutableStateOf(false) }
+    val clipAlpha by animateFloatAsState(
+        targetValue = if (pageShowsClip && clipReady) 1f else 0f,
+        animationSpec = tween(ARTWORK_FADE_IN_MS),
+        label = "appleMusicAnimatedArtworkIn",
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isCurrentPage) {
             var artworkUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+            val coverRequest =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(artworkUrl)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(artworkUrl + "BIGGER")
+                    .crossfade(550)
+                    .build()
+            val coverAlpha = if (pageShowsFullscreen) 0f else 1f - clipAlpha
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
-                        .height(artworkZoneHeightDp.dp),
+                        .height(artworkHeight),
             ) {
                 AsyncImage(
-                    model =
-                        ImageRequest
-                            .Builder(LocalPlatformContext.current)
-                            .data(artworkUrl)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(artworkUrl + "BIGGER")
-                            .crossfade(550)
-                            .build(),
+                    model = coverRequest,
                     contentDescription = "",
-                    onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+                    onSuccess = {
+                        val bitmap = it.result.image.toImageBitmap()
+                        actions.onArtworkBitmap(bitmap)
+                        onCoverBitmap(bitmap)
+                    },
                     onError = {
                         val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
                         if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
@@ -806,17 +950,31 @@ private fun AppleMusicArtworkPage(
                     placeholder = rememberHolderPainter(),
                     error = rememberHolderPainter(),
                     // The artwork DISSOLVES (alpha mask) instead of being covered by a colour
-                    // overlay: that overlay had to land on exactly the page gradient's colour at
-                    // that Y, and any drift drew a hard horizontal line across the screen.
-                    // Masking lets the real background show through — nothing left to match.
+                    // overlay: that overlay had to land on exactly the page's colour at that Y,
+                    // and any drift drew a hard horizontal line across the screen. Masking lets
+                    // the real background show through — nothing left to match.
                     modifier =
                         Modifier
                             .fillMaxSize()
-                            .alpha(if (pageShowsCanvasOrVideo) 0f else 1f)
-                            .appleMusicVerticalFadeEdges(topFade = 0.dp, bottomFade = 300.dp),
+                            .alpha(coverAlpha)
+                            .appleMusicVerticalFadeEdges(topFade = 0.dp, bottomFade = artworkFade),
+                )
+                TopBandBlur(model = coverRequest, solidTo = topBandSolid, fadeTo = topBand, modifier = Modifier.alpha(coverAlpha))
+            }
+            if (pageShowsClip && animatedArtwork != null) {
+                AnimatedArtworkFrame(
+                    canvas = animatedArtwork,
+                    heightLimit = clipMaxHeight,
+                    topBandSolid = topBandSolid,
+                    topBand = topBand,
+                    alpha = clipAlpha,
+                    onStill = { still, height ->
+                        clipReady = true
+                        onClipStill(still, height)
+                    },
                 )
             }
-            if (pageShowsCanvasOrVideo) {
+            if (pageShowsFullscreen) {
                 if (isVideoBackdrop) {
                     // Centre the video in the region ABOVE the controls (top → cluster), not in
                     // the whole screen: screen-centred, half of a 16:9 video sat behind the
@@ -833,10 +991,10 @@ private fun AppleMusicArtworkPage(
                         modifier =
                             Modifier
                                 .align(Alignment.TopCenter)
-                                // The page's own height minus the controls, not artworkZoneHeightDp:
-                                // that one is measured against the window, and the Desktop side panel
-                                // is shorter than the window by its shell padding, which pushed a tall
-                                // frame down into the gap above the title.
+                                // The page's own height minus the controls, not a window-based
+                                // measure: the Desktop side panel is shorter than the window by its
+                                // shell padding, which pushed a tall frame down into the gap above
+                                // the title.
                                 .fillMaxSize()
                                 .padding(bottom = bottomContentHeightDp.dp)
                                 .clickable(
@@ -845,7 +1003,8 @@ private fun AppleMusicArtworkPage(
                                 ) { onToggleVideoOverlay() },
                     ) {
                         val ratio = state.videoAspectRatio
-                        val frameHeight = minOf(maxWidth / ratio, (maxHeight - topChrome).coerceAtLeast(0.dp))
+                        val frameHeight =
+                            minOf(maxWidth / ratio, (maxHeight - topChrome - VIDEO_FRAME_BOTTOM_GAP).coerceAtLeast(0.dp))
                         val frameWidth = frameHeight * ratio
                         val frameTop = maxOf((maxHeight - frameHeight) / 2, topChrome)
                         // THE VIDEO FRAME. Everything over-video — the surface, the subtitle and
@@ -864,83 +1023,83 @@ private fun AppleMusicArtworkPage(
                                     // like a card; wide ones run edge to edge and stay square.
                                     .then(if (ratio < 1f) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier),
                         ) {
-                        MediaPlayerViewWithSubtitle(
-                            playerName = MAIN_PLAYER,
-                            // fillMaxWidth, never fillMaxSize: a free height lets the surface's
-                            // own aspect ratio apply, which is what stops it being stretched.
-                            modifier = Modifier.fillMaxWidth().align(Alignment.Center),
-                            shouldShowSubtitle = showSubtitle,
-                            shouldPip = false,
-                            shouldScaleDownSubtitle = true,
-                            timelineState = state.timelineState,
-                            lyricsData = state.screenData.lyricsData?.lyrics,
-                            translatedLyricsData = state.screenData.lyricsData?.translatedLyrics?.first,
-                            isInPipMode = state.isInPipMode,
-                            mainTextStyle = typo().bodyLarge,
-                            translatedTextStyle = typo().bodyMedium,
-                        )
+                            MediaPlayerViewWithSubtitle(
+                                playerName = MAIN_PLAYER,
+                                // fillMaxWidth, never fillMaxSize: a free height lets the surface's
+                                // own aspect ratio apply, which is what stops it being stretched.
+                                modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                                shouldShowSubtitle = showSubtitle,
+                                shouldPip = false,
+                                shouldScaleDownSubtitle = true,
+                                timelineState = state.timelineState,
+                                lyricsData = state.screenData.lyricsData?.lyrics,
+                                translatedLyricsData = state.screenData.lyricsData?.translatedLyrics?.first,
+                                isInPipMode = state.isInPipMode,
+                                mainTextStyle = typo().bodyLarge,
+                                translatedTextStyle = typo().bodyMedium,
+                            )
 
-                        // Classic/M3E's over-video controls, ported: fullscreen, ±5s, subtitles.
-                        // A tap on the video toggles them; they auto-hide after 3s.
-                        // Rendered INSIDE the video zone and drawn after the tap-catcher below,
-                        // so its buttons are the topmost target — otherwise the catcher swallows
-                        // every tap and the buttons look dead.
-                        Crossfade(targetState = showVideoOverlay, label = "appleMusicVideoOverlay") { shown ->
-                            if (shown) {
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.28f)),
-                                ) {
-                                    IconButton(
-                                        onClick = { actions.onEnterFullscreenVideo() },
-                                        modifier = Modifier.align(Alignment.TopEnd),
-                                    ) {
-                                        Icon(imageVector = SimpIcons.Fullscreen, contentDescription = "", tint = Color.White)
-                                    }
-                                    Row(
-                                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                            // Classic/M3E's over-video controls, ported: fullscreen, ±5s, subtitles.
+                            // A tap on the video toggles them; they auto-hide after 3s.
+                            // Rendered INSIDE the video zone and drawn after the tap-catcher below,
+                            // so its buttons are the topmost target — otherwise the catcher swallows
+                            // every tap and the buttons look dead.
+                            Crossfade(targetState = showVideoOverlay, label = "appleMusicVideoOverlay") { shown ->
+                                if (shown) {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(Color.Black.copy(alpha = 0.28f)),
                                     ) {
                                         IconButton(
-                                            onClick = { actions.onUIEvent(UIEvent.Backward) },
-                                            modifier = Modifier.size(48.dp).clip(CircleShape),
+                                            onClick = { actions.onEnterFullscreenVideo() },
+                                            modifier = Modifier.align(Alignment.TopEnd),
                                         ) {
-                                            Icon(
-                                                imageVector = SimpIcons.Replay5,
-                                                contentDescription = "",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(36.dp).alpha(0.8f),
-                                            )
+                                            Icon(imageVector = SimpIcons.Fullscreen, contentDescription = "", tint = Color.White)
                                         }
-                                        IconButton(
-                                            onClick = { actions.onUIEvent(UIEvent.Forward) },
-                                            modifier = Modifier.size(48.dp).clip(CircleShape),
+                                        Row(
+                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceEvenly,
                                         ) {
-                                            Icon(
-                                                imageVector = SimpIcons.Forward5,
-                                                contentDescription = "",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(36.dp).alpha(0.8f),
-                                            )
+                                            IconButton(
+                                                onClick = { actions.onUIEvent(UIEvent.Backward) },
+                                                modifier = Modifier.size(48.dp).clip(CircleShape),
+                                            ) {
+                                                Icon(
+                                                    imageVector = SimpIcons.Replay5,
+                                                    contentDescription = "",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(36.dp).alpha(0.8f),
+                                                )
+                                            }
+                                            IconButton(
+                                                onClick = { actions.onUIEvent(UIEvent.Forward) },
+                                                modifier = Modifier.size(48.dp).clip(CircleShape),
+                                            ) {
+                                                Icon(
+                                                    imageVector = SimpIcons.Forward5,
+                                                    contentDescription = "",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(36.dp).alpha(0.8f),
+                                                )
+                                            }
                                         }
-                                    }
-                                    if (state.screenData.lyricsData != null) {
-                                        IconButton(
-                                            onClick = { onToggleSubtitle() },
-                                            modifier = Modifier.align(Alignment.BottomEnd),
-                                        ) {
-                                            Icon(
-                                                imageVector = if (showSubtitle) SimpIcons.SubtitlesOff else SimpIcons.Subtitles,
-                                                contentDescription = "",
-                                                tint = Color.White,
-                                            )
+                                        if (state.screenData.lyricsData != null) {
+                                            IconButton(
+                                                onClick = { onToggleSubtitle() },
+                                                modifier = Modifier.align(Alignment.BottomEnd),
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (showSubtitle) SimpIcons.SubtitlesOff else SimpIcons.Subtitles,
+                                                    contentDescription = "",
+                                                    tint = Color.White,
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
                         }
                     }
                 } else {
@@ -1000,32 +1159,239 @@ private fun AppleMusicArtworkPage(
             }
         } else if (pageTrack != null) {
             val staticThumb = pageTrack.thumbnails?.maxByOrNull { it.width * it.height }?.url
+            val thumbRequest =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(staticThumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(staticThumb)
+                    .crossfade(300)
+                    .build()
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
-                        .height(artworkZoneHeightDp.dp),
+                        .height(artworkHeight),
             ) {
                 AsyncImage(
-                    model =
-                        ImageRequest
-                            .Builder(LocalPlatformContext.current)
-                            .data(staticThumb)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(staticThumb)
-                            .crossfade(300)
-                            .build(),
+                    model = thumbRequest,
                     contentDescription = pageTrack.title,
                     contentScale = ContentScale.Crop,
                     placeholder = rememberHolderPainter(),
                     error = rememberHolderPainter(),
-                    modifier = Modifier.fillMaxSize().appleMusicVerticalFadeEdges(topFade = 0.dp, bottomFade = 300.dp),
+                    modifier = Modifier.fillMaxSize().appleMusicVerticalFadeEdges(topFade = 0.dp, bottomFade = artworkFade),
                 )
+                // Blurred like the current page's, or its top band would turn sharp mid-swipe.
+                TopBandBlur(model = thumbRequest, solidTo = topBandSolid, fadeTo = topBand)
             }
         }
     }
 }
+
+/**
+ * Apple Music's animated artwork played this style's way, for the Classic and Material 3 Expressive
+ * styles to lay over their own page: the clip edge to edge at the top, dissolving into a mesh of its
+ * own colours, with the band under the style's top bar (which ends at [topChrome]) blurred and
+ * darkened so the bar's white glyphs survive a bright sleeve. Fills its parent, the style's first
+ * screen, and fades into [pageColor] at the bottom so scrolling past the fold shows no seam.
+ *
+ * Nothing shows until the clip's still is up: the style's own page stays in view until then, and
+ * this page fades in over it instead of jumping from a square cover to a full-width one. [cover]
+ * seeds the mesh until the still has been read.
+ */
+@Composable
+internal fun AppleMusicAnimatedArtworkPage(
+    canvas: NowPlayingScreenData.CanvasData,
+    cover: ImageBitmap?,
+    topChrome: Dp,
+    pageColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    val statusBarHeight = with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    var clipStill by remember(canvas.url) { mutableStateOf<ImageBitmap?>(null) }
+    var clipFrameHeight by remember(canvas.url) { mutableStateOf(0.dp) }
+    val mesh = rememberAppleMusicMesh(artwork = clipStill ?: cover, seed = canvas.url.hashCode())
+    val pageAlpha by animateFloatAsState(
+        targetValue = if (clipFrameHeight > 0.dp && mesh != null) 1f else 0f,
+        animationSpec = tween(ARTWORK_FADE_IN_MS),
+        label = "animatedArtworkPageIn",
+    )
+    BoxWithConstraints(modifier = modifier.fillMaxSize().alpha(pageAlpha)) {
+        val artworkFade = minOf(maxWidth, maxHeight * ARTWORK_MAX_HEIGHT_FRACTION) * ARTWORK_FADE_FRACTION
+        val topBand = topChrome + TOP_BAND_STRIP
+        AppleMusicMeshBackdrop(mesh = mesh, seam = clipFrameHeight)
+        AnimatedArtworkFrame(
+            canvas = canvas,
+            heightLimit = maxHeight * ANIMATED_ARTWORK_MAX_HEIGHT_FRACTION,
+            topBandSolid = statusBarHeight,
+            topBand = topBand,
+            alpha = 1f,
+            onStill = { still, height ->
+                clipStill = still
+                clipFrameHeight = height
+            },
+        )
+        // The page laid back over the clip's lower part, as in AppleMusicMainView: a mask never
+        // reaches the video surface.
+        if (clipFrameHeight > 0.dp) {
+            AppleMusicMeshBackdrop(
+                mesh = mesh,
+                seam = clipFrameHeight,
+                modifier = Modifier.appleMusicFadeBetween(transparentAt = clipFrameHeight - artworkFade, opaqueAt = clipFrameHeight),
+            )
+        }
+        // The wash under the top bar, held through the status bar and eased out by the band's end:
+        // the bar's title sits inside it, so it cannot fall off as fast as the grabber's does.
+        val washAlpha by animateFloatAsState(
+            targetValue = TOP_WASH_MIN_ALPHA + (TOP_WASH_MAX_ALPHA - TOP_WASH_MIN_ALPHA) * (mesh?.topLuminance ?: 1f),
+            animationSpec = tween(TOP_WASH_FADE_MS),
+            label = "animatedArtworkTopWash",
+        )
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(topBand)
+                    .background(
+                        smoothScrimBrush(
+                            from = Color.Black.copy(alpha = washAlpha),
+                            to = Color.Black.copy(alpha = 0f),
+                            startFraction = statusBarHeight / topBand,
+                        ),
+                    ),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        smoothScrimBrush(
+                            from = pageColor.copy(alpha = 0f),
+                            to = pageColor,
+                            startFraction = PAGE_COLOR_FADE_START,
+                        ),
+                    ),
+        )
+    }
+}
+
+/**
+ * Apple Music's animated artwork in a frame of its own shape, full width and top-aligned, so none
+ * of it is cropped. The clip's still sits under it: it sizes the frame (its proportions ARE the
+ * clip's) and shows while the clip loads, so the frame never opens as a black box. [onStill] hands
+ * the still and the frame's height back for the page's mesh, and for the copy of the page that
+ * AppleMusicMainView lays over the frame's lower part — the frame itself carries no fade mask,
+ * because a mask never reaches the video surface.
+ */
+@Composable
+private fun BoxScope.AnimatedArtworkFrame(
+    canvas: NowPlayingScreenData.CanvasData,
+    heightLimit: Dp,
+    topBandSolid: Dp,
+    topBand: Dp,
+    alpha: Float,
+    onStill: (ImageBitmap?, Dp) -> Unit,
+) {
+    BoxWithConstraints(modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
+        var aspect by remember(canvas.url) { mutableFloatStateOf(DEFAULT_ANIMATED_ARTWORK_ASPECT) }
+        val frameWidth = maxWidth
+        val frameHeight = (frameWidth / aspect).coerceAtMost(heightLimit)
+        // No still to wait for (an older cached row): show the frame straight away.
+        LaunchedEffect(canvas.url, canvas.thumbUrl) {
+            if (canvas.thumbUrl == null) onStill(null, frameHeight)
+        }
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(frameHeight)
+                    .alpha(alpha),
+        ) {
+            val stillRequest =
+                canvas.thumbUrl?.let { still ->
+                    ImageRequest
+                        .Builder(LocalPlatformContext.current)
+                        .data(still)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(still)
+                        .build()
+                }
+            stillRequest?.let { request ->
+                AsyncImage(
+                    model = request,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    onSuccess = {
+                        val image = it.result.image
+                        if (image.width > 0 && image.height > 0) aspect = image.width.toFloat() / image.height
+                        onStill(image.toImageBitmap(), (frameWidth / aspect).coerceAtMost(heightLimit))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            // The frame already has the clip's own shape, so "crop to bounds" crops nothing; it is
+            // the path that sizes the surface from Media3's own presentation state (see the canvas
+            // note in AppleMusicArtworkPage) and keeps a shutter up until the first frame is ready.
+            MediaPlayerView(
+                url = canvas.url,
+                cropToBounds = true,
+                modifier = Modifier.fillMaxSize(),
+            )
+            // Nothing can blur the video surface itself, so its band is the still's, blurred: at 32dp
+            // it is a wash of the clip's colours, which barely move in the strip under the status bar.
+            stillRequest?.let { TopBandBlur(model = it, solidTo = topBandSolid, fadeTo = topBand) }
+        }
+    }
+}
+
+/**
+ * The band under the status bar and the grabber, blurred: a sharp, busy sleeve there fights their
+ * glyphs. A Modifier.blur copy of the picture, solid down to [solidTo] and gone by [fadeTo] — the
+ * artist page's technique. Below Android 12 blur is a no-op, the copy is then pixel-identical to
+ * the picture under it, and only the page's dark wash remains. Nothing when [fadeTo] is zero.
+ */
+@Composable
+private fun TopBandBlur(
+    model: Any?,
+    solidTo: Dp,
+    fadeTo: Dp,
+    modifier: Modifier = Modifier,
+) {
+    if (fadeTo <= 0.dp) return
+    AsyncImage(
+        model = model,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier =
+            modifier
+                .fillMaxSize()
+                .appleMusicFadeBetween(transparentAt = fadeTo, opaqueAt = solidTo)
+                .blur(TOP_BAND_BLUR),
+    )
+}
+
+// The status-bar gradient: alpha × (1 − p)^1.5, dark right at the top and falling off fast, drawn
+// at 24 stops so no step shows.
+private fun topWashBrush(alpha: Float): Brush =
+    Brush.verticalGradient(
+        colorStops =
+            Array(TOP_WASH_STEPS + 1) { i ->
+                val p = i / TOP_WASH_STEPS.toFloat()
+                p to Color.Black.copy(alpha = alpha * (1f - p).pow(1.5f))
+            },
+    )
+
+// The top band's length below the status bar, the wash's range (16% on a black sleeve to 65% on a
+// white one), its stops, its change on a skip (the mesh's own crossfade), and the band's blur (the
+// artist page's).
+private val TOP_BAND_STRIP = 32.dp
+private const val TOP_WASH_STEPS = 24
+private const val TOP_WASH_MIN_ALPHA = 0.16f
+private const val TOP_WASH_MAX_ALPHA = 0.65f
+private const val TOP_WASH_FADE_MS = 900
+private val TOP_BAND_BLUR = 32.dp
 
 // Radius of the frosted cover art behind the page. Large enough that no detail of the artwork
 // survives as a shape — what is left is its colour and its broad light and dark areas, which is
@@ -1044,9 +1410,34 @@ private val DISMISS_BUTTON_SIZE = 48.dp
 // Breathing room between that top chrome and a tall video frame.
 private val VIDEO_FRAME_TOP_GAP = 16.dp
 
+// The same room between a tall video frame and the title below it, which it otherwise touches.
+private val VIDEO_FRAME_BOTTOM_GAP = 16.dp
+
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.
 private const val BACKDROP_TINT_ALPHA = 0.62f
+
+// The bottom share of the artwork that dissolves into the page.
+private const val ARTWORK_FADE_FRACTION = 0.42f
+
+// A full-width square cover fits a portrait page with room to spare; only a landscape window is
+// short enough for this cap to bite.
+private const val ARTWORK_MAX_HEIGHT_FRACTION = 0.62f
+
+// A 3:4 animated artwork runs under the title row by design; this only stops a landscape window
+// from turning it into the whole page.
+private const val ANIMATED_ARTWORK_MAX_HEIGHT_FRACTION = 0.75f
+
+// Apple's tall motion artwork (motionDetailTall), which the artwork source prefers — the frame's
+// shape until the clip's still says otherwise.
+private const val DEFAULT_ANIMATED_ARTWORK_ASPECT = 3f / 4f
+
+// How long an animated artwork takes to replace the cover once it is ready.
+private const val ARTWORK_FADE_IN_MS = 420
+
+// Where, down the first screen, the animated artwork's page starts fading into the page below the
+// fold — late enough that the mesh still reaches the controls at the bottom of the screen.
+private const val PAGE_COLOR_FADE_START = 0.92f
 
 // How long the LYRICS tab waits for a track's lyrics before deciding the track has none. Long
 // enough to cover a normal fetch on a normal connection, short enough that a song with no lyrics

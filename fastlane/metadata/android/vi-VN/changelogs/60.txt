@@ -1,0 +1,11 @@
+Mới:
+- Trình phát và lời bài hát kiểu Apple Music làm mới
+- Home và thẻ Thư viện làm mới
+- Hoá đơn nghe nhạc, thẻ gu nhạc AI, chọn đầu ra âm thanh
+- Phát trực tiếp, artwork động nghệ sĩ, nhật ký app
+Cải thiện:
+- Artwork động ở Classic/M3E, Cài đặt dạng thẻ, menu bài trong hàng chờ
+- Bù trễ lời ngay màn lời, thanh tiêu đề Windows, artwork offline
+Sửa lỗi:
+- Crash cài đặt Windows, crash chọn file máy tính, crash Android 11
+- Tiếng trên Fedora, thanh tua khi dừng, lịch sử tìm kiếm, lời RTL

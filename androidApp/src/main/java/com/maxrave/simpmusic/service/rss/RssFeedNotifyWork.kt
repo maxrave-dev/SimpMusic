@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.service.rss
 
 import android.content.Context
 import android.util.Xml
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.maxrave.domain.data.entities.NotificationEntity
@@ -25,7 +26,7 @@ import java.util.Locale
  * post that is (a) published within the [WINDOW_MS] window relative to the run time AND
  * (b) not already stored in the notification DB.
  *
- * The DB is the source of truth for "already pushed" — see [CommonRepository.isNotificationExists].
+ * The DB is the source of truth for "already pushed" — see [isPushed].
  * The time window is intentionally wider than the scheduling interval so a delayed WorkManager
  * run (Doze, constraints) does not skip a post; the DB check still guarantees one push per post.
  */
@@ -38,22 +39,24 @@ class RssFeedNotifyWork(
 
     override suspend fun doWork(): Result =
         withContext(Dispatchers.IO) {
+            // Record nothing while notifications are off, so posts still inside the window
+            // are shown once the user allows them instead of being marked as pushed unseen.
+            if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                Logger.w(TAG, "doWork: notifications are disabled, skipping")
+                return@withContext Result.success()
+            }
             try {
                 Logger.w(TAG, "doWork: fetching $FEED_URL")
                 val items = parseRss(fetchFeed(FEED_URL))
                 val nowMillis = System.currentTimeMillis()
+                val seenSlugs = HashSet<String>()
 
                 // Oldest first so notifications arrive in chronological order.
                 items.sortedBy { it.pubMillis }.forEach { item ->
                     val withinWindow = item.pubMillis > 0L && (nowMillis - item.pubMillis) <= WINDOW_MS
-                    if (withinWindow && !commonRepository.isNotificationExists(item.link)) {
-                        NotificationHandler.createBlogNotificationChannel(applicationContext)
-                        NotificationHandler.createBlogNotification(
-                            context = applicationContext,
-                            title = item.title,
-                            text = item.description,
-                            url = item.link,
-                        )
+                    val slug = item.link.slug()
+                    if (withinWindow && seenSlugs.add(slug) && !isPushed(item.link, slug)) {
+                        // Insert before notifying: a failed insert then retries without a second alert.
                         commonRepository.insertNotification(
                             NotificationEntity(
                                 channelId = "",
@@ -63,6 +66,13 @@ class RssFeedNotifyWork(
                                 description = item.description,
                                 time = if (item.pubMillis > 0L) epochMillisToLocalDateTime(item.pubMillis) else now(),
                             ),
+                        )
+                        NotificationHandler.createBlogNotificationChannel(applicationContext)
+                        NotificationHandler.createBlogNotification(
+                            context = applicationContext,
+                            title = item.title,
+                            text = item.description,
+                            url = item.link,
                         )
                         Logger.w(TAG, "Pushed blog notification: ${item.title}")
                     }
@@ -129,6 +139,20 @@ class RssFeedNotifyWork(
         return items
     }
 
+    // Rows pushed before the feed moved to simpmusic.org hold the post's old maxrave.dev link.
+    private suspend fun isPushed(
+        link: String,
+        slug: String,
+    ): Boolean =
+        commonRepository.isNotificationExists(link) ||
+            commonRepository.isNotificationExists(LEGACY_POST_URL + slug)
+
+    private fun String.slug(): String =
+        substringBefore('#')
+            .substringBefore('?')
+            .trimEnd('/')
+            .substringAfterLast('/')
+
     private fun parsePubMillis(pubDate: String): Long =
         try {
             // RFC-822, e.g. "Fri, 26 Jun 2026 19:05:06 GMT"
@@ -146,7 +170,10 @@ class RssFeedNotifyWork(
 
     companion object {
         private const val TAG = "RssFeedNotifyWork"
-        const val FEED_URL = "https://www.maxrave.dev/rss.xml"
+        const val FEED_URL = "https://www.simpmusic.org/rss.xml"
+
+        // The only link form the old maxrave.dev feed served: https://maxrave.dev/articles/<slug>.
+        private const val LEGACY_POST_URL = "https://maxrave.dev/articles/"
 
         // 48h — wider than the 24h schedule so a delayed run still catches recent posts;
         // the DB dedup prevents any double push.

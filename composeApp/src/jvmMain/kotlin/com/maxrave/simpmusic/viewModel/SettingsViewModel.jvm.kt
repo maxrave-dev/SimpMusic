@@ -27,6 +27,8 @@ import kotlin.system.exitProcess
 
 actual suspend fun calculateDataFraction(cacheRepository: CacheRepository): SettingsStorageSectionFraction? = null
 
+actual suspend fun readPickedFile(uri: Uri): ByteArray = File(uri.toString()).readBytes()
+
 actual suspend fun restoreNative(
     commonRepository: CommonRepository,
     uri: Uri,

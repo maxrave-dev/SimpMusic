@@ -2,6 +2,10 @@ package com.maxrave.simpmusic.ui.screen.other
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -58,7 +62,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
@@ -101,7 +104,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.hexToColorOrNull
 import com.maxrave.simpmusic.extension.rgbFactor
-import com.maxrave.simpmusic.extension.toImmersiveBackground
+import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.extension.toSquareThumbnailUrl
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
@@ -179,11 +182,11 @@ fun ArtistScreen(
 ) {
     val artistScreenState by viewModel.artistScreenState.collectAsStateWithLifecycle()
     val isFollowed by viewModel.followed.collectAsStateWithLifecycle()
-    val canvasUrl by viewModel.canvasUrl.collectAsStateWithLifecycle()
-    // Header shows the canvas video by default; the top-right toggle swaps it for the artist's
-    // picture. Keyed on the canvas so a different artist's canvas starts as video again.
-    var showCanvasVideo by rememberSaveable(canvasUrl?.first) { mutableStateOf(true) }
-    val headerCanvas = canvasUrl?.takeIf { showCanvasVideo }
+    val artistMotion by viewModel.artistMotion.collectAsStateWithLifecycle()
+    // Header plays the artist's animated artwork by default; the top-right toggle swaps it for
+    // their picture. Keyed on the channel, so opening a different artist starts as video again —
+    // keyed on a url it would not reset between two artists whose videos are both absent.
+    var showHeaderVideo by rememberSaveable(channelId) { mutableStateOf(true) }
     val shareTitle = stringResource(Res.string.share)
     val artistLogo by viewModel.artistLogo.collectAsStateWithLifecycle()
 
@@ -215,6 +218,18 @@ fun ArtistScreen(
     // one (including every desktop window) uses a half-viewport-tall frame instead.
     val screenInfo = getScreenSizeInfo()
     val isPortrait = screenInfo.wDP < screenInfo.hDP
+    // Apple Music publishes no tall cut for an artist, so the square rendition fills the square
+    // portrait frame and the wide one the banner-shaped landscape frame. Each stands in for the
+    // other when it is missing on its own: a rendition of the wrong shape still beats no video.
+    val headerVideoUrl =
+        artistMotion
+            ?.let {
+                if (isPortrait) {
+                    it.squareVideoUrl ?: it.wideVideoUrl
+                } else {
+                    it.wideVideoUrl ?: it.squareVideoUrl
+                }
+            }?.takeIf { showHeaderVideo }
 
     // Palette extraction from the artist artwork (portrait Apple-style only).
     val paletteState = com.kmpalette.rememberPaletteState()
@@ -230,14 +245,19 @@ fun ArtistScreen(
         }
     }
 
-    // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
-    val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
+    // Apple Music-style page background from the artwork's dominant tone, held and faded (see UIExt.rememberPaletteColor).
+    val mutedPaletteBg = rememberPaletteColor(paletteState.palette)
     // Tint for the description card, matching the non-portrait CollapsingToolbar color.
-    val sectionTint = paletteState.palette.getColorFromPalette()
+    val sectionTint = rememberPaletteColor(paletteState.palette) { it.getColorFromPalette() }
 
     // Accent color for the action buttons, sourced from the artist name-logo image's dominant
-    // color (hidden catalog). Falls back to white until the logo loads (or if none exists).
-    val artistAccent = artistLogo?.bgColorHex?.hexToColorOrNull() ?: Color.White
+    // color (hidden catalog). Falls back to white until the logo loads (or if none exists), and
+    // fades to the logo's colour instead of snapping when it does.
+    val artistAccent by animateColorAsState(
+        targetValue = artistLogo?.bgColorHex?.hexToColorOrNull() ?: Color.White,
+        animationSpec = tween(500),
+        label = "artistAccent",
+    )
 
     val hazeState = rememberHazeState()
     val lazyState = rememberLazyListState()
@@ -278,7 +298,7 @@ fun ArtistScreen(
                                 // (unlike Modifier.offset, which only moves pixels, not layout).
                                 verticalArrangement = Arrangement.spacedBy((-36).dp),
                             ) {
-                                // Edge-to-edge artwork (canvas plays on top of it when available).
+                                // Edge-to-edge artwork (the artist's video plays on top of it when available).
                                 // Glass back button MUST be a sibling of the backdrop source
                                 // (not a child) to avoid render feedback loop / RuntimeShader crash.
                                 val artworkBackdrop = rememberBackdrop(Color.Black)
@@ -308,10 +328,33 @@ fun ArtistScreen(
                                                 },
                                             ),
                                 ) {
-                                    // Inner Box — backdrop SOURCE (artwork + canvas + overlays, NO glass)
+                                    // Inner Box — backdrop SOURCE (artwork + video + overlays, NO glass)
                                     Box(modifier = Modifier.fillMaxSize().clipToBounds().layerBackdrop(artworkBackdrop)) {
-                                        // Media layer (artwork + canvas).
+                                        // Media layer (video + artwork). The video draws a black shutter
+                                        // until its first frame, so the artwork stays ON TOP of it until
+                                        // then and only fades out after — hiding the artwork the moment the
+                                        // video's url arrived flashed the header black.
                                         Box(modifier = Modifier.fillMaxSize()) {
+                                            var videoShown by remember(headerVideoUrl) { mutableStateOf(false) }
+                                            val artworkAlpha by animateFloatAsState(
+                                                targetValue = if (headerVideoUrl != null && videoShown) 0f else 1f,
+                                                animationSpec = tween(500),
+                                                label = "artistArtworkOverVideo",
+                                            )
+                                            // The artist's animated artwork plays AS the background when
+                                            // there is one; otherwise the static artwork above shows.
+                                            headerVideoUrl?.let { videoUrl ->
+                                                // cropToBounds center scale-to-covers it into the header
+                                                // frame (ContentScale.Crop): true video aspect ratio, no
+                                                // stretch, overflow clipped — which is what absorbs the
+                                                // difference between the rendition and the frame.
+                                                MediaPlayerView(
+                                                    url = videoUrl,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    cropToBounds = true,
+                                                    onFirstFrame = { videoShown = true },
+                                                )
+                                            }
                                             AsyncImage(
                                                 model =
                                                     ImageRequest
@@ -321,7 +364,7 @@ fun ArtistScreen(
                                                         .memoryCachePolicy(CachePolicy.ENABLED)
                                                         .diskCacheKey(headerImageUrl)
                                                         .memoryCacheKey(headerImageUrl)
-                                                        .crossfade(false)
+                                                        .crossfade(550)
                                                         .build(),
                                                 placeholder = rememberHolderPainter(),
                                                 error = rememberHolderPainter(),
@@ -332,16 +375,16 @@ fun ArtistScreen(
                                                 contentScale =
                                                     if (isPortrait) ContentScale.FillWidth else ContentScale.Crop,
                                                 // Always decoded so the page background color can be extracted
-                                                // from the artwork palette, even when a canvas is playing.
+                                                // from the artwork palette, even when the video is playing.
                                                 onSuccess = {
                                                     bitmap = it.result.image.toImageBitmap()
                                                 },
-                                                // Hidden (but still decoded above) while a canvas is present —
-                                                // the canvas is shown instead. No canvas -> artwork is shown.
+                                                // Faded out (but still decoded above) once the video has drawn
+                                                // its first frame. No video -> artwork is shown.
                                                 modifier =
                                                     Modifier
                                                         .fillMaxSize()
-                                                        .alpha(if (headerCanvas != null) 0f else 1f),
+                                                        .graphicsLayer { alpha = artworkAlpha },
                                             )
                                             // The artwork's bottom 200dp melts into the page through a
                                             // Modifier.blur copy of it, faded in by a DstIn gradient. At
@@ -349,19 +392,26 @@ fun ArtistScreen(
                                             // is no seam — haze's HazeProgressive drew a visible line
                                             // there on Android (and crashes on skiko). Below Android 12
                                             // blur is a no-op and the copy is pixel-identical to the
-                                            // artwork, leaving just the colour scrim. Skipped under a
-                                            // canvas, where the artwork itself is hidden.
-                                            if (headerCanvas == null) {
+                                            // artwork, leaving just the colour scrim. Fades with the
+                                            // artwork, and is dropped once the video has taken over.
+                                            if (artworkAlpha > 0f) {
                                                 AsyncImage(
-                                                    model = headerImageUrl,
+                                                    model =
+                                                        ImageRequest
+                                                            .Builder(LocalPlatformContext.current)
+                                                            .data(headerImageUrl)
+                                                            .crossfade(550)
+                                                            .build(),
                                                     contentDescription = null,
                                                     contentScale =
                                                         if (isPortrait) ContentScale.FillWidth else ContentScale.Crop,
                                                     modifier =
                                                         Modifier
                                                             .fillMaxSize()
-                                                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                                            .drawWithContent {
+                                                            .graphicsLayer {
+                                                                compositingStrategy = CompositingStrategy.Offscreen
+                                                                alpha = artworkAlpha
+                                                            }.drawWithContent {
                                                                 drawContent()
                                                                 drawRect(
                                                                     brush =
@@ -375,20 +425,8 @@ fun ArtistScreen(
                                                             }.blur(32.dp),
                                                 )
                                             }
-                                            // Canvas (Spotify) plays AS the background when present;
-                                            // otherwise the static artwork above is the fallback.
-                                            headerCanvas?.let { canvas ->
-                                                // Canvas is a tall/portrait video. cropToBounds center
-                                                // scale-to-covers it into the header frame (ContentScale.Crop):
-                                                // true video aspect ratio, no stretch, overflow clipped.
-                                                MediaPlayerView(
-                                                    url = canvas.first,
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    cropToBounds = true,
-                                                )
-                                            }
                                         } // end media layer
-                                        // 5% black over the artwork/canvas, under the fade and scrim, so
+                                        // 5% black over the artwork/video, under the fade and scrim, so
                                         // a bright photo sits back a little behind the title.
                                         Box(
                                             modifier =
@@ -423,26 +461,46 @@ fun ArtistScreen(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                         ) {
                                             val logo = artistLogo
-                                            if (logo != null) {
-                                                // Artist name rendered as a logo image (hidden catalog),
-                                                // in place of the plain-text title.
-                                                AsyncImage(
-                                                    model = logo.logoUrl,
-                                                    contentDescription = state.data.title,
-                                                    contentScale = ContentScale.Fit,
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth(0.7f)
-                                                            .heightIn(max = 84.dp),
-                                                )
-                                            } else {
-                                                Text(
-                                                    text = state.data.title ?: stringResource(Res.string.unknown),
-                                                    style = typo().titleLarge,
-                                                    color = Color.White,
-                                                    maxLines = 2,
-                                                    textAlign = TextAlign.Center,
-                                                )
+                                            // The name stays as text until the logo image has actually
+                                            // loaded, then the two cross-fade and the box eases to the
+                                            // logo's height. Swapping on the logo's url alone blanked the
+                                            // line until the image arrived and then popped it in. Saveable,
+                                            // so coming back to the page shows the logo straight away.
+                                            var logoLoaded by rememberSaveable(logo?.logoUrl) { mutableStateOf(false) }
+                                            val logoAlpha by animateFloatAsState(
+                                                targetValue = if (logo != null && logoLoaded) 1f else 0f,
+                                                animationSpec = tween(500),
+                                                label = "artistNameLogo",
+                                            )
+                                            Box(
+                                                modifier = Modifier.fillMaxWidth().animateContentSize(),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                if (logoAlpha < 1f) {
+                                                    Text(
+                                                        text = state.data.title ?: stringResource(Res.string.unknown),
+                                                        style = typo().titleLarge,
+                                                        color = Color.White,
+                                                        maxLines = 2,
+                                                        textAlign = TextAlign.Center,
+                                                        modifier = Modifier.graphicsLayer { alpha = 1f - logoAlpha },
+                                                    )
+                                                }
+                                                if (logo != null) {
+                                                    // Artist name rendered as a logo image (hidden catalog),
+                                                    // in place of the plain-text title.
+                                                    AsyncImage(
+                                                        model = logo.logoUrl,
+                                                        contentDescription = state.data.title,
+                                                        contentScale = ContentScale.Fit,
+                                                        onSuccess = { logoLoaded = true },
+                                                        modifier =
+                                                            Modifier
+                                                                .fillMaxWidth(0.7f)
+                                                                .heightIn(max = 84.dp)
+                                                                .graphicsLayer { alpha = logoAlpha },
+                                                    )
+                                                }
                                             }
                                             val meta =
                                                 listOfNotNull(
@@ -478,8 +536,8 @@ fun ArtistScreen(
                                         navController.navigateUp()
                                     }
                                     // Top-right pill mirroring the back button, shaped like the
-                                    // Playlist header's: [canvas ⇄ picture] when a canvas exists, then
-                                    // share. A sibling of the backdrop source, like the back button.
+                                    // Playlist header's: [video ⇄ picture] when the artist has an animated
+                                    // artwork, then share. A sibling of the backdrop source, like the back button.
                                     Row(
                                         modifier =
                                             Modifier
@@ -490,10 +548,10 @@ fun ArtistScreen(
                                                 .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        if (canvasUrl != null) {
-                                            IconButton(onClick = { showCanvasVideo = !showCanvasVideo }) {
+                                        if (artistMotion != null) {
+                                            IconButton(onClick = { showHeaderVideo = !showHeaderVideo }) {
                                                 Icon(
-                                                    imageVector = if (showCanvasVideo) SimpIcons.MovieOff else SimpIcons.Movie,
+                                                    imageVector = if (showHeaderVideo) SimpIcons.MovieOff else SimpIcons.Movie,
                                                     contentDescription = null,
                                                     tint = Color.White,
                                                 )

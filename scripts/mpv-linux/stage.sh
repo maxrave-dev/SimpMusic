@@ -18,10 +18,23 @@ echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf
 echo "/usr/local/lib/x86_64-linux-gnu" >> /etc/ld.so.conf.d/local.conf
 ldconfig
 
+# libbz2 is bundled, not listed: Debian/Ubuntu name it libbz2.so.1.0 while
+# Fedora/RHEL ship only libbz2.so.1, so leaving it to the host made libmpv fail
+# to load there and every song time out.
+#
+# The last three lines are the AppImage community excludelist entries this
+# closure pulls in, plus libXau and libXdmcp, which only libxcb needs (ldd lists
+# the closure flat, so they would be copied anyway). The host's own Skia, Mesa
+# and AWT load these too, and glibc reuses an already-loaded soname even under
+# RTLD_LOCAL — libmpv loads at startup, so a bundled copy replaces the host's
+# for the whole process (on Fedora 44 that left Skia drawing a black window).
 SYSTEM_LIBS="
 libc.so.6 libm.so.6 libdl.so.2 libpthread.so.0 librt.so.1 libutil.so.1
 ld-linux-x86-64.so.2 libgcc_s.so.1 libstdc++.so.6 libresolv.so.2
-libz.so.1 libbz2.so.1.0 liblzma.so.5 libglib-2.0.so.0
+libz.so.1 liblzma.so.5 libglib-2.0.so.0
+libfontconfig.so.1 libfreetype.so.6 libharfbuzz.so.0 libexpat.so.1 libfribidi.so.0
+libX11.so.6 libX11-xcb.so.1 libxcb.so.1 libXau.so.6 libXdmcp.so.6
+libasound.so.2 libgpg-error.so.0 libuuid.so.1
 "
 
 is_system() {

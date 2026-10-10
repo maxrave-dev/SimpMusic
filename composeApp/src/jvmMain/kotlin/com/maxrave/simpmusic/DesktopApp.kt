@@ -32,6 +32,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.notification.DesktopNotificationManager
+import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.DesktopWindowChrome
@@ -40,13 +41,16 @@ import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.ui.theme.isDarkTheme
 import com.maxrave.simpmusic.utils.ComposeResUtils
+import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import dev.nucleusframework.core.runtime.SingleInstanceManager
+import io.sentry.ScopeType
 import io.sentry.Sentry
 import io.sentry.SentryLevel
+import io.sentry.protocol.OperatingSystem
 import io.sentry.protocol.User
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -182,6 +186,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
         return
     }
+    // Past the guard on purpose: a second instance must not open the same log files.
+    Logger.enableFileLogging(getHomeFolderPath(listOf(".simpmusic", "logs")))
 
     // First instance only: deliver our own deep link (non-macOS passes URI via args).
     if (!isMacOS) {
@@ -195,6 +201,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 applicationId = "com.maxrave.simpmusic",
                 versionName = BuildKonfig.versionName,
                 platform = "${System.getProperty("os.name")} ${System.getProperty("os.version")}",
+                // Set by desktopApp's JavaExec tasks (run, hotRunJvm); a packaged install never has it.
+                isDevBuild = System.getProperty("simpmusic.dev") == "true",
             ),
         )
         loadKoinModules(viewModelModule)
@@ -222,6 +230,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             options.isSendDefaultPii = true
             options.setTracesSampler { context -> if (context.transactionContext.name == SENTRY_APP_OPEN) 1.0 else 0.0 }
         }
+        // sentry-java fills in no OS context on the JVM (only sentry-android does). The global scope reaches
+        // every event and the app.open transaction, on every thread.
+        Sentry.configureScope(ScopeType.GLOBAL) { it.contexts.setOperatingSystem(desktopOs()) }
         if (installationId != null) Sentry.setUser(User().apply { id = installationId })
         Sentry.startSession()
         Sentry.startTransaction(SENTRY_APP_OPEN, SENTRY_APP_OPEN).finish()
@@ -340,70 +351,13 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 exitApplication()
             }
         }
-        // Detect virtual machines (Parallels, VirtualBox, VMware, etc.).
-        // Transparent + undecorated Compose windows don't render on VM
-        // GPU drivers — the window stays invisible while the JVM keeps
-        // running, so we must detect the VM and fall back to a normal
-        // decorated window.
-        //
-        // We probe Manufacturer + Model because brand strings live in
-        // different fields per hypervisor (Parallels-on-ARM puts
-        // "Parallels Software International Inc." in Manufacturer and
-        // "Parallels ARM Virtual Machine" in Model; VirtualBox uses
-        // "innotek GmbH" + "VirtualBox"; etc).
-        //
-        // Microsoft removed `wmic` from Windows 11 (deprecated since
-        // 10 21H1), so on modern Windows it returns "command not
-        // recognized" and our previous detection always saw an empty
-        // vendor — Parallels Win 11 ARM users hit this and got an
-        // invisible window. PowerShell `Get-CimInstance` is the modern
-        // replacement; we try it first and fall back to wmic for older
-        // hosts.
-        val isVM =
-            remember {
-                val osName = System.getProperty("os.name", "")
-                // Linux takes the VM branch too: undecorated + transparent breaks on some
-                // distros/WMs, so like Spotify it keeps the native title bar there.
-                if (osName.contains("Linux", ignoreCase = true)) {
-                    return@remember true
-                }
-                if (!osName.contains("Windows", ignoreCase = true)) {
-                    return@remember false
-                }
-                val probes =
-                    listOf(
-                        listOf(
-                            "powershell",
-                            "-NoProfile",
-                            "-Command",
-                            "(Get-CimInstance Win32_ComputerSystem | " +
-                                "Select-Object Manufacturer,Model | " +
-                                "Format-List | Out-String).Trim()",
-                        ),
-                        listOf("wmic", "computersystem", "get", "manufacturer,model"),
-                    )
-                val sysInfo =
-                    probes
-                        .asSequence()
-                        .mapNotNull { cmd ->
-                            runCatching {
-                                val p =
-                                    ProcessBuilder(cmd)
-                                        .redirectErrorStream(true)
-                                        .start()
-                                val out = p.inputStream.bufferedReader().readText()
-                                if (p.waitFor() == 0 && out.isNotBlank()) out else null
-                            }.getOrNull()
-                        }.firstOrNull()
-                        .orEmpty()
-                val vmTokens = listOf("Parallels", "VirtualBox", "VMware", "QEMU", "KVM", "Xen", "Hyper-V")
-                vmTokens.any { sysInfo.contains(it, ignoreCase = true) } ||
-                    System.getProperty("compose.window.no-transparent", "false").toBooleanStrictOrNull() == true
-            }
+        // Windows and Linux keep the native title bar (on Linux, undecorated + transparent
+        // breaks on some distros/WMs). Only macOS draws the custom one.
+        val nativeTitleBar = !isMacOS
         // Publish whether the custom title bar will be mounted so getScreenSizeInfo() can
         // subtract the 40dp strip it occupies above the content (see DesktopWindowChrome).
-        LaunchedEffect(isVM) {
-            DesktopWindowChrome.customTitleBarVisible = !isVM
+        LaunchedEffect(nativeTitleBar) {
+            DesktopWindowChrome.customTitleBarVisible = !nativeTitleBar
         }
         Window(
             onCloseRequest = {
@@ -411,8 +365,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = !isVM,
-            transparent = !isVM,
+            undecorated = !nativeTitleBar,
+            transparent = !nativeTitleBar,
             state = windowState,
             visible = isVisible,
         ) {
@@ -488,14 +442,14 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     Modifier
                         .fillMaxSize()
                         .then(
-                            if (!isVM) {
+                            if (!nativeTitleBar) {
                                 Modifier.clip(RoundedCornerShape(12.dp))
                             } else {
                                 Modifier
                             },
                         ),
             ) {
-                if (!isVM) {
+                if (!nativeTitleBar) {
                     // The bar sits outside AppTheme, so the colours are resolved here from the
                     // same stored setting AppTheme uses and handed down. Pure black / pure white
                     // to match the window colour the shell paints behind the panels.
@@ -517,26 +471,30 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
 
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {
-                    ImageLoader
-                        .Builder(context)
-                        .components {
-                            add(
-                                OkHttpNetworkFetcherFactory(
-                                    callFactory = {
-                                        OkHttpClient()
-                                    },
-                                ),
-                            )
-                        }.diskCachePolicy(CachePolicy.ENABLED)
-                        .networkCachePolicy(CachePolicy.ENABLED)
-                        .diskCache(
-                            DiskCache
-                                .Builder()
-                                .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
-                                .maxSizeBytes(512L * 1024 * 1024)
-                                .build(),
-                        ).crossfade(true)
-                        .build()
+                    lateinit var imageLoader: ImageLoader
+                    imageLoader =
+                        ImageLoader
+                            .Builder(context)
+                            .components {
+                                add(NetworkFirstInterceptor { imageLoader })
+                                add(
+                                    OkHttpNetworkFetcherFactory(
+                                        callFactory = {
+                                            OkHttpClient()
+                                        },
+                                    ),
+                                )
+                            }.diskCachePolicy(CachePolicy.ENABLED)
+                            .networkCachePolicy(CachePolicy.ENABLED)
+                            .diskCache(
+                                DiskCache
+                                    .Builder()
+                                    .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+                                    .maxSizeBytes(512L * 1024 * 1024)
+                                    .build(),
+                            ).crossfade(true)
+                            .build()
+                    imageLoader
                 }
                 App(
                     showDesktopNotificationPermissionDialog = showNotificationPermissionDialog,
@@ -608,6 +566,61 @@ private fun machineId(): String? {
         }.getOrNull()
     if (raw.isNullOrBlank()) return null
     return MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()).joinToString("") { "%02x".format(it) }
+}
+
+/**
+ * The OS as Sentry shows it ("Windows 11 24H2", "macOS 27.0.1", "Ubuntu 24.04"). Name and version are set
+ * explicitly, so Sentry does not guess from a raw description — its Windows table stops at build 22999.
+ * Falls back to the JDK's own values when anything fails. Blocking (runs `reg` on Windows).
+ */
+private fun desktopOs(): OperatingSystem {
+    val osName = System.getProperty("os.name").orEmpty()
+    val osVersion = System.getProperty("os.version")
+    return runCatching {
+        OperatingSystem().apply {
+            when {
+                osName.startsWith("Windows") -> {
+                    // The JDK's os.version is "10.0" on both Windows 10 and 11; the build lives in the registry.
+                    val reg = runCommand("reg", "query", "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "/reg:64")
+
+                    fun value(key: String) = Regex("^\\s+$key\\s+REG_\\w+\\s+(\\S+)", RegexOption.MULTILINE).find(reg)?.groupValues?.get(1)
+                    val ubr = value("UBR")?.removePrefix("0x")?.toIntOrNull(16)
+                    name = "Windows"
+                    // ReleaseId is what Windows 10 had before DisplayVersion arrived in 20H2.
+                    version = listOfNotNull(osName.removePrefix("Windows "), value("DisplayVersion") ?: value("ReleaseId")).joinToString(" ")
+                    build = value("CurrentBuild")?.let { if (ubr != null) "$it.$ubr" else it }
+                }
+
+                osName.startsWith("Mac") -> {
+                    // Not os.version: JDKs without JDK-8359830 (the bundled runtime is 21.0.2) report macOS 26 as
+                    // "16.0". The hidden link is the file that fix reads, unaffected by SYSTEM_VERSION_COMPAT.
+                    val plist = File("/System/Library/CoreServices/.SystemVersionPlatform.plist").readText()
+
+                    fun value(key: String) = Regex("<key>$key</key>\\s*<string>([^<]+)</string>").find(plist)?.groupValues?.get(1)
+                    name = "macOS"
+                    version = value("ProductVersion")
+                    build = value("ProductBuildVersion")
+                }
+
+                else -> {
+                    // os-release(5): /etc/os-release wins, /usr/lib/os-release is the fallback.
+                    val release =
+                        listOf("/etc/os-release", "/usr/lib/os-release")
+                            .firstNotNullOfOrNull { path -> File(path).takeIf { it.canRead() }?.readLines() }
+                            .orEmpty()
+                            .associate { it.substringBefore('=') to it.substringAfter('=').trim('"', '\'') }
+                    name = release["NAME"] ?: osName
+                    version = release["VERSION_ID"]
+                    kernelVersion = osVersion
+                }
+            }
+        }
+    }.getOrElse {
+        OperatingSystem().apply {
+            name = osName
+            version = osVersion
+        }
+    }
 }
 
 // Skiko draws into a heavyweight java.awt.Canvas nested somewhere under the content pane.

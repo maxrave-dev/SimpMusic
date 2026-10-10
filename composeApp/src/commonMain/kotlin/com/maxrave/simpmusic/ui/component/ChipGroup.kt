@@ -60,7 +60,8 @@ fun Chip(
                         enabled = true,
                         selected = isSelected,
                         selectedBorderColor = Color.Transparent,
-                        borderColor = MaterialTheme.colorScheme.outline,
+                        // outlineVariant, per M3's Aug 2024 chip update: a softer stroke than outline.
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
                     ),
                 // No check icon. A solid `primary` fill against a fully transparent unselected chip
                 // is already the strongest contrast available, so a second signal adds nothing — and

@@ -1,9 +1,9 @@
 [versions]
 # App version
-version-name = "2.2.0"
-version-code = "59"
+version-name = "2.3.0"
+version-code = "60"
 
-android = "9.2.1"
+android = "9.4.1"
 kotlin = "2.4.20"
 serialization = "2.4.20"
 ksp = "2.3.9"
@@ -19,7 +19,7 @@ startup-runtime = "1.2.0"
 media3 = "1.11.1"
 play-services-cast-framework = "22.3.1"
 mediarouter = "1.8.1"
-car-app = "1.9.0-alpha02"
+car-app = "1.9.0-alpha03"
 androidx-media = "1.8.0"
 okhttp3 = "5.5.0"
 junit = "4.13.2"
@@ -36,7 +36,7 @@ kmpalette = "3.1.0"
 materialkolor = "5.0.1"
 easypermissions = "3.0.0"
 datastore-preferences = "1.2.1"
-paging = "3.5.1"
+paging = "3.5.2"
 customactivityoncrash = "2.4.0"
 aboutlibraries = "15.2.0" # BUG Can not upgrade version
 ktor = "3.6.0"
@@ -50,15 +50,15 @@ pinyin4j = "2.5.1"
 desugaring = "2.1.5"
 koin-bom = "4.2.2"
 md = "0.45.0"
-haze = "2.0.0"
+haze = "2.0.1"
 onetimepassword = "3.0.0"
 common = "1.22.1"
 json = "1.11.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
-sentry-android = "8.58.0"
-sentry-gradle-android = "6.22.0"
-sentry-jvm = "8.58.0"
+sentry-android = "8.59.0"
+sentry-gradle-android = "6.23.0"
+sentry-jvm = "8.59.0"
 newpipe = "v0.26.1"
 brave-newpipe = "0fcaf19ecc"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
@@ -68,7 +68,7 @@ pipepipe = "f8982ca9e7"
 quickjs = "1.0.15"
 webkit = "1.17.1"
 kermit = "2.2.0"
-paging-common = "3.5.1"
+paging-common = "3.5.2"
 glance = "1.2.0"
 liquid-glass = "2.0.1"
 liquid-glass-shapes = "1.2.1"
@@ -87,10 +87,9 @@ uri = "0.0.21"
 buildkonfig = "0.23.0"
 jna = "5.19.1"
 jnaPlatform = "5.19.1"
-calf = "0.14.0"
 material = "1.14.0"
 osdetector = "1.7.3"
-tray = "2.1.6"
+tray = "2.1.7"
 nucleus-notification = "2.5.18"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
@@ -208,6 +207,7 @@ pipepipe-extractor = { module = "com.github.maxrave-dev:PipePipeExtractor", vers
 quickjs = { module = "io.github.dokar3:quickjs-kt", version.ref = "quickjs" }
 #leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 kermit-logging = { module = "co.touchlab:kermit", version.ref = "kermit" }
+kermit-io = { module = "co.touchlab:kermit-io", version.ref = "kermit" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
@@ -229,7 +229,6 @@ androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecyc
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines-android" }
 cmptoast = { module = "network.chaintech:cmptoast", version.ref = "cmptoast" }
-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calf" }
 native-tray = { module = "dev.nucleusframework:composenativetray", version.ref = "tray" }
 # SingleInstanceManager moved here from the tray in 2.0; the tray only pulls it at runtime.
 nucleus-core-runtime = { module = "dev.nucleusframework:nucleus.core-runtime", version.ref = "nucleus-notification" }

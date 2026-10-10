@@ -9,6 +9,17 @@
     <string name="view_count">%1$s visualizzazioni</string>
     <string name="clear_search_history">Cancella la cronologia delle ricerche</string>
     <string name="liked">Piaciuti</string>
+    <string name="liked_songs">Brani piaciuti</string>
+    <string name="liked_songs_by">Di %1$s</string>
+    <plurals name="liked_songs_count">
+        <item quantity="one">%1$d brano</item>
+        <item quantity="other">%1$d brani</item>
+    </plurals>
+    <plurals name="library_artist_count">
+        <item quantity="one">%1$d artista</item>
+        <item quantity="other">%1$d artisti</item>
+    </plurals>
+    <string name="library_favorite_empty_hint">Tocca il cuore su un brano per tenerlo qui.</string>
     <string name="like">Mi piace</string>
     <string name="hello_blank_fragment">Rimuovi frammenti vuoti</string>
     <string name="download">Scarica</string>
@@ -18,6 +29,7 @@
     <string name="hide">Nascondi</string>
     <string name="show">Mostra</string>
     <string name="na_na">NA:NA</string>
+    <string name="live_badge">LIVE</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Preferiti</string>
     <string name="followed">Seguiti</string>
@@ -92,6 +104,7 @@
     <string name="move_down">Sposta in basso</string>
     <string name="delete_from_queue">Elimina dalla coda</string>
     <string name="more">Altro</string>
+    <string name="play_all">Riproduci tutto</string>
     <string name="singles">Singoli</string>
     <string name="related_artists">Artisti correlati</string>
     <string name="about">Informazioni</string>
@@ -122,11 +135,11 @@
     <string name="version">Versione</string>
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
+    <string name="follow_me_on_x">Seguimi su X</string>
     <string name="buy_me_a_coffee">Offrimi un caffè</string>
     <string name="developer_blog">Blog degli sviluppatori</string>
     <string name="developer_blog_tagline">Leggi le note degli sviluppatori, i tutorial e i dietro le quinte</string>
     <string name="blog_promo_title">Novità dagli sviluppatori</string>
-    <string name="blog_promo_message">Ho appena lanciato il mio blog personale, lo trovi su maxrave.dev — troverai la storia dietro SimpMusic, riflessioni su music-tech e note d'ingegneria</string>
     <string name="visit_blog">Visita il blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Titolo</string>

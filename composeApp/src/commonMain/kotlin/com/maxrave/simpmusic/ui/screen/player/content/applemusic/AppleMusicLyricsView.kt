@@ -46,11 +46,14 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
+import com.maxrave.simpmusic.ui.component.LyricsOffsetFloatingControl
 import com.maxrave.simpmusic.ui.component.LyricsView
+import com.maxrave.simpmusic.ui.component.hasTiming
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
@@ -90,6 +93,8 @@ internal fun AppleMusicLyricsView(
     activePillContainer: Color,
     activePillContent: Color,
     deviceVolumeController: DeviceVolumeController?,
+    outputName: String?,
+    onOpenOutput: () -> Unit,
     modifier: Modifier = Modifier,
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
@@ -249,7 +254,21 @@ internal fun AppleMusicLyricsView(
                     Column(
                         modifier = Modifier.padding(end = 20.dp, bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
+                        // End: the timing bar opens to the left of its button and widens this
+                        // column, which must not drag the buttons below it off the edge.
+                        horizontalAlignment = Alignment.End,
                     ) {
+                        if (lyricsData.hasTiming()) {
+                            LyricsOffsetFloatingControl(
+                                offsetMs = state.lyricsOffsetMs.toInt(),
+                                onOffsetChange = actions.onLyricsOffsetChange,
+                                backdrop = null,
+                                // Adjusting counts as touching the page, or the cluster hides mid-tap.
+                                onInteraction = { interactionTick++ },
+                            ) { onClick ->
+                                AppleMusicFloatingCircleButton(icon = SimpIcons.AvTimer, onClick = onClick)
+                            }
+                        }
                         // Only when the lyrics (or the translation) actually came from SimpMusic
                         // Lyrics — the sole provider that accepts a vote. Classic and M3E have
                         // always gated theirs; this one did not, so it invited a rating on
@@ -295,6 +314,8 @@ internal fun AppleMusicLyricsView(
                 activePillContainer = activePillContainer,
                 activePillContent = activePillContent,
                 deviceVolumeController = deviceVolumeController,
+                outputName = outputName,
+                onOpenOutput = onOpenOutput,
             )
         }
     }

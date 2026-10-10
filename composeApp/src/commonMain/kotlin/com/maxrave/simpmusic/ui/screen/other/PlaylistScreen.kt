@@ -101,7 +101,7 @@ import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
-import com.maxrave.simpmusic.extension.toImmersiveBackground
+import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
@@ -340,8 +340,8 @@ fun PlaylistScreen(
     val screenInfo = getScreenSizeInfo()
     val isPortrait = screenInfo.wDP < screenInfo.hDP
     val dominantColor = listColors.firstOrNull() ?: Color.Black
-    // Apple Music-style page background from the artwork's dominant tone (see UIExt.toImmersiveBackground).
-    val mutedPaletteBg = paletteState.palette.toImmersiveBackground()
+    // Apple Music-style page background from the artwork's dominant tone, held and faded (see UIExt.rememberPaletteColor).
+    val mutedPaletteBg = rememberPaletteColor(paletteState.palette)
 
     // Loading dialog
     val showLoadingDialog by viewModel.showLoadingDialog.collectAsStateWithLifecycle()
@@ -410,7 +410,7 @@ fun PlaylistScreen(
                                                                 .memoryCachePolicy(CachePolicy.ENABLED)
                                                                 .diskCacheKey(data.thumbnail)
                                                                 .memoryCacheKey(data.thumbnail)
-                                                                .crossfade(false)
+                                                                .crossfade(550)
                                                                 .build(),
                                                         placeholder = rememberHolderPainter(),
                                                         error = rememberHolderPainter(),
@@ -588,7 +588,7 @@ fun PlaylistScreen(
                                                                     .memoryCachePolicy(CachePolicy.ENABLED)
                                                                     .diskCacheKey(data.thumbnail)
                                                                     .memoryCacheKey(data.thumbnail)
-                                                                    .crossfade(false)
+                                                                    .crossfade(550)
                                                                     .build(),
                                                             placeholder = rememberHolderPainter(),
                                                             error = rememberHolderPainter(),

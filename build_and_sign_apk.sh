@@ -6,6 +6,9 @@ set -e
 # Default variables
 BUILD_TYPE="release"
 BUILD_VARIANT="full"
+# --vivo builds vivoAndroidApp: the same app under a package vivo's Origin Island follows
+MODULE="androidApp"
+NAME_SUFFIX=""
 KEYSTORE_PATH="./simpmusic.jks"
 # Read passwords from environment variables or use default (for backward compatibility)
 KEYSTORE_PASSWORD="${KEYSTORE_PASSWORD}"
@@ -38,6 +41,7 @@ print_usage() {
   echo "  --debug            Build in debug mode"
   echo "  --full             Build full with Sentry"
   echo "  --foss             Build foss, compatibility with F-Droid, no Sentry"
+  echo "  --vivo             Build the vivo edition (vivoAndroidApp, arm64-v8a only)"
   echo "  -h, --help         Show this help message"
   echo ""
   echo "Environment variables:"
@@ -54,6 +58,7 @@ while [[ "$#" -gt 0 ]]; do
     --foss) BUILD_VARIANT="foss" ;;
     --release) BUILD_TYPE="release" ;;
     --debug) BUILD_TYPE="debug" ;;
+    --vivo) MODULE="vivoAndroidApp"; NAME_SUFFIX="-vivo" ;;
     -h|--help) print_usage ;;
     *) echo "Unknown parameter: $1"; print_usage ;;
   esac
@@ -61,8 +66,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Set derived variables based on selected options
-APK_OUTPUT_DIR="./androidApp/build/outputs/apk/$BUILD_TYPE"
-SIGNED_APK_OUTPUT_DIR="./androidApp/build/outputs/apk/$BUILD_TYPE"
+APK_OUTPUT_DIR="./$MODULE/build/outputs/apk/$BUILD_TYPE"
+SIGNED_APK_OUTPUT_DIR="./$MODULE/build/outputs/apk/$BUILD_TYPE"
 
 # Android build-tools path
 BUILD_TOOLS_PATH="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort | tail -n 1)"
@@ -86,7 +91,7 @@ echo "Project cleaned successfully."
 
 # Step 2: Build the APK
 echo "[Step 2] Building APK..."
-./gradlew androidApp:assemble"$BUILD_TYPE"
+./gradlew "$MODULE":assemble"$BUILD_TYPE"
 echo "APK built successfully."
 
 # Step 3: Locate the built APKs
@@ -102,8 +107,8 @@ for APK_PATH in $APK_PATHS; do
   ALIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/aligned-$(basename "${APK_PATH/-unsigned/}")"
   RELEASE_NAME=$(basename "${APK_PATH/-unsigned/}")
   RELEASE_NAME="${RELEASE_NAME/app-/}"
-  RELEASE_NAME="${RELEASE_NAME/androidApp-/}"
-  SIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/SimpMusic-$BUILD_VARIANT-$(basename "$RELEASE_NAME")"
+  RELEASE_NAME="${RELEASE_NAME/$MODULE-/}"
+  SIGNED_APK_PATH="$SIGNED_APK_OUTPUT_DIR/SimpMusic-$BUILD_VARIANT$NAME_SUFFIX-$(basename "$RELEASE_NAME")"
 
   echo "[Step 4] Aligning the APK: $APK_PATH..."
   if [ ! -f "$ZIPALIGN" ]; then

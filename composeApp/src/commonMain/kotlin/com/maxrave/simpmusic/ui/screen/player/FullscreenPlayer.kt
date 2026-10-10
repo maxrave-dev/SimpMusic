@@ -64,7 +64,9 @@ import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
 import com.maxrave.simpmusic.extension.artworkScrimBrush
+import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -93,7 +95,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.five_seconds
-import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -662,12 +663,13 @@ fun FullscreenPlayer(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = formatDuration((timelineState.total * (sliderValue / 100f)).roundToLong()),
+                                        text = timelineState.elapsedLabel(sliderValue / 100f),
                                         style = typo().labelSmall,
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = " / ${formatDuration(timelineState.total)}",
+                                        // LIVE stands on its own: there is no elapsed time in front of it to divide from.
+                                        text = if (timelineState.isLive) timelineState.lengthLabel() else " / ${timelineState.lengthLabel()}",
                                         style = typo().bodySmall,
                                     )
                                 }

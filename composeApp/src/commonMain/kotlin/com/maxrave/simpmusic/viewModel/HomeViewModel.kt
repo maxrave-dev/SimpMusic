@@ -282,6 +282,11 @@ class HomeViewModel(
             }
     }
 
+    /** A shelf's "Play all": YouTube's own finite queue of that shelf's songs. */
+    fun playAll(item: HomeItem) {
+        item.playAllEndpoint?.let { playFromEndpoint(it, item.title) }
+    }
+
     fun getContinueHomeItem(continuation: String?) {
         viewModelScope.launch {
             if (continuation.isNullOrEmpty()) {

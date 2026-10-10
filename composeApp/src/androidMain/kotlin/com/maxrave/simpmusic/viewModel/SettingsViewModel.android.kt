@@ -93,6 +93,12 @@ actual suspend fun calculateDataFraction(cacheRepository: CacheRepository): Sett
     }
 }
 
+actual suspend fun readPickedFile(uri: Uri): ByteArray {
+    val application: Context = getKoin().get()
+    return application.contentResolver.openInputStream(uri.toAndroidUri())?.use { it.readBytes() }
+        ?: error("Cannot open $uri")
+}
+
 actual suspend fun restoreNative(
     commonRepository: CommonRepository,
     uri: Uri,

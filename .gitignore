@@ -33,6 +33,7 @@ sentry.properties
 /.claude/settings.local.json
 /androidApp/build/
 /androidApp/cache/
+/vivoAndroidApp/build/
 /lastfm/build/
 /lastfm-empty/build/
 # libmpv native libraries (downloaded by `./gradlew :composeApp:mpvSetupAll`)
