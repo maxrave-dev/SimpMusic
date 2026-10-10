@@ -37,7 +37,7 @@ val LocalNowPlayingOpen = compositionLocalOf { false }
  */
 val LocalUserStarted = compositionLocalOf { false }
 
-// Banners are portrait 720×1280 pictures; one of another shape is cropped to this frame.
+// Banners are portrait 720×1280 pictures; one of another shape is fitted, centred, inside this frame.
 private const val BANNER_ASPECT_RATIO = 9f / 16f
 
 data class PromoBannerData(
@@ -81,7 +81,8 @@ fun PromoBanner(
                     model = banner.imageUrl,
                     contentDescription = null,
                     placeholder = rememberHolderPainter(),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.Center,
                     onError = { onFailed() },
                     modifier =
                         Modifier
