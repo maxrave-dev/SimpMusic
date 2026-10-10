@@ -64,6 +64,7 @@ class SimpMusicApplication :
                     applicationId = BuildConfig.APPLICATION_ID,
                     versionName = BuildConfig.VERSION_NAME,
                     platform = "Android ${Build.VERSION.RELEASE}",
+                    isDevBuild = BuildConfig.DEBUG,
                 ),
             )
             loadKoinModules(viewModelModule)

@@ -201,6 +201,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 applicationId = "com.maxrave.simpmusic",
                 versionName = BuildKonfig.versionName,
                 platform = "${System.getProperty("os.name")} ${System.getProperty("os.version")}",
+                // Set by desktopApp's JavaExec tasks (run, hotRunJvm); a packaged install never has it.
+                isDevBuild = System.getProperty("simpmusic.dev") == "true",
             ),
         )
         loadKoinModules(viewModelModule)

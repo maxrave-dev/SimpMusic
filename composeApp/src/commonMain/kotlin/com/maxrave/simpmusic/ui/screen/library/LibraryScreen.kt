@@ -98,6 +98,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestin
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
 import com.maxrave.simpmusic.viewModel.TasteUiState
 import com.maxrave.simpmusic.viewModel.TasteViewModel
@@ -110,6 +111,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.chart
@@ -138,6 +140,7 @@ import simpmusic.composeapp.generated.resources.your_youtube_playlists
 fun LibraryScreen(
     innerPadding: PaddingValues,
     viewModel: LibraryViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
     navController: NavController,
     onScrolling: (onTop: Boolean) -> Unit = {},
 ) {
@@ -183,6 +186,14 @@ fun LibraryScreen(
 
     val chipRowState = rememberScrollState()
     val currentFilter by viewModel.currentScreen.collectAsStateWithLifecycle()
+    // A chip asked for by a deep link (simpmusic://library?tab=…), applied once and cleared.
+    val libraryTabRequest by sharedViewModel.libraryTabRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(libraryTabRequest) {
+        libraryTabRequest?.let {
+            viewModel.setCurrentScreen(it)
+            sharedViewModel.requestLibraryTab(null)
+        }
+    }
 
     LaunchedEffect(currentFilter) {
         when (currentFilter) {

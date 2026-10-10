@@ -247,6 +247,9 @@ afterEvaluate {
         // directory the daemon happened to start in, where it is effectively lost.
         jvmArgs("-XX:ErrorFile=${rootProject.layout.buildDirectory.get().asFile}/hs_err_pid%p.log")
 
+        // Marks a dev run, so the app reads remote-config-dev.json instead of the one real users get.
+        systemProperty("simpmusic.dev", "true")
+
         // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
         val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =

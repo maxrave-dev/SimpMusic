@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
+import com.maxrave.common.AppIdentity
 import com.maxrave.common.Config
 import com.maxrave.common.Config.ALBUM_CLICK
 import com.maxrave.common.Config.DOWNLOAD_CACHE
@@ -10,6 +11,7 @@ import com.maxrave.common.Config.RECOVER_TRACK_QUEUE
 import com.maxrave.common.Config.SHARE
 import com.maxrave.common.Config.SONG_CLICK
 import com.maxrave.common.Config.VIDEO_CLICK
+import com.maxrave.common.LibraryChipType
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.STATUS_DONE
 import com.maxrave.domain.data.entities.AlbumEntity
@@ -26,6 +28,7 @@ import com.maxrave.domain.data.model.canvas.CanvasResult
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.data.model.metadata.Lyrics
+import com.maxrave.domain.data.model.promo.Promo
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.data.model.update.UpdateData
 import com.maxrave.domain.data.player.GenericCastState
@@ -69,6 +72,9 @@ import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.utils.decodePromos
+import com.maxrave.simpmusic.utils.shownPromoIds
+import com.maxrave.simpmusic.utils.withShownPromo
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -97,6 +103,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
+import org.koin.core.component.inject
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
@@ -133,6 +140,8 @@ class SharedViewModel(
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
     var showedUpdateDialog: Boolean = false
+
+    private val appIdentity: AppIdentity by inject()
 
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
@@ -687,6 +696,44 @@ class SharedViewModel(
 
     fun getString(key: String): String? = runBlocking { dataStoreManager.getString(key).first() }
 
+    /**
+     * The `promos` block the last config fetch saved, as it changes. Every DataStore write re-emits
+     * the whole settings file (the playback position is saved every few seconds), so only a change
+     * to this block's own text gets through.
+     */
+    fun cachedPromos(): Flow<List<Promo>> =
+        dataStoreManager
+            .getString(Promo.cacheKey(appIdentity.isDevBuild))
+            .distinctUntilChanged()
+            .map(::decodePromos)
+
+    /** The ids of the launch banners this app version has already shown. */
+    suspend fun shownPromos(): Set<String> =
+        shownPromoIds(
+            stored = dataStoreManager.getString(Promo.shownKey(appIdentity.isDevBuild)).first(),
+            appVersion = VersionManager.getVersionName(),
+        )
+
+    /** Each banner once per app version, however it was closed. */
+    fun markPromoShown(id: String) {
+        viewModelScope.launch {
+            val key = Promo.shownKey(appIdentity.isDevBuild)
+            dataStoreManager.putString(
+                key,
+                withShownPromo(dataStoreManager.getString(key).first(), VersionManager.getVersionName(), id),
+            )
+        }
+    }
+
+    // A Library tab asked for from outside the Library screen (a deep link); the screen selects it
+    // the next time it composes and clears the request.
+    private val _libraryTabRequest = MutableStateFlow<LibraryChipType?>(null)
+    val libraryTabRequest: StateFlow<LibraryChipType?> = _libraryTabRequest.asStateFlow()
+
+    fun requestLibraryTab(tab: LibraryChipType?) {
+        _libraryTabRequest.value = tab
+    }
+
     fun putString(
         key: String,
         value: String,
@@ -1086,8 +1133,10 @@ class SharedViewModel(
     val updateResponse: StateFlow<UpdateData?> = _updateResponse
 
     fun checkForUpdate() {
+        // Raised before the coroutine starts, so Home's launch banner, which reads it right after
+        // startup, can never miss a check that is already under way but not yet marked.
+        _isCheckingUpdate.value = true
         viewModelScope.launch {
-            _isCheckingUpdate.value = true
             val updateChannel = dataStoreManager.updateChannel.first()
             dataStoreManager.putString(
                 "CheckForUpdateAt",
@@ -1124,6 +1173,10 @@ class SharedViewModel(
                     _isCheckingUpdate.value = false
                 }
             }
+        }.invokeOnCompletion {
+            // Also for a channel neither branch handles, and for a check that throws: the launch
+            // banner waits for this flag, so it must never stay raised.
+            _isCheckingUpdate.value = false
         }
     }
 

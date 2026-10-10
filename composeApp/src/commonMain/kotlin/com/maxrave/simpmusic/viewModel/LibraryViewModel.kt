@@ -68,6 +68,9 @@ class LibraryViewModel(
 ) : BaseViewModel() {
     private val _currentScreen: MutableStateFlow<LibraryChipType> = MutableStateFlow(LibraryChipType.YOUR_LIBRARY)
     val currentScreen: StateFlow<LibraryChipType> get() = _currentScreen.asStateFlow()
+
+    // A chip was picked (a tap, or a deep link) before the one saved last time finished loading.
+    private var screenChosen = false
     private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
         MutableStateFlow(LocalResource.Loading())
     val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded.asStateFlow()
@@ -142,7 +145,8 @@ class LibraryViewModel(
                 launch {
                     dataStoreManager.getString("library_current_screen").first()?.let { chipType ->
                         LibraryChipType.fromStringValue(chipType)?.let {
-                            _currentScreen.value = it
+                            // The chip picked meanwhile wins over the one saved last time.
+                            if (!screenChosen) _currentScreen.value = it
                         }
                     }
                 }
@@ -161,6 +165,7 @@ class LibraryViewModel(
     }
 
     fun setCurrentScreen(chipType: LibraryChipType) {
+        screenChosen = true
         _currentScreen.value = chipType
         viewModelScope.launch {
             dataStoreManager.putString("library_current_screen", chipType.toStringValue())
