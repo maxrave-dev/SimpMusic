@@ -320,6 +320,8 @@
     <string name="play_video_instead_of_audio_warning">This action will delete player cache. Continue?</string>
     <string name="quality_video">Video Quality</string>
     <string name="add_to_queue">Add to queue</string>
+    <string name="add_to_queue_disabled_radio">Add to queue (disabled while a radio or mix is playing)</string>
+    <string name="add_to_queue_disabled_endless">Add to queue (disabled when endless queue is enabled)</string>
     <string name="added_to_queue">Added to queue</string>
     <string name="new_release">New release</string>
     <string name="music_video">Music video</string>

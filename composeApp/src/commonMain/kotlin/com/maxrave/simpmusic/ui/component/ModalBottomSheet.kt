@@ -122,8 +122,10 @@ import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.mediaservice.handler.AddToQueueBlock
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.mediaservice.handler.addToQueueBlock
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
@@ -190,6 +192,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
+import simpmusic.composeapp.generated.resources.add_to_queue_disabled_endless
+import simpmusic.composeapp.generated.resources.add_to_queue_disabled_radio
 import simpmusic.composeapp.generated.resources.album
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.baseline_favorite_24
@@ -1726,9 +1730,11 @@ fun NowPlayingBottomSheet(
                         ) {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.PlayNext)
                         }
+                        val addToQueueBlock = rememberAddToQueueBlock()
                         ActionButton(
                             icon = SimpIcons.QueueMusic,
-                            text = Res.string.add_to_queue,
+                            text = addToQueueBlock.addToQueueLabel(),
+                            enable = addToQueueBlock == null,
                         ) {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToQueue)
                         }
@@ -1850,6 +1856,32 @@ fun NowPlayingBottomSheet(
         }
     }
 }
+
+/**
+ * Why Add to queue is unavailable for the queue playing now, or null when it is not; see
+ * [addToQueueBlock]. Each sheet reads it itself, so every Add to queue button follows the same rule
+ * without its screen having to pass anything in.
+ */
+@Composable
+fun rememberAddToQueueBlock(): AddToQueueBlock? {
+    val handler = koinInject<MediaPlayerHandler>()
+    val dataStoreManager = koinInject<DataStoreManager>()
+    val queueData by handler.queueData.collectAsState()
+    val endlessQueueFlow =
+        remember(dataStoreManager) {
+            dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }
+        }
+    val endlessQueue by endlessQueueFlow.collectAsState(false)
+    return queueData.addToQueueBlock(endlessQueue)
+}
+
+/** The Add to queue label, with the reason in brackets while it is blocked. */
+fun AddToQueueBlock?.addToQueueLabel(): StringResource =
+    when (this) {
+        null -> Res.string.add_to_queue
+        AddToQueueBlock.RADIO -> Res.string.add_to_queue_disabled_radio
+        AddToQueueBlock.ENDLESS_QUEUE -> Res.string.add_to_queue_disabled_endless
+    }
 
 @Composable
 fun ActionButton(
@@ -2815,9 +2847,11 @@ fun PlaylistBottomSheet(
                 ) {}
                 Spacer(modifier = Modifier.height(5.dp))
                 if (onAddToQueue != null) {
+                    val addToQueueBlock = rememberAddToQueueBlock()
                     ActionButton(
                         icon = SimpIcons.QueueMusic,
-                        text = Res.string.add_to_queue,
+                        text = addToQueueBlock.addToQueueLabel(),
+                        enable = addToQueueBlock == null,
                     ) {
                         onAddToQueue()
                         hideModalBottomSheet()
@@ -3004,7 +3038,12 @@ fun LocalPlaylistBottomSheet(
                     ActionButton(icon = SimpIcons.AddPhotoAlternate, text = Res.string.edit_thumbnail) {
                         resultLauncher.launch()
                     }
-                    ActionButton(icon = SimpIcons.QueueMusic, text = Res.string.add_to_queue) {
+                    val addToQueueBlock = rememberAddToQueueBlock()
+                    ActionButton(
+                        icon = SimpIcons.QueueMusic,
+                        text = addToQueueBlock.addToQueueLabel(),
+                        enable = addToQueueBlock == null,
+                    ) {
                         onAddToQueue()
                     }
                     ActionButton(

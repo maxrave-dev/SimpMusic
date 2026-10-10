@@ -9,6 +9,12 @@
     <string name="view_count">%1$s vistas</string>
     <string name="clear_search_history">Borrar historial de búsqueda</string>
     <string name="liked">Me gusta</string>
+    <string name="liked_songs">Canciones que te gustan</string>
+    <string name="liked_songs_by">De %1$s</string>
+    <plurals name="liked_songs_count">
+        <item quantity="one">%1$d canción</item>
+        <item quantity="other">%1$d canciones</item>
+    </plurals>
     <string name="like">Me gusta</string>
     <string name="hello_blank_fragment">Hola fragmento en blanco</string>
     <string name="download">Descargar</string>
@@ -122,11 +128,11 @@
     <string name="version">Versión</string>
     <string name="github">GitHub</string>
     <string name="maxrave_dev">maxrave-dev</string>
+    <string name="follow_me_on_x">Sigueme en X</string>
     <string name="buy_me_a_coffee">Cómprame un café</string>
     <string name="developer_blog"></string>
     <string name="developer_blog_tagline">Leer notas de desarrollo, tutoriales &amp; detrás de la escena</string>
     <string name="blog_promo_title">Algo nuevo del desarrollador</string>
-    <string name="blog_promo_message">Acabo de lanzar el blog de SimpMusic en simpmusic.org — compartiendo la historia detrás de SimpMusic, inmersiones profundas de tecnología musical y notas de ingeniería. Dale un vistazo si eres curioso ✨</string>
     <string name="visit_blog">Visita el blog</string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
@@ -163,6 +169,9 @@
     <string name="balance_media_loudness">Equilibrar el volumen de los medios</string>
     <string name="normalize_volume">Normalizar volumen</string>
     <string name="audio">Audio</string>
+    <string name="no_equalizer">Tu dispositivo no tiene ecualizador</string>
+    <string name="open_system_equalizer">Ecualizador open system</string>
+    <string name="use_your_system_equalizer">Usa tu ecualizador del sistema</string>
     <string name="streaming_data_provider_piped">Proveedor de datos de streaming (Piped)</string>
     <string name="itag">Etiqueta</string>
     <string name="extract_source">Fuente de extracción</string>
@@ -287,6 +296,8 @@
     <string name="audio_quality">Calidad de audio</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Reproducir vídeo para pista de vídeo en lugar de sólo audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Como vídeos musicales, letras de canciones, podcasts, y más</string>
+    <string name="radio_audio_only">Reproducir versión audio en lugar de vídeo en radios</string>
+    <string name="radio_audio_only_description">Reproducir versión audio cuando una este disponible, y saltar remix y mashups qué solo existan como videos. Playlist y álbumes no se verán afectados</string>
     <string name="video_quality">Calidad de vídeo</string>
     <plurals name="n_song">
         <item quantity="one">%d canción</item>
@@ -306,6 +317,9 @@
     <string name="sync_follow_to_youtube">Sincronizar seguimientos con YouTube</string>
     <string name="equalizer">Ecualizador</string>
     <string name="equalizer_description">Moldea el sonido con una curva de diez bandas</string>
+    <string name="equalizer_type">Tipo de ecualizador</string>
+    <string name="equalizer_type_built_in">Ecualizador propio</string>
+    <string name="equalizer_type_system">Ecualizador del sistema</string>
     <string name="equalizer_preamp">Preamplificador</string>
     <string name="equalizer_presets">Ajustes predefinidos</string>
     <string name="equalizer_preset_custom">Personalizado</string>
@@ -330,6 +344,19 @@
     <string name="reverb_preset_hall">Sala</string>
     <string name="reverb_preset_plate">Placa</string>
     <string name="reverb_preset_cathedral">Catedral</string>
+    <string name="reverb_help_title">Reverb presets</string>
+    <string name="reverb_help_intro">Cada preset es una habitación sintética generada por los tres valores e igualadas en volumen. Cambiar las habitaciones cambiará el espacio, pero no el volumen.</string>
+    <string name="reverb_help_rt60">Cola (RT60) %1$s</string>
+    <string name="reverb_help_predelay">Pre-delay: %1$s</string>
+    <string name="reverb_help_damping">Amortiguación desde: %1$s</string>
+    <string name="reverb_help_room">Pequeña y ajustada. Añade una sensación de espacialidad sin abrir el sonido.</string>
+    <string name="reverb_help_hall">Sala de conciertos. Larga pero con sonido limpio, el clásico sonido ralentizado y con reverb.</string>
+    <string name="reverb_help_plate">Estudio de grabación. Sin espacio entre el reverb, brillante y denso, funciona bien con vocals.</string>
+    <string name="reverb_help_cathedral">Catedral. Sonido largo y oscuro, que se desvanece en el espacio.</string>
+    <string name="reverb_help_rt60_meaning">RT60 es el tiempo que tarda la cola en bajar 60 dB: como de grande es la sala.</string>
+    <string name="reverb_help_predelay_meaning">Pre-delay es el silencio antes de que comience el reverb. Un tiempo alto mantiene el sonido seco y limpio, empuja los muros más lejos.</string>
+    <string name="reverb_help_damping_meaning">Amortiguacion es cuando la cola comienza a perder agudos. Se oscurece más según decae. Como el aire y las superficies blandas pueden absorber los agudos.</string>
+    <string name="reverb_help_mix">Mix es el porcentaje de humedad: el slider permitencuanto de la habitación puedes oír contra la señal en seco, idéntico para Android y Escritorio.</string>
     <string name="sync_follow_to_youtube_description">Seguir a un artista en SimpMusic también se suscribe a su canal en tu cuenta de YouTube</string>
     <string name="sync_follow_failed">No se pudo actualizar tu suscripción de YouTube</string>
     <string name="subscribed_on_youtube">Suscrito en YouTube</string>
@@ -352,6 +379,7 @@
     <string name="spotify_lyrícs_info">Más letras sin traducción</string>
     <string name="enable_canvas">Activar Canvas</string>
     <string name="canvas_info">Mostrar Spotify Canvas en SimpMusic</string>
+    <string name="enable_animated_artwork">Arte animado</string>
     <string name="animated_artwork_info">Reproduce la portada animada del álbum en lugar del Canvas. No se necesita una cuenta. Los álbumes sin una portada animada mantendrán la portada estática.</string>
     <string name="spotify_lyrics_provider">Letras proporcionadas por Spotify</string>
     <string name="offline_mode">Modo sin conexión</string>
@@ -390,6 +418,9 @@
     <string name="ai_translated">Traducido con IA</string>
     <string name="lyrics_style">Estilo de letras de canciones</string>
     <string name="lyrics_style_classic">Clásico</string>
+    <string name="lyrics_offset">Retraso en las letras</string>
+    <string name="lyrics_offset_value">%1$s ms</string>
+    <string name="lyrics_offset_invalid">Introduce un número entero de milisegundos</string>
     <string name="lyrics_romanization">Romanización de letras</string>
     <string name="lyrics_romanization_description">Muestra las letras en abecedario latín para los idiomas que elijas</string>
     <string name="romanization_japanese_dict_downloading">Descargando el diccionario japonés…</string>
@@ -469,6 +500,7 @@
     <string name="if_you_enjoy_using_simpmusic_star_simpmusic_on_github_or_leave_a_review_on">Si te gusta usar SimpMusic, da una estrella a SimpMusic en gituhb o deja una reseña</string>
     <string name="if_you_love_my_work_consider">"Si amas mi trabajo, considera "</string>
     <string name="buying_me_a_coffee">comprame un café.</string>
+    <string name="footguns_promo_title">Every trap I fell into</string>
     <string name="fade_audio_effect">Efecto de desvanecimiento de audio</string>
     <string name="disabled">Desactivar</string>
     <string name="fade_audio_effect_duration">Duración del efecto de fundido (ms) (Establecer a 0 para desactivar)</string>

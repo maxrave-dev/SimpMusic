@@ -12,6 +12,7 @@
 - **App log**: Settings → Developer option → App log shows the app's log. Export it to attach to a bug report, with keys, cookies and IP addresses removed. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **Song options in the queue**: the ⋯ on a queue row opens the full song menu, with move up, move down, move to play next and remove. ([#2599](https://github.com/maxrave-dev/SimpMusic/issues/2599), [#2542](https://github.com/maxrave-dev/SimpMusic/issues/2542))
 - **SimpMusic for vivo**: a separate APK that vivo's Origin Island and music widget can follow. ([#2074](https://github.com/maxrave-dev/SimpMusic/issues/2074), [#2316](https://github.com/maxrave-dev/SimpMusic/issues/2316))
+- **What's new banners**: when you open the app, SimpMusic may show a banner about a new feature; tap it to go straight there. Each banner shows at most once per version. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 
 ## Improved
 - **Classic and Material 3 Expressive players**: animated album artwork plays the way it does in the Apple Music player, and Material 3 Expressive takes its colours from the artwork. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
@@ -22,6 +23,9 @@
 - **Downloads**: only the audio is downloaded while video playback is off. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **Smoother UI**: the bottom bar, the mini player and the glass effects redraw less while nothing on screen changes. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **Developer blog**: the blog and its notifications now come from simpmusic.org. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Add to queue**: while a radio or mix is playing, or Endless queue is on, Add to queue is greyed out and says why, since those queues have no end to add to. Play next still works, and swiping a song plays it next. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Page colours**: on playlist, album, artist, podcast and Analytics pages, the colours taken from the artwork fade in instead of flashing, and an artist's video no longer starts on a black frame. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Review request**: the dialog has a button to follow the developer on X. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 
 ## Fixed
 - Windows: crashes with "Unable to rename settings.preferences_pb.tmp". ([#2357](https://github.com/maxrave-dev/SimpMusic/issues/2357), [#2406](https://github.com/maxrave-dev/SimpMusic/issues/2406), [#2158](https://github.com/maxrave-dev/SimpMusic/issues/2158), [#2145](https://github.com/maxrave-dev/SimpMusic/issues/2145), [#2459](https://github.com/maxrave-dev/SimpMusic/issues/2459))
@@ -39,3 +43,4 @@
 - Login Sync on Android 17: the app now asks for the local network permission. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - Back buttons staying white on a light theme, and squeezed artwork in the song options sheet. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - Apple Music player: a vertical video touching the title below it. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- The update dialog offering the version you already have, or an older one. With the F-Droid update channel it showed on every launch. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))

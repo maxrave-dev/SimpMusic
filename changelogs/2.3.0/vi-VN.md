@@ -12,6 +12,7 @@
 - **Nhật ký ứng dụng**: Cài đặt → Developer option → App log hiện nhật ký của app. Bạn có thể xuất ra để gửi kèm báo lỗi; key, cookie và địa chỉ IP được xoá khỏi file xuất. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **Tuỳ chọn bài hát trong hàng chờ**: nút ⋯ ở mỗi bài trong hàng chờ mở đầy đủ menu bài hát, có chuyển lên, chuyển xuống, chuyển thành bài phát tiếp theo và xoá khỏi hàng chờ. ([#2599](https://github.com/maxrave-dev/SimpMusic/issues/2599), [#2542](https://github.com/maxrave-dev/SimpMusic/issues/2542))
 - **SimpMusic cho vivo**: một bản APK riêng mà Origin Island và widget nhạc của máy vivo nhận được. ([#2074](https://github.com/maxrave-dev/SimpMusic/issues/2074), [#2316](https://github.com/maxrave-dev/SimpMusic/issues/2316))
+- **Banner giới thiệu tính năng mới**: khi bạn mở app, SimpMusic có thể hiện một banner giới thiệu tính năng mới; bấm vào để mở thẳng tính năng đó. Mỗi banner chỉ hiện tối đa một lần trong mỗi phiên bản. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 
 ## Cải thiện
 - **Trình phát Classic và Material 3 Expressive**: artwork động của album phát giống như ở trình phát Apple Music, và Material 3 Expressive lấy màu theo artwork. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
@@ -22,6 +23,9 @@
 - **Tải xuống**: chỉ tải âm thanh khi bạn đang tắt chế độ phát video. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **UI mượt hơn**: thanh điều hướng dưới, mini player và hiệu ứng glass vẽ lại ít hơn khi màn hình không có gì thay đổi. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - **Developer blog**: blog và thông báo bài mới giờ lấy từ simpmusic.org. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Thêm vào hàng đợi**: khi đang phát radio hoặc mix, hoặc khi bật "Hàng đợi không dừng", nút "Thêm vào hàng đợi" bị làm mờ và ghi rõ lý do, vì những hàng chờ này không có điểm cuối để thêm vào. "Phát tiếp theo" vẫn dùng được, và vuốt một bài sẽ phát bài đó tiếp theo. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Màu trang**: ở các trang playlist, album, nghệ sĩ, podcast và Analytics, màu lấy từ artwork chuyển dần thay vì nháy, và video của nghệ sĩ không còn bắt đầu bằng một khung hình đen. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- **Hộp thoại xin đánh giá**: có thêm nút theo dõi nhà phát triển trên X. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 
 ## Sửa lỗi
 - Windows: crash với lỗi "Unable to rename settings.preferences_pb.tmp". ([#2357](https://github.com/maxrave-dev/SimpMusic/issues/2357), [#2406](https://github.com/maxrave-dev/SimpMusic/issues/2406), [#2158](https://github.com/maxrave-dev/SimpMusic/issues/2158), [#2145](https://github.com/maxrave-dev/SimpMusic/issues/2145), [#2459](https://github.com/maxrave-dev/SimpMusic/issues/2459))
@@ -39,3 +43,4 @@
 - Login Sync trên Android 17: app giờ xin quyền mạng cục bộ. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - Nút quay lại vẫn màu trắng khi dùng giao diện sáng, và artwork bị bóp méo trong menu tuỳ chọn bài hát. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
 - Trình phát Apple Music: video dọc chạm vào tên bài bên dưới. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))
+- Hộp thoại cập nhật mời bạn cập nhật lên đúng bản đang dùng hoặc bản cũ hơn. Với kênh cập nhật F-Droid, hộp thoại hiện ở mọi lần mở app. ([#2600](https://github.com/maxrave-dev/SimpMusic/issues/2600))

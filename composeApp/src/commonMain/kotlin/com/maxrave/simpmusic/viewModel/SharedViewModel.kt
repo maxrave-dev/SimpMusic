@@ -50,6 +50,7 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.mediaservice.handler.SimpleMediaState
 import com.maxrave.domain.mediaservice.handler.SleepTimerState
+import com.maxrave.domain.mediaservice.handler.addToQueueBlock
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
@@ -1885,7 +1886,10 @@ class SharedViewModel(
 
     fun addListToQueue(listTrack: ArrayList<Track>) {
         viewModelScope.launch {
-            if (listTrack.size == 1 && dataStoreManager.endlessQueue.first() == TRUE) {
+            // A radio, a mix or an Endless queue has no end to append to, so a single song (the swipe
+            // on a song row) goes right after the current one instead.
+            val endlessQueue = dataStoreManager.endlessQueue.first() == TRUE
+            if (listTrack.size == 1 && mediaPlayerHandler.queueData.value.addToQueueBlock(endlessQueue) != null) {
                 mediaPlayerHandler.playNext(listTrack.first())
                 makeToast(getString(Res.string.play_next))
             } else {
