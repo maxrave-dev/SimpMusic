@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.extension
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FloatSpringSpec
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -32,6 +33,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
@@ -56,6 +58,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -650,6 +653,26 @@ fun Palette?.toImmersiveBackground(): Color {
     // Darken more for lighter artwork so the page stays dark enough for white text.
     val darkenFactor = 0.35f + 0.45f * luminance
     return androidx.compose.ui.graphics.lerp(base, Color.Black, darkenFactor)
+}
+
+/**
+ * A colour read off an artwork [palette] ([pick], the immersive page background by default), held
+ * and faded instead of snapped.
+ *
+ * kmpalette reads `palette` as null for the whole of every generation (it sets Loading before it
+ * suspends), so reading it straight paints [fallback] each time and then jumps to the colour. The
+ * last colour that resolved is held instead, and every real change fades over Home's 500ms. Held
+ * saveably, so coming back to a page starts on its colour rather than fading in again.
+ */
+@Composable
+fun rememberPaletteColor(
+    palette: Palette?,
+    fallback: Color = Color.Black,
+    pick: (Palette) -> Color = { it.toImmersiveBackground() },
+): Color {
+    var held by rememberSaveable { mutableStateOf<Int?>(null) }
+    LaunchedEffect(palette) { palette?.let { held = pick(it).toArgb() } }
+    return animateColorAsState(held?.let { Color(it) } ?: fallback, tween(500), label = "paletteColor").value
 }
 
 /**

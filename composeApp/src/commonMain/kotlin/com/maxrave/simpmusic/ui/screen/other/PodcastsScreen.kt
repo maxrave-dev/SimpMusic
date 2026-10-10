@@ -45,7 +45,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,6 +72,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -90,8 +90,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.PodcastUIEvent
 import com.maxrave.simpmusic.viewModel.PodcastUIState
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -127,9 +125,6 @@ fun PodcastScreen(
         shouldHideTopBar = !firstItemVisible
     }
 
-    // Theo dõi gradient cho background
-    var gradientColors by remember { mutableStateOf(listOf(Color.Black, Color.Black)) }
-
     val paletteState = rememberPaletteState()
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
 
@@ -140,13 +135,8 @@ fun PodcastScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { paletteState.palette }
-            .distinctUntilChanged()
-            .collectLatest {
-                gradientColors = listOf(it.getColorFromPalette(), Color.Black)
-            }
-    }
+    // Background gradient from the artwork, held and faded (see UIExt.rememberPaletteColor).
+    val gradientColors = listOf(rememberPaletteColor(paletteState.palette) { it.getColorFromPalette() }, Color.Black)
 
     LaunchedEffect(key1 = podcastId) {
         if ((uiState as? PodcastUIState.Success)?.id == podcastId) {

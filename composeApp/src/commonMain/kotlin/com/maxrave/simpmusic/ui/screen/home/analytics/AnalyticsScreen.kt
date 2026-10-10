@@ -87,7 +87,7 @@ import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.smoothScrimBrush
-import com.maxrave.simpmusic.extension.toImmersiveBackground
+import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -231,13 +231,10 @@ fun AnalyticsScreen(
             paletteGeneratedFor = topTrackArtwork
         }
     }
-    // The last colour that actually resolved. Reading paletteState.palette straight would paint the
-    // page black for the whole duration of every generate(), because null is what it reads until the
-    // result is Success — and Color.Black is what a null palette resolves to.
-    var pageBackground by remember { mutableStateOf(Color.Black) }
-    LaunchedEffect(paletteState.palette) {
-        paletteState.palette?.let { pageBackground = it.toImmersiveBackground() }
-    }
+    // The last colour that actually resolved, faded on change (see UIExt.rememberPaletteColor).
+    // Reading paletteState.palette straight would paint the page black for the whole duration of
+    // every generate(), because null is what it reads until the result is Success.
+    val pageBackground = rememberPaletteColor(paletteState.palette)
 
     if (showSelectionSheet) {
         val selectedIds = selectionState.selected.toList()
