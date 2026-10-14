@@ -4,8 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -37,7 +39,7 @@ val LocalNowPlayingOpen = compositionLocalOf { false }
  */
 val LocalUserStarted = compositionLocalOf { false }
 
-// Banners are portrait 720×1280 pictures; one of another shape is fitted, centred, inside this frame.
+// Banners are portrait 720×1280 pictures. Only the width cap uses this, to keep one inside a short window.
 private const val BANNER_ASPECT_RATIO = 9f / 16f
 
 data class PromoBannerData(
@@ -73,20 +75,26 @@ fun PromoBanner(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            // As wide as the window allows, but never taller than three quarters of it.
-            val width = min(maxWidth * 0.82f, maxHeight * 0.75f * BANNER_ASPECT_RATIO)
+            // At most 320dp wide upright and 360dp on its side; narrower only when the window is too short
+            // for a 9:16 picture to stay within 80% of its height (a phone held sideways, a small laptop).
+            val maxBannerWidth =
+                min(
+                    if (maxWidth < maxHeight) 320.dp else 360.dp,
+                    maxHeight * 0.8f * BANNER_ASPECT_RATIO,
+                )
             val backdrop = rememberBackdrop(Color.Black)
-            Box(modifier = Modifier.size(width, width / BANNER_ASPECT_RATIO)) {
+            // The picture fills that width and its own shape sets the height.
+            Box(modifier = Modifier.widthIn(max = maxBannerWidth)) {
                 AsyncImage(
                     model = banner.imageUrl,
                     contentDescription = null,
                     placeholder = rememberHolderPainter(),
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.FillWidth,
                     alignment = Alignment.Center,
                     onError = { onFailed() },
                     modifier =
                         Modifier
-                            .matchParentSize()
+                            .fillMaxWidth()
                             .clip(MaterialTheme.shapes.extraLarge)
                             .layerBackdrop(backdrop)
                             .clickable(onClick = onOpen),

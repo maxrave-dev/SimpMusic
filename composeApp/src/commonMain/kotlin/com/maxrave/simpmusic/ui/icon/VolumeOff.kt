@@ -22,7 +22,6 @@ val SimpIcons.VolumeOff: ImageVector
           defaultHeight = 24.dp,
           viewportWidth = 24f,
           viewportHeight = 24f,
-          autoMirror = true,
         )
         .apply {
           path(

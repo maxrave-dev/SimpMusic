@@ -2,7 +2,10 @@ package com.maxrave.simpmusic.ui.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.view.View
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -183,6 +186,38 @@ class TurntableWidget :
                     // Glance a background lands on the View's background, and a View's background
                     // is painted underneath its padding — so padding on the same element only
                     // stretches the pill instead of moving it.
+                    // The launcher lays this row out in the SYSTEM's direction, not the app's language,
+                    // and Glance cannot pin it left-to-right, so a right-to-left system gets the order
+                    // reversed here instead: ⏮ stays left of ⏭, the way the player shows them.
+                    val systemRtl = Resources.getSystem().configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                    val previous: @Composable () -> Unit = {
+                        Image(
+                            provider = ImageProvider(R.drawable.rounded_fast_rewind_24),
+                            contentDescription = "Previous",
+                            colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
+                            modifier =
+                                GlanceModifier
+                                    .size(34.dp)
+                                    .padding(5.dp)
+                                    .clickable(rippleOverride = R.drawable.no_ripple) {
+                                        sharedViewModel.onUIEvent(UIEvent.Previous)
+                                    },
+                        )
+                    }
+                    val next: @Composable () -> Unit = {
+                        Image(
+                            provider = ImageProvider(R.drawable.rounded_fast_forward_24),
+                            contentDescription = "Next",
+                            colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
+                            modifier =
+                                GlanceModifier
+                                    .size(34.dp)
+                                    .padding(5.dp)
+                                    .clickable(rippleOverride = R.drawable.no_ripple) {
+                                        sharedViewModel.onUIEvent(UIEvent.Next)
+                                    },
+                        )
+                    }
                     Box(modifier = GlanceModifier.padding(bottom = 16.dp)) {
                         Row(
                             modifier =
@@ -192,18 +227,7 @@ class TurntableWidget :
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.rounded_fast_rewind_24),
-                                contentDescription = "Previous",
-                                colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
-                                modifier =
-                                    GlanceModifier
-                                        .size(34.dp)
-                                        .padding(5.dp)
-                                        .clickable(rippleOverride = R.drawable.no_ripple) {
-                                            sharedViewModel.onUIEvent(UIEvent.Previous)
-                                        },
-                            )
+                            if (systemRtl) next() else previous()
                             Spacer(GlanceModifier.width(8.dp))
                             Box(
                                 modifier =
@@ -230,18 +254,7 @@ class TurntableWidget :
                                 )
                             }
                             Spacer(GlanceModifier.width(8.dp))
-                            Image(
-                                provider = ImageProvider(R.drawable.rounded_fast_forward_24),
-                                contentDescription = "Next",
-                                colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
-                                modifier =
-                                    GlanceModifier
-                                        .size(34.dp)
-                                        .padding(5.dp)
-                                        .clickable(rippleOverride = R.drawable.no_ripple) {
-                                            sharedViewModel.onUIEvent(UIEvent.Next)
-                                        },
-                            )
+                            if (systemRtl) previous() else next()
                         }
                     }
                 }

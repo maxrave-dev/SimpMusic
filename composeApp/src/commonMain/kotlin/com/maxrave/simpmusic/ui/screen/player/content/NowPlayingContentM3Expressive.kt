@@ -87,6 +87,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.toReadableBitmap
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
@@ -301,30 +302,32 @@ private fun NowPlayingM3ExpressiveLayout(
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 // === 4. Artwork pager — same state/sync as Classic, card presentation ===
-                HorizontalPager(
-                    state = state.artworkPagerState,
-                    modifier =
-                        Modifier
-                            .height(screenInfo.hDP.dp)
-                            .fillMaxWidth(),
-                    beyondViewportPageCount = 1,
-                    userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
-                    key = { idx ->
-                        val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
-                        "artwork_${vid}_$idx"
-                    },
-                ) { page ->
-                    ExpressiveArtworkCardPage(
-                        state = state,
-                        actions = actions,
-                        page = page,
-                        topAppBarHeightDp = topAppBarHeightDp,
-                        middleLayoutPaddingDp = middleLayoutPaddingDp,
-                        showHideFullscreenOverlay = showHideFullscreenOverlay,
-                        onToggleFullscreenOverlay = {
-                            showHideFullscreenOverlay = !showHideFullscreenOverlay
+                LeftToRight {
+                    HorizontalPager(
+                        state = state.artworkPagerState,
+                        modifier =
+                            Modifier
+                                .height(screenInfo.hDP.dp)
+                                .fillMaxWidth(),
+                        beyondViewportPageCount = 1,
+                        userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
+                        key = { idx ->
+                            val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
+                            "artwork_${vid}_$idx"
                         },
-                    )
+                    ) { page ->
+                        ExpressiveArtworkCardPage(
+                            state = state,
+                            actions = actions,
+                            page = page,
+                            topAppBarHeightDp = topAppBarHeightDp,
+                            middleLayoutPaddingDp = middleLayoutPaddingDp,
+                            showHideFullscreenOverlay = showHideFullscreenOverlay,
+                            onToggleFullscreenOverlay = {
+                                showHideFullscreenOverlay = !showHideFullscreenOverlay
+                            },
+                        )
+                    }
                 }
 
                 // === 3. Header row ===
@@ -826,7 +829,7 @@ internal fun ColumnScope.ExpressivePlaybackControls(
     actions: NowPlayingContentActions,
     sliderModifier: Modifier = Modifier,
     showShuffleAndRepeat: Boolean = false,
-) {
+) = LeftToRight {
     val colorScheme = MaterialTheme.colorScheme
     Box(
         Modifier
@@ -950,7 +953,7 @@ private fun ExpressiveConnectedGroup(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     onOpenOutput: () -> Unit,
-) {
+) = LeftToRight {
     val colorScheme = MaterialTheme.colorScheme
     val startCap = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 24.dp)
     val endCap = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomEnd = 24.dp, bottomStart = 6.dp)

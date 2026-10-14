@@ -41,6 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -231,49 +232,53 @@ fun EqualizerSection(viewModel: SettingsViewModel = koinViewModel()) {
 
             // The dB scale sits beside the plot, not inside it: drawing text into the canvas would
             // put it under the curve the user is dragging.
-            Row(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.width(44.dp).height(CURVE_HEIGHT).padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End,
-            ) {
-                Text(
-                    text = "+${BAND_RANGE_DB.roundToInt()}dB",
-                    style = typo().bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            LeftToRight {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.width(44.dp).height(CURVE_HEIGHT).padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    Text(
+                        text = "+${BAND_RANGE_DB.roundToInt()}dB",
+                        style = typo().bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "-${BAND_RANGE_DB.roundToInt()}dB",
+                        style = typo().bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                EqualizerCurve(
+                    bands = bands,
+                    curveColor = curveColor,
+                    gridColor = gridColor,
+                    onBandsChange = { viewModel.setEqualizerBands(it) },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(CURVE_HEIGHT)
+                            .padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
                 )
-                Text(
-                    text = "-${BAND_RANGE_DB.roundToInt()}dB",
-                    style = typo().bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            EqualizerCurve(
-                bands = bands,
-                curveColor = curveColor,
-                gridColor = gridColor,
-                onBandsChange = { viewModel.setEqualizerBands(it) },
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .height(CURVE_HEIGHT)
-                        .padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
-            )
+                }
             }
 
             // Aligned to the plot, not to the block: the 44dp gutter above holds the dB scale, so the
             // labels have to start where the curve does or every frequency sits off its own gridline.
-            Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 44.dp + 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-            EQUALIZER_BAND_LABELS.forEach { label ->
-                Text(
-                    text = label,
-                    style = typo().bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            LeftToRight {
+                Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 44.dp + 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                EQUALIZER_BAND_LABELS.forEach { label ->
+                    Text(
+                        text = label,
+                        style = typo().bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                }
             }
 
             // Bottom right, the way a dialog puts its action — it applies to the whole block above.

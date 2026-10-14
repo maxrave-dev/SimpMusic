@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -65,6 +66,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
@@ -819,6 +821,16 @@ fun PaddingValues.copy(
         end = end ?: this.calculateEndPadding(layoutDirection),
         bottom = bottom ?: this.calculateBottomPadding(),
     )
+}
+
+/**
+ * Lays [content] out left-to-right even in a right-to-left language. For playback controls, seek
+ * bars and anything else that shows which way time runs: those follow the timeline, not the
+ * reading direction, so ⏮ stays left of ⏭ and a progress bar fills from the left.
+ */
+@Composable
+fun LeftToRight(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr, content = content)
 }
 
 fun ImageBitmap.toResizedBitmap(

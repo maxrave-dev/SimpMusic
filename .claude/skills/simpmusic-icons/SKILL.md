@@ -34,8 +34,9 @@ Then edit the downloaded file:
 1. `package com.example.test` → `package com.maxrave.simpmusic.ui.icon`
 2. `public val <symbol_name>: ImageVector` → `val SimpIcons.<PascalName>: ImageVector`
 3. Rename the backing field `_<symbol_name>` → `_<PascalName>`, and `name = "<symbol_name>"` → `"<PascalName>"`
-4. If the glyph must flip in RTL, add `autoMirror = true,` inside `ImageVector.Builder(...)`
-   (currently: `ArrowForwardIos`, `QueueMusic`, `Sort`, `TrendingUp`, `VolumeOff`, `VolumeUp`)
+4. Never add `autoMirror = true` to `ImageVector.Builder(...)`: in right-to-left languages only text
+   flips, icons keep their shape (owner's rule, 2026-10-14). `ArrowForwardIos`, `QueueMusic`, `Sort`,
+   `TrendingUp`, `VolumeOff` and `VolumeUp` had it and drew mirrored until it was removed.
 
 ## Using an icon
 

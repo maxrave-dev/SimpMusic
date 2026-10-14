@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,9 +44,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import simpmusic.composeapp.generated.resources.analytics_avg_per_day
 import simpmusic.composeapp.generated.resources.analytics_busiest_day
@@ -867,19 +870,26 @@ private fun PeriodNavigator(
 ) {
     val start = uiState.periodStart
     val end = uiState.periodEnd
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = gutter),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (gutter == 0.dp) Arrangement.spacedBy(14.dp) else Arrangement.SpaceBetween,
-    ) {
-        StepArrow(SimpIcons.ArrowBackIosNew, enabled = true) { onStep(-1) }
-        Text(
-            text = if (start != null && end != null) formatPeriodSpan(start, end) else "",
-            style = typo().bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-        )
-        StepArrow(SimpIcons.ArrowForwardIos, enabled = uiState.canStepForward) { onStep(1) }
+    // The arrows follow the timeline, earlier on the left; the date between them keeps the
+    // reading direction, or a right-to-left date would come out in the wrong order.
+    val readingDirection = LocalLayoutDirection.current
+    LeftToRight {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = gutter),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = if (gutter == 0.dp) Arrangement.spacedBy(14.dp) else Arrangement.SpaceBetween,
+        ) {
+            StepArrow(SimpIcons.ArrowBackIosNew, enabled = true) { onStep(-1) }
+            CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
+                Text(
+                    text = if (start != null && end != null) formatPeriodSpan(start, end) else "",
+                    style = typo().bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                )
+            }
+            StepArrow(SimpIcons.ArrowForwardIos, enabled = uiState.canStepForward) { onStep(1) }
+        }
     }
 }
 

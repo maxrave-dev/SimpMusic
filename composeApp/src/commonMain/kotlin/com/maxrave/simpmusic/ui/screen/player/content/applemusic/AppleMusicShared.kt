@@ -80,6 +80,7 @@ import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.domain.repository.ListenTogetherRepository
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -750,7 +751,7 @@ internal fun AppleMusicTransportRow(
 internal fun AppleMusicVolumeRow(
     controller: DeviceVolumeController,
     modifier: Modifier = Modifier,
-) {
+) = LeftToRight {
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = SimpIcons.VolumeDown,
@@ -828,7 +829,7 @@ internal fun AppleMusicActionRow(
     onOpenOutput: () -> Unit,
     onOpenListenTogether: () -> Unit,
     modifier: Modifier = Modifier,
-) {
+) = LeftToRight {
     // Straight off the repository, like ListenTogetherIconButton: one boolean off a StateFlow is all
     // the capsule needs, and a ViewModel for it would be built every time the player opens.
     val listenTogether = koinInject<ListenTogetherRepository>()
@@ -959,7 +960,7 @@ internal fun ColumnScope.AppleMusicPlaybackControls(
     actions: NowPlayingContentActions,
     typography: AppleMusicTypography,
     showShuffleAndRepeat: Boolean = false,
-) {
+) = LeftToRight {
     // Fixed 18dp shell: the track swells on touch, but inside a CONSTANT footprint —
     // otherwise the growing slider re-measures this whole column and the artwork above
     // it visibly jumps. It also gives the bar a real 18dp touch target instead of 8.4dp.

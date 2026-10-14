@@ -82,6 +82,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LyricText
@@ -430,39 +431,41 @@ private fun AppleMusicMainView(
         val topBand =
             if (meshPage && getPlatform() == Platform.Android) statusBarHeight + TOP_BAND_STRIP else 0.dp
 
-        HorizontalPager(
-            state = state.artworkPagerState,
-            modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 1,
-            userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
-            key = { idx ->
-                val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
-                "appleMusicArtwork_${vid}_$idx"
-            },
-        ) { page ->
-            AppleMusicArtworkPage(
-                state = state,
-                actions = actions,
-                localDensity = localDensity,
-                page = page,
-                artworkHeight = artworkHeight,
-                clipMaxHeight = clipMaxHeight,
-                topBandSolid = statusBarHeight,
-                topBand = topBand,
-                bottomContentHeightDp = bottomContentHeightDp,
-                fullscreenCanvas = fullscreenCanvas,
-                animatedArtwork = animatedArtwork,
-                isVideoBackdrop = isVideoBackdrop,
-                showVideoOverlay = showVideoOverlay,
-                onToggleVideoOverlay = { showVideoOverlay = !showVideoOverlay },
-                showSubtitle = showSubtitle,
-                onToggleSubtitle = { showSubtitle = !showSubtitle },
-                onCoverBitmap = { coverBitmap = it },
-                onClipStill = { still, height ->
-                    clipStill = still
-                    clipFrameHeight = height
+        LeftToRight {
+            HorizontalPager(
+                state = state.artworkPagerState,
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 1,
+                userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
+                key = { idx ->
+                    val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
+                    "appleMusicArtwork_${vid}_$idx"
                 },
-            )
+            ) { page ->
+                AppleMusicArtworkPage(
+                    state = state,
+                    actions = actions,
+                    localDensity = localDensity,
+                    page = page,
+                    artworkHeight = artworkHeight,
+                    clipMaxHeight = clipMaxHeight,
+                    topBandSolid = statusBarHeight,
+                    topBand = topBand,
+                    bottomContentHeightDp = bottomContentHeightDp,
+                    fullscreenCanvas = fullscreenCanvas,
+                    animatedArtwork = animatedArtwork,
+                    isVideoBackdrop = isVideoBackdrop,
+                    showVideoOverlay = showVideoOverlay,
+                    onToggleVideoOverlay = { showVideoOverlay = !showVideoOverlay },
+                    showSubtitle = showSubtitle,
+                    onToggleSubtitle = { showSubtitle = !showSubtitle },
+                    onCoverBitmap = { coverBitmap = it },
+                    onClipStill = { still, height ->
+                        clipStill = still
+                        clipFrameHeight = height
+                    },
+                )
+            }
         }
 
         // Android plays the animated artwork on a SurfaceView, which no Compose mask or alpha reaches:
@@ -1058,31 +1061,33 @@ private fun AppleMusicArtworkPage(
                                         ) {
                                             Icon(imageVector = SimpIcons.Fullscreen, contentDescription = "", tint = Color.White)
                                         }
-                                        Row(
-                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly,
-                                        ) {
-                                            IconButton(
-                                                onClick = { actions.onUIEvent(UIEvent.Backward) },
-                                                modifier = Modifier.size(48.dp).clip(CircleShape),
+                                        LeftToRight {
+                                            Row(
+                                                modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceEvenly,
                                             ) {
-                                                Icon(
-                                                    imageVector = SimpIcons.Replay5,
-                                                    contentDescription = "",
-                                                    tint = Color.White,
-                                                    modifier = Modifier.size(36.dp).alpha(0.8f),
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = { actions.onUIEvent(UIEvent.Forward) },
-                                                modifier = Modifier.size(48.dp).clip(CircleShape),
-                                            ) {
-                                                Icon(
-                                                    imageVector = SimpIcons.Forward5,
-                                                    contentDescription = "",
-                                                    tint = Color.White,
-                                                    modifier = Modifier.size(36.dp).alpha(0.8f),
-                                                )
+                                                IconButton(
+                                                    onClick = { actions.onUIEvent(UIEvent.Backward) },
+                                                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                                                ) {
+                                                    Icon(
+                                                        imageVector = SimpIcons.Replay5,
+                                                        contentDescription = "",
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(36.dp).alpha(0.8f),
+                                                    )
+                                                }
+                                                IconButton(
+                                                    onClick = { actions.onUIEvent(UIEvent.Forward) },
+                                                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                                                ) {
+                                                    Icon(
+                                                        imageVector = SimpIcons.Forward5,
+                                                        contentDescription = "",
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(36.dp).alpha(0.8f),
+                                                    )
+                                                }
                                             }
                                         }
                                         if (state.screenData.lyricsData != null) {
