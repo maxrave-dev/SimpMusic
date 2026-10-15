@@ -180,6 +180,7 @@ import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.playing_on_device
 import simpmusic.composeapp.generated.resources.published_at
+import simpmusic.composeapp.generated.resources.radio_mix_upper
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rich_synced
 import simpmusic.composeapp.generated.resources.share_lyrics
@@ -862,7 +863,10 @@ fun NowPlayingContentSpotify(
                             verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = stringResource(Res.string.now_playing_upper),
+                                text =
+                                    stringResource(
+                                        if (state.screenData.isRadioQueue) Res.string.radio_mix_upper else Res.string.now_playing_upper,
+                                    ),
                                 style = typo().bodyMedium,
                                 color = Color.White,
                             )

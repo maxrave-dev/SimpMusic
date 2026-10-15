@@ -250,8 +250,8 @@ fun FullscreenLyricsContent(
         }
 
     val screenInfo = getScreenSizeInfo()
-    val isLandscape = screenInfo.wDP > screenInfo.hDP
     val isDesktop = getPlatform() == Platform.Desktop
+    val isLandscape = isDesktop && screenInfo.wDP > screenInfo.hDP
     // Glass source for the Desktop chrome. Each layout marks its own background with it, and the
     // pills are always drawn as siblings of that background — nesting them inside the source is
     // the render-feedback loop that crashes the RuntimeShader.

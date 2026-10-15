@@ -60,6 +60,8 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.repository.UpdateRepository
 import com.maxrave.domain.utils.Resource
+import com.maxrave.domain.utils.YouTubeLikeStatus
+import com.maxrave.domain.utils.isEndlessQueueId
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toLyrics
 import com.maxrave.domain.utils.toLyricsEntity
@@ -109,6 +111,7 @@ import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
+import simpmusic.composeapp.generated.resources.disliked
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
 import simpmusic.composeapp.generated.resources.login_success
@@ -244,8 +247,17 @@ class SharedViewModel(
         )
     val nowPlayingScreenData: StateFlow<NowPlayingScreenData> = _nowPlayingScreenData
 
-    private var _likeStatus = MutableStateFlow<Boolean>(false)
-    val likeStatus: StateFlow<Boolean> = _likeStatus
+    private var _likeStatus = MutableStateFlow(YouTubeLikeStatus.INDIFFERENT)
+    val likeStatus: StateFlow<YouTubeLikeStatus> = _likeStatus
+    private var likeStatusJob: Job? = null
+
+    // The track whose dislike request is still waiting for YouTube. An id rather than a flag, so the
+    // pending state belongs to that track only and the next one starts out dislikeable.
+    private val _dislikingVideoId = MutableStateFlow<String?>(null)
+    val isDislikePending: StateFlow<Boolean> =
+        combine(_dislikingVideoId, mediaPlayerHandler.nowPlaying) { pending, now ->
+            pending != null && pending == now?.mediaId
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /**
      * Which body of the Apple Music player was open last — held by ENUM NAME so this class stays
@@ -410,6 +422,11 @@ class SharedViewModel(
                                     mediaPlayerHandler.queueData.value
                                         ?.data
                                         ?.playlistName ?: "",
+                                isRadioQueue =
+                                    mediaPlayerHandler.queueData.value
+                                        ?.data
+                                        ?.playlistId
+                                        ?.isEndlessQueueId() == true,
                             )
                     }
                     state.mediaItem.let { now ->
@@ -549,9 +566,12 @@ class SharedViewModel(
                 }
             val playlistNameJob =
                 launch {
-                    mediaPlayerHandler.queueData.collectLatest {
+                    mediaPlayerHandler.queueData.collectLatest { queue ->
                         _nowPlayingScreenData.update {
-                            it.copy(playlistName = it.playlistName)
+                            it.copy(
+                                playlistName = queue?.data?.playlistName ?: "",
+                                isRadioQueue = queue?.data?.playlistId?.isEndlessQueueId() == true,
+                            )
                         }
                     }
                 }
@@ -618,14 +638,18 @@ class SharedViewModel(
     }
 
     private fun getLikeStatus(videoId: String?) {
-        viewModelScope.launch {
-            if (videoId != null) {
-                _likeStatus.value = false
-                songRepository.getLikeStatus(videoId).collectLatest { status ->
-                    _likeStatus.value = status
+        // Only the latest track may write: a slower reply for the previous track would otherwise
+        // land on this one.
+        likeStatusJob?.cancel()
+        likeStatusJob =
+            viewModelScope.launch {
+                if (videoId != null) {
+                    _likeStatus.value = YouTubeLikeStatus.INDIFFERENT
+                    songRepository.getLikeStatus(videoId).collectLatest { status ->
+                        _likeStatus.value = status
+                    }
                 }
             }
-        }
     }
 
     private fun getCanvas(
@@ -1903,7 +1927,7 @@ class SharedViewModel(
         viewModelScope.launch {
             val videoId = mediaPlayerHandler.nowPlaying.first()?.mediaId
             if (videoId != null) {
-                val like = likeStatus.value
+                val like = likeStatus.value == YouTubeLikeStatus.LIKE
                 if (!like) {
                     songRepository
                         .addToYouTubeLiked(
@@ -1929,6 +1953,33 @@ class SharedViewModel(
                             }
                         }
                 }
+            }
+        }
+    }
+
+    /**
+     * Dislikes [videoId], the track the sheet was opened for. While the request is out the action
+     * reads "Disliking…" and cannot be pressed again; a failure puts it back as it was.
+     */
+    fun addToYouTubeDisliked(videoId: String) {
+        if (videoId.isEmpty() || _dislikingVideoId.value == videoId) return
+        _dislikingVideoId.value = videoId
+        viewModelScope.launch {
+            try {
+                songRepository.addToYouTubeDisliked(videoId).collect { response ->
+                    if (response == 200) {
+                        // The reply can arrive after the player moved on; it belongs to the
+                        // track it was sent for, so it only shows if that track is still playing.
+                        if (mediaPlayerHandler.nowPlaying.value?.mediaId == videoId) {
+                            _likeStatus.value = YouTubeLikeStatus.DISLIKE
+                        }
+                        makeToast(getString(Res.string.disliked))
+                    } else {
+                        makeToast(getString(Res.string.error))
+                    }
+                }
+            } finally {
+                _dislikingVideoId.compareAndSet(videoId, null)
             }
         }
     }
@@ -2246,6 +2297,8 @@ enum class LyricsProvider {
 
 data class NowPlayingScreenData(
     val playlistName: String,
+    /** The queue plays from a radio or mix id, so the top bar says Radio/Mix instead of Now Playing. */
+    val isRadioQueue: Boolean = false,
     val nowPlayingTitle: String,
     val artistName: String,
     val isVideo: Boolean,

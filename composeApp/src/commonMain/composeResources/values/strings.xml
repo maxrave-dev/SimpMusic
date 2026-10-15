@@ -153,6 +153,8 @@
     <string name="recently">Recently</string>
     <string name="settings">Settings</string>
     <string name="now_playing_upper">NOW PLAYING</string>
+    <string name="radio_mix_upper">RADIO/MIX</string>
+    <string name="radio_mix">Radio/Mix</string>
     <string name="language">Language</string>
     <string name="what_do_you_want_to_listen_to">What do you want to listen to?</string>
     <string name="songs_inArtist">Songs</string>
@@ -400,6 +402,9 @@
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
     <string name="removed_from_youtube_liked">Removed from YouTube Liked</string>
+    <string name="dislike_on_youtube">Dislike (YouTube Music will not recommend this song frequently)</string>
+    <string name="disliked">Disliked</string>
+    <string name="disliking">Disliking…</string>
     <string name="home_limit">Fetch home data limit</string>
     <string name="no_album">No album</string>
     <string name="app_widget_description">Player widget</string>
