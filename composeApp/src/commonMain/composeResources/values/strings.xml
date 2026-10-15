@@ -111,6 +111,7 @@
     <string name="let_s_start_with_a_radio">LET'S START WITH A RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">LET'S PICK A PLAYLIST FOR YOU</string>
     <string name="moods_amp_moment"><![CDATA[Moods & Moment]]></string>
+    <string name="mood">Mood</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">WHAT IS BEST CHOICE TODAY</string>
     <string name="chart">Chart</string>

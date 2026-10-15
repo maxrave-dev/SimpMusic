@@ -147,6 +147,24 @@ fun LazyListState.visibilityPercent(info: LazyListItemInfo): Float {
 
 fun Modifier.greyScale() = this.then(GreyScaleModifier())
 
+/**
+ * [colors] as gradient stops eased with smoothstep, the way [smoothScrimBrush] eases a scrim. Handed
+ * to the renderer as two stops, each ramp is a straight line with a corner where it leaves one colour
+ * and another where it reaches the next, and those corners read as creases across the glow.
+ */
+private fun easedColorStops(
+    colors: List<Color>,
+    stepsPerSegment: Int = 24,
+): Array<Pair<Float, Color>> {
+    val segments = colors.size - 1
+    val total = segments * stepsPerSegment
+    return Array(total + 1) { i ->
+        val segment = minOf(i / stepsPerSegment, segments - 1)
+        val t = (i - segment * stepsPerSegment) / stepsPerSegment.toFloat()
+        i / total.toFloat() to androidx.compose.ui.graphics.lerp(colors[segment], colors[segment + 1], t * t * (3f - 2f * t))
+    }
+}
+
 fun Modifier.angledGradientBackground(
     colors: List<Color>,
     degrees: Float,
@@ -232,7 +250,7 @@ fun Modifier.angledGradientBackground(
             drawRect(
                 brush =
                     Brush.linearGradient(
-                        colors = colors,
+                        colorStops = easedColorStops(colors),
                         // negative here so that 0 degrees is left -> right
                         start = Offset(center.x - centerOffsetX, center.y - centerOffsetY),
                         end = Offset(center.x + centerOffsetX, center.y + centerOffsetY),

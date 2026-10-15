@@ -20,7 +20,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
+import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.LocalPlatformContext
+import coil3.compose.preferEndFirstIntrinsicSize
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.disk.DiskCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
@@ -96,7 +98,7 @@ private const val SENTRY_APP_OPEN = "app.open"
  */
 private val DEEP_LINK_ARG = Regex("^[A-Za-z][A-Za-z0-9+.\\-]*://.+")
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
 fun runDesktopApp(args: Array<String> = emptyArray()) {
     // Install crash dialog handler first — catches all uncaught exceptions
     CrashDialog.install()
@@ -493,6 +495,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                                     .maxSizeBytes(512L * 1024 * 1024)
                                     .build(),
                             ).crossfade(true)
+                            // CrossfadePainter otherwise sizes itself as max(placeholder, image) once and keeps it,
+                            // so a square holder over a wide banner leaves the banner zoomed after the fade.
+                            .preferEndFirstIntrinsicSize(true)
                             .build()
                     imageLoader
                 }
