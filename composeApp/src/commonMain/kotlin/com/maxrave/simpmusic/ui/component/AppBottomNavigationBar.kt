@@ -428,7 +428,9 @@ fun AppNavigationRail(
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }
-    NavigationRail {
+    // Transparent, not the default `surface`: the rail sits on the Desktop window (pure black/white)
+    // and on the page background on tablets, and must read as part of whatever is behind it.
+    NavigationRail(containerColor = Color.Transparent) {
         Spacer(Modifier.height(16.dp))
         Box(Modifier.padding(horizontal = 16.dp)) {
             Box(

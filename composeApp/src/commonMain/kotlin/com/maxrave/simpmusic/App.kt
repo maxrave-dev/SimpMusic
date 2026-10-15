@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -498,10 +497,10 @@ fun App(
             UnofficialBuildScreen()
             return@AppTheme
         }
-        // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
-        // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
+        // Backdrop base must match the page, so glass over an empty area reads as the page itself.
+        // Read inside AppTheme so MaterialTheme reflects the resolved scheme.
         val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-        val backdrop = rememberBackdrop(if (isLightScheme) Color.White else Color.Black)
+        val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
 
         // The desktop shell is a window colour with panels floating on it. The two schemes mirror
         // each other: the window takes the extreme (pure black / pure white) and the panel steps

@@ -90,8 +90,8 @@ fun parseThemeColorHex(hex: String): Color? {
  * the Material 3 stance) rather than pure white: a full-bleed #FFFFFF expanse glares on a large
  * desktop window, and even Apple — who pins systemBackground to white — puts #F2F2F7 behind
  * list pages. Pure white is kept for surfaceBright/surfaceContainerLowest so cards and sheets
- * still have a brighter-than-page tier to lift onto. Dark stays pure-black AMOLED: black does
- * not glare and saves OLED.
+ * still have a brighter-than-page tier to lift onto. Dark keeps the generated neutrals (a tone-6
+ * page), not AMOLED pure black.
  */
 private fun ColorScheme.withNeutralLightSurfaces(): ColorScheme =
     copy(
@@ -139,14 +139,13 @@ fun AppTheme(
         } else {
             seed
         }
-    // Symmetric base: dark pins background/surface to pure black via isAmoled; light pins them to
-    // pure white with a neutral-grey ramp (the seed otherwise tints the light neutrals warm/cream).
+    // Light pins the neutrals to a neutral-grey ramp (the seed otherwise tints them warm/cream);
+    // dark keeps the generated neutrals as they are.
     val colorScheme =
         wallpaperScheme
             ?: rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = isDark,
-                isAmoled = isDark,
                 style = PaletteStyle.TonalSpot,
                 modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
             )
@@ -159,7 +158,6 @@ fun AppTheme(
             rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = true,
-                isAmoled = true,
                 style = PaletteStyle.TonalSpot,
             )
         }

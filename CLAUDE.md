@@ -1018,6 +1018,10 @@ if (getPlatform() == Platform.Android) {
   - Smaller fixes: `MoodCategoryCard` drew its badge at a fixed right corner, on top of the title in RTL; the equalizer's curve is drawn left-to-right, so its dB scale and frequency labels are kept left-to-right with it. The Glance `TurntableWidget` cannot pin a direction, and the launcher lays it out in the SYSTEM's direction rather than the app's language, so it reverses its own order when `Resources.getSystem()` is RTL.
   - Compose Desktop goes right-to-left too: `GlobalLayoutDirection` comes from `Locale.getDefault()` through AWT's `ComponentOrientation`.
   - Left as is: marquee titles scroll the RTL way for Latin text (`basicMarquee` follows the layout, not the text) — the owner declined changing it. Still open: the back button sits on the right while its arrow keeps pointing left. R8 renames every class it has (the Full build turns `AppStartMetrics` into `io.sentry.android.core.performance.g`); a reference to a missing class keeps its original name.
+- **Dark theme is no longer AMOLED black (2026-10-15)**: `isAmoled` is a MaterialKolor parameter, not an app setting, and it is gone from both `rememberDynamicColorScheme` calls in `Theme.kt`; the Wallpaper scheme (`PlatformColorScheme.android.kt`) also stopped pinning `background`/`surface` to black by hand. In a dark scheme `isAmoled` swaps exactly four roles — `background`/`surface` to `#000`, `onBackground`/`onSurface` to `#FFF` — so the dark page is now MaterialKolor's tone 6 (about `#131313`, tinted by the seed) and `typo()` titles, which read `onBackground`, are tone 90 instead of pure white. Both calls change together: in the dark theme the immersive screens reuse the main scheme, so changing only one splits them by theme.
+  - **Never hardcode `Color.Black` as a page or bar colour; use `colorScheme.background`.** Four blacks only looked right because the page was black: the liquid-glass backdrop base in `App.kt`, the `SongSelectionTopAppBar` fill on the library dynamic playlists (now with `contentColor = onSurface`, since the bar defaults to white text), and the fill behind a loading chip in `InfiniteBorderAnimationView`. The cold-start `windowBackground` is `#131313`, the neutral grey at tone 6.
+  - **The reverse bites too: a Material default sitting on a fixed-colour surface.** `NavigationRail` defaults to `surface`, which was black only under AMOLED, so on the pure-black Desktop window (`desktopWindowDark`) it turned into a seed-tinted grey strip. It is now `containerColor = Color.Transparent` and shows the window on Desktop and the page on tablets. Anything placed on a surface with a fixed colour (the Desktop window, the player, the Podcast page) must not take a theme surface role, whether passed explicitly or inherited as a default.
+  - Black that stays on purpose: scrims, video and canvas letterboxes, fades over artwork, glass darkening, and the surfaces that are black by design — the Now Playing sheet with its Classic and Apple Music pages, fullscreen lyrics, the Podcast page, and the Desktop window frame (`desktopWindowDark`: the window takes the extreme, mirroring pure white in the light theme).
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -1043,6 +1047,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-14
+**Last updated**: 2026-10-15
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

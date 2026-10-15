@@ -49,9 +49,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -148,10 +146,10 @@ import com.maxrave.simpmusic.ui.component.PromoBanner
 import com.maxrave.simpmusic.ui.component.PromoBannerData
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
+import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Person
 import com.maxrave.simpmusic.ui.icon.Settings
@@ -160,7 +158,6 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -221,20 +218,17 @@ import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_to_YouTube
 import simpmusic.composeapp.generated.resources.log_in_warning
 import simpmusic.composeapp.generated.resources.mood
-import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
 import simpmusic.composeapp.generated.resources.relax
 import simpmusic.composeapp.generated.resources.romance
 import simpmusic.composeapp.generated.resources.sad
-import simpmusic.composeapp.generated.resources.settings
 import simpmusic.composeapp.generated.resources.sleep
 import simpmusic.composeapp.generated.resources.top_artists
 import simpmusic.composeapp.generated.resources.warning
 import simpmusic.composeapp.generated.resources.what_is_best_choice_today
 import simpmusic.composeapp.generated.resources.workout
-import simpmusic.composeapp.generated.resources.your_recently_played
 
 // DataStore key for blog-promo one-shot dialog. Bump the suffix (v2, v3, …) to re-promote.
 private const val BLOG_PROMO_KEY = "blog_promo_v1_seen"
@@ -1039,7 +1033,7 @@ fun HomeScreen(
                                 WindowInsets.statusBars,
                             ),
                 )
-                // The chips scroll across the whole header and pass OVER the avatar and Listen Together,
+                // The chips scroll across the whole header and pass OVER the avatar and the end buttons,
                 // as Spotify's do, instead of being cut off between them. Padding keeps them clear of
                 // both at rest. A button sits above the chips (for drawing and for taps) only while the
                 // chips have not scrolled over it, so whichever is on top is also what a tap reaches.
@@ -1062,14 +1056,21 @@ fun HomeScreen(
                             navController = navController,
                         )
                     }
-                    Box(
+                    Row(
                         modifier =
                             Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(end = 4.dp)
                                 .zIndex(if (chipsAtEnd) 2f else 0f),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
+                            navController.navigate(NotificationDestination)
+                        }
                         ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
+                        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
+                            navController.navigate(SettingsDestination)
+                        }
                     }
                     Row(
                         modifier =
@@ -1078,8 +1079,8 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .zIndex(1f)
                                 .horizontalScroll(chipRowState)
-                                // Avatar (15 + 32dp) and an 8dp gap; Listen Together's 48dp target and its 4dp inset.
-                                .padding(start = 55.dp, end = 52.dp),
+                                // Avatar (15 + 32dp) and an 8dp gap; the three 48dp end buttons and their 4dp inset.
+                                .padding(start = 55.dp, end = 148.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -1113,9 +1114,9 @@ fun HomeScreen(
 }
 
 /**
- * The avatar at the start of Home's header. It opens the menu that took over the old app bar's
- * Notification, Recently played and Settings buttons, headed by who is signed in and the greeting
- * the bar used to show. Signed out, the avatar is a person glyph and the menu offers the log-in.
+ * The avatar at the start of Home's header. It opens a menu showing who is signed in and the
+ * greeting the old app bar used to show. Signed out, the avatar is a person glyph and the menu
+ * offers the log-in.
  */
 @Composable
 private fun HomeAccountButton(
@@ -1187,31 +1188,6 @@ private fun HomeAccountButton(
                     Text(stringResource(Res.string.log_in_to_YouTube), color = LocalContentColor.current)
                 }
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.notification), color = LocalContentColor.current) },
-                leadingIcon = { Icon(SimpIcons.Notifications, contentDescription = null) },
-                onClick = {
-                    menuOpen = false
-                    navController.navigate(NotificationDestination)
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.your_recently_played), color = LocalContentColor.current) },
-                leadingIcon = { Icon(SimpIcons.History, contentDescription = null) },
-                onClick = {
-                    menuOpen = false
-                    navController.navigate(RecentlySongsDestination)
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.settings), color = LocalContentColor.current) },
-                leadingIcon = { Icon(SimpIcons.Settings, contentDescription = null) },
-                onClick = {
-                    menuOpen = false
-                    navController.navigate(SettingsDestination)
-                },
-            )
         }
     }
 }

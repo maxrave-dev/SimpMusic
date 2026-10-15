@@ -680,7 +680,8 @@ fun LibraryDynamicPlaylistScreen(
                         selectionState.toggleSelectAll(visible)
                     },
                     onOpenActions = { showSelectionSheet = true },
-                    containerColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

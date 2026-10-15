@@ -21,7 +21,6 @@ import com.maxrave.simpmusic.viewModel.NotificationViewModel
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
-import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.AutoEqViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -156,11 +155,6 @@ val viewModelModule =
         }
         viewModel {
             BrowseViewModel(
-                get(),
-            )
-        }
-        viewModel {
-            RecentlySongsViewModel(
                 get(),
             )
         }

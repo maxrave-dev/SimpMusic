@@ -108,7 +108,6 @@ import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.ReceiptLong
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -1150,9 +1149,7 @@ private fun RecentlyPlayedSection(
     val records = uiState.recentlyRecord.data ?: return
     if (records.isEmpty()) return
     Column {
-        SectionHeader(stringResource(Res.string.your_recently_played), gutter) {
-            navController.navigate(RecentlySongsDestination)
-        }
+        SectionHeader(stringResource(Res.string.your_recently_played), gutter)
         records.forEach { pair ->
             SongRow(
                 pair = pair.second,
