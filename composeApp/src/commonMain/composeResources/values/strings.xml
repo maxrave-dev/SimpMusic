@@ -593,6 +593,13 @@
     <string name="auto_download_liked_songs">Download songs you like</string>
     <string name="auto_download_liked_songs_description">Automatically download a song for offline playback when you add it to Favorites, using your download quality setting. Turning this on also downloads the songs you already liked. Removing a like never deletes a download.</string>
     <string name="downloading_liked_songs">Downloading %1$d liked songs</string>
+    <string name="smart_downloads">Smart downloads</string>
+    <string name="smart_downloads_description">Keeps the songs you play most downloaded, refreshed once a day when you open the app on Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">Turn on Local tracking listening history to use this</string>
+    <string name="smart_downloads_size">Songs to keep</string>
+    <string name="smart_downloads_size_value">%1$d songs</string>
+    <string name="smart_downloads_downloading">Smart downloads: downloading %1$d songs</string>
+    <string name="smart_downloads_waiting_for_wifi">Smart downloads will start the next time you open the app on Wi-Fi</string>
     <string name="crossfade_skip_album">Keep albums continuous</string>
     <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>

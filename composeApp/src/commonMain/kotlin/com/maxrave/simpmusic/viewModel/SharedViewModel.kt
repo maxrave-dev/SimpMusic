@@ -72,6 +72,7 @@ import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
+import com.maxrave.simpmusic.expect.isOnUnmeteredNetwork
 import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.VersionManager
@@ -123,6 +124,8 @@ import simpmusic.composeapp.generated.resources.vote_submitted
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 // DataStore key for the kotlin-footguns star prompt. Cleared on every version bump,
 // so the ask comes back after an update - same policy as OPEN_APP_TIME.
@@ -594,6 +597,7 @@ class SharedViewModel(
         checkAllDownloadingSongs()
         checkAllDownloadingPlaylists()
         checkAllDownloadingLocalPlaylists()
+        runSmartDownloadsIfDue()
     }
 
     fun setIntent(intent: GenericIntent?) {
@@ -1111,6 +1115,25 @@ class SharedViewModel(
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Smart downloads run here, when the app opens, at most once a day and on Android only. Nothing
+     * runs in the background: Android 12+ refuses a download service started from there.
+     */
+    private fun runSmartDownloadsIfDue() {
+        if (getPlatform() != Platform.Android) return
+        viewModelScope.launch {
+            if (dataStoreManager.smartDownloadsEnabled.first() != TRUE) return@launch
+            if (dataStoreManager.localTrackingEnabled.first() != TRUE) return@launch
+            val nowMillis = Clock.System.now().toEpochMilliseconds()
+            val sinceLastRun = nowMillis - dataStoreManager.smartDownloadsLastRun.first()
+            // A last run stamped in the future (the clock was moved back) does not block the pass.
+            if (sinceLastRun in 0 until 1.days.inWholeMilliseconds) return@launch
+            if (!isOnUnmeteredNetwork()) return@launch
+            songRepository.runSmartDownloads(dataStoreManager.smartDownloadsCount.first())
+            dataStoreManager.setSmartDownloadsLastRun(nowMillis)
         }
     }
 
