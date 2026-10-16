@@ -255,6 +255,7 @@ import simpmusic.composeapp.generated.resources.no_results_found
 import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.open_album
 import simpmusic.composeapp.generated.resources.pitch
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
@@ -266,6 +267,7 @@ import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.remove_from_cache
+import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
@@ -3312,6 +3314,58 @@ fun SortPlaylistBottomSheet(
                             }
                         }
                     }
+                }
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LocalPlaylistAlbumBottomSheet(
+    onDismiss: () -> Unit,
+    onOpenAlbum: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val act: (() -> Unit) -> Unit = { action ->
+        action()
+        onDismiss()
+    }
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier = Modifier.width(60.dp).height(4.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(16.dp))
+                ActionButton(icon = SimpIcons.Album, text = Res.string.open_album) {
+                    act(onOpenAlbum)
+                }
+                ActionButton(
+                    icon = SimpIcons.Delete,
+                    text = Res.string.remove_from_playlist,
+                    iconColor = Color.Red,
+                    textColor = Color.Red,
+                ) {
+                    act(onRemove)
                 }
                 EndOfModalBottomSheet()
             }

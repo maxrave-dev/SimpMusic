@@ -122,6 +122,7 @@ fun SongFullWidthItems(
     shouldShowDragHandle: Boolean = false,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
+    onDoubleClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
     selectionMode: Boolean = false,
     isSelected: Boolean = false,
@@ -194,6 +195,12 @@ fun SongFullWidthItems(
                         onLongClick =
                             if (onLongClick != null) {
                                 { onLongClick(itemVideoId) }
+                            } else {
+                                null
+                            },
+                        onDoubleClick =
+                            if (onDoubleClickListener != null) {
+                                { onDoubleClickListener(itemVideoId) }
                             } else {
                                 null
                             },

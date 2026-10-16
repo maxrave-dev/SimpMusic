@@ -149,6 +149,7 @@
     <string name="title">Title</string>
     <string name="custom_order">Custom order</string>
     <string name="album">Album</string>
+    <string name="open_album">Open album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">Download URL</string>
     <string name="now_playing">Now Playing</string>
