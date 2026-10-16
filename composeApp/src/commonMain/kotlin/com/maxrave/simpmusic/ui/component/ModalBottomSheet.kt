@@ -2886,6 +2886,7 @@ fun PlaylistBottomSheet(
     onEditTitle: (newTitle: String) -> Unit = {},
     onSaveToLocal: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
+    onAddToPlaylist: (() -> Unit)? = null,
     localPlaylistRepository: LocalPlaylistRepository = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -3020,6 +3021,12 @@ fun PlaylistBottomSheet(
                         enable = !isSavedToLocal,
                     ) {
                         onSaveToLocal.invoke()
+                        hideModalBottomSheet()
+                    }
+                }
+                if (onAddToPlaylist != null) {
+                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.add_to_a_playlist) {
+                        onAddToPlaylist.invoke()
                         hideModalBottomSheet()
                     }
                 }
