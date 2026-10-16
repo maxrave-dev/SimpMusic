@@ -1058,14 +1058,18 @@ fun AlbumScreen(
                 }
                 if (showAlbumAddToPlaylist) {
                     val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
-                    val albumVideoIds = uiState.listTrack.map { it.videoId }
                     AddToPlaylistModalBottomSheet(
                         isBottomSheetVisible = true,
                         listLocalPlaylist = localPlaylists,
                         listYouTubePlaylist = emptyList(),
                         onDismiss = { showAlbumAddToPlaylist = false },
                         onClick = { playlist ->
-                            selectionViewModel.addToPlaylist(playlist.id, albumVideoIds)
+                            selectionViewModel.addAlbumToPlaylist(
+                                playlistId = playlist.id,
+                                albumBrowseId = browseId,
+                                title = uiState.title,
+                                thumbnail = uiState.thumbnail,
+                            )
                             showAlbumAddToPlaylist = false
                         },
                         onYTPlaylistClick = {},

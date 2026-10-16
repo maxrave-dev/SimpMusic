@@ -8,13 +8,8 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.filter
 import androidx.paging.insertFooterItem
-import com.maxrave.common.ASC
-import com.maxrave.common.CUSTOM_ORDER
 import com.maxrave.common.Config
-import com.maxrave.common.DESC
 import com.maxrave.common.LOCAL_PLAYLIST_ID
-import com.maxrave.common.TITLE
-import com.maxrave.data.db.Converters
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADED
 import com.maxrave.domain.data.entities.DownloadState.STATE_DOWNLOADING
@@ -23,14 +18,17 @@ import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SetVideoIdEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.entities.isAlbumItem
 import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.FilterState
+import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.collectResource
 import com.maxrave.domain.utils.toArrayListTrack
@@ -56,6 +54,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
@@ -75,6 +74,7 @@ import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.playlist_is_empty
+import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.suggest
 import simpmusic.composeapp.generated.resources.synced
@@ -89,8 +89,8 @@ class LocalPlaylistViewModel(
     private val dataStoreManager: DataStoreManager,
     private val songRepository: SongRepository,
     private val localPlaylistRepository: LocalPlaylistRepository,
+    private val albumRepository: AlbumRepository,
 ) : BaseViewModel() {
-    private val converter = Converters()
     private val downloadUtils: DownloadHandler by inject<DownloadHandler>()
 
     private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
@@ -542,6 +542,34 @@ class LocalPlaylistViewModel(
     }
 
     /**
+     * Removes an album entry. The album exists only in this list — there is nothing on YouTube and
+     * its row's song is a display placeholder — so it is deleted by the entry's own id, and the row
+     * is dropped from the paging list directly.
+     */
+    fun deleteAlbumItem(
+        id: Long,
+        item: Pair<SongEntity, PairSongLocalPlaylist>,
+    ) {
+        viewModelScope.launch {
+            localPlaylistRepository
+                .removeAlbumFromLocalPlaylist(
+                    id,
+                    item.second.id,
+                    getString(Res.string.remove_from_playlist),
+                ).collectLatestResource(
+                    onSuccess = {
+                        makeToast(it)
+                        onApplyActions(PagingActions.Remove(item))
+                        updatePlaylistState(id)
+                    },
+                    onError = {
+                        makeToast(it)
+                    },
+                )
+        }
+    }
+
+    /**
      * Mirrors the download state of [listJob] onto the playlist while the batch runs.
      *
      * A missing entry in `downloadTask` means "nothing reported yet", which is NOT the same as
@@ -766,6 +794,71 @@ class LocalPlaylistViewModel(
         }
     }
 
+    /**
+     * Every entry of the playlist in the order the screen is showing it. The time filters sort by
+     * when an entry was added ("older"/"newer first"), which is what the paged reader walks too;
+     * CustomOrder and Title keep the stored position order.
+     */
+    private suspend fun orderedPlaylistPairs(): List<PairSongLocalPlaylist> {
+        val pairs = localPlaylistRepository.getAllPlaylistPairSongByPosition(uiState.value.id)
+        return when (uiState.value.filterState) {
+            FilterState.OlderFirst -> pairs.sortedBy { it.inPlaylist }
+            FilterState.NewerFirst -> pairs.sortedByDescending { it.inPlaylist }
+            FilterState.CustomOrder, FilterState.Title -> pairs
+        }
+    }
+
+    /**
+     * The playlist flattened into a playable queue. A song entry contributes its own track; an
+     * album entry expands into the album's tracks in the album's own order, at the position the
+     * album was placed in the list. [startAtAlbum] records the queue index the first matching album
+     * begins at, which is where a tap on that album starts playing from.
+     */
+    private suspend fun buildExpandedQueue(
+        pairs: List<PairSongLocalPlaylist>,
+        startAtAlbum: String? = null,
+    ): Pair<ArrayList<Track>, Int> {
+        val songsById =
+            songRepository
+                .getSongsByListVideoId(pairs.mapNotNull { it.songId })
+                .firstOrNull()
+                .orEmpty()
+                .associateBy { it.videoId }
+        val tracks = ArrayList<Track>(pairs.size)
+        var startIndex = 0
+        var albumFound = startAtAlbum == null
+        for (pair in pairs) {
+            if (pair.isAlbumItem) {
+                val browseId = pair.albumBrowseId ?: continue
+                if (!albumFound && browseId == startAtAlbum) {
+                    startIndex = tracks.size
+                    albumFound = true
+                }
+                tracks.addAll(albumTracks(browseId))
+            } else {
+                songsById[pair.songId]?.let { tracks.add(it.toTrack()) }
+            }
+        }
+        return tracks to startIndex
+    }
+
+    /**
+     * An album's tracks in the album's own order. The album is read from the local database first —
+     * opening an album page writes both the album and its songs, so this also works offline — and
+     * only an album that is not stored falls back to the network.
+     */
+    private suspend fun albumTracks(browseId: String): List<Track> {
+        val stored = albumRepository.getAlbum(browseId).firstOrNull()
+        val videoIds = stored?.tracks
+        if (!videoIds.isNullOrEmpty()) {
+            val songs = songRepository.getSongsByListVideoId(videoIds).firstOrNull().orEmpty()
+            val byId = songs.associateBy { it.videoId }
+            return videoIds.mapNotNull { byId[it]?.toTrack() }
+        }
+        val remote = albumRepository.getAlbumData(browseId).firstOrNull()
+        return (remote as? Resource.Success)?.data?.tracks ?: emptyList()
+    }
+
     fun onUIEvent(ev: LocalPlaylistUIEvent) {
         when (ev) {
             is LocalPlaylistUIEvent.ChangeFilter -> {
@@ -785,49 +878,57 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.ItemClick -> {
-                val loadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
-                val clickedSong = loadedList.find { it?.first?.videoId == ev.videoId }?.first ?: return
+                viewModelScope.launch {
+                    val pairs = orderedPlaylistPairs()
+                    val (tracks, _) = buildExpandedQueue(pairs)
+                    val clickedSong = tracks.find { it.videoId == ev.videoId } ?: return@launch
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = clickedSong,
+                            playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                            playlistName = "${
+                                getString(
+                                    Res.string.playlist,
+                                )
+                            } \"${uiState.value.title}\"",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItem(
+                        clickedSong,
+                        Config.PLAYLIST_CLICK,
+                        tracks.indexOf(clickedSong),
+                    )
+                }
+            }
 
-                setQueueData(
-                    QueueData.Data(
-                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
-                        firstPlayedTrack = clickedSong.toTrack(),
-                        playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${uiState.value.title}\"",
-                        playlistType = PlaylistType.LOCAL_PLAYLIST,
-                        continuation =
-                            if (offset.value > 0) {
-                                when (uiState.value.filterState) {
-                                    FilterState.OlderFirst -> {
-                                        ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                    }
-
-                                    FilterState.NewerFirst -> {
-                                        DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                    }
-
-                                    FilterState.CustomOrder -> {
-                                        CUSTOM_ORDER + offset.value.toString()
-                                    }
-
-                                    FilterState.Title -> {
-                                        TITLE + offset.value.toString()
-                                    }
-                                }
-                            } else {
-                                null
-                            },
-                    ),
-                )
-                loadMediaItem(
-                    clickedSong,
-                    Config.PLAYLIST_CLICK,
-                    loadedList.map { it?.first }.indexOf(clickedSong),
-                )
+            is LocalPlaylistUIEvent.AlbumClick -> {
+                viewModelScope.launch {
+                    val pairs = orderedPlaylistPairs()
+                    val (tracks, startIndex) = buildExpandedQueue(pairs, startAtAlbum = ev.albumBrowseId)
+                    val firstPlayTrack = tracks.getOrNull(startIndex) ?: return@launch
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = firstPlayTrack,
+                            playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                            playlistName = "${
+                                getString(
+                                    Res.string.playlist,
+                                )
+                            } \"${uiState.value.title}\"",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItem(
+                        firstPlayTrack,
+                        Config.PLAYLIST_CLICK,
+                        startIndex,
+                    )
+                }
             }
 
             is LocalPlaylistUIEvent.SuggestionsItemClick -> {
@@ -858,57 +959,34 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.PlayClick -> {
-                val loadedList =
-                    lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: run {
+                viewModelScope.launch {
+                    val pairs = orderedPlaylistPairs()
+                    val (tracks, _) = buildExpandedQueue(pairs)
+                    val firstPlayTrack = tracks.firstOrNull()
+                    if (firstPlayTrack == null) {
                         makeToast(getString(Res.string.playlist_is_empty))
-                        return
+                        return@launch
                     }
-
-                val firstPlayTrack = loadedList.firstOrNull()?.first?.toTrack()
-                setQueueData(
-                    QueueData.Data(
-                        listTracks = loadedList.mapNotNull { it?.first }.toArrayListTrack(),
-                        firstPlayedTrack = firstPlayTrack,
-                        playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${uiState.value.title}\"",
-                        playlistType = PlaylistType.LOCAL_PLAYLIST,
-                        continuation =
-                            if (offset.value > 0) {
-                                if (offset.value > 0) {
-                                    when (uiState.value.filterState) {
-                                        FilterState.OlderFirst -> {
-                                            ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                        }
-
-                                        FilterState.NewerFirst -> {
-                                            DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
-                                        }
-
-                                        FilterState.CustomOrder -> {
-                                            CUSTOM_ORDER + offset.value.toString()
-                                        }
-
-                                        FilterState.Title -> {
-                                            TITLE + offset.value.toString()
-                                        }
-                                    }
-                                } else {
-                                    null
-                                }
-                            } else {
-                                null
-                            },
-                    ),
-                )
-                loadMediaItem(
-                    firstPlayTrack,
-                    Config.PLAYLIST_CLICK,
-                    0,
-                )
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = firstPlayTrack,
+                            playlistId = LOCAL_PLAYLIST_ID + uiState.value.id,
+                            playlistName = "${
+                                getString(
+                                    Res.string.playlist,
+                                )
+                            } \"${uiState.value.title}\"",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItem(
+                        firstPlayTrack,
+                        Config.PLAYLIST_CLICK,
+                        0,
+                    )
+                }
             }
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
@@ -1072,6 +1150,10 @@ sealed class LocalPlaylistUIEvent {
 
     data class ItemClick(
         val videoId: String,
+    ) : LocalPlaylistUIEvent()
+
+    data class AlbumClick(
+        val albumBrowseId: String,
     ) : LocalPlaylistUIEvent()
 
     data class SuggestionsItemClick(
