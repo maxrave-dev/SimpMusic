@@ -265,6 +265,7 @@ import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.remove_from_cache
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
@@ -1354,6 +1355,8 @@ fun NowPlayingBottomSheet(
     onNavigateToOtherScreen: () -> Unit = {},
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
+    /** Set when opened from the "Cached" list: adds a row that drops the song from the player cache. */
+    onRemoveFromCache: (() -> Unit)? = null,
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
     /**
@@ -1707,6 +1710,15 @@ fun NowPlayingBottomSheet(
                                 hideModalBottomSheet()
                                 onLibraryDelete?.invoke()
                             }
+                        }
+                    }
+                    if (onRemoveFromCache != null) {
+                        ActionButton(
+                            icon = SimpIcons.Delete,
+                            text = Res.string.remove_from_cache,
+                        ) {
+                            hideModalBottomSheet()
+                            onRemoveFromCache()
                         }
                     }
                     CheckBoxActionButton(

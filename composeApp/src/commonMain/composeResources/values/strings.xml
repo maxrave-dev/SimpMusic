@@ -126,6 +126,8 @@
     <string name="storage">Storage</string>
     <string name="player_cache">Player Cache</string>
     <string name="downloaded_cache">Downloaded Cache</string>
+    <string name="cached">Cached</string>
+    <string name="remove_from_cache">Remove from cache</string>
     <string name="thumbnail_cache">Thumbnail Cache</string>
     <string name="backup">Backup</string>
     <string name="backup_your_data">Backup Your Data</string>

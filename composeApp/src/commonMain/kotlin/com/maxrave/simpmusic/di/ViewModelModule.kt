@@ -81,10 +81,12 @@ val viewModelModule =
                 get(),
                 get(),
                 get(),
+                get(),
             )
         }
         viewModel {
             LibraryDynamicPlaylistViewModel(
+                get(),
                 get(),
                 get(),
                 get(),
