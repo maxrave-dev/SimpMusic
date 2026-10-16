@@ -497,10 +497,8 @@ fun App(
             UnofficialBuildScreen()
             return@AppTheme
         }
-        // Backdrop base must match the page, so glass over an empty area reads as the page itself.
         // Read inside AppTheme so MaterialTheme reflects the resolved scheme.
         val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-        val backdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
 
         // The desktop shell is a window colour with panels floating on it. The two schemes mirror
         // each other: the window takes the extreme (pure black / pure white) and the panel steps
@@ -508,6 +506,11 @@ fun App(
         val desktopWindow = if (isLightScheme) desktopWindowLight else desktopWindowDark
         val desktopPanel =
             if (isLightScheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
+
+        // Backdrop base must match the page, so glass over an empty area reads as the page itself.
+        // On Desktop the page is the panel: its colour is painted outside the recorded layer, and
+        // colorScheme.background carries the seed's hue, which the glass's saturation boost brings out.
+        val backdrop = rememberBackdrop(if (isDesktopShell) desktopPanel else MaterialTheme.colorScheme.background)
         Scaffold(
             // Watches for userStarted without consuming anything. Dialogs and sheets are windows or
             // layers of their own, so a press inside one (closing the update dialog, say) does not count.

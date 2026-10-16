@@ -24,6 +24,7 @@ import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.collectResource
+import com.maxrave.domain.utils.isLive
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.expect.shareUrl
@@ -170,6 +171,11 @@ class NowPlayingBottomSheetViewModel(
                 }
                 songRepository.getSongById(it).lastOrNull().let { song ->
                     if (song != null) {
+                        // A row stored before its LIVE chip was seen learns it through
+                        // insertSong's repair path, so the Download row below is locked too.
+                        if (songOrNowPlaying.isLive && !song.isLive) {
+                            songRepository.insertSong(songOrNowPlaying).singleOrNull()
+                        }
                         getSongEntityFlow(videoId = song.videoId)
                     } else {
                         songRepository.insertSong(songOrNowPlaying).singleOrNull()?.let {
@@ -202,6 +208,7 @@ class NowPlayingBottomSheetViewModel(
                                         thumbnails = song.thumbnails,
                                         liked = song.liked,
                                         downloadState = song.downloadState,
+                                        isLive = song.isLive,
                                         album =
                                             song.albumName?.takeIf { it.isNotEmpty() }?.let { name ->
                                                 Album(name = name, id = song.albumId ?: "")
@@ -420,6 +427,7 @@ data class NowPlayingBottomSheetUIState(
         val isAddedToYouTubeLiked: Boolean = false,
         val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
         val album: Album? = null,
+        val isLive: Boolean = false,
     )
 }
 
