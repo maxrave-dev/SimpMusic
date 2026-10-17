@@ -149,8 +149,25 @@ jobs:
         env:
             BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
+      # arm64-v8a only, so one file: give it a readable name and upload it on its own.
+      - name: Name APK
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          version=$(grep '^version-name' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          mkdir -p dist
+          src=(vivoAndroidApp/build/outputs/apk/release/*-release*-signed.apk)
+          if [ "${#src[@]}" -ne 1 ]; then
+            echo "::error::Expected one signed vivo APK, found ${#src[@]}"
+            exit 1
+          fi
+          cp "${src[0]}" "dist/SimpMusic-${version}-nightly-${GITHUB_SHA::7}-full-vivo-arm64-v8a.apk"
+          ls -lh dist/
+
+      # archive: false uploads the file as-is, instead of a zip holding it; the artifact takes the file's name.
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: app-vivo
-          path: vivoAndroidApp/build/outputs/apk/release/*-signed.apk
+          path: dist/*.apk
+          archive: false
+          if-no-files-found: error
