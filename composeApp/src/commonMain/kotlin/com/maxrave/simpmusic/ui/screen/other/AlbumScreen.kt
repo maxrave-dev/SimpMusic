@@ -157,6 +157,7 @@ fun AlbumScreen(
 
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var albumBottomSheetShow by rememberSaveable { mutableStateOf(false) }
+    var showAlbumAddToPlaylist by rememberSaveable { mutableStateOf(false) }
     var chosenSong: Track? by remember { mutableStateOf(null) }
 
     val selectionState = rememberSongSelectionState()
@@ -1049,6 +1050,26 @@ fun AlbumScreen(
                                 uiState.listTrack.toCollection(arrayListOf()),
                             )
                         },
+                        onAddToPlaylist = { showAlbumAddToPlaylist = true },
+                    )
+                }
+                if (showAlbumAddToPlaylist) {
+                    val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
+                    AddToPlaylistModalBottomSheet(
+                        isBottomSheetVisible = true,
+                        listLocalPlaylist = localPlaylists,
+                        listYouTubePlaylist = emptyList(),
+                        onDismiss = { showAlbumAddToPlaylist = false },
+                        onClick = { playlist ->
+                            selectionViewModel.addAlbumToPlaylist(
+                                playlistId = playlist.id,
+                                albumBrowseId = browseId,
+                                title = uiState.title,
+                                thumbnail = uiState.thumbnail,
+                            )
+                            showAlbumAddToPlaylist = false
+                        },
+                        onYTPlaylistClick = {},
                     )
                 }
             }
