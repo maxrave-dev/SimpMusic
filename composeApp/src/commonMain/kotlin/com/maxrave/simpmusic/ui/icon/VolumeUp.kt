@@ -82,7 +82,7 @@ val SimpIcons.VolumeUp: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _VolumeUp!!
   }
 

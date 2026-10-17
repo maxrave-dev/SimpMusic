@@ -67,7 +67,7 @@ val SimpIcons.TrendingUp: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _TrendingUp!!
   }
 

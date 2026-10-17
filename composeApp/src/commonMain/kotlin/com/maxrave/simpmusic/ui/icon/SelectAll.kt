@@ -217,7 +217,7 @@ val SimpIcons.SelectAll: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _SelectAll!!
   }
 

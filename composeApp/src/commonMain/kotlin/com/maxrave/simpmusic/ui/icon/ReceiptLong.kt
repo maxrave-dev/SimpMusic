@@ -139,7 +139,7 @@ val SimpIcons.ReceiptLong: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ReceiptLong!!
   }
 

@@ -49,7 +49,7 @@ val SimpIcons.Remove: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Remove!!
   }
 

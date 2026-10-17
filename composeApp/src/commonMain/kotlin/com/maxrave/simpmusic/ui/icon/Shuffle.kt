@@ -93,7 +93,7 @@ val SimpIcons.Shuffle: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Shuffle!!
   }
 

@@ -54,7 +54,7 @@ val SimpIcons.PlayArrow: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PlayArrow!!
   }
 

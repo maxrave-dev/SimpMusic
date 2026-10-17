@@ -77,7 +77,7 @@ val SimpIcons.Error: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Error!!
   }
 

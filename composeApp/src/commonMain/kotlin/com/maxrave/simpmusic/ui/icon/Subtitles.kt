@@ -95,7 +95,7 @@ val SimpIcons.Subtitles: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Subtitles!!
   }
 

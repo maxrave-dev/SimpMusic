@@ -93,7 +93,7 @@ val SimpIcons.QueueMusic: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _QueueMusic!!
   }
 

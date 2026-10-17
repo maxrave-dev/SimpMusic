@@ -99,7 +99,7 @@ val SimpIcons.PlaylistAdd: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PlaylistAdd!!
   }
 

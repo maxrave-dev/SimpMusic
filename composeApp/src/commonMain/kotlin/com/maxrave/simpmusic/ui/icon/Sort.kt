@@ -73,7 +73,7 @@ val SimpIcons.Sort: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Sort!!
   }
 

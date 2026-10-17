@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
@@ -44,6 +45,14 @@ fun DescriptionView(
     modifier: Modifier = Modifier,
     text: String,
     limitLine: Int = 3,
+    /** Unspecified keeps the body colour typo() carries; comments pass their primary text colour. */
+    color: Color = Color.Unspecified,
+    /**
+     * Start with More hidden and show it only once the text measures longer than [limitLine]. In a
+     * list, the default (shown, then hidden after the first layout) makes every short entry flash
+     * More and shrink as it scrolls in.
+     */
+    showMoreOnlyWhenOverflowing: Boolean = false,
     onTimeClicked: (time: String) -> Unit,
     onURLClicked: (url: String) -> Unit,
 ) {
@@ -51,11 +60,16 @@ fun DescriptionView(
         mutableStateOf(false)
     }
     var shouldHideExpandButton by rememberSaveable {
-        mutableStateOf(false)
+        mutableStateOf(showMoreOnlyWhenOverflowing)
     }
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     LaunchedEffect(layoutResult) {
+        if (showMoreOnlyWhenOverflowing) {
+            val layout = layoutResult ?: return@LaunchedEffect
+            shouldHideExpandButton = layout.lineCount <= limitLine
+            return@LaunchedEffect
+        }
         val lineCount = layoutResult?.lineCount ?: 0
         if (lineCount < limitLine) {
             shouldHideExpandButton = true
@@ -106,7 +120,7 @@ fun DescriptionView(
     }
 
     val textMeasurer = rememberTextMeasurer()
-    val textStyle = typo().bodyMedium
+    val textStyle = typo().bodyMedium.let { if (color.isSpecified) it.copy(color = color) else it }
 
     Column(modifier) {
         // The full text is always laid out; what animates is the HEIGHT of the window onto it, in

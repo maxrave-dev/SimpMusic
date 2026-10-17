@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,10 +44,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -267,25 +271,40 @@ fun HomeSectionHeader(
             )
         }
         if (moreEndpoint != null) {
-            TextButton(
+            SectionHeaderButton(
+                text = stringResource(Res.string.more),
                 onClick = { navController.navigateToMoreEndpoint(moreEndpoint, data.title) },
-                colors =
-                    ButtonDefaults
-                        .textButtonColors()
-                        .copy(contentColor = MaterialTheme.colorScheme.onSurface),
-            ) {
-                Text(stringResource(Res.string.more), style = typo().bodySmall)
-            }
+            )
         } else if (data.playAllEndpoint != null) {
-            TextButton(
-                onClick = onPlayAll,
-                colors =
-                    ButtonDefaults
-                        .textButtonColors()
-                        .copy(contentColor = MaterialTheme.colorScheme.onSurface),
-            ) {
-                Text(stringResource(Res.string.play_all), style = typo().bodySmall)
-            }
+            SectionHeaderButton(text = stringResource(Res.string.play_all), onClick = onPlayAll)
+        }
+    }
+}
+
+/**
+ * The "More" / "Play all" button beside a section title. Material reserves 48dp around every
+ * clickable and gives a button a 40dp minimum height, which made a header carrying this button
+ * 20dp taller than one without it. This one is only its text plus 2dp above and below, so a header
+ * with the button and a header without it stand the same height. Fingers still get a 48dp target:
+ * Compose widens the touch bounds of anything smaller than that on its own.
+ */
+@Composable
+fun SectionHeaderButton(
+    text: String,
+    onClick: () -> Unit,
+) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+        TextButton(
+            onClick = onClick,
+            // Any non-zero minimum here keeps TextButton's own 40dp minimum height from applying.
+            modifier = Modifier.defaultMinSize(minHeight = 1.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+            colors =
+                ButtonDefaults
+                    .textButtonColors()
+                    .copy(contentColor = MaterialTheme.colorScheme.onSurface),
+        ) {
+            Text(text, style = typo().bodySmall)
         }
     }
 }

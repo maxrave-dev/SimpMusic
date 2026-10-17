@@ -75,7 +75,7 @@ val SimpIcons.Album: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Album!!
   }
 

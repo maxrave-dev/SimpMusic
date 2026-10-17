@@ -97,7 +97,7 @@ val SimpIcons.GraphicEq: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _GraphicEq!!
   }
 

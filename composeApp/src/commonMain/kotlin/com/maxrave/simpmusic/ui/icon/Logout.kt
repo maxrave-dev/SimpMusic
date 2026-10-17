@@ -79,7 +79,7 @@ val SimpIcons.Logout: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Logout!!
   }
 

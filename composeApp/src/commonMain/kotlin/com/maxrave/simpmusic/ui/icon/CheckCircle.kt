@@ -71,7 +71,7 @@ val SimpIcons.CheckCircle: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _CheckCircle!!
   }
 

@@ -53,7 +53,7 @@ val SimpIcons.Check: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Check!!
   }
 

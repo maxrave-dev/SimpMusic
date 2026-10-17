@@ -80,7 +80,7 @@ val SimpIcons.Notifications: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Notifications!!
   }
 

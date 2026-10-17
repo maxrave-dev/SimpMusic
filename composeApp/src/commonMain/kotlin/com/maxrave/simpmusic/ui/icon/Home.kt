@@ -66,7 +66,7 @@ val SimpIcons.Home: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Home!!
   }
 

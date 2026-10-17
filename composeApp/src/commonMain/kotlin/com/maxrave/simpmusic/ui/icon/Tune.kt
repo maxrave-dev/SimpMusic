@@ -130,7 +130,7 @@ val SimpIcons.Tune: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Tune!!
   }
 

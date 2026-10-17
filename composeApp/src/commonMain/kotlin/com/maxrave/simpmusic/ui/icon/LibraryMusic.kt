@@ -87,7 +87,7 @@ val SimpIcons.LibraryMusic: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _LibraryMusic!!
   }
 

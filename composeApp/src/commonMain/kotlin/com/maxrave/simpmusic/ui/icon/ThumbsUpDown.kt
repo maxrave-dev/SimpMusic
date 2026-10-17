@@ -83,7 +83,7 @@ val SimpIcons.ThumbsUpDown: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ThumbsUpDown!!
   }
 

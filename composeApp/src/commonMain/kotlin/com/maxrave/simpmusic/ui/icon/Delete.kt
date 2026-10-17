@@ -85,7 +85,7 @@ val SimpIcons.Delete: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Delete!!
   }
 

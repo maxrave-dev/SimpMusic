@@ -105,7 +105,7 @@ val SimpIcons.Replay5: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Replay5!!
   }
 

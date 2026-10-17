@@ -63,7 +63,7 @@ val SimpIcons.Close: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Close!!
   }
 

@@ -57,7 +57,7 @@ val SimpIcons.Favorite: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Favorite!!
   }
 

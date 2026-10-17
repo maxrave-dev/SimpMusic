@@ -94,7 +94,7 @@ val SimpIcons.MusicCast: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _MusicCast!!
   }
 

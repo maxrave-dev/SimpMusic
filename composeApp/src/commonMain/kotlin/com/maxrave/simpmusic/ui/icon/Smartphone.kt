@@ -67,7 +67,7 @@ val SimpIcons.Smartphone: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Smartphone!!
   }
 

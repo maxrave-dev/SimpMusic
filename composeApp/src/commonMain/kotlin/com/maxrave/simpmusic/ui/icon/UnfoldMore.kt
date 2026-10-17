@@ -73,7 +73,7 @@ val SimpIcons.UnfoldMore: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _UnfoldMore!!
   }
 

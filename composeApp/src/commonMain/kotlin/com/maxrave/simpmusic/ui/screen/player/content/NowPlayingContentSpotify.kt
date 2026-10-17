@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
@@ -139,6 +140,7 @@ import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.CommentOutline
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Headphones
@@ -166,6 +168,7 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.artists
 import simpmusic.composeapp.generated.resources.audio_output
+import simpmusic.composeapp.generated.resources.comments
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.description
 import simpmusic.composeapp.generated.resources.like_and_dislike
@@ -1088,7 +1091,12 @@ fun NowPlayingContentSpotify(
                                                         contentDescription = stringResource(Res.string.audio_output),
                                                     )
                                                 }
-                                                AnimatedVisibility(visible = state.castState.isRemote) {
+                                                // The receiver's name sits beside the output button it belongs to. Weighted so a long
+                                                // name ellipsizes in what is left instead of pushing Comments out of the row.
+                                                AnimatedVisibility(
+                                                    visible = state.castState.isRemote,
+                                                    modifier = Modifier.weight(1f, fill = false),
+                                                ) {
                                                     Text(
                                                         text =
                                                             stringResource(
@@ -1100,6 +1108,27 @@ fun NowPlayingContentSpotify(
                                                         maxLines = 1,
                                                         overflow = TextOverflow.Ellipsis,
                                                     )
+                                                }
+                                                // Comments: YouTube Music's comment sheet for this track. The bubble
+                                                // fills its 20×20 live area, so its corners reach 13.3dp from the
+                                                // centre, past the 24dp circle the buttons beside it clip to: this
+                                                // one clips to 28dp in the same 24dp slot.
+                                                Box(modifier = Modifier.size(24.dp)) {
+                                                    IconButton(
+                                                        modifier =
+                                                            Modifier
+                                                                .requiredSize(28.dp)
+                                                                .clip(CircleShape),
+                                                        onClick = {
+                                                            actions.onShowComments()
+                                                        },
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = SimpIcons.CommentOutline,
+                                                            tint = Color.White,
+                                                            contentDescription = stringResource(Res.string.comments),
+                                                        )
+                                                    }
                                                 }
                                             }
 

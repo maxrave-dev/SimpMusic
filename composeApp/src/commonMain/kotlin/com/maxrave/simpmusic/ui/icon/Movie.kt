@@ -81,7 +81,7 @@ val SimpIcons.Movie: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Movie!!
   }
 

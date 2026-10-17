@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.CommentOutline
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Headphones
@@ -125,6 +126,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.audio_output
+import simpmusic.composeapp.generated.resources.comments
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.radio_mix_upper
@@ -949,8 +951,8 @@ internal fun ColumnScope.ExpressivePlaybackControls(
 }
 
 /**
- * Connected button group: six 48dp slots with 3dp gaps and rounded end caps —
- * Info | Output | Shuffle | Repeat | Add-to-playlist | Queue.
+ * Connected button group: seven 48dp-tall slots with 3dp gaps and rounded end caps —
+ * Info | Output | Shuffle | Repeat | Add-to-playlist | Queue | Comments.
  */
 @Composable
 private fun ExpressiveConnectedGroup(
@@ -1058,12 +1060,23 @@ private fun ExpressiveConnectedGroup(
             )
         }
         ExpressiveConnectedSlot(
-            shape = endCap,
+            shape = middle,
             onClick = { actions.onShowQueue() },
         ) {
             Icon(
                 imageVector = SimpIcons.QueueMusic,
                 contentDescription = "",
+                tint = colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        ExpressiveConnectedSlot(
+            shape = endCap,
+            onClick = { actions.onShowComments() },
+        ) {
+            Icon(
+                imageVector = SimpIcons.CommentOutline,
+                contentDescription = stringResource(Res.string.comments),
                 tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),
             )

@@ -69,7 +69,7 @@ val SimpIcons.Star: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Star!!
   }
 

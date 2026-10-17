@@ -73,7 +73,7 @@ val SimpIcons.UnfoldLess: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _UnfoldLess!!
   }
 

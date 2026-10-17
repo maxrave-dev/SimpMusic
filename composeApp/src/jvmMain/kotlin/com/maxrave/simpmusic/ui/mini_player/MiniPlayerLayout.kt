@@ -850,7 +850,7 @@ fun ExpandedMiniLayout(
 
                             RippleIconButton(
                                 imageVector = SimpIcons.SkipPrevious,
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(32.dp),
                                 tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
                                 onClick = {
                                     if (controllerState.isPreviousAvailable) {

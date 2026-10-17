@@ -46,7 +46,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -147,6 +146,7 @@ import com.maxrave.simpmusic.ui.component.PromoBannerData
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SectionHeaderButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -1301,15 +1301,10 @@ fun QuickPicks(
                 )
             }
             if (homeItem.playAllEndpoint != null) {
-                TextButton(
+                SectionHeaderButton(
+                    text = stringResource(Res.string.play_all),
                     onClick = { viewModel.playAll(homeItem) },
-                    colors =
-                        ButtonDefaults
-                            .textButtonColors()
-                            .copy(contentColor = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    Text(stringResource(Res.string.play_all), style = typo().bodySmall)
-                }
+                )
             }
         }
         LazyHorizontalGrid(

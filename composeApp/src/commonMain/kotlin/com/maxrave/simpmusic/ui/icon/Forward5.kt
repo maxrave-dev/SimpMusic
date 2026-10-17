@@ -105,7 +105,7 @@ val SimpIcons.Forward5: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Forward5!!
   }
 

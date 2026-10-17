@@ -1012,4 +1012,13 @@
     <string name="log_stack_trace_lines">Stack trace · %1$s lines</string>
     <string name="log_hide_stack_trace">Hide stack trace</string>
     <string name="log_export_failed">Could not export the log</string>
+    <string name="comments">Comments</string>
+    <string name="reply">Reply</string>
+    <string name="replying_to">Replying to %1$s</string>
+    <string name="comments_log_in_hint">Log in to comment, reply and like</string>
+    <string name="comments_log_in_message">Log in to YouTube to comment, reply and like comments.</string>
+    <string name="comments_turned_off">Comments are turned off</string>
+    <string name="comments_load_error">Couldn't load comments</string>
+    <string name="comment_post_error">Couldn't post your comment</string>
+    <string name="comments_need_channel">Create a YouTube channel to comment</string>
 </resources>

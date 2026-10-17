@@ -91,7 +91,7 @@ val SimpIcons.Cookie: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Cookie!!
   }
 

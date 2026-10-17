@@ -64,7 +64,7 @@ val SimpIcons.Person: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Person!!
   }
 

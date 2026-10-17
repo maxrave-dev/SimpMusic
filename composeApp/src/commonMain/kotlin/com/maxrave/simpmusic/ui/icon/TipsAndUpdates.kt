@@ -103,7 +103,7 @@ val SimpIcons.TipsAndUpdates: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _TipsAndUpdates!!
   }
 

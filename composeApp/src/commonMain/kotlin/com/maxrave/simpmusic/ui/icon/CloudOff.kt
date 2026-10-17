@@ -68,7 +68,7 @@ val SimpIcons.CloudOff: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _CloudOff!!
   }
 

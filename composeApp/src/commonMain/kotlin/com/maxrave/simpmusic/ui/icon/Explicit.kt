@@ -78,7 +78,7 @@ val SimpIcons.Explicit: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Explicit!!
   }
 

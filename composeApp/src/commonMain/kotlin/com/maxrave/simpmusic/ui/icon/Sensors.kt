@@ -119,7 +119,7 @@ val SimpIcons.Sensors: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Sensors!!
   }
 

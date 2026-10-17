@@ -313,6 +313,7 @@ filled states render identically.
 2. `public val <symbol_name>: ImageVector` → `val SimpIcons.<PascalName>: ImageVector`
 3. Rename the backing field `_<symbol_name>` → `_<PascalName>`, and `name = "<symbol_name>"` → `"<PascalName>"`
 4. Never add `autoMirror = true`: in right-to-left languages only text flips, icons keep their shape (owner's rule, 2026-10-14). The six icons that had it — `ArrowForwardIos`, `QueueMusic`, `Sort`, `TrendingUp`, `VolumeUp`, `VolumeOff` — drew mirrored in Hebrew/Arabic/Persian until it was removed
+5. Replace the closing `.build()` with `.buildSimpIcon()` (in `SimpIcons.kt`): it is `build()` plus the fit into Material's 20×20 live area described in the traps below. `SimpIconsFitTest` fails on a file that still ends with `.build()`
 
 **Use it:** `SimpIcons.PlayArrow` — plus a per-icon import, `import com.maxrave.simpmusic.ui.icon.PlayArrow`.
 
@@ -331,6 +332,25 @@ filled states render identically.
 - Verify a name exists before assuming: the Symbols codepoint list is at
   `google/material-design-icons` → `variablefont/MaterialSymbolsRounded[...].codepoints`. Legacy
   names like `favorite_border` and `thumb_up_alt` do still exist; `person_add_alt_1` does not.
+- **Glyphs that spill past Material's 20×20 live area are fitted into it (2026-10-18).** Material keeps a
+  glyph inside the centred 20×20 square of the 24 box (2dp padding) and balances the glyphs inside it
+  by keyline shapes of about equal area; 24 of our 111 Symbols spill into the padding anyway (`Lyrics`'
+  note and `Groups` reach the box edge) and read bigger than everything beside them. `buildSimpIcon()`
+  measures how far each glyph reaches from the centre along either axis and shrinks one that passes 10
+  of 24 about the centre until it fits (`Lyrics`, `Groups`, `ThumbsUpDown` ×0.83, the other 21 ×0.86–0.996).
+  A glyph inside the square is left as Google drew it, nothing is enlarged, and anything it cannot
+  measure keeps the glyph as generated and logs under `SimpIcons`. `SimpIconsFitTest` (jvmTest) fails
+  if a file skips `buildSimpIcon()` or any icon ends up outside the square. Fitting into a circle was
+  tried first and dropped: judged by its one farthest point, `Lyrics` shrank to ×0.72 and read far
+  smaller than `QueueMusic`. All 111 files match Google's generator at the axes above (audited the
+  same day).
+- **A small round button cuts a glyph that fills the live area.** `IconButton` clips its content to
+  its `shape` (a circle by default); sized 24dp, that circle reaches 12dp from the centre, while a
+  glyph filling the 20×20 square reaches 14.1 (`comment` 13.3). Classic's Comments button clips to
+  28dp with `requiredSize(28.dp)` inside the same 24dp slot.
+- **Icons in one row take one size.** Per-glyph tuning by eye (the Apple Music capsule at 23/24dp
+  beside 22dp dock buttons, the title-row star at 32dp) is what made a row read big-small; only a
+  deliberate hierarchy, such as Play over Previous/Next, gets a different size.
 
 ### 9. Prepare a Release (changelogs)
 
@@ -1041,6 +1061,16 @@ if (getPlatform() == Platform.Android) {
   - **Album and playlist download states are deliberately not asked.** Opening an album whose tracks are all downloaded marks the album downloaded (`AlbumViewModel`'s download-state collector; `PlaylistViewModel` does the same), so reading "in a downloaded album or playlist" as the user's claim took smart songs the user never claimed and kept them past N for good.
   - **Nothing in a pass may crash the app.** The pass and the clear catch everything but cancellation and log it, so a `startService` refused after the app went to the background just ends the pass. `isOnUnmeteredNetwork()` reads a `SecurityException` from `getNetworkCapabilities` (b/163342798, the same guard WorkManager's `NetworkStateTracker` has) as off-Wi-Fi. The notification check falls back to notifying on a database error.
   - Smart songs post no per-song "downloaded" or "failed" notification: `MusicDownloadService.TerminalStateNotificationHelper` checks the marker first. The download service's progress notification still shows.
+- **YouTube comments in Now Playing (2026-10-17, issue #2666)**: a Comments button in every style, never squeezed between the buttons already there (Classic: left cluster, Info · Output · Comments; Apple Music: the last segment of the capsule, Lyrics · [Output | Listen Together | Comments] · Queue; M3 Expressive: the end cap of the connected group, after Queue) opens `CommentsBottomSheet` (`ui/component/`, state in `CommentsViewModel`). It is a `ModalBottomSheet` with `skipPartiallyExpanded = false`: half open first, dragged to full height. Top/Newest, load more as the list nears its end, replies with "Show more replies", and, signed in, post, reply, like and dislike. Signed out, every write opens the sheet's own log-in dialog, whose button goes to `LoginDestination`.
+  - **Source: YouTube Music's own Comments tab.** `next(WEB_REMIX, videoId)` answers tabs Up next | Lyrics | Comments | Related. Lyrics and Related carry a `pageType`, Comments does not, and its title is translated ("Bình luận"), so it is found by type: the only tab holding a `sectionListRenderer` that reloads from `reloadContinuationData` (`CommentsPageParser.commentsTabToken`). Turned off, or a live stream with only its chat: the tab holds a `messageRenderer` and is `unselectable`, with no token. `next(WEB_REMIX, continuation)` answers every comments token: first page, next page, sort, replies.
+  - **A thread carries only keys.** The comment and its toolbar arrive as `frameworkUpdates` mutations under those keys: `commentEntityPayload` (text, author, `likeCountNotliked`/`likeCountLiked`), `engagementToolbarStateEntityPayload` (`likeState`, `heartState`) and `engagementToolbarSurfaceEntityPayload` (the like/unlike/dislike/undislike `performCommentActionEndpoint` actions and the reply command's `createReplyParams`). Commands are read from raw JSON at any depth, because YouTube rewraps them.
+  - **Tokens:** the next page is the top-level `continuationItemRenderer`. A thread's replies token is `commentRepliesRenderer.subThreads[0]` on YouTube Music, `contents[0]` on the WEB client. A replies page lists replies as threads on YouTube Music and as bare `commentViewModel`s on WEB; the parser reads all four.
+  - **Writes** (`Ytmusic.kt`): `comment/create_comment` with the header comment box's `createCommentParams`, `comment/create_comment_reply` with `createReplyParams`, `comment/perform_comment_action` with one action token, all through `ytClient(WEB_REMIX, setLogin = true)`. Signed out the toolbar carries a `prepareAccountCommand` instead of commands and the comment box has no submit button; a signed-in account without a channel looks the same, and the sheet says to create one.
+  - **Known risk, not handled:** comments posted through InnerTube by low-reputation accounts can be hidden from everyone else (YouTube.js #878) unless the BotGuard attestation the create response asks for (`RunAttestationCommand`, then `att/log`) is run.
+  - Comment text goes through `DescriptionView`, which gained an optional `color` (default unchanged): a timestamp seeks the track, only inside its length, and a link opens normally, as in a description. Hashtags, mentions and bold (`commandRuns`, `styleRuns`) stay plain text, as they do in descriptions.
+  - **M3 slides the whole sheet down when half open instead of shrinking its content**, so a bottom-aligned comment box would sit below the screen. The box is lifted by `sheetState.requireOffset()` inside `Modifier.offset { }` (read at layout, no recomposition per frame), and focusing it expands the sheet.
+  - **The sheet takes its id off the media item, not `nowPlayingState.track`.** `track` is looked up in the queue list once, when an item starts, and is read again only when the media id changes (`onMediaItemTransition` skips a same-id transition, such as the seek a restore ends with). On the queue restored at startup it stays null for the whole first track: `updateCatalog` empties `listTracks`, refills it in chunks and puts the playing track back last, while the player announces that track in between (Desktop log: track announced at .790, queue whole at .981). Gating the sheet on `track?.videoId` made the button do nothing there and then opened the sheet by itself on the next track. A request made with nothing playing is dropped. Opening the sheet logs `Comments for <id>: <count>` under the tag `Comments`.
+  - Parser test: `kotlinYtmusicScraper/src/commonTest/.../pages/CommentsPageParserTest.kt`, synthetic JSON in the real shapes.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -1066,6 +1096,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-16
+**Last updated**: 2026-10-18
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors

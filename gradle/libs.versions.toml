@@ -60,10 +60,10 @@ sentry-android = "8.59.0"
 sentry-gradle-android = "6.23.0"
 sentry-jvm = "8.59.0"
 newpipe = "v0.26.1"
-brave-newpipe = "0fcaf19ecc"
+brave-newpipe = "105aad96c7"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
-pipepipe = "f8982ca9e7"
+pipepipe = "27aac1e14e"
 # QuickJS binding for KMP — runs YouTube's player JS to solve sig/n challenges locally.
 quickjs = "1.0.15"
 webkit = "1.17.1"

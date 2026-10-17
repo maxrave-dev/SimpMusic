@@ -71,7 +71,7 @@ val SimpIcons.CalendarToday: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _CalendarToday!!
   }
 
