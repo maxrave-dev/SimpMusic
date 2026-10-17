@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- vivo build: the same shortcuts, pointed at this build's own package (androidApp's copy targets com.maxrave.simpmusic). -->
+<!-- vivo build: the same shortcuts, pointed at this build's own package (androidApp's copy targets com.maxrave.simpmusic). src/debug has a copy: keep the two in step. -->
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
         android:shortcutId="home"
