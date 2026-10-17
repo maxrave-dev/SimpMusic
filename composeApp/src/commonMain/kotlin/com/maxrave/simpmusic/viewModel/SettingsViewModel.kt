@@ -572,8 +572,8 @@ class SettingsViewModel(
             makeToast(getString(Res.string.smart_downloads_waiting_for_wifi))
             return
         }
-        val queued = songRepository.runSmartDownloads(dataStoreManager.smartDownloadsCount.first())
         dataStoreManager.setSmartDownloadsLastRun(Clock.System.now().toEpochMilliseconds())
+        val queued = songRepository.runSmartDownloads(dataStoreManager.smartDownloadsCount.first())
         if (queued > 0) makeToast(formatString(Res.string.smart_downloads_downloading, queued))
     }
 

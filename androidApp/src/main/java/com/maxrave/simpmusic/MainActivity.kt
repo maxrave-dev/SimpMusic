@@ -82,6 +82,8 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         startMusicService()
+        // Every return to the screen asks; the pass itself runs at most once a day.
+        viewModel.runSmartDownloadsIfDue()
     }
 
     override fun onStop() {

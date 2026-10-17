@@ -597,7 +597,6 @@ class SharedViewModel(
         checkAllDownloadingSongs()
         checkAllDownloadingPlaylists()
         checkAllDownloadingLocalPlaylists()
-        runSmartDownloadsIfDue()
     }
 
     fun setIntent(intent: GenericIntent?) {
@@ -1118,23 +1117,32 @@ class SharedViewModel(
         }
     }
 
+    private var smartDownloadsJob: Job? = null
+
     /**
-     * Smart downloads run here, when the app opens, at most once a day and on Android only. Nothing
-     * runs in the background: Android 12+ refuses a download service started from there.
+     * Smart downloads, asked for by MainActivity.onStart: every time the app comes onto the screen,
+     * the only moment Android lets it start the download service. Not from init: the Glance widgets
+     * create this ViewModel with the app in the background. Opening the app many times a day stays
+     * cheap: three settings are read, the pass itself runs at most once a day (the run is stamped
+     * before it starts), and never twice at once.
      */
-    private fun runSmartDownloadsIfDue() {
+    fun runSmartDownloadsIfDue() {
         if (getPlatform() != Platform.Android) return
-        viewModelScope.launch {
-            if (dataStoreManager.smartDownloadsEnabled.first() != TRUE) return@launch
-            if (dataStoreManager.localTrackingEnabled.first() != TRUE) return@launch
-            val nowMillis = Clock.System.now().toEpochMilliseconds()
-            val sinceLastRun = nowMillis - dataStoreManager.smartDownloadsLastRun.first()
-            // A last run stamped in the future (the clock was moved back) does not block the pass.
-            if (sinceLastRun in 0 until 1.days.inWholeMilliseconds) return@launch
-            if (!isOnUnmeteredNetwork()) return@launch
-            songRepository.runSmartDownloads(dataStoreManager.smartDownloadsCount.first())
-            dataStoreManager.setSmartDownloadsLastRun(nowMillis)
-        }
+        if (smartDownloadsJob?.isActive == true) return
+        smartDownloadsJob =
+            viewModelScope.launch {
+                if (dataStoreManager.smartDownloadsEnabled.first() != TRUE) return@launch
+                if (dataStoreManager.localTrackingEnabled.first() != TRUE) return@launch
+                val nowMillis = Clock.System.now().toEpochMilliseconds()
+                val sinceLastRun = nowMillis - dataStoreManager.smartDownloadsLastRun.first()
+                // A last run stamped in the future (the clock was moved back) does not block the pass.
+                if (sinceLastRun in 0 until 1.days.inWholeMilliseconds) return@launch
+                if (!isOnUnmeteredNetwork()) return@launch
+                // Stamped first: a pass that fails is not retried at every launch, and a call arriving
+                // while this one runs finds the day already done.
+                dataStoreManager.setSmartDownloadsLastRun(nowMillis)
+                songRepository.runSmartDownloads(dataStoreManager.smartDownloadsCount.first())
+            }
     }
 
     private fun getFormat(mediaId: String?) {
