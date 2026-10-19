@@ -19,6 +19,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullNameResource
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
@@ -219,9 +221,13 @@ class LibraryDynamicPlaylistViewModel(
         if (videoIds.isEmpty()) return
         _listDownloadedSong.update { songs -> songs.filterNot { it.videoId in videoIds } }
         viewModelScope.launch {
-            videoIds.forEach { videoId ->
-                downloadUtils.removeDownload(videoId)
-                songRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+            // Off the main thread: Desktop's removeDownload scans the downloads folder once per
+            // song, and a selection can hold 25 of them.
+            withContext(Dispatchers.IO) {
+                videoIds.forEach { videoId ->
+                    downloadUtils.removeDownload(videoId)
+                    songRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
             }
             // One toast for the batch, as the other selection actions do.
             makeToast(getString(Res.string.removed_download))
