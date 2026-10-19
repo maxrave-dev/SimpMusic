@@ -61,10 +61,12 @@ import com.maxrave.simpmusic.ui.component.PlaylistFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
+import com.maxrave.simpmusic.ui.component.selection.SongSelectionAction
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Shuffle
@@ -102,6 +104,7 @@ import simpmusic.composeapp.generated.resources.liked_songs
 import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.lower_plays
 import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.remove_download
 import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.seconds
 import simpmusic.composeapp.generated.resources.wrapped
@@ -178,7 +181,9 @@ fun LibraryDynamicPlaylistScreen(
         parsed.topListRange()?.let { (start, end) -> analyticsViewModel.showRange(start, end) }
     }
 
-    LaunchedEffect(query) {
+    // Keyed on the downloaded list as well: a download removed while searching has to leave the
+    // filtered list too, not only the full one.
+    LaunchedEffect(query, downloaded) {
         tempFavorite = favorite.filter { it.matches(query) }
         tempFollowed = followed.filter { it.name.contains(query, ignoreCase = true) }
         tempMostPlayed = mostPlayed.filter { it.matches(query) }
@@ -447,6 +452,12 @@ fun LibraryDynamicPlaylistScreen(
                             arrayListOf(song.toTrack()),
                         )
                     },
+                    onSwipeToDelete =
+                        if (type == LibraryDynamicPlaylistType.Downloaded) {
+                            { viewModel.removeDownloads(listOf(it)) }
+                        } else {
+                            null
+                        },
                     selectionMode = selectionState.isActive,
                     isSelected = selectionState.isSelected(song.videoId),
                     onLongClick = { selectionState.start(it) },
@@ -460,6 +471,8 @@ fun LibraryDynamicPlaylistScreen(
     }
     if (showSelectionSheet) {
         val selectedIds = selectionState.selected.toList()
+        val isDownloadedList = LibraryDynamicPlaylistType.toType(type) == LibraryDynamicPlaylistType.Downloaded
+        val removeDownloadLabel = stringResource(Res.string.remove_download)
         SelectedSongsBottomSheet(
             count = selectedIds.size,
             onDismiss = { showSelectionSheet = false },
@@ -472,14 +485,35 @@ fun LibraryDynamicPlaylistScreen(
                 selectionState.exit()
             },
             onAddToPlaylist = { showSelectionAddToPlaylist = true },
-            onDownload = {
-                selectionViewModel.download(selectedIds)
-                selectionState.exit()
-            },
+            // Everything in the Downloaded list is downloaded already, so Download would do nothing.
+            onDownload =
+                if (isDownloadedList) {
+                    null
+                } else {
+                    {
+                        selectionViewModel.download(selectedIds)
+                        selectionState.exit()
+                    }
+                },
             onAddToFavorite = {
                 selectionViewModel.addToFavorite(selectedIds)
                 selectionState.exit()
             },
+            extraActions =
+                if (isDownloadedList) {
+                    listOf(
+                        SongSelectionAction(
+                            icon = SimpIcons.Delete,
+                            label = removeDownloadLabel,
+                            tint = Color.Red,
+                        ) {
+                            viewModel.removeDownloads(selectedIds)
+                            selectionState.exit()
+                        },
+                    )
+                } else {
+                    emptyList()
+                },
         )
     }
     if (showSelectionAddToPlaylist) {
