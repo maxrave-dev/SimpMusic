@@ -54,7 +54,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -206,6 +208,9 @@ fun SongFullWidthItems(
         val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
         val canSwipeToQueue = !isPlaying && onAddToQueue != null
         val canSwipeToDelete = onSwipeToDelete != null
+        // offset {} mirrors in a right-to-left layout while drag amounts stay physical, so the drag
+        // is flipped there too — otherwise the row moves against the finger.
+        val dragDirection = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
         Box(
             modifier =
                 modifier
@@ -230,7 +235,7 @@ fun SongFullWidthItems(
                     // Keyed on selectionMode so the swipe detector is torn down when selection
                     // starts — keyed on Unit it would keep running with the stale flag captured.
                     // The same goes for the two directions the row may move in.
-                    .pointerInput(selectionMode, canSwipeToQueue, canSwipeToDelete) {
+                    .pointerInput(selectionMode, canSwipeToQueue, canSwipeToDelete, dragDirection) {
                         if (!selectionMode && (canSwipeToQueue || canSwipeToDelete)) {
                             // A direction with nothing behind it stays shut, so the row cannot be
                             // dragged out to reveal an empty slot.
@@ -239,7 +244,9 @@ fun SongFullWidthItems(
                             try {
                                 detectHorizontalDragGestures(
                                     onHorizontalDrag = { change, dragAmount ->
-                                        val target = (offsetX.value + dragAmount).coerceIn(minOffset, maxQueueOffset)
+                                        val target =
+                                            (offsetX.value + dragAmount * dragDirection)
+                                                .coerceIn(minOffset, maxQueueOffset)
                                         if (target != offsetX.value) {
                                             change.consume()
                                             coroutineScope.launch {
