@@ -80,6 +80,7 @@ import com.maxrave.domain.utils.isLive
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.Check
+import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
 import com.maxrave.simpmusic.ui.icon.MoreVert
@@ -102,6 +103,7 @@ import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playlist
 import simpmusic.composeapp.generated.resources.podcasts
 import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.remove_download
 import simpmusic.composeapp.generated.resources.you
 import kotlin.math.roundToInt
 
@@ -111,6 +113,9 @@ import kotlin.math.roundToInt
  * Multi-selection is opt-in per screen: pass [onLongClick] to let a long press start it, then
  * drive [selectionMode] and [isSelected] from the screen's
  * [com.maxrave.simpmusic.ui.component.selection.SongSelectionState].
+ *
+ * Swipes are opt-in too: [onAddToQueue] answers a swipe toward the end, [onSwipeToDelete] one
+ * toward the start. Both fire only once the row is dragged all the way.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -123,6 +128,7 @@ fun SongFullWidthItems(
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
+    onSwipeToDelete: ((videoId: String) -> Unit)? = null,
     selectionMode: Boolean = false,
     isSelected: Boolean = false,
     onLongClick: ((videoId: String) -> Unit)? = null,
@@ -176,7 +182,30 @@ fun SongFullWidthItems(
                 }
             }
         }
+        Crossfade(
+            offsetX.value <= -maxOffset / 2,
+            modifier = Modifier.align(Alignment.CenterEnd),
+        ) { shouldShowDelete ->
+            if (shouldShowDelete) {
+                Box(
+                    modifier =
+                        Modifier
+                            .height(heightDp)
+                            .aspectRatio(1f)
+                            .padding(end = 15.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        tint = Color.Red,
+                        imageVector = SimpIcons.Delete,
+                        contentDescription = stringResource(Res.string.remove_download),
+                    )
+                }
+            }
+        }
         val itemVideoId = track?.videoId ?: songEntity?.videoId ?: ""
+        val canSwipeToQueue = !isPlaying && onAddToQueue != null
+        val canSwipeToDelete = onSwipeToDelete != null
         Box(
             modifier =
                 modifier
@@ -200,25 +229,34 @@ fun SongFullWidthItems(
                     ).animateContentSize()
                     // Keyed on selectionMode so the swipe detector is torn down when selection
                     // starts — keyed on Unit it would keep running with the stale flag captured.
-                    .pointerInput(selectionMode) {
-                        if (!isPlaying && onAddToQueue != null && !selectionMode) {
+                    // The same goes for the two directions the row may move in.
+                    .pointerInput(selectionMode, canSwipeToQueue, canSwipeToDelete) {
+                        if (!selectionMode && (canSwipeToQueue || canSwipeToDelete)) {
+                            // A direction with nothing behind it stays shut, so the row cannot be
+                            // dragged out to reveal an empty slot.
+                            val minOffset = if (canSwipeToDelete) -maxOffset else 0f
+                            val maxQueueOffset = if (canSwipeToQueue) maxOffset else 0f
                             detectHorizontalDragGestures(
                                 onHorizontalDrag = { change, dragAmount ->
-                                    if (offsetX.value + dragAmount > 0) {
+                                    val target = (offsetX.value + dragAmount).coerceIn(minOffset, maxQueueOffset)
+                                    if (target != offsetX.value) {
                                         change.consume()
                                         coroutineScope.launch {
-                                            offsetX.snapTo(
-                                                (offsetX.value + dragAmount).coerceAtMost(maxOffset),
-                                            )
+                                            offsetX.snapTo(target)
                                         }
                                     }
                                 },
                                 onDragEnd = {
                                     if (offsetX.value == maxOffset) {
-                                        onAddToQueue(
-                                            track?.videoId ?: songEntity?.videoId ?: "",
-                                        )
+                                        onAddToQueue?.invoke(itemVideoId)
+                                    } else if (offsetX.value == -maxOffset) {
+                                        onSwipeToDelete?.invoke(itemVideoId)
                                     }
+                                    coroutineScope.launch {
+                                        offsetX.animateTo(0f)
+                                    }
+                                },
+                                onDragCancel = {
                                     coroutineScope.launch {
                                         offsetX.animateTo(0f)
                                     }
