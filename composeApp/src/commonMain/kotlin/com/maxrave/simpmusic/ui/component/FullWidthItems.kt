@@ -236,32 +236,41 @@ fun SongFullWidthItems(
                             // dragged out to reveal an empty slot.
                             val minOffset = if (canSwipeToDelete) -maxOffset else 0f
                             val maxQueueOffset = if (canSwipeToQueue) maxOffset else 0f
-                            detectHorizontalDragGestures(
-                                onHorizontalDrag = { change, dragAmount ->
-                                    val target = (offsetX.value + dragAmount).coerceIn(minOffset, maxQueueOffset)
-                                    if (target != offsetX.value) {
-                                        change.consume()
-                                        coroutineScope.launch {
-                                            offsetX.snapTo(target)
+                            try {
+                                detectHorizontalDragGestures(
+                                    onHorizontalDrag = { change, dragAmount ->
+                                        val target = (offsetX.value + dragAmount).coerceIn(minOffset, maxQueueOffset)
+                                        if (target != offsetX.value) {
+                                            change.consume()
+                                            coroutineScope.launch {
+                                                offsetX.snapTo(target)
+                                            }
                                         }
-                                    }
-                                },
-                                onDragEnd = {
-                                    if (offsetX.value == maxOffset) {
-                                        onAddToQueue?.invoke(itemVideoId)
-                                    } else if (offsetX.value == -maxOffset) {
-                                        onSwipeToDelete?.invoke(itemVideoId)
-                                    }
-                                    coroutineScope.launch {
-                                        offsetX.animateTo(0f)
-                                    }
-                                },
-                                onDragCancel = {
-                                    coroutineScope.launch {
-                                        offsetX.animateTo(0f)
-                                    }
-                                },
-                            )
+                                    },
+                                    onDragEnd = {
+                                        if (offsetX.value == maxOffset) {
+                                            onAddToQueue?.invoke(itemVideoId)
+                                        } else if (offsetX.value == -maxOffset) {
+                                            onSwipeToDelete?.invoke(itemVideoId)
+                                        }
+                                        coroutineScope.launch {
+                                            offsetX.animateTo(0f)
+                                        }
+                                    },
+                                    onDragCancel = {
+                                        coroutineScope.launch {
+                                            offsetX.animateTo(0f)
+                                        }
+                                    },
+                                )
+                            } finally {
+                                // A key change (the row starts playing, selection starts) cancels
+                                // this detector mid-drag, and cancelling it does not call
+                                // onDragCancel — without this the row would stay pushed aside.
+                                coroutineScope.launch {
+                                    offsetX.animateTo(0f)
+                                }
+                            }
                         }
                     }.onGloballyPositioned { coordinates ->
                         with(density) {
