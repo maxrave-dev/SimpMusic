@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -336,6 +337,11 @@ fun HomeScreen(
     }
     val animatedColor by animateColorAsState(topHeaderColor, tween(500))
     val mainHomeThumbnail by viewModel.mainHomeThumbnail.collectAsStateWithLifecycle()
+    // YouTube's Home backdrop, drawn over the tint taken from the first card's artwork. A response
+    // that carries none keeps the tint alone, and a failed load drops the image and its scrim,
+    // leaving the tint as it was.
+    val headerImage by viewModel.homeBackground.collectAsStateWithLifecycle()
+    var headerImageFailed by remember(headerImage) { mutableStateOf(false) }
     val networkLoader = rememberNetworkLoader(HttpClient(CIO))
     val dominantColorState =
         rememberDominantColorState(
@@ -800,6 +806,29 @@ fun HomeScreen(
                                                     layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, 0) }
                                                 }.angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
                                     ) {
+                                        if (headerImage != null && !headerImageFailed) {
+                                            AsyncImage(
+                                                model =
+                                                    ImageRequest
+                                                        .Builder(LocalPlatformContext.current)
+                                                        .data(headerImage)
+                                                        .crossfade(550)
+                                                        .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                onError = { headerImageFailed = true },
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                            // Always over the image, which can be very bright: a layer of the
+                                            // page's own colour tones it down in either theme and fades it
+                                            // into the page along the tint's own 25° line, not in a flat
+                                            // band at the bottom.
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .angledGradientBackground(listOf(pageBackground.copy(alpha = 0.6f), pageBackground), 25f),
+                                            )
+                                        }
                                         Box(
                                             modifier =
                                                 Modifier

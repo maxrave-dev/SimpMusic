@@ -1508,8 +1508,8 @@ fun NowPlayingContentSpotify(
                                                     .diskCacheKey(thumb)
                                                     .crossfade(550)
                                                     .build(),
-                                            placeholder = rememberHolderPainter(isVideo = true),
-                                            error = rememberHolderPainter(isVideo = true),
+                                            placeholder = rememberHolderPainter(),
+                                            error = rememberHolderPainter(),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,
                                             // No explicit clip: the ElevatedCard already clips to
@@ -1835,8 +1835,8 @@ internal fun NowPlayingTrackInfoRow(
                         .diskCacheKey(state.screenData.thumbnailURL + "BIGGER")
                         .crossfade(true)
                         .build(),
-                placeholder = rememberHolderPainter(),
-                error = rememberHolderPainter(),
+                placeholder = rememberHolderPainter(square = true),
+                error = rememberHolderPainter(square = true),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
                 modifier =

@@ -215,8 +215,8 @@ fun PodcastScreen(
                                                 .diskCacheKey(data.thumbnail.lastOrNull()?.url)
                                                 .crossfade(true)
                                                 .build(),
-                                        placeholder = rememberHolderPainter(),
-                                        error = rememberHolderPainter(),
+                                        placeholder = rememberHolderPainter(square = true),
+                                        error = rememberHolderPainter(square = true),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {

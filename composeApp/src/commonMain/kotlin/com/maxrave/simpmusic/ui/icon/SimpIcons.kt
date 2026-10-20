@@ -43,10 +43,17 @@ private const val MIN_FIT_SCALE = 0.6f
 private const val CURVE_SAMPLES = 16
 
 /**
+ * Glyphs left exactly as Google drew them although they pass the live area. `Groups` spills only
+ * sideways: fitting its 24 width also cut its height, which was never too tall, from 12 to 10 of
+ * 24, and it read shorter than every icon beside it.
+ */
+internal val KEEP_AS_DRAWN = setOf("Groups")
+
+/**
  * Ends every icon's builder. A glyph that spills past [ICON_LIVE_AREA] is shrunk about the centre
- * of its box until it fits; a glyph inside it is left exactly as Google drew it, and nothing is
- * ever enlarged. Anything that cannot be measured or rebuilt keeps the glyph as generated, so a bad
- * measurement can only leave an icon unfitted, never break it.
+ * of its box until it fits; a glyph inside it, or named in [KEEP_AS_DRAWN], is left exactly as
+ * Google drew it, and nothing is ever enlarged. Anything that cannot be measured or rebuilt keeps
+ * the glyph as generated, so a bad measurement can only leave an icon unfitted, never break it.
  */
 internal fun ImageVector.Builder.buildSimpIcon(): ImageVector {
     val glyph = build()
@@ -60,8 +67,9 @@ internal fun ImageVector.Builder.buildSimpIcon(): ImageVector {
     }
 }
 
-/** 1 when the glyph already fits or cannot be measured; otherwise the shrink that fits it. */
+/** 1 when the glyph already fits, is kept as drawn or cannot be measured; otherwise the shrink that fits it. */
 private fun ImageVector.fitScale(): Float {
+    if (name in KEEP_AS_DRAWN) return 1f
     val limit = minOf(viewportWidth, viewportHeight) * ICON_LIVE_AREA / 2f
     val measured = extent()
     return when {

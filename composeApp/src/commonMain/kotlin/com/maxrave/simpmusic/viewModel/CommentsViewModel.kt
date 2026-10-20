@@ -42,9 +42,7 @@ data class CommentsUiState(
     val loadingMore: Boolean = false,
     /** Loading the next page failed: it waits for a tap instead of retrying on every scroll. */
     val moreFailed: Boolean = false,
-    val newest: Boolean = false,
-    val sorting: Boolean = false,
-    /** Bumped by every new track and every sort, so a page that arrives late cannot land in the wrong list. */
+    /** Bumped by every new track, so a page that arrives late cannot land in the wrong list. */
     val generation: Int = 0,
     /** By comment id. */
     val replies: Map<String, CommentReplies> = emptyMap(),
@@ -55,8 +53,8 @@ data class CommentsUiState(
 )
 
 /**
- * The comments sheet of Now Playing: YouTube Music's Comments tab for the track playing, its pages,
- * sorts and replies, and the signed-in writes (post, reply, like, dislike).
+ * The comments sheet of Now Playing: YouTube Music's Comments tab for the track playing, its pages
+ * and replies, and the signed-in writes (post, reply, like, dislike).
  */
 class CommentsViewModel(
     private val songRepository: SongRepository,
@@ -123,7 +121,7 @@ class CommentsViewModel(
     fun loadMore() {
         val state = _uiState.value
         val token = state.nextToken ?: return
-        if (state.status != CommentsStatus.LOADED || state.loadingMore || state.sorting) return
+        if (state.status != CommentsStatus.LOADED || state.loadingMore) return
         val generation = state.generation
         _uiState.update { it.copy(loadingMore = true, moreFailed = false) }
         moreJob =
@@ -134,7 +132,7 @@ class CommentsViewModel(
                         when {
                             cur.generation != generation -> cur
                             res is Resource.Success && page != null -> {
-                                // Pages can repeat comments (YouTube's looping comments; the pinned one in Newest).
+                                // Pages can repeat comments (YouTube's looping comments).
                                 val comments = (cur.comments + page.comments).distinctBy { it.id }
                                 cur.copy(
                                     loadingMore = false,
@@ -145,44 +143,6 @@ class CommentsViewModel(
                                 )
                             }
                             else -> cur.copy(loadingMore = false, moreFailed = true)
-                        }
-                    }
-                }
-            }
-    }
-
-    fun setNewest(newest: Boolean) {
-        val state = _uiState.value
-        if (state.newest == newest || state.status != CommentsStatus.LOADED) return
-        val token = (if (newest) state.header?.newestToken else state.header?.topToken) ?: return
-        pageJob?.cancel()
-        moreJob?.cancel()
-        val generation = state.generation + 1
-        _uiState.update {
-            it.copy(newest = newest, sorting = true, loadingMore = false, moreFailed = false, generation = generation)
-        }
-        pageJob =
-            viewModelScope.launch {
-                songRepository.getCommentsPage(token).collect { res ->
-                    val page = res.data
-                    if (res is Resource.Error || page == null) {
-                        _uiState.update { cur ->
-                            if (cur.generation != generation) cur else cur.copy(sorting = false, newest = !newest)
-                        }
-                        makeToast(getString(Res.string.comments_load_error))
-                        return@collect
-                    }
-                    _uiState.update { cur ->
-                        if (cur.generation != generation) {
-                            cur
-                        } else {
-                            cur.copy(
-                                sorting = false,
-                                header = page.header ?: cur.header,
-                                comments = page.comments.distinctBy { it.id },
-                                nextToken = page.nextToken,
-                                replies = emptyMap(),
-                            )
                         }
                     }
                 }

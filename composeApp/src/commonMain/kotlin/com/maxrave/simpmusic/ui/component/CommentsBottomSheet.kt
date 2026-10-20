@@ -209,18 +209,6 @@ fun CommentsBottomSheet(
                                 Icon(imageVector = SimpIcons.Close, contentDescription = null, tint = colors.content)
                             }
                         }
-                        // Top / Newest, in YouTube's own words.
-                        val topLabel = uiState.header?.topLabel
-                        val newestLabel = uiState.header?.newestLabel
-                        if (uiState.status == CommentsStatus.LOADED && topLabel != null && newestLabel != null) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 2.dp, bottom = 12.dp),
-                            ) {
-                                Chip(isSelected = !uiState.newest, text = topLabel) { viewModel.setNewest(false) }
-                                Chip(isSelected = uiState.newest, text = newestLabel) { viewModel.setNewest(true) }
-                            }
-                        }
                         HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), thickness = 1.dp)
                         Box(Modifier.weight(1f).fillMaxWidth()) {
                             CommentsBody(
@@ -297,7 +285,7 @@ private fun CommentsBody(
     bottomPadding: Dp,
 ) {
     when {
-        uiState.status == CommentsStatus.LOADING || uiState.sorting -> {
+        uiState.status == CommentsStatus.LOADING -> {
             Box(Modifier.fillMaxSize().padding(top = 48.dp), contentAlignment = Alignment.TopCenter) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = colors.content, strokeWidth = 3.dp)
             }

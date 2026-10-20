@@ -89,6 +89,8 @@ fun HomeDiscoverSection(
                 modifier =
                     Modifier
                         .fillMaxWidth()
+                        // The gap other shelves get from their cards' own 10dp top padding.
+                        .padding(top = 10.dp)
                         .height(if (wide) 400.dp else heroWidth * 1.1f),
             ) { index ->
                 val song = songs[index]

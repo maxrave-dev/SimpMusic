@@ -91,14 +91,21 @@ Legacy names such as `favorite_border`, `add_circle_outline` and `thumb_up_alt` 
 **Glyphs that spill past Material's 20×20 live area are fitted into it (2026-10-18).** Material's
 icon grid keeps a glyph inside the centred 20×20 square of the 24 box, with 2dp of padding, and
 balances the glyphs inside it by keyline shapes of about equal area. 24 of our 111 Symbols spill
-into that padding anyway: `Lyrics`' note and `Groups` reach the box edge, `ThumbsUpDown` spans the
+into that padding anyway: `Lyrics`' note reaches the box edge, `ThumbsUpDown` spans the
 full width. At one size those read bigger than everything beside them. `buildSimpIcon()` measures
 how far each glyph reaches from the centre along either axis (walking its path nodes, 16 samples
-per curve) and shrinks one that passes 10 of 24 about the centre until it fits: `Lyrics`, `Groups`
-and `ThumbsUpDown` ×0.83, the other 21 ×0.86–0.996. A glyph inside the square is left exactly as Google
+per curve) and shrinks one that passes 10 of 24 about the centre until it fits: `Lyrics` and
+`ThumbsUpDown` ×0.83, the other 21 ×0.86–0.996. A glyph inside the square is left exactly as Google
 drew it, nothing is enlarged, and anything it cannot measure (an arc, a group, a fit tighter than
 ×0.6) keeps the glyph as generated and logs under `SimpIcons`. `SimpIconsFitTest` (jvmTest) fails if
-a file skips `buildSimpIcon()` or any icon ends up outside the square.
+a file skips `buildSimpIcon()`, an icon outside `KEEP_AS_DRAWN` ends up outside the square, or one in
+it gets rebuilt.
+- `Groups` is named in `KEEP_AS_DRAWN` (in `SimpIcons.kt`) and keeps Google's drawing (2026-10-20).
+  It spills only sideways, so fitting its 24 width also cut its height, which was never too tall,
+  from 12 to 10 of 24, and it read shorter than every icon beside it. Five more spill only sideways
+  and lose a little height to the fit (`PeopleAlt`, `PersonAdd`, `Insights` 9%, `AutoGraph` 6%,
+  `AccessAlarm` 2%); they still end 14.5 of 24 tall or more, like Symbols Google draws at that
+  height, so they stay fitted (owner's call).
 - Do not fit glyphs into a circle instead. That was tried first: a circle judges a glyph by its one
   farthest point, so `Lyrics` shrank to ×0.72 to pull its note's tip inside and then read far
   smaller than `QueueMusic` beside it.

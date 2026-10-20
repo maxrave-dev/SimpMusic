@@ -41,6 +41,7 @@ class SimpIconsFitTest {
         val outside =
             iconFiles.mapNotNull { file ->
                 val name = file.nameWithoutExtension
+                if (name in KEEP_AS_DRAWN) return@mapNotNull null
                 val extent = icon(name).drawnExtent()
                 if (extent > limit) "$name reaches $extent" else null
             }
@@ -51,6 +52,14 @@ class SimpIconsFitTest {
     fun aGlyphInsideTheLiveAreaIsLeftAsGenerated() {
         // Each of these already keeps to the 20×20 square, so none is rebuilt and nothing is enlarged.
         listOf("QueueMusic", "MoreVert", "CommentOutline").forEach { name ->
+            assertTrue(icon(name).root.all { it is VectorPath }, "$name was rebuilt")
+        }
+    }
+
+    @Test
+    fun aKeptGlyphIsLeftAsGenerated() {
+        // Looked up by file name while KEEP_AS_DRAWN matches the builder's own name, so the two drifting apart fails here.
+        KEEP_AS_DRAWN.forEach { name ->
             assertTrue(icon(name).root.all { it is VectorPath }, "$name was rebuilt")
         }
     }

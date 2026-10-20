@@ -1054,8 +1054,8 @@ fun HomeItemVideo(
                             .diskCacheKey(thumb)
                             .crossfade(550)
                             .build(),
-                    placeholder = rememberHolderPainter(isVideo = true),
-                    error = rememberHolderPainter(isVideo = true),
+                    placeholder = rememberHolderPainter(),
+                    error = rememberHolderPainter(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier =
@@ -1289,8 +1289,8 @@ fun ItemVideoChart(
                         .diskCacheKey(thumb)
                         .crossfade(550)
                         .build(),
-                placeholder = rememberHolderPainter(isVideo = true),
-                error = rememberHolderPainter(isVideo = true),
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
