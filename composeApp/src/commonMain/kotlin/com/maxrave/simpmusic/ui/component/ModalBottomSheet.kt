@@ -214,6 +214,7 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
+import simpmusic.composeapp.generated.resources.create_new_queue_and_play
 import simpmusic.composeapp.generated.resources.delete
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
@@ -1940,13 +1941,19 @@ fun rememberAddToQueueBlock(): AddToQueueBlock? {
     return queueData.addToQueueBlock(endlessQueue)
 }
 
-/** The Add to queue label, with the reason in brackets while it is blocked. */
-fun AddToQueueBlock?.addToQueueLabel(): StringResource =
-    when (this) {
-        null -> Res.string.add_to_queue
+/**
+ * The Add to queue label, with the reason in brackets while it is blocked. With nothing queued it
+ * reads "Create a new queue and add to play", since adding there starts a new queue and plays it (#2596).
+ */
+@Composable
+fun AddToQueueBlock?.addToQueueLabel(): StringResource {
+    val queueData by koinInject<MediaPlayerHandler>().queueData.collectAsState()
+    return when (this) {
+        null -> if (queueData?.data?.listTracks.isNullOrEmpty()) Res.string.create_new_queue_and_play else Res.string.add_to_queue
         AddToQueueBlock.RADIO -> Res.string.add_to_queue_disabled_radio
         AddToQueueBlock.ENDLESS_QUEUE -> Res.string.add_to_queue_disabled_endless
     }
+}
 
 @Composable
 fun ActionButton(

@@ -1021,4 +1021,9 @@
     <string name="comments_load_error">Couldn't load comments</string>
     <string name="comment_post_error">Couldn't post your comment</string>
     <string name="comments_need_channel">Create a YouTube channel to comment</string>
+    <string name="local_playlist">Local playlist</string>
+    <string name="create_playlist_description">Build a playlist on this device</string>
+    <string name="create_room_description">Start or join a room</string>
+    <string name="create_room_live">Your room is live</string>
+    <string name="create_new_queue_and_play">Create a new queue and add to play</string>
 </resources>

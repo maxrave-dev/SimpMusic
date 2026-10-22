@@ -110,6 +110,7 @@ import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
 import org.simpmusic.lastfm.completeLogin
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.added_local_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.disliked
@@ -1264,6 +1265,17 @@ class SharedViewModel(
         _nowPlayingState.value = null
         mediaPlayerHandler.resetSongAndQueue()
         onUIEvent(UIEvent.Stop)
+    }
+
+    fun createLocalPlaylist(title: String) {
+        viewModelScope.launch {
+            localPlaylistRepository
+                .insertLocalPlaylist(
+                    LocalPlaylistEntity(title = title),
+                    getString(Res.string.added_local_playlist),
+                ).lastOrNull()
+            makeToast(getString(Res.string.added_local_playlist))
+        }
     }
 
     private fun loadPlaylistOrAlbum(index: Int? = null) {

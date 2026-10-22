@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -38,26 +39,30 @@ fun ListenTogetherIconButton(onClick: () -> Unit) {
             tint = MaterialTheme.colorScheme.onBackground,
             onClick = onClick,
         )
-        if (room.inRoom) {
-            // A ring of page colour around the dot: without it the dot merges into the icon's own
-            // dark shapes and stops reading as a badge.
-            Box(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 8.dp, bottom = 8.dp)
-                        .size(11.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    Modifier
-                        .size(7.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.error),
-                )
-            }
-        }
+        if (room.inRoom) LiveRoomDot()
+    }
+}
+
+/** The live-room badge, for a 48dp icon button in the Box it is drawn in. Also worn by Home's Create button. */
+@Composable
+internal fun BoxScope.LiveRoomDot() {
+    // A ring of page colour around the dot: without it the dot merges into the icon's own
+    // dark shapes and stops reading as a badge.
+    Box(
+        modifier =
+            Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 8.dp, bottom = 8.dp)
+                .size(11.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier
+                .size(7.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.error),
+        )
     }
 }

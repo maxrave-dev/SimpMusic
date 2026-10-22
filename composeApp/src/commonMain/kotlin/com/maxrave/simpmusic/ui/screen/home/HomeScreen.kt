@@ -49,6 +49,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -126,6 +127,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.BlogPromoDialog
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
+import com.maxrave.simpmusic.ui.component.CreateActions
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.ExpandableChip
@@ -135,7 +137,6 @@ import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
-import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.LocalAppDialogOpen
 import com.maxrave.simpmusic.ui.component.LocalNowPlayingOpen
 import com.maxrave.simpmusic.ui.component.LocalUserStarted
@@ -146,17 +147,14 @@ import com.maxrave.simpmusic.ui.component.PromoBanner
 import com.maxrave.simpmusic.ui.component.PromoBannerData
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
-import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SectionHeaderButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Notifications
 import com.maxrave.simpmusic.ui.icon.Person
-import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
@@ -219,6 +217,7 @@ import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_to_YouTube
 import simpmusic.composeapp.generated.resources.log_in_warning
 import simpmusic.composeapp.generated.resources.mood
+import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
@@ -1030,7 +1029,7 @@ fun HomeScreen(
                 }
             }
         }
-        // Spotify's header: the avatar, the chips and Listen Together on one row, with no app bar. At the
+        // Spotify's header: the avatar, the chips and Create on one row, with no app bar. At the
         // top of the page it sits straight on the artwork glow; once the page scrolls under it, the blurred
         // bar fades in behind it.
         AnimatedContent(
@@ -1093,13 +1092,12 @@ fun HomeScreen(
                                 .zIndex(if (chipsAtEnd) 2f else 0f),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
-                            navController.navigate(NotificationDestination)
-                        }
-                        ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
-                        RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
-                            navController.navigate(SettingsDestination)
-                        }
+                        // Notifications moved into the avatar menu, Listen Together into the Create sheet.
+                        CreateActions(
+                            backdrop = chipBackdrop,
+                            navController = navController,
+                            onSettings = { navController.navigate(SettingsDestination) },
+                        )
                     }
                     Row(
                         modifier =
@@ -1108,8 +1106,8 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .zIndex(1f)
                                 .horizontalScroll(chipRowState)
-                                // Avatar (15 + 32dp) and an 8dp gap; the three 48dp end buttons and their 4dp inset.
-                                .padding(start = 55.dp, end = 148.dp),
+                                // Avatar (15 + 32dp) and an 8dp gap; the two 48dp end buttons (Create, Settings) and their 4dp inset.
+                                .padding(start = 55.dp, end = 100.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -1203,6 +1201,14 @@ private fun HomeAccountButton(
                     Text(text = greeting, style = typo().bodySmall)
                 }
             }
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.notification), style = typo().bodyMedium) },
+                leadingIcon = { Icon(SimpIcons.Notifications, contentDescription = null) },
+                onClick = {
+                    menuOpen = false
+                    navController.navigate(NotificationDestination)
+                },
+            )
             if (!signedIn) {
                 Button(
                     onClick = {
