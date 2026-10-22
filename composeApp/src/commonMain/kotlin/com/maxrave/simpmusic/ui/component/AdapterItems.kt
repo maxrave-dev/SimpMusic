@@ -243,8 +243,11 @@ fun HomeSectionHeader(
                 contentDescription = "",
                 placeholder = rememberHolderPainter(),
                 error = rememberHolderPainter(),
+                // The gap belongs to the picture: a shelf without one starts its title on the
+                // section's edge, where Quick picks and the other headers start theirs.
                 modifier =
                     Modifier
+                        .padding(end = 10.dp)
                         .size(36.dp)
                         .clip(
                             CircleShape,
@@ -253,8 +256,7 @@ fun HomeSectionHeader(
         }
         Column(
             Modifier
-                .weight(1f)
-                .padding(start = 10.dp),
+                .weight(1f),
         ) {
             AnimatedVisibility(visible = (data.subtitle != null && data.subtitle != "")) {
                 Text(

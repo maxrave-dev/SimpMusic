@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -19,6 +20,7 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -74,7 +76,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
@@ -84,7 +91,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -394,10 +400,6 @@ fun HomeScreen(
     var moodExpanded by rememberSaveable {
         mutableStateOf(false)
     }
-    // Whether the chips have scrolled over the avatar / reached the end clear of Listen Together.
-    // Derived, so the header recomposes only when one of them flips, not on every scrolled pixel.
-    val chipsAtStart by remember { derivedStateOf { chipRowState.value == 0 } }
-    val chipsAtEnd by remember { derivedStateOf { chipRowState.value >= chipRowState.maxValue } }
     // Derived, so scrolling recomposes only when the page reaches or leaves its very top.
     val atTop by remember {
         derivedStateOf { scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0 }
@@ -847,9 +849,11 @@ fun HomeScreen(
                                             .padding(horizontal = 15.dp),
                                 ) {
                                     if (index == 0) {
+                                        // The header's own height plus 8dp, so the first section does not
+                                        // sit right under the chips.
                                         Spacer(
                                             Modifier.height(
-                                                with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                                                with(LocalDensity.current) { topAppBarHeightPx.toDp() } + 8.dp,
                                             ),
                                         )
                                     }
@@ -1021,7 +1025,7 @@ fun HomeScreen(
                             Modifier.height(
                                 with(LocalDensity.current) {
                                     topAppBarHeightPx.toDp()
-                                },
+                                } + 8.dp,
                             ),
                         )
                         HomeShimmer()
@@ -1061,85 +1065,142 @@ fun HomeScreen(
                                 WindowInsets.statusBars,
                             ),
                 )
-                // The chips scroll across the whole header and pass OVER the avatar and the end buttons,
-                // as Spotify's do, instead of being cut off between them. Padding keeps them clear of
-                // both at rest. A button sits above the chips (for drawing and for taps) only while the
-                // chips have not scrolled over it, so whichever is on top is also what a tap reaches.
-                Box(
+                // The avatar stays put and the chips scroll only to its right, clipped there instead of
+                // passing over it, each end faded while chips wait past that edge. On a phone held
+                // upright Create rides at the end of the chip row: the row is at least as wide as its
+                // strip, so at rest Create sits at the right edge, and a Mood that opens wide pushes it
+                // along instead of sliding under it. On Desktop and in landscape Create stays put at the
+                // right edge, like the avatar.
+                val createPinned = getPlatform() == Platform.Desktop || getScreenSizeInfo().let { it.wDP >= it.hDP }
+                val chipHeadFade by animateFloatAsState(if (chipRowState.canScrollBackward) 1f else 0f)
+                val chipTailFade by animateFloatAsState(if (chipRowState.canScrollForward) 1f else 0f)
+                // Notifications moved into the avatar menu, Listen Together into the Create sheet.
+                val createActions: @Composable () -> Unit = {
+                    CreateActions(
+                        backdrop = chipBackdrop,
+                        navController = navController,
+                        onSettings = { navController.navigate(SettingsDestination) },
+                    )
+                }
+                Row(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 15.dp)
-                                .zIndex(if (chipsAtStart) 2f else 0f),
-                    ) {
+                    Box(Modifier.padding(start = 16.dp, end = 8.dp)) {
                         HomeAccountButton(
                             accountName = accountInfo?.first,
                             thumbnailUrl = accountInfo?.second,
                             navController = navController,
                         )
                     }
-                    Row(
-                        modifier =
-                            Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 4.dp)
-                                .zIndex(if (chipsAtEnd) 2f else 0f),
-                        verticalAlignment = Alignment.CenterVertically,
+                    BoxWithConstraints(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                     ) {
-                        // Notifications moved into the avatar menu, Listen Together into the Create sheet.
-                        CreateActions(
-                            backdrop = chipBackdrop,
-                            navController = navController,
-                            onSettings = { navController.navigate(SettingsDestination) },
-                        )
-                    }
-                    Row(
-                        modifier =
-                            Modifier
-                                .align(Alignment.CenterStart)
-                                .fillMaxWidth()
-                                .zIndex(1f)
-                                .horizontalScroll(chipRowState)
-                                // Avatar (15 + 48dp, as tall as the Create pill) and an 8dp gap; the two 48dp end buttons
-                                // (Create, Settings) and their 4dp inset.
-                                .padding(start = 71.dp, end = 100.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Chip(
-                            isAnimated = loading,
-                            isSelected = params == null && !moodExpanded,
-                            text = stringResource(Res.string.all),
-                            backdrop = chipBackdrop,
+                        Row(
+                            modifier =
+                                Modifier
+                                    .fillMaxHeight()
+                                    .chipStripEdgeFades(32.dp, start = { chipHeadFade }, end = { chipTailFade })
+                                    .horizontalScroll(chipRowState)
+                                    .widthIn(min = maxWidth)
+                                    .padding(end = if (createPinned) 0.dp else 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            moodExpanded = false
-                            viewModel.setParams(null)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Chip(
+                                    isAnimated = loading,
+                                    isSelected = params == null && !moodExpanded,
+                                    text = stringResource(Res.string.all),
+                                    backdrop = chipBackdrop,
+                                ) {
+                                    moodExpanded = false
+                                    viewModel.setParams(null)
+                                }
+                                ExpandableChip(
+                                    text = stringResource(Res.string.mood),
+                                    options = homeMoods.map { stringResource(it.first) },
+                                    selectedIndex = homeMoods.indexOfFirst { it.second == params }.takeIf { it >= 0 },
+                                    expanded = moodExpanded,
+                                    onExpandedChange = { moodExpanded = it },
+                                    onSelect = { index ->
+                                        moodExpanded = false
+                                        viewModel.setParams(homeMoods[index].second)
+                                    },
+                                    isAnimated = loading,
+                                    backdrop = chipBackdrop,
+                                )
+                            }
+                            if (!createPinned) {
+                                Box(Modifier.padding(start = 8.dp)) { createActions() }
+                            }
                         }
-                        ExpandableChip(
-                            text = stringResource(Res.string.mood),
-                            options = homeMoods.map { stringResource(it.first) },
-                            selectedIndex = homeMoods.indexOfFirst { it.second == params }.takeIf { it >= 0 },
-                            expanded = moodExpanded,
-                            onExpandedChange = { moodExpanded = it },
-                            onSelect = { index ->
-                                moodExpanded = false
-                                viewModel.setParams(homeMoods[index].second)
-                            },
-                            isAnimated = loading,
-                            backdrop = chipBackdrop,
-                        )
+                    }
+                    if (createPinned) {
+                        Box(Modifier.padding(start = 8.dp, end = 16.dp)) { createActions() }
                     }
                 }
             }
         }
     }
 }
+
+/**
+ * Fades each end of the chip strip out (a DstIn mask) while chips wait past that edge, so the row
+ * reads as running on rather than cut off. [start] and [end] ease each fade in and out and are read
+ * at draw time. Smoothstep, like every fade in the app: a linear ramp shows a line where it begins.
+ */
+private fun Modifier.chipStripEdgeFades(
+    width: Dp,
+    start: () -> Float,
+    end: () -> Float,
+): Modifier =
+    graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            val fadePx = width.toPx().coerceAtMost(size.width / 2f)
+            val startFade = start()
+            if (startFade > 0f) {
+                drawRect(
+                    brush = Brush.horizontalGradient(colorStops = chipFadeStops(startFade, fadingOut = false), startX = 0f, endX = fadePx),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+            val endFade = end()
+            if (endFade > 0f) {
+                drawRect(
+                    brush =
+                        Brush.horizontalGradient(
+                            colorStops = chipFadeStops(endFade, fadingOut = true),
+                            startX = size.width - fadePx,
+                            endX = size.width,
+                        ),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+        }
+
+// Opaque → transparent left to right when [fadingOut], the other way round otherwise; [fade] scales
+// how far towards transparent the far end goes.
+private fun chipFadeStops(
+    fade: Float,
+    fadingOut: Boolean,
+): Array<Pair<Float, Color>> =
+    Array(CHIP_FADE_STEPS + 1) { i ->
+        val t = i / CHIP_FADE_STEPS.toFloat()
+        val ramp = t * t * (3f - 2f * t)
+        t to Color.Black.copy(alpha = 1f - fade * (if (fadingOut) ramp else 1f - ramp))
+    }
+
+private const val CHIP_FADE_STEPS = 24
 
 /**
  * The avatar at the start of Home's header. It opens a menu showing who is signed in and the
@@ -1170,8 +1231,8 @@ private fun HomeAccountButton(
         AccountAvatar(
             signedIn = signedIn,
             thumbnailUrl = thumbnailUrl,
-            // The Create pill's height, so both ends of the header line up.
-            size = 48.dp,
+            // The Create pill's height, as Apple sizes an avatar like the glass buttons beside it.
+            size = 44.dp,
             contentDescription = displayName,
             modifier = Modifier.clickable { menuOpen = true },
         )

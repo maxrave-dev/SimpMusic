@@ -8,11 +8,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -89,7 +94,7 @@ fun CreateActions(
     val tint = MaterialTheme.colorScheme.onBackground
 
     val createButton: @Composable () -> Unit = {
-        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
             if (LocalLiquidGlassEnabled.current) {
                 IconButton(onClick = { showCreate = true }) {
                     Icon(SimpIcons.Add, contentDescription = stringResource(Res.string.create), tint = tint)
@@ -114,7 +119,7 @@ fun CreateActions(
     }
     val settingsButton: @Composable () -> Unit = {
         if (onSettings != null) {
-            IconButton(onClick = onSettings) {
+            IconButton(onClick = onSettings, modifier = Modifier.size(44.dp)) {
                 Icon(SimpIcons.Settings, contentDescription = stringResource(Res.string.settings), tint = tint)
             }
         }
@@ -124,7 +129,8 @@ fun CreateActions(
         Row(
             modifier =
                 Modifier
-                    .height(48.dp)
+                    // 44dp, the Home avatar's size: Apple sizes a bar's avatar and glass buttons alike.
+                    .height(44.dp)
                     .liquidGlass(
                         backdrop,
                         RoundedCornerShape(24.dp),
@@ -180,6 +186,7 @@ private fun CreateSheet(
         contentColor = Color.Transparent,
         dragHandle = null,
         scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
         Card(
             modifier =
@@ -189,7 +196,7 @@ private fun CreateSheet(
             shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
             colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
         ) {
-            Column(Modifier.padding(bottom = 16.dp)) {
+            Column(Modifier.padding(bottom = 8.dp)) {
                 SheetHandle()
                 Text(
                     text = stringResource(Res.string.create),
@@ -208,6 +215,7 @@ private fun CreateSheet(
                     subtitle = stringResource(if (liveRoom) Res.string.create_room_live else Res.string.create_room_description),
                     onClick = onListenTogether,
                 )
+                EndOfModalBottomSheet()
             }
         }
     }
@@ -285,6 +293,7 @@ fun CreateLocalPlaylistSheet(
         contentColor = Color.Transparent,
         dragHandle = null,
         scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
         Card(
             modifier =
@@ -296,6 +305,9 @@ fun CreateLocalPlaylistSheet(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
+                // The sheet is handed no insets, so nothing else lifts the field above the keyboard.
+                // Navigation bars are left out: EndOfModalBottomSheet already pads for them.
+                modifier = Modifier.windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars)),
             ) {
                 SheetHandle()
                 OutlinedTextField(
@@ -329,6 +341,7 @@ fun CreateLocalPlaylistSheet(
                 ) {
                     Text(text = stringResource(Res.string.create))
                 }
+                EndOfModalBottomSheet()
             }
         }
     }
