@@ -1106,8 +1106,9 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .zIndex(1f)
                                 .horizontalScroll(chipRowState)
-                                // Avatar (15 + 32dp) and an 8dp gap; the two 48dp end buttons (Create, Settings) and their 4dp inset.
-                                .padding(start = 55.dp, end = 100.dp),
+                                // Avatar (15 + 48dp, as tall as the Create pill) and an 8dp gap; the two 48dp end buttons
+                                // (Create, Settings) and their 4dp inset.
+                                .padding(start = 71.dp, end = 100.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -1169,7 +1170,8 @@ private fun HomeAccountButton(
         AccountAvatar(
             signedIn = signedIn,
             thumbnailUrl = thumbnailUrl,
-            size = 32.dp,
+            // The Create pill's height, so both ends of the header line up.
+            size = 48.dp,
             contentDescription = displayName,
             modifier = Modifier.clickable { menuOpen = true },
         )
