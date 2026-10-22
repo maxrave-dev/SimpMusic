@@ -9,10 +9,12 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kyant.backdrop.highlight.Highlight
 import com.materialkolor.hct.Hct
 import com.materialkolor.ktx.toColor
@@ -46,6 +49,8 @@ fun Chip(
     // chip stays a solid `primary` fill, as in Spotify's row. Chips on a flat card or sheet pass
     // nothing: glass over a flat surface reads as a mere border.
     backdrop: PlatformBackdrop? = null,
+    // A smaller chip for dense panels such as the Desktop sidebar: 28dp tall with a 12sp label.
+    compact: Boolean = false,
     onClick: () -> Unit,
 ) {
     val glassOn = LocalLiquidGlassEnabled.current
@@ -61,6 +66,7 @@ fun Chip(
             // Glass draws its own rim, so the outline goes.
             borderColor = if (glassBackdrop != null) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
             onClick = onClick,
+            compact = compact,
         )
     }
 }
@@ -210,10 +216,11 @@ private fun ChipBody(
     // to be found at a glance.
     containerColor: Color = Color.Transparent,
     labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    compact: Boolean = false,
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
         ElevatedFilterChip(
-            modifier = modifier,
+            modifier = if (compact) modifier.height(28.dp) else modifier,
             shape = CircleShape,
             // No shadow. An unselected chip has no fill, and a drop shadow under a see-through
             // shape shows THROUGH it as a dark ring instead of sitting behind it. Naming
@@ -231,7 +238,12 @@ private fun ChipBody(
                 ),
             onClick = onClick,
             label = {
-                Text(text, maxLines = 1)
+                // Only the size changes: the chip's own label style still supplies weight and colour.
+                Text(
+                    text,
+                    maxLines = 1,
+                    style = if (compact) LocalTextStyle.current.copy(fontSize = 12.sp, lineHeight = 16.sp) else LocalTextStyle.current,
+                )
             },
             border =
                 FilterChipDefaults.filterChipBorder(

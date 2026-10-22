@@ -11,6 +11,7 @@ import com.maxrave.simpmusic.viewModel.CommentsViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.ImportViewModel
 import com.maxrave.simpmusic.viewModel.LibraryDynamicPlaylistViewModel
+import com.maxrave.simpmusic.viewModel.LibrarySidebarViewModel
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.LogInViewModel
@@ -159,6 +160,17 @@ val viewModelModule =
         }
         viewModel {
             BrowseViewModel(
+                get(),
+            )
+        }
+        viewModel {
+            LibrarySidebarViewModel(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
                 get(),
             )
         }

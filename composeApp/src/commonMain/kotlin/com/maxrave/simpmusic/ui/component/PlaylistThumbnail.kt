@@ -66,7 +66,7 @@ fun PlaylistThumbnail(
 }
 
 // Generate deterministic gradient colors from title
-private fun generateGradientFromTitle(title: String): List<Color> {
+internal fun generateGradientFromTitle(title: String): List<Color> {
     val hash = title.hashCode()
 
     // Extract RGB components from hash

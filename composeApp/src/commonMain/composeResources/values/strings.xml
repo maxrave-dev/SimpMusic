@@ -1026,4 +1026,11 @@
     <string name="create_room_description">Start or join a room</string>
     <string name="create_room_live">Your room is live</string>
     <string name="create_new_queue_and_play">Create a new queue and add to play</string>
+    <string name="artist">Artist</string>
+    <string name="podcast">Podcast</string>
+    <string name="recents">Recents</string>
+    <string name="alphabetical">Alphabetical</string>
+    <string name="search_in_your_library">Search in Your library</string>
+    <string name="collapse_your_library">Collapse Your library</string>
+    <string name="expand_your_library">Expand Your library</string>
 </resources>
