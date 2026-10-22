@@ -22,7 +22,7 @@
         <item quantity="other">%1$d זמרים</item>
     </plurals>
     <string name="library_favorite_empty_hint">לחץ על כפתור הלב בשיר כלשהו כדי לשמור אותו כאן.</string>
-    <string name="like">לאהוב</string>
+    <string name="like">לייק</string>
     <string name="hello_blank_fragment">שלום קטע ריק</string>
     <string name="download">הורדה</string>
     <string name="downloaded">הורד</string>
@@ -74,8 +74,8 @@
     <string name="playlist_name_cannot_be_empty">שם הפלייליסט לא יכול להיות ריק</string>
     <string name="this_app_needs_to_access_your_notification">האפליקציה הזו צריכה לגשת להתראה שלך</string>
     <string name="shared">משותף</string>
-    <string name="rich_synced">מילה-מילה</string>
-    <string name="line_synced">קו מסונכרן</string>
+    <string name="rich_synced">מילה-במילה</string>
+    <string name="line_synced">מסונכרן לפי שורה</string>
     <string name="unsynced">לא מסונכרן</string>
     <string name="playlist_is_empty">הפלייליסט ריק</string>
     <string name="option">אפשרות</string>
@@ -112,8 +112,9 @@
     <string name="related_artists">אמנים קשורים</string>
     <string name="about">אודות</string>
     <string name="let_s_start_with_a_radio">בואו נתחיל עם רדיו</string>
-    <string name="let_s_pick_a_playlist_for_you">בוא נבחר עבורך רשימת השמעה</string>
+    <string name="let_s_pick_a_playlist_for_you">בואו נבחר פלייליסט בשבילך</string>
     <string name="moods_amp_moment"><![CDATA[מצבי רוח ורגעים]]></string>
+    <string name="mood">מצבי רוח</string>
     <string name="genre">ז'אנר</string>
     <string name="what_is_best_choice_today">מהי הבחירה הטובה ביותר היום</string>
     <string name="chart">תרשים</string>
@@ -128,6 +129,8 @@
     <string name="storage">אחסון</string>
     <string name="player_cache">מטמון נגן</string>
     <string name="downloaded_cache">מטמון שהורד</string>
+    <string name="cached">מאוחסן במטמון</string>
+    <string name="remove_from_cache">מחק מהמטמון</string>
     <string name="thumbnail_cache">מטמון תמונות ממוזערות</string>
     <string name="backup">גיבוי</string>
     <string name="backup_your_data">גבה את הנתונים שלך</string>
@@ -156,6 +159,8 @@
     <string name="recently">לאחרונה</string>
     <string name="settings">הגדרות</string>
     <string name="now_playing_upper">מתנגן כעת</string>
+    <string name="radio_mix_upper">רדיו/מיקס</string>
+    <string name="radio_mix">רדיו/מיקס</string>
     <string name="language">שפה</string>
     <string name="what_do_you_want_to_listen_to">מה אתה רוצה לשמוע?</string>
     <string name="songs_inArtist">שירים</string>
@@ -223,7 +228,7 @@
     <string name="save">שמור</string>
     <string name="crop_cover">חתוך תמונת קאבר</string>
     <string name="saved">נשמר</string>
-    <string name="sponsor_block_intro">SponsorBlock היא מערכת מיקור המונים לדילוג על חלקים מעצבנים בסרטוני יוטיוב.\nמידע נוסף: https://sponsor.ajay.app/\n ב-SimpMusic, חסימת חסות זמין רק כאשר המכשיר מחובר לאינטרנט</string>
+    <string name="sponsor_block_intro">SponsorBlock היא מערכת מיקור המונים לדילוג על חלקים מעצבנים בסרטוני יוטיוב.\nלמידע נוסף: https://sponsor.ajay.app/\n ב-SimpMusic, חסימת חסות זמין רק כאשר המכשיר מחובר לאינטרנט</string>
     <string name="skip_sponsor_part_of_video">דלג על חלק הפרסומות בסרטון</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">שגיאה לא צפויה התרחשה. מצטערים על אי הנוחות.</string>
     <string name="customactivityoncrash_error_activity_restart_app">הפעל מחדש את האפליקציה</string>
@@ -304,7 +309,7 @@
 SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מאת Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">מעקב אחר בעיות</string>
     <string name="featured_playlists">פלייליסטים נבחרים</string>
-    <string name="featured_inArtist">נבחר ב</string>
+    <string name="featured_inArtist">נבחר לככב</string>
     <string name="audio_quality">איכות אודיו</string>
     <string name="play_video_for_video_track_instead_of_audio_only">הפעל וידאו עבור רצועת וידאו במקום אודיו בלבד</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">כגון קליפ מוזיקה, וידאו מילים, פודקאסטים, ועוד</string>
@@ -323,6 +328,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="add_to_queue">הוסף לתור</string>
     <string name="add_to_queue_disabled_radio">הוסף לתור (מושבת כאשר רדיו או מיקס מתנגן)</string>
     <string name="add_to_queue_disabled_endless">הוסף לתור (מושבת כאשר 'תור ללא הפסקה' מופעל)</string>
+    <string name="download_disabled_live">הורד (מושבת עבור שידורים חיים)</string>
     <string name="added_to_queue">נוסף לתור</string>
     <string name="new_release">שחרור חדש</string>
     <string name="music_video">קליפ מוזיקה</string>
@@ -330,9 +336,9 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="youtube_account">חשבון YouTube</string>
     <string name="manage_your_youtube_accounts">נהל את חשבונות ה-YouTube שלך</string>
     <string name="sync_follow_to_youtube">סנכרן מעקב עם YouTube</string>
-    <string name="equalizer">אקווילייזר by</string>
+    <string name="equalizer">אקולייזר</string>
     <string name="equalizer_description">עצב את הצליל בעזרת עקומה בת 10 מדרגות</string>
-    <string name="equalizer_type">סוג אקווילייזר</string>
+    <string name="equalizer_type">סוג אקולייזר</string>
     <string name="equalizer_type_built_in">מובנה</string>
     <string name="equalizer_type_system">מערכת</string>
     <string name="equalizer_preamp">מגבר-מקדים</string>
@@ -381,7 +387,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="signed_in">מחובר</string>
     <string name="guest">אורח</string>
     <string name="log_out_warning">להתנתק מכל החשבונות?</string>
-    <string name="play_next">נגן את השיר הבא</string>
+    <string name="play_next">נגן כשיר הבא</string>
     <string name="codec">מקדד</string>
     <string name="plays">כמות ניגונים/צפיות</string>
     <string name="like_and_dislike">%1$d לייק(ים), %2$d דיסלייק(ים)</string>
@@ -400,11 +406,14 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="offline_mode">מצב לא מקוון</string>
     <string name="added_to_youtube_liked">נוסף לרשימת התכנים שאהבת ב-YouTube</string>
     <string name="removed_from_youtube_liked">הוסר מרשימת התכנים שאהבת ב-YouTube</string>
+    <string name="dislike_on_youtube">דיסלייק (YouTube Music לא ימליץ על שיר זה לעתים קרובות)</string>
+    <string name="disliked">ביצעת דיסלייק</string>
+    <string name="disliking">מבצע דיסלייק…</string>
     <string name="home_limit">אחזר את מגבלת נתוני הבית</string>
     <string name="no_album">אין אלבום</string>
     <string name="app_widget_description">וידג'ט נגן</string>
     <string name="guide_miniplayer_content">החלק כדי להציג את לחצן הדילוג והסגירה</string>
-    <string name="guide_suggest_content">הצג שירים מוצעים מאת בינה מלאכותית בהתבסס על רשימת ההשמעה שלך</string>
+    <string name="guide_suggest_content">הצג שירים מוצעים מאת בינה מלאכותית בהתבסס על הפלייליסט שלך</string>
     <string name="guide_liked_title">הוסף לרשימת התכנים שאהבת ב-YouTube</string>
     <string name="log_out_from_spotify">התנתק מ-Spotify</string>
     <string name="delete">מחק</string>
@@ -412,7 +421,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="trending">להיטים</string>
     <string name="new_singles">סינגלים חדשים</string>
     <string name="new_albums">אלבומים חדשים</string>
-    <string name="notification">התראה</string>
+    <string name="notification">התראות</string>
     <string name="month_s_ago">לפני %1$d חודש(ים)</string>
     <string name="day_s_ago">לפני %1$d ימים</string>
     <string name="hour_s_ago">לפני %1$d שעות</string>
@@ -498,10 +507,10 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="auto_check_for_update">בדיקת עדכונים אוטומטית</string>
     <string name="auto_check_for_update_description">בודק אחר עדכון כשפותחים את האפליקציה</string>
     <string name="playback_speed_pitch"><![CDATA[מהירות וגובה צליל של הנגן]]></string>
-    <string name="playback_speed_pitch_disabled"><![CDATA[מהירות וגובה צליל של הנגן (מבוטל כאשר קרוספייד פעיל)]]></string>
+    <string name="playback_speed_pitch_disabled"><![CDATA[מהירות וגובה צליל של הנגן (מושבת כאשר קרוספייד פעיל)]]></string>
     <string name="playback_speed">מהירות הניגון</string>
     <string name="pitch">גובה צליל</string>
-    <string name="merging_audio_and_video">מערבב אודיו ווידאו</string>
+    <string name="merging_audio_and_video">משלב בין אודיו ווידאו</string>
     <string name="error_occurred">קרתה תקלה</string>
     <string name="downloading_audio">מוריד אודיו: %1$s </string>
     <string name="downloading_video">מוריד וידאו: %1$s </string>
@@ -548,7 +557,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="can_not_be_empty">לא יכול להיות ריק</string>
     <string name="processing">מעבד</string>
     <string name="website">אתר</string>
-    <string name="download_this_song_video_file_to_your_device">הורד את קובץ השיר/סרטון הזה למכשיר שלך</string>
+    <string name="download_this_song_video_file_to_your_device">הורד את קובץ השיר/הסרטון הזה למכשיר שלך</string>
     <string name="kill_service_on_exit">עצור שירות ביציאה</string>
     <string name="kill_service_on_exit_description">עצור את ניגון השירים ברקע כאשר יוצאים מהאפליקציה</string>
     <string name="desktop_player">נגן שולחן עבודה</string>
@@ -565,6 +574,13 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="auto_download_liked_songs">הורד סרטונים שאתה אוהב</string>
     <string name="auto_download_liked_songs_description">הורדה אוטומטית של שיר להשמעה במצב לא מקוון בעת ​​הוספתו למועדפים, עם הגדרת איכות ההורדה שלכם. הפעלת אפשרות זו תוריד גם את השירים שכבר אהבתם. הסרת לייק לעולם לא תמחק הורדה.</string>
     <string name="downloading_liked_songs">מוריד %1$d שירים מועדפים</string>
+    <string name="smart_downloads">הורדות חכמות</string>
+    <string name="smart_downloads_description">מוודא שהשירים שאתה שומע הכי הרבה יורדים למכשיר, מתרענן פעם ביום כאשר אתה פותח את האפליקציה בחיבור Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">הפעל את ההגדרה 'היסטוריית ההאזנה למעקב מקומי' כדי להשתמש בזה</string>
+    <string name="smart_downloads_size">שירים לשמירה</string>
+    <string name="smart_downloads_size_value">%1$d שירים</string>
+    <string name="smart_downloads_downloading">הורדות חכמות: מוריד %1$d שירים</string>
+    <string name="smart_downloads_waiting_for_wifi">הורדות חכמות יתחילו לעבוד בפעם הבאה שתפתחו את האפליקציה ברשת Wi-Fi</string>
     <string name="crossfade_skip_album">שמור על המשכיות האלבום</string>
     <string name="crossfade_skip_album_description">דלג על הקרוספייד בין שירים באותו אלבום, כך שאלבומים שנועדו לרוץ ללא פערים עדיין יפעלו. המעבר החוצה מהאלבום עדיין עובר קרוספייד.</string>
     <string name="youtube_subtitle_language">שפת תרגום כתוביות של YouTube</string>
@@ -706,7 +722,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="blog_notification_title">עדכוני פוסט הבלוג</string>
     <string name="blog_notification_description">קבל התראה כאשר פוסט בלוג חדש מפורסם</string>
     <string name="simpmusic_charts">מצעדי SimpMusic</string>
-    <string name="crossfading">מערבב</string>
+    <string name="crossfading">משלב בין השירים</string>
     <string name="your_320kbps_url">קישור ה-320kbps שלך</string>
     <string name="your_320kbps_url_description">השאר ריק כדי לבחור אוטומטית את הקישור העובד מבודק זמן הפעילות.</string>
     <string name="search_for">חפש עבור</string>
@@ -729,7 +745,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="audio_output_hdmi">HDMI</string>
     <string name="import_data">יבא פלייליסטים</string>
     <string name="import_playlists_from_other_apps">יבא פלייליסטים מאפליקציה אחרת</string>
-    <string name="import_data_intro">ייבוא מביא רשימות השמעה שהומרו מ-Spotify או מאפליקציית לקוח אחרת של YouTube Music.\nכלי המרה: https://www.simpmusic.org/tools\nב-SimpMusic, ניתן לייבא רק קבצי פלייליסט בפורמט שלנו</string>
+    <string name="import_data_intro">ייבוא מביא פלייליסטים שהומרו מ-Spotify או מאפליקציית לקוח אחרת של YouTube Music.\nכלי המרה: https://www.simpmusic.org/tools\nב-SimpMusic, ניתן לייבא רק קבצי פלייליסט בפורמט שלנו</string>
     <string name="import_reading_file">קורא קובץ…</string>
     <string name="import_progress_songs">%1$d מתוך %2$d שירים</string>
     <string name="import_result">נוצרו %1$d פלייליסטים ויובאו %2$d שירים.</string>
@@ -773,7 +789,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="lt_save_server">שמור שרת</string>
     <string name="lt_as_host">כאשר אתה מארח</string>
     <string name="lt_auto_approve_joins">אשר הזמנות אוטומטית</string>
-    <string name="lt_auto_approve_joins_desc">כל אחד עם הקוד יכול להצטרף מבלי לשאול</string>
+    <string name="lt_auto_approve_joins_desc">כל אחד עם הקוד יכול להצטרף מבלי לבקש אישור</string>
     <string name="lt_blocked">חסומים</string>
     <string name="lt_blocked_empty">אף אחד לא חסום</string>
     <string name="lt_unblock">בטל חסימה</string>
@@ -930,7 +946,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="receipt_date">%1$s,%2$s%3$s,%4$s</string>
     <string name="receipt_qty">כמות</string>
     <string name="receipt_item">פריט</string>
-    <string name="receipt_amount">סכום</string>
+    <string name="receipt_amount">אורך</string>
     <string name="receipt_item_count">כמות פריט:</string>
     <string name="receipt_total">סך הכל:</string>
     <string name="receipt_card">כרטיס #: **** **** **** %1$s</string>
@@ -938,7 +954,7 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="receipt_cardholder">מחזיק הכרטיס: %1$s</string>
     <string name="receipt_thanks">תודה שהאזנת!</string>
     <string name="receipt_entry_title">קבלת ההאזנה שלך</string>
-    <string name="receipt_entry_subtitle">%1$s, הודפס וזמין לשיתוף.</string>
+    <string name="receipt_entry_subtitle">%1$s, מודפס וזמין לשיתוף.</string>
     <string name="move_to_play_next">העבר להפעלה הבאה</string>
     <string name="custom_base_url">כתובת אתר בסיס מותאמת אישית</string>
     <string name="base_url">כתובת אתר בסיסית</string>
@@ -972,4 +988,13 @@ SimpMusic תמיד בחינם וללא פרסומות \n\nנבנה ב-❤️ מ�
     <string name="log_stack_trace_lines">עקבות מחסנית • %1$s שורות</string>
     <string name="log_hide_stack_trace">הסתר עקבות מחסנית</string>
     <string name="log_export_failed">לא ניתן היה לייצא את הרשומות</string>
+    <string name="comments">תגובות</string>
+    <string name="reply">השב</string>
+    <string name="replying_to">משיב ל-%1$s</string>
+    <string name="comments_log_in_hint">התחבר כדי להגיב, להשיב ולשים לייק</string>
+    <string name="comments_log_in_message">התחבר ל-YouTube כדי להגיב, להשיב ולשים לייקים לתגובות.</string>
+    <string name="comments_turned_off">התגובות כבויות</string>
+    <string name="comments_load_error">לא ניתן היה לטעון תגובות</string>
+    <string name="comment_post_error">לא ניתן היה לפרסם את התגובה שלך</string>
+    <string name="comments_need_channel">צור ערוץ YouTube כדי להגיב</string>
 </resources>

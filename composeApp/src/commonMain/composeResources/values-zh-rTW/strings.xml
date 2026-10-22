@@ -14,6 +14,9 @@
     <plurals name="liked_songs_count">
         <item quantity="other">%1$d 首歌</item>
     </plurals>
+    <plurals name="library_artist_count">
+        <item quantity="other">%1$d藝術家</item>
+    </plurals>
     <string name="like">按讚</string>
     <string name="hello_blank_fragment">測試文字</string>
     <string name="download">下載</string>

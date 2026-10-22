@@ -15,6 +15,11 @@
         <item quantity="one">%1$d Songs</item>
         <item quantity="other">%1$d Songs</item>
     </plurals>
+    <plurals name="library_artist_count">
+        <item quantity="one">%1$d Künstler</item>
+        <item quantity="other">%1$d Künstler</item>
+    </plurals>
+    <string name="library_favorite_empty_hint">Tippe bei einem beliebigen Song auf das Herz, um ihn hier zu behalten.</string>
     <string name="like">Gefällt mir</string>
     <string name="hello_blank_fragment">Hallo, leeres Fragment</string>
     <string name="download">Herunterladen</string>
@@ -106,6 +111,7 @@
     <string name="let_s_start_with_a_radio">STARTE MIT EINEM RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">WÄHLE EINE PLAYLIST FÜR DICH AUS</string>
     <string name="moods_amp_moment"><![CDATA[Gefühle & Momente]]></string>
+    <string name="mood">Stimmung</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">WAS HEUTE DIE BESTE WAHL IST</string>
     <string name="chart">Chart</string>
@@ -120,6 +126,8 @@
     <string name="storage">Speicher</string>
     <string name="player_cache">Player-Cache</string>
     <string name="downloaded_cache">Download-Cache</string>
+    <string name="cached">Cache</string>
+    <string name="remove_from_cache">Aus dem Cache löschen</string>
     <string name="thumbnail_cache">Titelbild-Cache</string>
     <string name="backup">Sicherung</string>
     <string name="backup_your_data">Sichere deine Daten</string>
@@ -135,6 +143,7 @@
     <string name="developer_blog">Entwickler-Blog</string>
     <string name="developer_blog_tagline">Lesen Sie Entwicklernotizen, Tutorials &amp; hinter den Kulissen</string>
     <string name="blog_promo_title">Neues vom Entwickler</string>
+    <string name="blog_promo_message">Ich habe gerade den SimpMusic-Blog unter simpmusic.org gestartet – dort erzähle ich die Geschichte hinter SimpMusic, gehe ausführlich auf Musiktechnologie ein und teile technische Einblicke. Schaut doch mal rein, wenn ihr neugierig seid ✨</string>
     <string name="visit_blog">Blog besuchen</string>
     <string name="paypal">PayPal</string>
     <string name="title">Titel</string>
@@ -147,6 +156,8 @@
     <string name="recently">Kürzlich</string>
     <string name="settings">Einstellungen</string>
     <string name="now_playing_upper">JETZT LÄUFT</string>
+    <string name="radio_mix_upper">RADIO/MIX</string>
+    <string name="radio_mix">Radio/Mix</string>
     <string name="language">Sprache</string>
     <string name="what_do_you_want_to_listen_to">Was möchtest du hören?</string>
     <string name="songs_inArtist">Songs</string>
@@ -212,6 +223,7 @@
     <string name="categories_sponsor_block">Auswählen, welche Segmente übersprungen werden sollen</string>
     <string name="what_segments_will_be_skipped">Welche Segmente übersprungen werden</string>
     <string name="save">Speichern</string>
+    <string name="crop_cover">Cover zuschneiden</string>
     <string name="saved">Gespeichert</string>
     <string name="sponsor_block_intro">SponsorBlock ist ein Community-Basiertes System, um unerwünschte Teile von YouTube Videos zu überspringen. Mehr darüber: https://sponsor.ajay.app SponsorBlock ist nur dann verfügbar, wenn du online bist</string>
     <string name="skip_sponsor_part_of_video">Gesponserten Teil des Videos überspringen</string>
@@ -309,6 +321,9 @@
     <string name="play_video_instead_of_audio_warning">Diese Aktion wird den Player-Cache löschen. Fortfahren?</string>
     <string name="quality_video">Videoqualität</string>
     <string name="add_to_queue">Zur Warteschlange hinzufügen</string>
+    <string name="add_to_queue_disabled_radio">Zur Warteschlange hinzufügen (deaktiviert, während ein Radio oder Mix spielt)</string>
+    <string name="add_to_queue_disabled_endless">Zur Warteschlange hinzufügen (deaktiviert, wenn endlose Warteschlange aktiviert ist)</string>
+    <string name="download_disabled_live">Download (deaktiviert für Live-Streams)</string>
     <string name="added_to_queue">Zur Warteschlange hinzugefügt</string>
     <string name="new_release">Neuerscheinung</string>
     <string name="music_video">Musikvideo</string>
@@ -367,7 +382,7 @@
     <string name="signed_in">Eingeloggt</string>
     <string name="guest">Gast</string>
     <string name="log_out_warning">Von allen Accounts abmelden?</string>
-    <string name="play_next">Als nächstes spielen</string>
+    <string name="play_next">Als nächstes abspielen</string>
     <string name="codec">Codec</string>
     <string name="plays">Aufrufe</string>
     <string name="like_and_dislike">%1$d mag ich, %2$d mag ich nicht</string>
@@ -386,6 +401,9 @@
     <string name="offline_mode">Offline-Modus</string>
     <string name="added_to_youtube_liked">Zu YouTube-Like-Playlist hinzugefügt</string>
     <string name="removed_from_youtube_liked">Aus YouTube-Like-Playlist entfernt </string>
+    <string name="dislike_on_youtube">Gefällt mir nicht (YouTube Musik wird dieses Lied nicht oft empfehlen)</string>
+    <string name="disliked">Gefällt mir nicht</string>
+    <string name="disliking">Disliking…</string>
     <string name="home_limit">Datenlimit für Startseite festlegen</string>
     <string name="no_album">Kein Album</string>
     <string name="app_widget_description">Spieler-Widget</string>
@@ -452,7 +470,7 @@
     <string name="updating">Updating</string>
     <string name="go_to_log_in_page">Zur Anmeldeseite</string>
     <string name="log_in_warning">YouTube Music erfordert jetzt das Einloggen um Musik zu streamen, Piped Instance kann manchmal nicht funktionieren. Du solltest dich bei YouTube anmelden, um ein besseres Erlebnis mit SimpMusic zu bekommen.</string>
-    <string name="spotify_canvas_cache">Spotify Canvas-Cache</string>
+    <string name="spotify_canvas_cache">Canvas-Cache</string>
     <string name="clear_canvas_cache">Leere Canvas-Cache</string>
     <string name="listening_history">Hörverlauf</string>
     <string name="clear_listening_history">Hörverlauf löschen</string>
@@ -547,10 +565,17 @@
     <string name="crossfade_auto">Automatisch</string>
     <string name="crossfade_auto_description">Berechne die Spieldauer automatisch anhand der BPM (320kbps Stream mit BPM-Daten erforderlich)</string>
     <string name="crossfade_dj_mode">Übergang im DJ-Style</string>
-    <string name="crossfade_dj_mode_description">Einen Tiefpass- und Hochpassfilter Sweep während des Crossfades für einen DJ-artigen Übergang (ähnlich dem Apple Music Automix) anwenden.</string>
-    <string name="auto_download_liked_songs">Lade Songs herunter, die dir gefallen</string>
+    <string name="crossfade_dj_mode_description">Einen Tiefpass- und Hochpassfilter Sweep während des Crossfades für einen DJ-Artigen Übergang (ähnlich dem Apple Music Automix) anwenden.</string>
+    <string name="auto_download_liked_songs">Lade Songs automatisch herunter, die dir gefallen</string>
     <string name="auto_download_liked_songs_description">Wenn du einen Titel zu deinen Favoriten hinzufügst, wird er automatisch in der von dir gewählten Download-Qualität für die Offline-Wiedergabe heruntergeladen. Wenn du diese Funktion aktivierst, werden auch die Titel heruntergeladen, die du bereits mit „Gefällt mir“ markiert hast. Das Entfernen eines „Gefällt mir“ führt niemals zum Löschen eines Downloads.</string>
     <string name="downloading_liked_songs">Lade %1$d Songs herunter</string>
+    <string name="smart_downloads">Smart Downloads</string>
+    <string name="smart_downloads_description">Speichert die Songs, die du am häufigsten abspielst, und aktualisiert die Liste einmal täglich, wenn du die App im WLAN öffnest.</string>
+    <string name="smart_downloads_needs_local_tracking">Aktivieren Sie den lokalen Wiedergabeverlauf um dies zu verwenden</string>
+    <string name="smart_downloads_size">Anzahl der Songs, die behalten werden</string>
+    <string name="smart_downloads_size_value">%1$d Songs</string>
+    <string name="smart_downloads_downloading">Smart downloads: Lade %1$d Lieder herunter</string>
+    <string name="smart_downloads_waiting_for_wifi">Smart downloads werden beim nächsten Öffnen der App über WLAN gestartet.</string>
     <string name="crossfade_skip_album">Alben fortlaufend anzeigen</string>
     <string name="crossfade_skip_album_description">Crossfade zwischen Songs desselben Albums wird übersprungen, sodass Alben, die lückenlos abgespielt werden sollen, dies auch weiterhin tun. Der Übergang aus dem Album erfolgt weiterhin mit Crossfade.</string>
     <string name="youtube_subtitle_language">YouTube Untertitelübersetzungssprache</string>
@@ -665,7 +690,7 @@
     <string name="analytics_previous_period">Vorheriger Zeitraum</string>
     <string name="analytics_decade_coverage">Basierend auf den %1$s der Wiedergaben, die Albuminformationen enthalten – bei Titeln, die im Radio oder als eigenständige Videos abgespielt werden, ist das Erscheinungsjahr nicht bekannt.</string>
     <string name="analytics_decade_pre">Vor %1$d</string>
-    <string name="analytics_axis_consistency">Cohérence</string>
+    <string name="analytics_axis_consistency">Konsistent</string>
     <string name="analytics_axis_discovery">Entdeckungen</string>
     <string name="analytics_axis_diversity">Vielfalt</string>
     <string name="analytics_axis_concentration">Konzentration</string>
@@ -706,6 +731,7 @@
     <string name="playing_on_device">Abspielen auf %1$s</string>
     <string name="not_available_while_casting">Während des Castings nicht verfügbar</string>
     <string name="audio_output">Audio-Ausgang</string>
+    <string name="audio_output_playing_here">Hier abspielen</string>
     <string name="audio_output_system_default">Systemstandard</string>
     <string name="audio_output_wired">Kabelgebundene Kopfhörer</string>
     <string name="audio_output_bluetooth">Bluetooth</string>
@@ -924,6 +950,7 @@ In SimpMusic können nur Playlist-Dateien in unserem eigenen Format importiert w
     <string name="receipt_thanks">Vielen Dank fürs Zuhören!</string>
     <string name="receipt_entry_title">Dein Hörbeleg</string>
     <string name="receipt_entry_subtitle">%1$s, gedruckt und bereit zum Teilen.</string>
+    <string name="move_to_play_next">Als nächstes abspielen</string>
     <string name="custom_base_url">Benutzerdefinierte Basis-URL</string>
     <string name="base_url">Basis-URL</string>
     <string name="invalid_url_format">Ungültiges URL-Format</string>
@@ -953,4 +980,13 @@ In SimpMusic können nur Playlist-Dateien in unserem eigenen Format importiert w
     <string name="log_paused">Pausiert · %1$s Zeilen</string>
     <string name="log_empty">Noch nichts protokolliert</string>
     <string name="log_export_failed">Protokoll konnte nicht exportiert werden</string>
+    <string name="comments">Kommentare</string>
+    <string name="reply">Antworten</string>
+    <string name="replying_to">Antworten auf %1$s</string>
+    <string name="comments_log_in_hint">Melde die an, um Kommentare abzugeben, zu antworten und Beiträge zu liken. </string>
+    <string name="comments_log_in_message">Melde dich bei YouTube an, um Kommentare zu schreiben, darauf zu antworten und Kommentare zu liken.</string>
+    <string name="comments_turned_off">Kommentare sind deaktiviert.</string>
+    <string name="comments_load_error">Konnte Kommentare nicht laden</string>
+    <string name="comment_post_error">Konnte Ihren Kommentar nicht veröffentlichen</string>
+    <string name="comments_need_channel">Erstelle einen YouTube-Kanal zum kommentieren</string>
 </resources>
