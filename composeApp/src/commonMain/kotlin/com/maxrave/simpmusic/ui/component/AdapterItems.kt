@@ -427,6 +427,23 @@ internal fun rememberCardHover(enabled: Boolean): Pair<Modifier, Boolean> {
     return modifier to active
 }
 
+/**
+ * Zooms a hovered Home card's artwork inside its own frame. It goes after the frame's clip, so the
+ * picture grows while the frame stays put and never spills onto the next card in the row.
+ */
+@Composable
+internal fun Modifier.hoverZoom(active: Boolean): Modifier {
+    val scale by animateFloatAsState(
+        targetValue = if (active) 1.06f else 1f,
+        animationSpec = tween(200),
+        label = "hoverZoom",
+    )
+    return graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+    }
+}
+
 /** The theme-coloured play button of a hovered Home card, rising onto the artwork's corner. */
 @Composable
 internal fun BoxScope.HoverPlayButton(
@@ -661,7 +678,7 @@ fun HomeItemContentPlaylist(
                             .aspectRatio(1f)
                             .clip(
                                 RoundedCornerShape(10.dp),
-                            ),
+                            ).hoverZoom(hovered),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
             }
@@ -959,7 +976,7 @@ fun HomeItemSong(
                             .then(if (fillMaxWidth) Modifier.fillMaxWidth().aspectRatio(1f) else Modifier.size(160.dp))
                             .clip(
                                 RoundedCornerShape(10.dp),
-                            ),
+                            ).hoverZoom(hovered),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
             }
@@ -1064,7 +1081,7 @@ fun HomeItemVideo(
                             .aspectRatio(16f / 9f)
                             .clip(
                                 RoundedCornerShape(10.dp),
-                            ),
+                            ).hoverZoom(hovered),
                 )
                 if (onPlay != null) HoverPlayButton(visible = hovered, onClick = onPlay)
             }
