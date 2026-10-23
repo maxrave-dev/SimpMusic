@@ -184,7 +184,8 @@ sentry {
             }
         authToken.set(token ?: "")
         includeProguardMapping.set(true)
-        autoUploadProguardMapping.set(true)
+        // Pull requests from forks get no secrets: build without uploading instead of failing on a 401.
+        autoUploadProguardMapping.set(!token.isNullOrBlank())
     } else {
         includeProguardMapping.set(false)
         autoUploadProguardMapping.set(false)
