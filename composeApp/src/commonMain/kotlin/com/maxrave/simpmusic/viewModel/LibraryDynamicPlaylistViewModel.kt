@@ -7,6 +7,7 @@ import com.maxrave.domain.data.entities.ArtistEntity
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.extension.now
+import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.AnalyticsRepository
@@ -18,6 +19,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullNameResource
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,15 +27,19 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.atTime
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.playlist
+import simpmusic.composeapp.generated.resources.removed_download
 import simpmusic.composeapp.generated.resources.wrapped_recap_month
 import simpmusic.composeapp.generated.resources.wrapped_recap_month_year
 
@@ -43,6 +49,8 @@ class LibraryDynamicPlaylistViewModel(
     private val analyticsRepository: AnalyticsRepository,
     private val cacheRepository: CacheRepository,
 ) : BaseViewModel() {
+    private val downloadUtils: DownloadHandler by inject()
+
     private val _listFavoriteSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listFavoriteSong: StateFlow<List<SongEntity>> get() = _listFavoriteSong
 
@@ -200,6 +208,30 @@ class LibraryDynamicPlaylistViewModel(
             viewModelScope.launch {
                 _listCachedSong.value = loadCachedSongs(cacheRepository, songRepository)
             }
+    }
+
+    /**
+     * Removes the downloads behind the Downloaded list's swipe and its multi-select action, the
+     * same way the song menu's Download toggle does.
+     *
+     * The rows leave the list first: [SongRepository.getDownloadedSongs] is read once rather than
+     * observed, so nothing else would take them off the screen.
+     */
+    fun removeDownloads(videoIds: List<String>) {
+        if (videoIds.isEmpty()) return
+        _listDownloadedSong.update { songs -> songs.filterNot { it.videoId in videoIds } }
+        viewModelScope.launch {
+            // Off the main thread: Desktop's removeDownload scans the downloads folder once per
+            // song, and a selection can hold 25 of them.
+            withContext(Dispatchers.IO) {
+                videoIds.forEach { videoId ->
+                    downloadUtils.removeDownload(videoId)
+                    songRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+            // One toast for the batch, as the other selection actions do.
+            makeToast(getString(Res.string.removed_download))
+        }
     }
 
     fun removeFromCache(videoId: String) {
