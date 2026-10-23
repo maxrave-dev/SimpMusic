@@ -1,0 +1,11 @@
+Mới:
+- Sidebar Thư viện trên máy tính, Tải xuống thông minh
+- Bình luận YouTube và nút Không thích
+- Header Home mới có nút Tạo, playlist bộ nhớ đệm
+- Tìm kiếm khi thêm vào playlist, icon app mới
+Cải thiện:
+- Chip glass và ảnh nền ở Home, giao diện tối thôi đen tuyền
+- Tên radio, nhãn LIVE, artwork trình phát Apple Music, icon đều cỡ
+Sửa lỗi:
+- Crash khi mở bản FOSS, crash và treo khi đăng nhập, bài tải lỗi hiện là đã tải
+- Thêm vào hàng chờ trống, icon shuffle Android Auto, Hebrew/RTL, banner

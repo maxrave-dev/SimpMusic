@@ -81,7 +81,7 @@ val SimpIcons.Download: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Download!!
   }
 

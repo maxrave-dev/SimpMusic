@@ -81,7 +81,7 @@ val SimpIcons.Speaker: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Speaker!!
   }
 

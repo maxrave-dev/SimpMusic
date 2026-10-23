@@ -93,7 +93,7 @@ val SimpIcons.AddCircleOutline: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _AddCircleOutline!!
   }
 

@@ -105,7 +105,7 @@ fun InfiniteBorderAnimationView(
             modifier =
                 Modifier
                     .background(
-                        color = if (isAnimated) Color.Black else backgroundColor,
+                        color = if (isAnimated) MaterialTheme.colorScheme.background else backgroundColor,
                     ).padding(
                         contentPadding,
                     ),

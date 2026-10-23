@@ -109,6 +109,7 @@
     <string name="let_s_start_with_a_radio">BẮT ĐẦU MỘT ĐÀI PHÁT</string>
     <string name="let_s_pick_a_playlist_for_you">CHỌN MỘT DANH SÁCH PHÁT CHO BẠN</string>
     <string name="moods_amp_moment"><![CDATA[Tâm trạng và khoảnh khắc]]></string>
+    <string name="mood">Tâm trạng</string>
     <string name="genre">Thể loại</string>
     <string name="what_is_best_choice_today">LỰA CHỌN TỐT NHẤT HÔM NAY</string>
     <string name="chart">Bảng xếp hạng</string>
@@ -123,6 +124,8 @@
     <string name="storage">Lưu trữ</string>
     <string name="player_cache">Cache của trình phát nhạc</string>
     <string name="downloaded_cache">Nội dung đã tải xuống</string>
+    <string name="cached">Đã lưu trong bộ nhớ đệm</string>
+    <string name="remove_from_cache">Xoá khỏi bộ nhớ đệm</string>
     <string name="thumbnail_cache">Ảnh đã tải xuống</string>
     <string name="backup">Sao lưu</string>
     <string name="backup_your_data">Sao lưu dữ liệu của bạn</string>
@@ -151,6 +154,8 @@
     <string name="recently">Gần đây</string>
     <string name="settings">Cài đặt</string>
     <string name="now_playing_upper">ĐANG PHÁT</string>
+    <string name="radio_mix_upper">RADIO/Trộn</string>
+    <string name="radio_mix">Radio/Trộn</string>
     <string name="language">Ngôn ngữ</string>
     <string name="what_do_you_want_to_listen_to">Bạn đang muốn nghe gì?</string>
     <string name="songs_inArtist">Bài hát</string>
@@ -315,6 +320,7 @@
     <string name="add_to_queue">Thêm vào hàng đợi</string>
     <string name="add_to_queue_disabled_radio">Thêm vào hàng đợi (bị vô hiệu hóa khi đang phát đài hoặc bản phối)</string>
     <string name="add_to_queue_disabled_endless">Thêm vào hàng đợi (bị vô hiệu hóa khi bật chế độ hàng đợi vô tận)</string>
+    <string name="download_disabled_live">Tải xuống (vô hiệu hóa với livestreams)</string>
     <string name="added_to_queue">Đã thêm vào hàng đợi</string>
     <string name="new_release">Mới phát hành</string>
     <string name="music_video">Video âm nhạc</string>
@@ -392,6 +398,9 @@
     <string name="offline_mode">Chế độ ngoại tuyến</string>
     <string name="added_to_youtube_liked">Thêm vào danh sách phát YouTube Yêu Thích</string>
     <string name="removed_from_youtube_liked">Đã xoá khỏi danh sách phát YouTube Yêu Thích</string>
+    <string name="dislike_on_youtube">Không thích (YouTube Music sẽ không thường xuyên đề xuất bài hát này nữa)</string>
+    <string name="disliked">Không thích</string>
+    <string name="disliking">Đang không thích...</string>
     <string name="home_limit">Giới hạn lấy dữ liệu trang chủ</string>
     <string name="no_album">Không có album</string>
     <string name="app_widget_description">Tiện ích trình phát nhạc</string>
@@ -557,6 +566,13 @@
     <string name="auto_download_liked_songs">Tải bài hát bạn đã thích</string>
     <string name="auto_download_liked_songs_description">Tự động tải xuống bài hát để phát lại ngoại tuyến khi bạn thêm bài hát đó vào Mục yêu thích bằng cách sử dụng cài đặt chất lượng tải xuống của bạn. Bật tính năng này cũng sẽ tải xuống các bài hát bạn đã thích. Việc xóa lượt thích không bao giờ xóa lượt tải xuống.</string>
     <string name="downloading_liked_songs">Đang tải xuống %1$d bài hát đã thích</string>
+    <string name="smart_downloads">Tải xuống thông minh</string>
+    <string name="smart_downloads_description">Lưu giữ các bài hát bạn phát được tải xuống nhiều nhất, được làm mới mỗi ngày một lần khi bạn mở ứng dụng trên Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">Bật lịch sử nghe theo dõi cục bộ để sử dụng tính năng này</string>
+    <string name="smart_downloads_size">Bài hát cần lưu giữ</string>
+    <string name="smart_downloads_size_value">%1$d bài hát</string>
+    <string name="smart_downloads_downloading">Tải xuống thông minh: đang tải %1$d bài hát</string>
+    <string name="smart_downloads_waiting_for_wifi">Quá trình tải xuống thông minh sẽ bắt đầu vào lần tiếp theo bạn mở ứng dụng qua Wi-Fi</string>
     <string name="crossfade_skip_album">Giữ album phát liên tục</string>
     <string name="crossfade_skip_album_description">Bỏ qua chuyển bài mượt mà giữa các bản nhạc trong cùng một album, vì vậy các album có mục đích chạy không có khoảng trống vẫn được thực hiện. Quá trình chuyển đổi ra khỏi album vẫn áp dụng chuyển bài mượt mà nếu bật.</string>
     <string name="youtube_subtitle_language">Ngôn ngữ dịch cho phụ đề YouTube</string>
@@ -964,4 +980,13 @@
     <string name="log_stack_trace_lines">Dấu vết ngăn xếp · %1$s dòng</string>
     <string name="log_hide_stack_trace">Ẩn dấu vết ngăn xếp</string>
     <string name="log_export_failed">Không thể xuất log ra được</string>
+    <string name="comments">Bình luận</string>
+    <string name="reply">Trả lời</string>
+    <string name="replying_to">Đang trả lời tới %1$s</string>
+    <string name="comments_log_in_hint">Đăng nhập để bình luận, trả lời và thích</string>
+    <string name="comments_log_in_message">Đăng nhập vào YouTube để bình luận, trả lời và thích.</string>
+    <string name="comments_turned_off">Tính năng bình luận đã bị tắt</string>
+    <string name="comments_load_error">Không thể tải bình luận</string>
+    <string name="comment_post_error">Không thể đăng bình luận</string>
+    <string name="comments_need_channel">Tạo một kênh YouTube để bình luận</string>
 </resources>

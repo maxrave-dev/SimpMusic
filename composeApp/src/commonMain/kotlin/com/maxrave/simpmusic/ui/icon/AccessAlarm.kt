@@ -95,7 +95,7 @@ val SimpIcons.AccessAlarm: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _AccessAlarm!!
   }
 

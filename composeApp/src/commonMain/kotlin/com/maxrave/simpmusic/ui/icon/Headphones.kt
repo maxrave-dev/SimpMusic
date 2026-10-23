@@ -73,7 +73,7 @@ val SimpIcons.Headphones: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Headphones!!
   }
 

@@ -71,7 +71,7 @@ val SimpIcons.FastForward: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _FastForward!!
   }
 

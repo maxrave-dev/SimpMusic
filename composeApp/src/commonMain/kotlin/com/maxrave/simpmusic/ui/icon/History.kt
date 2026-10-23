@@ -93,7 +93,7 @@ val SimpIcons.History: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _History!!
   }
 

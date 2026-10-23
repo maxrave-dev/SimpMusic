@@ -107,7 +107,7 @@ val SimpIcons.Settings: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Settings!!
   }
 

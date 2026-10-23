@@ -37,6 +37,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.model.library.LibraryCollectionPreview
 import com.maxrave.domain.data.model.library.LibraryOverview
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.taste.libraryCardColor
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
@@ -45,6 +47,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.cached
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -54,51 +57,80 @@ import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.most_played
 
 /**
- * The four collections at the top of the Your library tab: Favorite as the wide card, then
- * Followed, Most played and Downloaded. Each card fans out the artwork of its newest items; with
+ * The collections at the top of the Your library tab: Favorite as the wide card, then Followed,
+ * Most played and Downloaded — and on Android, Cached, which turns the row of three into a 2×2
+ * grid (Desktop keeps no song cache). Each card fans out the artwork of its newest items; with
  * nothing in it yet the fan is a set of empty dashed sleeves, so a new user sees the same shapes
- * waiting to be filled rather than a blank card. [overview] is null until the first read lands,
- * and the cards then draw their titles alone.
+ * waiting to be filled rather than a blank card. [overview] and [cached] are null until their first
+ * read lands, and the cards then draw their titles alone.
  */
 @Composable
 fun LibraryTilingBox(
     navController: NavController,
     overview: LibraryOverview?,
+    cached: LibraryCollectionPreview?,
 ) {
     val container = libraryCardColor()
     val open = { type: LibraryDynamicPlaylistType ->
         navController.navigate(LibraryDynamicPlaylistDestination(type = type.toStringParams()))
+    }
+    val followedCard: @Composable (Modifier) -> Unit = { modifier ->
+        CollectionCard(
+            title = Res.string.followed,
+            preview = overview?.followed,
+            countText = overview?.followed?.count?.let { pluralStringResource(Res.plurals.library_artist_count, it, it) },
+            round = true,
+            container = container,
+            modifier = modifier,
+        ) { open(LibraryDynamicPlaylistType.Followed) }
+    }
+    val mostPlayedCard: @Composable (Modifier) -> Unit = { modifier ->
+        CollectionCard(
+            title = Res.string.most_played,
+            preview = overview?.mostPlayed,
+            countText = overview?.mostPlayed?.count?.let { pluralStringResource(Res.plurals.liked_songs_count, it, it) },
+            round = false,
+            container = container,
+            modifier = modifier,
+        ) { open(LibraryDynamicPlaylistType.MostPlayed) }
+    }
+    val downloadedCard: @Composable (Modifier) -> Unit = { modifier ->
+        CollectionCard(
+            title = Res.string.downloaded,
+            preview = overview?.downloaded,
+            countText = overview?.downloaded?.count?.let { pluralStringResource(Res.plurals.liked_songs_count, it, it) },
+            round = false,
+            container = container,
+            modifier = modifier,
+        ) { open(LibraryDynamicPlaylistType.Downloaded) }
     }
     Column(
         modifier = Modifier.fillMaxWidth().padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         FavoriteCard(overview?.favorite, container) { open(LibraryDynamicPlaylistType.Favorite) }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            CollectionCard(
-                title = Res.string.followed,
-                preview = overview?.followed,
-                countText = overview?.followed?.count?.let { pluralStringResource(Res.plurals.library_artist_count, it, it) },
-                round = true,
-                container = container,
-                modifier = Modifier.weight(1f),
-            ) { open(LibraryDynamicPlaylistType.Followed) }
-            CollectionCard(
-                title = Res.string.most_played,
-                preview = overview?.mostPlayed,
-                countText = overview?.mostPlayed?.count?.let { pluralStringResource(Res.plurals.liked_songs_count, it, it) },
-                round = false,
-                container = container,
-                modifier = Modifier.weight(1f),
-            ) { open(LibraryDynamicPlaylistType.MostPlayed) }
-            CollectionCard(
-                title = Res.string.downloaded,
-                preview = overview?.downloaded,
-                countText = overview?.downloaded?.count?.let { pluralStringResource(Res.plurals.liked_songs_count, it, it) },
-                round = false,
-                container = container,
-                modifier = Modifier.weight(1f),
-            ) { open(LibraryDynamicPlaylistType.Downloaded) }
+        if (getPlatform() == Platform.Android) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                followedCard(Modifier.weight(1f))
+                mostPlayedCard(Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                downloadedCard(Modifier.weight(1f))
+                CollectionCard(
+                    title = Res.string.cached,
+                    preview = cached,
+                    countText = cached?.count?.let { pluralStringResource(Res.plurals.liked_songs_count, it, it) },
+                    round = false,
+                    container = container,
+                    modifier = Modifier.weight(1f),
+                ) { open(LibraryDynamicPlaylistType.Cached) }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                followedCard(Modifier.weight(1f))
+                mostPlayedCard(Modifier.weight(1f))
+                downloadedCard(Modifier.weight(1f))
+            }
         }
     }
 }

@@ -83,7 +83,7 @@ val SimpIcons.RssFeed: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _RssFeed!!
   }
 

@@ -122,7 +122,7 @@ val SimpIcons.SyncDisabled: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _SyncDisabled!!
   }
 

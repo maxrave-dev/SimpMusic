@@ -101,7 +101,7 @@ val SimpIcons.Fullscreen: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Fullscreen!!
   }
 

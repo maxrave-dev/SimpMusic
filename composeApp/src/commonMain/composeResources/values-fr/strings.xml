@@ -111,6 +111,7 @@
     <string name="let_s_start_with_a_radio">COMMENÇONS PAR UNE RADIO !</string>
     <string name="let_s_pick_a_playlist_for_you">CHOISISSONS UNE PLAYLIST POUR VOUS</string>
     <string name="moods_amp_moment"><![CDATA[Ambiances & Moments]]></string>
+    <string name="mood">Humeur</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">QUEL EST LE MEILLEUR CHOIX AUJOURd'HUI ?</string>
     <string name="chart">Classements</string>
@@ -125,6 +126,8 @@
     <string name="storage">Stockage</string>
     <string name="player_cache">Cache du lecteur</string>
     <string name="downloaded_cache">Cache téléchargé</string>
+    <string name="cached">En cache</string>
+    <string name="remove_from_cache">Supprimer du cache</string>
     <string name="thumbnail_cache">Cache des miniatures</string>
     <string name="backup">Sauvegarde</string>
     <string name="backup_your_data">Sauvegarder vos données</string>
@@ -153,6 +156,8 @@
     <string name="recently">Récemment</string>
     <string name="settings">Paramètres</string>
     <string name="now_playing_upper">LECTURE EN COURS</string>
+    <string name="radio_mix_upper">RADIO/MIX</string>
+    <string name="radio_mix">Radio/Mix</string>
     <string name="language">Langue</string>
     <string name="what_do_you_want_to_listen_to">Que souhaitez-vous écouter ?</string>
     <string name="songs_inArtist">Titres</string>
@@ -316,6 +321,9 @@
     <string name="play_video_instead_of_audio_warning">Cette action supprimera le cache du lecteur. Souhaitez-vous continuer ?</string>
     <string name="quality_video">Qualité vidéo</string>
     <string name="add_to_queue">Ajouter à la file d'attente</string>
+    <string name="add_to_queue_disabled_radio">Ajouter à la file d'attente (fonctionnalité désactivée pendant la diffusion d'une station de radio ou d'un mix)</string>
+    <string name="add_to_queue_disabled_endless">Ajouter à la file d'attente (désactivé lorsque la file d'attente illimitée est activée)</string>
+    <string name="download_disabled_live">Télécharger (fonctionnalité désactivée pour les diffusions en direct)</string>
     <string name="added_to_queue">Ajouté à la file d'attente</string>
     <string name="new_release">Nouveautés</string>
     <string name="music_video">Clip vidéo</string>
@@ -393,6 +401,9 @@
     <string name="offline_mode">Mode hors-ligne</string>
     <string name="added_to_youtube_liked">Ajouté aux favoris YouTube</string>
     <string name="removed_from_youtube_liked">Supprimé des favoris YouTube</string>
+    <string name="dislike_on_youtube">Je n'aime pas (YouTube Music ne recommandera pas souvent ce titre)</string>
+    <string name="disliked">Je n'aime pas</string>
+    <string name="disliking">Je n'aime pas…</string>
     <string name="home_limit">Limite de réseau pour actualiser la page accueil</string>
     <string name="no_album">Aucun album</string>
     <string name="app_widget_description">Widget lecteur</string>
@@ -558,6 +569,13 @@
     <string name="auto_download_liked_songs">Téléchargez les titres que vous aimez</string>
     <string name="auto_download_liked_songs_description">Lorsque vous ajoutez un titre à vos Favoris, celui-ci est automatiquement téléchargé pour une écoute hors ligne, selon le paramètre de qualité de téléchargement que vous avez défini. L'activation de cette option entraîne également le téléchargement des titres que vous avez déjà « aimés ». Le fait de retirer un « J'aime » ne supprime jamais un téléchargement.</string>
     <string name="downloading_liked_songs">Téléchargement de %1$d titres aimés</string>
+    <string name="smart_downloads">Téléchargements intelligents</string>
+    <string name="smart_downloads_description">Conserve la liste des titres que vous écoutez le plus souvent ; elle est mise à jour une fois par jour lorsque vous ouvrez l'application via le Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">Activez l'historique d'écoute « Suivi local » pour utiliser cette fonctionnalité</string>
+    <string name="smart_downloads_size">Titres à conserver</string>
+    <string name="smart_downloads_size_value">%1$d titres</string>
+    <string name="smart_downloads_downloading">Téléchargements intelligents : téléchargement de %1$d titres</string>
+    <string name="smart_downloads_waiting_for_wifi">Les téléchargements intelligents commenceront la prochaine fois que vous ouvrirez l'application via le Wi-Fi.</string>
     <string name="crossfade_skip_album">Conserver la continuité des albums</string>
     <string name="crossfade_skip_album_description">Désactivez le fondu enchaîné entre les titres d'un même album, afin que les albums destinés à être écoutés sans interruption puissent continuer à l'être. La transition à la fin de l'album s'effectue toujours avec un fondu enchaîné.</string>
     <string name="youtube_subtitle_language">Langue de traduction des sous-titres YouTube</string>
@@ -828,9 +846,9 @@
     <string name="wrapped_archetype_omnivore">OMNIVORE</string>
     <string name="wrapped_archetype_devotee">FIDÈLE</string>
     <string name="wrapped_archetype_deep_diver">PLONGEUR DE PROFONDEUR</string>
-    <string name="wrapped_archetype_regular_desc">%1$s de l'année ont été rythmés par la musique. On ne fait pas de « binge » — on laisse la musique en fond sonore.</string>
+    <string name="wrapped_archetype_regular_desc">%1$s de l'année comportaient de la musique. On ne fait pas de « binge » — on laisse la musique en fond sonore.</string>
     <string name="wrapped_archetype_explorer_desc">%1$s des artistes que vous avez entendus vous étaient inconnus. Vous avez continué votre chemin.</string>
-    <string name="wrapped_archetype_omnivore_desc">Vos écoutes se répartissent entre %1$s artistes, sans qu'aucun d'eux ne domine.</string>
+    <string name="wrapped_archetype_omnivore_desc">Vos écoutes se répartissent entre %1$s artistes, dont aucun n'est à la tête de cette liste.</string>
     <string name="wrapped_archetype_devotee_desc">%1$s de votre année ont été consacrés à cinq artistes. Vous savez exactement ce que vous aimez.</string>
     <string name="wrapped_archetype_deep_diver_desc">Vous avez utilisé la fonction de relecture sur %1$s de vos écoutes. Vous trouvez un titre et vous restez dessus.</string>
     <string name="wrapped_decades_title">Jusqu'où vous êtes remonté</string>
@@ -848,7 +866,7 @@
     <string name="wrapped_not_enough_title">L'année n'est pas encore bien avancée</string>
     <string name="wrapped_not_enough_body">Le récapitulatif nécessite environ un mois d'écoute avant de pouvoir livrer des informations pertinentes. Vous en avez pour %1$s pour l'instant.</string>
     <string name="wrapped_not_enough_days">%1$s jours</string>
-    <string name="wrapped_not_enough_progress">%1$s sur %2$s jours</string>
+    <string name="wrapped_not_enough_progress">%1$s jours sur %2$s</string>
     <string name="wrapped_open_analytics">Ouvrez plutôt Analytics</string>
     <string name="wrapped_recap_month">Récapitulatif %1$s</string>
     <string name="wrapped_recap_month_year">Récapitulatif %1$s %2$s</string>
@@ -965,4 +983,13 @@
     <string name="log_stack_trace_lines">Trace de la pile · %1$s lignes</string>
     <string name="log_hide_stack_trace">Masquer la trace de la pile</string>
     <string name="log_export_failed">Impossible d'exporter le journal</string>
+    <string name="comments">Commentaires</string>
+    <string name="reply">Répondre</string>
+    <string name="replying_to">En réponse à %1$s</string>
+    <string name="comments_log_in_hint">Connectez-vous pour commenter, répondre et aimer</string>
+    <string name="comments_log_in_message">Connectez-vous à YouTube pour poster des commentaires, y répondre et les aimer.</string>
+    <string name="comments_turned_off">Les commentaires sont désactivés</string>
+    <string name="comments_load_error">Impossible de charger les commentaires</string>
+    <string name="comment_post_error">Impossible de publier votre commentaire</string>
+    <string name="comments_need_channel">Créez une chaîne YouTube pour laisser un commentaire</string>
 </resources>

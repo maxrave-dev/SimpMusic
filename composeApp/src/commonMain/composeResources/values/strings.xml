@@ -111,6 +111,7 @@
     <string name="let_s_start_with_a_radio">LET'S START WITH A RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">LET'S PICK A PLAYLIST FOR YOU</string>
     <string name="moods_amp_moment"><![CDATA[Moods & Moment]]></string>
+    <string name="mood">Mood</string>
     <string name="genre">Genre</string>
     <string name="what_is_best_choice_today">WHAT IS BEST CHOICE TODAY</string>
     <string name="chart">Chart</string>
@@ -125,6 +126,8 @@
     <string name="storage">Storage</string>
     <string name="player_cache">Player Cache</string>
     <string name="downloaded_cache">Downloaded Cache</string>
+    <string name="cached">Cached</string>
+    <string name="remove_from_cache">Remove from cache</string>
     <string name="thumbnail_cache">Thumbnail Cache</string>
     <string name="backup">Backup</string>
     <string name="backup_your_data">Backup Your Data</string>
@@ -153,6 +156,8 @@
     <string name="recently">Recently</string>
     <string name="settings">Settings</string>
     <string name="now_playing_upper">NOW PLAYING</string>
+    <string name="radio_mix_upper">RADIO/MIX</string>
+    <string name="radio_mix">Radio/Mix</string>
     <string name="language">Language</string>
     <string name="what_do_you_want_to_listen_to">What do you want to listen to?</string>
     <string name="songs_inArtist">Songs</string>
@@ -322,6 +327,7 @@
     <string name="add_to_queue">Add to queue</string>
     <string name="add_to_queue_disabled_radio">Add to queue (disabled while a radio or mix is playing)</string>
     <string name="add_to_queue_disabled_endless">Add to queue (disabled when endless queue is enabled)</string>
+    <string name="download_disabled_live">Download (disabled for live streams)</string>
     <string name="added_to_queue">Added to queue</string>
     <string name="new_release">New release</string>
     <string name="music_video">Music video</string>
@@ -400,6 +406,9 @@
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
     <string name="removed_from_youtube_liked">Removed from YouTube Liked</string>
+    <string name="dislike_on_youtube">Dislike (YouTube Music will not recommend this song frequently)</string>
+    <string name="disliked">Disliked</string>
+    <string name="disliking">Disliking…</string>
     <string name="home_limit">Fetch home data limit</string>
     <string name="no_album">No album</string>
     <string name="app_widget_description">Player widget</string>
@@ -584,6 +593,13 @@
     <string name="auto_download_liked_songs">Download songs you like</string>
     <string name="auto_download_liked_songs_description">Automatically download a song for offline playback when you add it to Favorites, using your download quality setting. Turning this on also downloads the songs you already liked. Removing a like never deletes a download.</string>
     <string name="downloading_liked_songs">Downloading %1$d liked songs</string>
+    <string name="smart_downloads">Smart downloads</string>
+    <string name="smart_downloads_description">Keeps the songs you play most downloaded, refreshed once a day when you open the app on Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">Turn on Local tracking listening history to use this</string>
+    <string name="smart_downloads_size">Songs to keep</string>
+    <string name="smart_downloads_size_value">%1$d songs</string>
+    <string name="smart_downloads_downloading">Smart downloads: downloading %1$d songs</string>
+    <string name="smart_downloads_waiting_for_wifi">Smart downloads will start the next time you open the app on Wi-Fi</string>
     <string name="crossfade_skip_album">Keep albums continuous</string>
     <string name="crossfade_skip_album_description">Skip the crossfade between tracks of the same album, so albums meant to run without gaps still do. The transition out of the album still crossfades.</string>
     <string name="youtube_subtitle_language">YouTube Subtitle Translation Language</string>
@@ -996,4 +1012,25 @@
     <string name="log_stack_trace_lines">Stack trace · %1$s lines</string>
     <string name="log_hide_stack_trace">Hide stack trace</string>
     <string name="log_export_failed">Could not export the log</string>
+    <string name="comments">Comments</string>
+    <string name="reply">Reply</string>
+    <string name="replying_to">Replying to %1$s</string>
+    <string name="comments_log_in_hint">Log in to comment, reply and like</string>
+    <string name="comments_log_in_message">Log in to YouTube to comment, reply and like comments.</string>
+    <string name="comments_turned_off">Comments are turned off</string>
+    <string name="comments_load_error">Couldn't load comments</string>
+    <string name="comment_post_error">Couldn't post your comment</string>
+    <string name="comments_need_channel">Create a YouTube channel to comment</string>
+    <string name="local_playlist">Local playlist</string>
+    <string name="create_playlist_description">Build a playlist on this device</string>
+    <string name="create_room_description">Start or join a room</string>
+    <string name="create_room_live">Your room is live</string>
+    <string name="create_new_queue_and_play">Create a new queue and add to play</string>
+    <string name="artist">Artist</string>
+    <string name="podcast">Podcast</string>
+    <string name="recents">Recents</string>
+    <string name="alphabetical">Alphabetical</string>
+    <string name="search_in_your_library">Search in Your library</string>
+    <string name="collapse_your_library">Collapse Your library</string>
+    <string name="expand_your_library">Expand Your library</string>
 </resources>

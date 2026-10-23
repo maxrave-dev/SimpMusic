@@ -93,7 +93,7 @@ val SimpIcons.Update: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Update!!
   }
 

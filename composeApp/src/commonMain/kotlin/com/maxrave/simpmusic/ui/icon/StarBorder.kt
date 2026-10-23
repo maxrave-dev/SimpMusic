@@ -83,7 +83,7 @@ val SimpIcons.StarBorder: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _StarBorder!!
   }
 

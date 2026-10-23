@@ -97,7 +97,7 @@ val SimpIcons.Sync: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Sync!!
   }
 

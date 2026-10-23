@@ -81,7 +81,7 @@ val SimpIcons.PictureInPictureAlt: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PictureInPictureAlt!!
   }
 

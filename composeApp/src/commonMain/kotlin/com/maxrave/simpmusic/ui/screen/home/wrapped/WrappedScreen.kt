@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -60,6 +62,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberSaveImagePermission
 import com.maxrave.simpmusic.expect.ui.toPngByteArray
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
@@ -333,18 +336,25 @@ private fun WrappedReel(
                         .windowInsetsPadding(WindowInsets.systemBars)
                         .padding(top = WrappedTokens.HeaderHeight),
             ) {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    key = { cards[it].name },
-                ) { index ->
-                    WrappedCardSlot(
-                        card = cards[index],
-                        wrapped = wrapped,
-                        captureController = captureController,
-                        onSave = share.onSave,
-                        onShare = share.onShare,
-                    )
+                // Cards run left-to-right, matching the progress segments and the tap zones (the
+                // right half goes forward); each card keeps the reading direction for its text.
+                val readingDirection = LocalLayoutDirection.current
+                LeftToRight {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        key = { cards[it].name },
+                    ) { index ->
+                        CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
+                            WrappedCardSlot(
+                                card = cards[index],
+                                wrapped = wrapped,
+                                captureController = captureController,
+                                onSave = share.onSave,
+                                onShare = share.onShare,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -462,34 +472,36 @@ private fun WrappedHeader(
                 .height(WrappedTokens.HeaderHeight),
     ) {
         Spacer(modifier = Modifier.height(SEGMENT_TOP_INSET))
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(WrappedTokens.SegmentGap),
-        ) {
-            repeat(cardCount) { index ->
-                // A real progress indicator rather than a hand-drawn rect, and the same one for all
-                // three states — a spent card is simply a full one. The fraction is read inside the
-                // indicator's own draw, so the sixty writes a second the timer makes never reach
-                // composition; the gap and the stop indicator are turned off because at 3dp they
-                // are the whole segment rather than a detail of it.
-                LinearProgressIndicator(
-                    progress = {
-                        when {
-                            index < currentCard -> 1f
-                            index == currentCard -> progress().coerceIn(0f, 1f)
-                            else -> 0f
-                        }
-                    },
-                    color = MaterialTheme.colorScheme.onSurface,
-                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = SEGMENT_TRACK_ALPHA),
-                    strokeCap = StrokeCap.Round,
-                    gapSize = 0.dp,
-                    drawStopIndicator = {},
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .height(WrappedTokens.SegmentHeight),
-                )
+        LeftToRight {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(WrappedTokens.SegmentGap),
+            ) {
+                repeat(cardCount) { index ->
+                    // A real progress indicator rather than a hand-drawn rect, and the same one for all
+                    // three states — a spent card is simply a full one. The fraction is read inside the
+                    // indicator's own draw, so the sixty writes a second the timer makes never reach
+                    // composition; the gap and the stop indicator are turned off because at 3dp they
+                    // are the whole segment rather than a detail of it.
+                    LinearProgressIndicator(
+                        progress = {
+                            when {
+                                index < currentCard -> 1f
+                                index == currentCard -> progress().coerceIn(0f, 1f)
+                                else -> 0f
+                            }
+                        },
+                        color = MaterialTheme.colorScheme.onSurface,
+                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = SEGMENT_TRACK_ALPHA),
+                        strokeCap = StrokeCap.Round,
+                        gapSize = 0.dp,
+                        drawStopIndicator = {},
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(WrappedTokens.SegmentHeight),
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(SEGMENT_BOTTOM_INSET))

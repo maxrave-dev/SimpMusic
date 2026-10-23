@@ -89,7 +89,7 @@ val SimpIcons.IosShare: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _IosShare!!
   }
 

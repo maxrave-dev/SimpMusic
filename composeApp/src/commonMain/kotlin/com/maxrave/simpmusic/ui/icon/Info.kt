@@ -77,7 +77,7 @@ val SimpIcons.Info: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Info!!
   }
 

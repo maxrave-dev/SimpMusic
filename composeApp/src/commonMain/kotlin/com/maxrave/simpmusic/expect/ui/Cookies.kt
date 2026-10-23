@@ -33,6 +33,9 @@ expect fun PlatformWebView(
     state: MutableState<WebViewState> = rememberWebViewState(),
     initUrl: String,
     aboveContent: @Composable (BoxScope.() -> Unit) = {},
+    // Wipes WebView cookies just before initUrl loads. Done here rather than by the caller because
+    // touching CookieManager before the WebView has started loads WebView on the main thread.
+    clearCookies: Boolean = false,
     onPageFinished: (String) -> Unit,
 )
 

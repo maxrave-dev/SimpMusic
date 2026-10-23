@@ -53,13 +53,15 @@ import kotlin.random.Random
  */
 
 /**
- * A mesh read off one artwork: a small texture, stretched by the sampler when it is drawn, and how
- * bright the artwork's top band is (0..1), which sets the wash under the status bar.
+ * A mesh read off one artwork: a small texture, stretched by the sampler when it is drawn, how
+ * bright the artwork's top band is (0..1), which sets the wash under the status bar, and that top band
+ * as one row left where it stands ([topEdge]), for holding above the artwork's top edge.
  */
 @Immutable
 internal class AppleMusicMesh(
     val image: ImageBitmap,
     val topLuminance: Float,
+    val topEdge: ImageBitmap,
 )
 
 /**
@@ -86,12 +88,17 @@ internal fun rememberAppleMusicMesh(
  * [mesh] hung from [seam], the Y where the artwork's bottom edge sits: above it the mesh's first row
  * is held (that stretch is behind the artwork, which dissolves into it), below it the mesh fills the
  * rest of the page. A new mesh crossfades in over [MESH_FADE_MS].
+ *
+ * A non-zero [topHold] mirrors that at the top: down to it, the artwork's own top band is held
+ * instead, for an artwork whose top edge dissolves into it. It hands over to the bottom row somewhere
+ * the artwork is fully opaque, so the change never shows.
  */
 @Composable
 internal fun AppleMusicMeshBackdrop(
     mesh: AppleMusicMesh?,
     seam: Dp,
     modifier: Modifier = Modifier,
+    topHold: Dp = 0.dp,
 ) {
     // Two meshes rather than one animated colour: what crossfades here is a pair of pictures, and
     // the outgoing one has to stay drawable until the fade has finished with it.
@@ -130,9 +137,10 @@ internal fun AppleMusicMeshBackdrop(
                 .blur(MESH_BLUR),
     ) {
         val seamY = seam.toPx().coerceIn(0f, size.height)
-        shown?.let { drawMesh(it, seamY, alpha = 1f) }
+        val topHoldY = topHold.toPx().coerceIn(0f, seamY)
+        shown?.let { drawMesh(it, seamY, topHoldY, alpha = 1f) }
         // Read here, not in composition: an Animatable read in a draw lambda only redraws.
-        incoming?.let { drawMesh(it, seamY, alpha = fade.value) }
+        incoming?.let { drawMesh(it, seamY, topHoldY, alpha = fade.value) }
         // Just enough to keep white text readable over a bright sleeve. The colours are the sleeve's
         // own, so a sleeve that ends dark should leave a dark page, not a greyed one.
         drawRect(brush = smoothScrimBrush(from = Color.Black.copy(alpha = 0.06f), to = Color.Black.copy(alpha = 0.30f)))
@@ -142,18 +150,31 @@ internal fun AppleMusicMeshBackdrop(
 private fun DrawScope.drawMesh(
     mesh: AppleMusicMesh,
     seamY: Float,
+    topHoldY: Float,
     alpha: Float,
 ) {
     if (alpha <= 0.001f) return
     val width = size.width.roundToInt()
     val seam = seamY.roundToInt()
-    if (seam > 0) {
+    val topHold = topHoldY.roundToInt().coerceIn(0, seam)
+    if (topHold > 0) {
+        drawImage(
+            image = mesh.topEdge,
+            srcOffset = IntOffset.Zero,
+            srcSize = IntSize(MESH_TEX, 1),
+            dstOffset = IntOffset.Zero,
+            dstSize = IntSize(width, topHold),
+            alpha = alpha,
+            filterQuality = FilterQuality.Low,
+        )
+    }
+    if (seam > topHold) {
         drawImage(
             image = mesh.image,
             srcOffset = IntOffset.Zero,
             srcSize = IntSize(MESH_TEX, 1),
-            dstOffset = IntOffset.Zero,
-            dstSize = IntSize(width, seam),
+            dstOffset = IntOffset(0, topHold),
+            dstSize = IntSize(width, seam - topHold),
             alpha = alpha,
             filterQuality = FilterQuality.Low,
         )
@@ -211,6 +232,9 @@ private fun meshOf(
     val topLuminance =
         (topRow.sumOf { 0.2126 * red[it] + 0.7152 * green[it] + 0.0722 * blue[it] } / topPixels / 255.0).toFloat().coerceIn(0f, 1f)
     val texels = grid.rotatedBelowSeam(cols, rows, seed).resampled(cols, rows, MESH_TEX)
+    // The top band before any shifting: held above the artwork's top edge, it has to meet the picture
+    // colour for colour, and every row but row 0 is carried sideways below.
+    val topTexels = grid.copyOfRange((rows - 1) * cols, rows * cols).resampled(cols, 1, MESH_TEX).copyOfRange(0, MESH_TEX)
 
     val image = ImageBitmap(MESH_TEX, MESH_TEX)
     val canvas = Canvas(image)
@@ -221,7 +245,13 @@ private fun meshOf(
             canvas.drawRect(x.toFloat(), y.toFloat(), x + 1f, y + 1f, paint)
         }
     }
-    return AppleMusicMesh(image, topLuminance)
+    val topEdge = ImageBitmap(MESH_TEX, 1)
+    val topCanvas = Canvas(topEdge)
+    for (x in 0 until MESH_TEX) {
+        paint.color = Color(topTexels[x])
+        topCanvas.drawRect(x.toFloat(), 0f, x + 1f, 1f, paint)
+    }
+    return AppleMusicMesh(image, topLuminance, topEdge)
 }
 
 // Every row but the seam row, carried sideways by one seeded amount and mirrored half the time.

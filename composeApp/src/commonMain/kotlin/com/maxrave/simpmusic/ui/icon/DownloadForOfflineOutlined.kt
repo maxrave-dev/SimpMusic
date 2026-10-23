@@ -101,7 +101,7 @@ val SimpIcons.DownloadForOfflineOutlined: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _DownloadForOfflineOutlined!!
   }
 

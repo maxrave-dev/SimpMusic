@@ -69,7 +69,7 @@ val SimpIcons.OpenInFull: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _OpenInFull!!
   }
 

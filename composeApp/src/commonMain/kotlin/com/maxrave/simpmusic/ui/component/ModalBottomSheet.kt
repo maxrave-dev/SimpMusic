@@ -23,10 +23,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +36,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,6 +46,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -87,9 +91,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -143,6 +149,7 @@ import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.AddPhotoAlternate
 import com.maxrave.simpmusic.ui.icon.Album
 import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.ContentCopy
 import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.Done
@@ -161,12 +168,14 @@ import com.maxrave.simpmusic.ui.icon.PlayCircle
 import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Remove
+import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
+import com.maxrave.simpmusic.ui.icon.ThumbDownOutline
 import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -205,11 +214,16 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
+import simpmusic.composeapp.generated.resources.create_new_queue_and_play
 import simpmusic.composeapp.generated.resources.delete
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
+import simpmusic.composeapp.generated.resources.dislike_on_youtube
+import simpmusic.composeapp.generated.resources.disliked
+import simpmusic.composeapp.generated.resources.disliking
 import simpmusic.composeapp.generated.resources.download
+import simpmusic.composeapp.generated.resources.download_disabled_live
 import simpmusic.composeapp.generated.resources.download_speed
 import simpmusic.composeapp.generated.resources.download_this_song_video_file_to_your_device
 import simpmusic.composeapp.generated.resources.downloaded
@@ -238,6 +252,7 @@ import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.no_album
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.no_playlist_found
+import simpmusic.composeapp.generated.resources.no_results_found
 import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
@@ -251,10 +266,12 @@ import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.remove_from_cache
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
 import simpmusic.composeapp.generated.resources.scale
+import simpmusic.composeapp.generated.resources.search
 import simpmusic.composeapp.generated.resources.set
 import simpmusic.composeapp.generated.resources.share
 import simpmusic.composeapp.generated.resources.share_url
@@ -1268,6 +1285,13 @@ data class QueuePosition(
     val videoId: String,
 )
 
+/** What the YouTube Dislike action in the song sheet shows. */
+enum class YouTubeDislikeState {
+    DISLIKE,
+    DISLIKING,
+    DISLIKED,
+}
+
 /**
  * The rows only a queue track has: move it up, down or to play next, or take it out of the queue.
  *
@@ -1332,8 +1356,17 @@ fun NowPlayingBottomSheet(
     onNavigateToOtherScreen: () -> Unit = {},
     onDelete: (() -> Unit)? = null,
     onLibraryDelete: (() -> Unit)? = null,
+    /** Set when opened from the "Cached" list: adds a row that drops the song from the player cache. */
+    onRemoveFromCache: (() -> Unit)? = null,
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
+    /**
+     * The now-playing track's YouTube dislike state, set only by the Now Playing screen (where the
+     * rating is fetched) and only while signed in to YouTube; null hides the Dislike action.
+     */
+    youTubeDislike: YouTubeDislikeState? = null,
+    /** Called with the videoId of the track this sheet shows. */
+    onYouTubeDislike: (videoId: String) -> Unit = {},
     dataStoreManager: DataStoreManager = koinInject<DataStoreManager>(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -1680,6 +1713,15 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
+                    if (onRemoveFromCache != null) {
+                        ActionButton(
+                            icon = SimpIcons.Delete,
+                            text = Res.string.remove_from_cache,
+                        ) {
+                            hideModalBottomSheet()
+                            onRemoveFromCache()
+                        }
+                    }
                     CheckBoxActionButton(
                         defaultChecked = uiState.songUIState.liked,
                         isHeartIcon = true,
@@ -1687,6 +1729,25 @@ fun NowPlayingBottomSheet(
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
                     )
+                    if (youTubeDislike != null) {
+                        ActionButton(
+                            icon = SimpIcons.ThumbDownOutline,
+                            text =
+                                when (youTubeDislike) {
+                                    YouTubeDislikeState.DISLIKE -> Res.string.dislike_on_youtube
+                                    YouTubeDislikeState.DISLIKING -> Res.string.disliking
+                                    YouTubeDislikeState.DISLIKED -> Res.string.disliked
+                                },
+                            enable = youTubeDislike == YouTubeDislikeState.DISLIKE,
+                        ) {
+                            onYouTubeDislike(uiState.songUIState.videoId)
+                        }
+                    }
+                    // A live broadcast has no file to keep. The row stays visible, disabled, so the
+                    // reason can be read — the same way Add to queue says why it is blocked.
+                    val downloadBlockedAsLive =
+                        uiState.songUIState.isLive &&
+                            uiState.songUIState.downloadState == DownloadState.STATE_NOT_DOWNLOADED
                     ActionButton(
                         icon =
                             when (uiState.songUIState.downloadState) {
@@ -1705,13 +1766,18 @@ fun NowPlayingBottomSheet(
                                 Color.Unspecified
                             },
                         text =
-                            when (uiState.songUIState.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> Res.string.download
-                                DownloadState.STATE_DOWNLOADING -> Res.string.downloading
-                                DownloadState.STATE_DOWNLOADED -> Res.string.downloaded
-                                DownloadState.STATE_PREPARING -> Res.string.downloading
-                                else -> Res.string.download
+                            if (downloadBlockedAsLive) {
+                                Res.string.download_disabled_live
+                            } else {
+                                when (uiState.songUIState.downloadState) {
+                                    DownloadState.STATE_NOT_DOWNLOADED -> Res.string.download
+                                    DownloadState.STATE_DOWNLOADING -> Res.string.downloading
+                                    DownloadState.STATE_DOWNLOADED -> Res.string.downloaded
+                                    DownloadState.STATE_PREPARING -> Res.string.downloading
+                                    else -> Res.string.download
+                                }
                             },
+                        enable = !downloadBlockedAsLive,
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Download)
                     }
@@ -1875,13 +1941,19 @@ fun rememberAddToQueueBlock(): AddToQueueBlock? {
     return queueData.addToQueueBlock(endlessQueue)
 }
 
-/** The Add to queue label, with the reason in brackets while it is blocked. */
-fun AddToQueueBlock?.addToQueueLabel(): StringResource =
-    when (this) {
-        null -> Res.string.add_to_queue
+/**
+ * The Add to queue label, with the reason in brackets while it is blocked. With nothing queued it
+ * reads "Create a new queue and add to play", since adding there starts a new queue and plays it (#2596).
+ */
+@Composable
+fun AddToQueueBlock?.addToQueueLabel(): StringResource {
+    val queueData by koinInject<MediaPlayerHandler>().queueData.collectAsState()
+    return when (this) {
+        null -> if (queueData?.data?.listTracks.isNullOrEmpty()) Res.string.create_new_queue_and_play else Res.string.add_to_queue
         AddToQueueBlock.RADIO -> Res.string.add_to_queue_disabled_radio
         AddToQueueBlock.ENDLESS_QUEUE -> Res.string.add_to_queue_disabled_endless
     }
+}
 
 @Composable
 fun ActionButton(
@@ -2513,7 +2585,12 @@ fun AddToPlaylistModalBottomSheet(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 10.dp),
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 10.dp)
+                            // The sheet is handed no insets, so nothing else lifts the list above the keyboard.
+                            // Navigation bars are left out: EndOfModalBottomSheet already pads for them.
+                            .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars)),
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
@@ -2523,6 +2600,62 @@ fun AddToPlaylistModalBottomSheet(
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
 
+                    var query by remember { mutableStateOf("") }
+                    var isSearchFocused by remember { mutableStateOf(false) }
+                    BasicTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        singleLine = true,
+                        textStyle = typo().labelSmall.copy(color = rememberSurfaceDarkColors().content),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 4.dp)
+                                .height(40.dp)
+                                .clip(CircleShape)
+                                .background(rememberSurfaceDarkColors().content.copy(alpha = 0.08f))
+                                .onFocusChanged { focusState ->
+                                    isSearchFocused = focusState.isFocused
+                                    // A half-open sheet would leave the results under the keyboard.
+                                    if (focusState.isFocused) coroutineScope.launch { modelBottomSheetState.expand() }
+                                },
+                        decorationBox = { innerTextField ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Icon(
+                                    imageVector = SimpIcons.Search,
+                                    contentDescription = null,
+                                    tint = rememberSurfaceDarkColors().subtitle,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(modifier = Modifier.weight(1f)) {
+                                    if (query.isEmpty()) {
+                                        Text(
+                                            text = stringResource(Res.string.search),
+                                            style = typo().labelSmall,
+                                            color = rememberSurfaceDarkColors().subtitle,
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                                if (query.isEmpty()) {
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                } else {
+                                    IconButton(onClick = { query = "" }) {
+                                        Icon(
+                                            imageVector = SimpIcons.Close,
+                                            contentDescription = null,
+                                            tint = rememberSurfaceDarkColors().subtitle,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                    )
+
                     val chipRowState = rememberScrollState()
                     var isYouTubePlaylistClicked by remember { mutableStateOf(false) }
                     if (listYouTubePlaylist.isNotEmpty()) {
@@ -2530,7 +2663,7 @@ fun AddToPlaylistModalBottomSheet(
                             modifier =
                                 Modifier
                                     .horizontalScroll(chipRowState)
-                                    .padding(horizontal = 15.dp)
+                                    .padding(horizontal = 12.dp)
                                     .padding(vertical = 8.dp)
                                     .background(Color.Transparent),
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -2550,20 +2683,30 @@ fun AddToPlaylistModalBottomSheet(
                         }
                     }
 
-                    if ((listLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
-                        (listYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
+                    val keyword = query.trim()
+                    val shownLocalPlaylist =
+                        remember(listLocalPlaylist, keyword) { listLocalPlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                    val shownYouTubePlaylist =
+                        remember(listYouTubePlaylist, keyword) { listYouTubePlaylist.filter { it.title.contains(keyword, ignoreCase = true) } }
+                    // While searching, the list takes the rest of the sheet. Otherwise the sheet resizes with every
+                    // keystroke and drags the field along with it.
+                    val listModifier = if (isSearchFocused || query.isNotEmpty()) Modifier.weight(1f) else Modifier
+                    if ((shownLocalPlaylist.isEmpty() && !isYouTubePlaylistClicked) ||
+                        (shownYouTubePlaylist.isEmpty() && isYouTubePlaylistClicked)
                     ) {
+                        val tabHasPlaylists =
+                            if (isYouTubePlaylistClicked) listYouTubePlaylist.isNotEmpty() else listLocalPlaylist.isNotEmpty()
                         Text(
-                            text = stringResource(Res.string.no_playlist_found),
+                            text = stringResource(if (tabHasPlaylists) Res.string.no_results_found else Res.string.no_playlist_found),
                             style = typo().labelSmall,
-                            modifier = Modifier.padding(20.dp),
+                            modifier = listModifier.padding(20.dp),
                             color = rememberSurfaceDarkColors().disabled,
                         )
                     } else {
-                        Crossfade(isYouTubePlaylistClicked) { clicked ->
+                        Crossfade(isYouTubePlaylistClicked, modifier = listModifier) { clicked ->
                             if (clicked) {
                                 LazyColumn {
-                                    items(listYouTubePlaylist) { playlist ->
+                                    items(shownYouTubePlaylist) { playlist ->
                                         Box(
                                             modifier =
                                                 Modifier
@@ -2595,7 +2738,7 @@ fun AddToPlaylistModalBottomSheet(
                                 }
                             } else {
                                 LazyColumn {
-                                    items(listLocalPlaylist) { playlist ->
+                                    items(shownLocalPlaylist) { playlist ->
                                         Box(
                                             modifier =
                                                 Modifier

@@ -109,7 +109,7 @@ val SimpIcons.RepeatOne: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _RepeatOne!!
   }
 

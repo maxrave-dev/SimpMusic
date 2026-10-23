@@ -73,7 +73,7 @@ val SimpIcons.KeyboardDoubleArrowRight: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _KeyboardDoubleArrowRight!!
   }
 

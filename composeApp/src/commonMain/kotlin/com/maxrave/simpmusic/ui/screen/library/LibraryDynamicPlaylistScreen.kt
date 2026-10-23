@@ -94,6 +94,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album_length
 import simpmusic.composeapp.generated.resources.artists
+import simpmusic.composeapp.generated.resources.cached
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
@@ -141,6 +142,8 @@ fun LibraryDynamicPlaylistScreen(
     var tempMostPlayed by remember { mutableStateOf(emptyList<SongEntity>()) }
     val downloaded by viewModel.listDownloadedSong.collectAsStateWithLifecycle()
     var tempDownloaded by remember { mutableStateOf(emptyList<SongEntity>()) }
+    val cached by viewModel.listCachedSong.collectAsStateWithLifecycle()
+    var tempCached by remember { mutableStateOf(emptyList<SongEntity>()) }
     val monthlyRecap by viewModel.listMonthlyRecapSong.collectAsStateWithLifecycle()
     var tempMonthlyRecap by remember { mutableStateOf(emptyList<SongEntity>()) }
     val artistLiked by viewModel.listArtistLikedSong.collectAsStateWithLifecycle()
@@ -165,6 +168,10 @@ fun LibraryDynamicPlaylistScreen(
         if (parsed is LibraryDynamicPlaylistType.ArtistLiked) {
             viewModel.getArtistLikedSong(parsed)
         }
+        // Read afresh on every visit: the player cache is not a table anything can observe.
+        if (parsed == LibraryDynamicPlaylistType.Cached) {
+            viewModel.getCachedSong()
+        }
         // A top list opened from an older period. This screen gets its own analytics view model,
         // which starts on the latest period, so without this every older period opened as the
         // newest one.
@@ -176,6 +183,7 @@ fun LibraryDynamicPlaylistScreen(
         tempFollowed = followed.filter { it.name.contains(query, ignoreCase = true) }
         tempMostPlayed = mostPlayed.filter { it.matches(query) }
         tempDownloaded = downloaded.filter { it.matches(query) }
+        tempCached = cached.filter { it.matches(query) }
         tempMonthlyRecap = monthlyRecap.filter { it.matches(query) }
         tempArtistLiked = artistLiked.filter { it.matches(query) }
         tempTopTracks =
@@ -377,6 +385,14 @@ fun LibraryDynamicPlaylistScreen(
                         }
                     }
 
+                    LibraryDynamicPlaylistType.Cached -> {
+                        if (query.isNotEmpty() && showSearchBar) {
+                            tempCached
+                        } else {
+                            cached
+                        }
+                    }
+
                     LibraryDynamicPlaylistType.Favorite -> {
                         if (query.isNotEmpty() && showSearchBar) {
                             tempFavorite
@@ -482,13 +498,20 @@ fun LibraryDynamicPlaylistScreen(
         )
     }
     if (showBottomSheet) {
+        val song = chosenSong ?: return
         NowPlayingBottomSheet(
             onDismiss = {
                 showBottomSheet = false
                 chosenSong = null
             },
             navController = navController,
-            song = chosenSong ?: return,
+            song = song,
+            onRemoveFromCache =
+                if (LibraryDynamicPlaylistType.toType(type) == LibraryDynamicPlaylistType.Cached) {
+                    { viewModel.removeFromCache(song.videoId) }
+                } else {
+                    null
+                },
         )
     }
     Column(
@@ -509,6 +532,8 @@ fun LibraryDynamicPlaylistScreen(
                     stringResource(Res.string.album_length, mostPlayed.size.toString(), "")
                 LibraryDynamicPlaylistType.Downloaded ->
                     stringResource(Res.string.album_length, downloaded.size.toString(), "")
+                LibraryDynamicPlaylistType.Cached ->
+                    stringResource(Res.string.album_length, cached.size.toString(), "")
                 LibraryDynamicPlaylistType.Followed ->
                     "${followed.size} ${stringResource(Res.string.artists)}"
                 is LibraryDynamicPlaylistType.MonthlyRecap ->
@@ -663,6 +688,10 @@ fun LibraryDynamicPlaylistScreen(
                                     (if (query.isNotEmpty() && showSearchBar) tempDownloaded else downloaded)
                                         .map { it.videoId }
 
+                                LibraryDynamicPlaylistType.Cached ->
+                                    (if (query.isNotEmpty() && showSearchBar) tempCached else cached)
+                                        .map { it.videoId }
+
                                 LibraryDynamicPlaylistType.Favorite ->
                                     (if (query.isNotEmpty() && showSearchBar) tempFavorite else favorite)
                                         .map { it.videoId }
@@ -680,7 +709,8 @@ fun LibraryDynamicPlaylistScreen(
                         selectionState.toggleSelectAll(visible)
                     },
                     onOpenActions = { showSelectionSheet = true },
-                    containerColor = Color.Black,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -730,6 +760,12 @@ sealed class LibraryDynamicPlaylistType {
     data object MostPlayed : LibraryDynamicPlaylistType()
 
     data object Downloaded : LibraryDynamicPlaylistType()
+
+    /**
+     * Songs the player cache holds in full and that are not downloaded. Android only: Desktop keeps
+     * no song cache on disk.
+     */
+    data object Cached : LibraryDynamicPlaylistType()
 
     /**
      * The three top lists carry the period they were opened for, so the list on screen is the one
@@ -799,6 +835,7 @@ sealed class LibraryDynamicPlaylistType {
             Followed -> Res.string.followed
             MostPlayed -> Res.string.most_played
             Downloaded -> Res.string.downloaded
+            Cached -> Res.string.cached
             is TopAlbums -> Res.string.your_top_albums
             is TopArtists -> Res.string.your_top_artists
             is TopTracks -> Res.string.your_top_tracks
@@ -869,6 +906,7 @@ sealed class LibraryDynamicPlaylistType {
             Followed -> "followed"
             MostPlayed -> "most_played"
             Downloaded -> "downloaded"
+            Cached -> "cached"
             is TopAlbums -> TOP_ALBUMS + periodSuffix()
             is TopArtists -> TOP_ARTISTS + periodSuffix()
             is TopTracks -> TOP_TRACKS + periodSuffix()
@@ -891,6 +929,7 @@ sealed class LibraryDynamicPlaylistType {
                 "followed" -> Followed
                 "most_played" -> MostPlayed
                 "downloaded" -> Downloaded
+                "cached" -> Cached
                 TOP_ALBUMS -> TopAlbums()
                 TOP_ARTISTS -> TopArtists()
                 TOP_TRACKS -> TopTracks()

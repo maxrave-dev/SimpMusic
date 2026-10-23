@@ -111,7 +111,7 @@ val SimpIcons.AutoGraph: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _AutoGraph!!
   }
 

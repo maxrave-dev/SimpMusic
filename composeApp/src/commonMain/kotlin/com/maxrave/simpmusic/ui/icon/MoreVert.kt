@@ -67,7 +67,7 @@ val SimpIcons.MoreVert: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _MoreVert!!
   }
 

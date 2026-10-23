@@ -87,6 +87,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.toReadableBitmap
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
@@ -101,6 +102,7 @@ import com.maxrave.simpmusic.ui.component.rememberHeartBurstState
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
 import com.maxrave.simpmusic.ui.icon.CheckCircle
+import com.maxrave.simpmusic.ui.icon.CommentOutline
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Headphones
@@ -124,8 +126,10 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.audio_output
+import simpmusic.composeapp.generated.resources.comments
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.now_playing_upper
+import simpmusic.composeapp.generated.resources.radio_mix_upper
 
 /**
  * The Material 3 Expressive ("Tonal pills") Now Playing style.
@@ -301,30 +305,32 @@ private fun NowPlayingM3ExpressiveLayout(
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 // === 4. Artwork pager — same state/sync as Classic, card presentation ===
-                HorizontalPager(
-                    state = state.artworkPagerState,
-                    modifier =
-                        Modifier
-                            .height(screenInfo.hDP.dp)
-                            .fillMaxWidth(),
-                    beyondViewportPageCount = 1,
-                    userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
-                    key = { idx ->
-                        val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
-                        "artwork_${vid}_$idx"
-                    },
-                ) { page ->
-                    ExpressiveArtworkCardPage(
-                        state = state,
-                        actions = actions,
-                        page = page,
-                        topAppBarHeightDp = topAppBarHeightDp,
-                        middleLayoutPaddingDp = middleLayoutPaddingDp,
-                        showHideFullscreenOverlay = showHideFullscreenOverlay,
-                        onToggleFullscreenOverlay = {
-                            showHideFullscreenOverlay = !showHideFullscreenOverlay
+                LeftToRight {
+                    HorizontalPager(
+                        state = state.artworkPagerState,
+                        modifier =
+                            Modifier
+                                .height(screenInfo.hDP.dp)
+                                .fillMaxWidth(),
+                        beyondViewportPageCount = 1,
+                        userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
+                        key = { idx ->
+                            val vid = state.artworkQueue.getOrNull(idx)?.videoId.orEmpty()
+                            "artwork_${vid}_$idx"
                         },
-                    )
+                    ) { page ->
+                        ExpressiveArtworkCardPage(
+                            state = state,
+                            actions = actions,
+                            page = page,
+                            topAppBarHeightDp = topAppBarHeightDp,
+                            middleLayoutPaddingDp = middleLayoutPaddingDp,
+                            showHideFullscreenOverlay = showHideFullscreenOverlay,
+                            onToggleFullscreenOverlay = {
+                                showHideFullscreenOverlay = !showHideFullscreenOverlay
+                            },
+                        )
+                    }
                 }
 
                 // === 3. Header row ===
@@ -370,7 +376,10 @@ private fun NowPlayingM3ExpressiveLayout(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = stringResource(Res.string.now_playing_upper),
+                            text =
+                                stringResource(
+                                    if (state.screenData.isRadioQueue) Res.string.radio_mix_upper else Res.string.now_playing_upper,
+                                ),
                             style = typo().bodyMedium,
                             color = Color.White,
                         )
@@ -701,8 +710,8 @@ internal fun ExpressiveTrackInfoRow(
                         .diskCacheKey(state.screenData.thumbnailURL + "BIGGER")
                         .crossfade(true)
                         .build(),
-                placeholder = rememberHolderPainter(),
-                error = rememberHolderPainter(),
+                placeholder = rememberHolderPainter(square = true),
+                error = rememberHolderPainter(square = true),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
                 modifier =
@@ -826,7 +835,7 @@ internal fun ColumnScope.ExpressivePlaybackControls(
     actions: NowPlayingContentActions,
     sliderModifier: Modifier = Modifier,
     showShuffleAndRepeat: Boolean = false,
-) {
+) = LeftToRight {
     val colorScheme = MaterialTheme.colorScheme
     Box(
         Modifier
@@ -942,15 +951,15 @@ internal fun ColumnScope.ExpressivePlaybackControls(
 }
 
 /**
- * Connected button group: six 48dp slots with 3dp gaps and rounded end caps —
- * Info | Output | Shuffle | Repeat | Add-to-playlist | Queue.
+ * Connected button group: seven 48dp-tall slots with 3dp gaps and rounded end caps —
+ * Info | Output | Shuffle | Repeat | Add-to-playlist | Queue | Comments.
  */
 @Composable
 private fun ExpressiveConnectedGroup(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     onOpenOutput: () -> Unit,
-) {
+) = LeftToRight {
     val colorScheme = MaterialTheme.colorScheme
     val startCap = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 24.dp)
     val endCap = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomEnd = 24.dp, bottomStart = 6.dp)
@@ -1051,12 +1060,23 @@ private fun ExpressiveConnectedGroup(
             )
         }
         ExpressiveConnectedSlot(
-            shape = endCap,
+            shape = middle,
             onClick = { actions.onShowQueue() },
         ) {
             Icon(
                 imageVector = SimpIcons.QueueMusic,
                 contentDescription = "",
+                tint = colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        ExpressiveConnectedSlot(
+            shape = endCap,
+            onClick = { actions.onShowComments() },
+        ) {
+            Icon(
+                imageVector = SimpIcons.CommentOutline,
+                contentDescription = stringResource(Res.string.comments),
                 tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp),
             )

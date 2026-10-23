@@ -45,6 +45,7 @@ actual fun PlatformWebView(
     state: MutableState<WebViewState>,
     initUrl: String,
     aboveContent: @Composable (BoxScope.() -> Unit),
+    clearCookies: Boolean,
     onPageFinished: (String) -> Unit,
 ) {
     Box(

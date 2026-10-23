@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -19,19 +20,20 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -46,14 +48,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -72,13 +76,20 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -110,6 +121,8 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
+import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -120,15 +133,16 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.BlogPromoDialog
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.Chip
+import com.maxrave.simpmusic.ui.component.CreateActions
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.ExpandableChip
 import com.maxrave.simpmusic.ui.component.FootgunsStarDialog
 import com.maxrave.simpmusic.ui.component.HomeDiscoverSection
 import com.maxrave.simpmusic.ui.component.HomeItem
 import com.maxrave.simpmusic.ui.component.HomeItemContentPlaylist
 import com.maxrave.simpmusic.ui.component.HomeShimmer
 import com.maxrave.simpmusic.ui.component.ItemArtistChart
-import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.LocalAppDialogOpen
 import com.maxrave.simpmusic.ui.component.LocalNowPlayingOpen
 import com.maxrave.simpmusic.ui.component.LocalUserStarted
@@ -139,20 +153,16 @@ import com.maxrave.simpmusic.ui.component.PromoBanner
 import com.maxrave.simpmusic.ui.component.PromoBannerData
 import com.maxrave.simpmusic.ui.component.QuickPicksItem
 import com.maxrave.simpmusic.ui.component.ReviewDialog
-import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SectionHeaderButton
 import com.maxrave.simpmusic.ui.component.ShareSavedLyricsDialog
 import com.maxrave.simpmusic.ui.component.homeCardAspectRatio
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
-import com.maxrave.simpmusic.ui.icon.Groups
-import com.maxrave.simpmusic.ui.icon.History
 import com.maxrave.simpmusic.ui.icon.Notifications
-import com.maxrave.simpmusic.ui.icon.Settings
+import com.maxrave.simpmusic.ui.icon.Person
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.MoodDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
-import com.maxrave.simpmusic.ui.navigation.destination.home.RecentlySongsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -160,6 +170,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
@@ -194,7 +205,6 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.all
-import simpmusic.composeapp.generated.resources.app_name
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.commute
@@ -207,9 +217,13 @@ import simpmusic.composeapp.generated.resources.good_afternoon
 import simpmusic.composeapp.generated.resources.good_evening
 import simpmusic.composeapp.generated.resources.good_morning
 import simpmusic.composeapp.generated.resources.good_night
+import simpmusic.composeapp.generated.resources.guest
 import simpmusic.composeapp.generated.resources.let_s_pick_a_playlist_for_you
 import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
+import simpmusic.composeapp.generated.resources.log_in_to_YouTube
 import simpmusic.composeapp.generated.resources.log_in_warning
+import simpmusic.composeapp.generated.resources.mood
+import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
 import simpmusic.composeapp.generated.resources.quick_picks
@@ -219,7 +233,6 @@ import simpmusic.composeapp.generated.resources.sad
 import simpmusic.composeapp.generated.resources.sleep
 import simpmusic.composeapp.generated.resources.top_artists
 import simpmusic.composeapp.generated.resources.warning
-import simpmusic.composeapp.generated.resources.welcome_back
 import simpmusic.composeapp.generated.resources.what_is_best_choice_today
 import simpmusic.composeapp.generated.resources.workout
 
@@ -231,19 +244,23 @@ private const val BLOG_PROMO_KEY = "blog_promo_v1_seen"
 private const val PROMO_SETTLE_MS = 1_000L
 private const val PROMO_CLEAR_MS = 400L
 
-private val listOfHomeChip =
+// The height the first item lost with the old app bar (64dp + the 50dp chip row, now one 56dp row) and
+// the Welcome back row (81dp), which Home's top glow still has to cover.
+private val HomeGlowOverflow = 140.dp
+
+// The moods behind the Mood chip, each with the Home params it loads.
+private val homeMoods =
     listOf(
-        Res.string.all,
-        Res.string.relax,
-        Res.string.sleep,
-        Res.string.energize,
-        Res.string.sad,
-        Res.string.romance,
-        Res.string.feel_good,
-        Res.string.workout,
-        Res.string.party,
-        Res.string.commute,
-        Res.string.focus,
+        Res.string.relax to HOME_PARAMS_RELAX,
+        Res.string.sleep to HOME_PARAMS_SLEEP,
+        Res.string.energize to HOME_PARAMS_ENERGIZE,
+        Res.string.sad to HOME_PARAMS_SAD,
+        Res.string.romance to HOME_PARAMS_ROMANCE,
+        Res.string.feel_good to HOME_PARAMS_FEEL_GOOD,
+        Res.string.workout to HOME_PARAMS_WORKOUT,
+        Res.string.party to HOME_PARAMS_PARTY,
+        Res.string.commute to HOME_PARAMS_COMMUTE,
+        Res.string.focus to HOME_PARAMS_FOCUS,
     )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -262,14 +279,25 @@ fun HomeScreen(
     val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
+    // Any shelf YouTube heads with the listener's own avatar over its title (Listen again is one of
+    // several). Home's header already shows the avatar, so those shelves drop it and keep their name
+    // and title. Matched on the name rather than on any shelf title, the way the old Welcome back row did.
+    val homeShelves =
+        remember(homeData, accountInfo) {
+            val accountName = accountInfo?.first
+            if (accountName.isNullOrBlank()) {
+                homeData
+            } else {
+                homeData.map {
+                    if (it.subtitle.equals(accountName, ignoreCase = true)) it.copy(thumbnail = null) else it
+                }
+            }
+        }
     val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsStateWithLifecycle()
     val chartLoading by viewModel.loadingChart.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
-    var accountShow by rememberSaveable {
-        mutableStateOf(false)
-    }
     val regionChart by viewModel.regionCodeChart.collectAsStateWithLifecycle()
     val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -314,6 +342,11 @@ fun HomeScreen(
     }
     val animatedColor by animateColorAsState(topHeaderColor, tween(500))
     val mainHomeThumbnail by viewModel.mainHomeThumbnail.collectAsStateWithLifecycle()
+    // YouTube's Home backdrop, drawn over the tint taken from the first card's artwork. A response
+    // that carries none keeps the tint alone, and a failed load drops the image and its scrim,
+    // leaving the tint as it was.
+    val headerImage by viewModel.homeBackground.collectAsStateWithLifecycle()
+    var headerImageFailed by remember(headerImage) { mutableStateOf(false) }
     val networkLoader = rememberNetworkLoader(HttpClient(CIO))
     val dominantColorState =
         rememberDominantColorState(
@@ -364,8 +397,18 @@ fun HomeScreen(
         mutableIntStateOf(0)
     }
 
+    var moodExpanded by rememberSaveable {
+        mutableStateOf(false)
+    }
+    // Derived, so scrolling recomposes only when the page reaches or leaves its very top.
+    val atTop by remember {
+        derivedStateOf { scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0 }
+    }
     val hazeState =
         rememberHazeState()
+    // The floating chip row refracts the page scrolling under it, so the page is the glass source and
+    // the row its sibling (nesting the row inside the source is the RuntimeShader feedback loop).
+    val chipBackdrop = rememberBackdrop(MaterialTheme.colorScheme.background)
 
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -403,9 +446,6 @@ fun HomeScreen(
                 pullToRefreshState.animateToHidden()
             }
         }
-    }
-    LaunchedEffect(key1 = homeData) {
-        accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
     LaunchedEffect(openAppTime, shareLyricsPermissions) {
         Logger.w("HomeScreen", "openAppTime: $openAppTime, shareLyricsPermissions: $shareLyricsPermissions")
@@ -696,6 +736,7 @@ fun HomeScreen(
         PullToRefreshBox(
             modifier =
                 Modifier
+                    .then(if (LocalLiquidGlassEnabled.current) Modifier.layerBackdrop(chipBackdrop) else Modifier)
                     .hazeSource(hazeState),
             state = pullToRefreshState,
             onRefresh = onRefresh,
@@ -738,7 +779,7 @@ fun HomeScreen(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        itemsIndexed(homeData, key = { _, item ->
+                        itemsIndexed(homeShelves, key = { _, item ->
                             item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
                         }) { index, item ->
                             Box {
@@ -754,13 +795,49 @@ fun HomeScreen(
                                                 // straight across Home. Sized by the item, the
                                                 // bottom scrim always lands on the item's edge.
                                                 .matchParentSize()
-                                                .angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
+                                                // The glow used to reach down past the old app bar and
+                                                // the Welcome back row, both gone with the Spotify
+                                                // header. It keeps that reach by running on below the
+                                                // first item instead of making the item taller; what
+                                                // runs over is the scrim's tail, already faded out.
+                                                .layout { measurable, constraints ->
+                                                    val height = constraints.maxHeight + HomeGlowOverflow.roundToPx()
+                                                    val placeable =
+                                                        measurable.measure(constraints.copy(minHeight = height, maxHeight = height))
+                                                    layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, 0) }
+                                                }.angledGradientBackground(listOf(animatedColor, pageBackground), 25f),
                                     ) {
+                                        if (headerImage != null && !headerImageFailed) {
+                                            AsyncImage(
+                                                model =
+                                                    ImageRequest
+                                                        .Builder(LocalPlatformContext.current)
+                                                        .data(headerImage)
+                                                        .crossfade(550)
+                                                        .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                onError = { headerImageFailed = true },
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                            // Always over the image, which can be very bright: a layer of the
+                                            // page's own colour tones it down in either theme and fades it
+                                            // into the page along the tint's own 25° line, not in a flat
+                                            // band at the bottom.
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .angledGradientBackground(listOf(pageBackground.copy(alpha = 0.6f), pageBackground), 25f),
+                                            )
+                                        }
                                         Box(
                                             modifier =
                                                 Modifier
                                                     .fillMaxWidth()
-                                                    .height(180.dp)
+                                                    // A share of the glow, not a fixed 180dp: on a glow
+                                                    // ~560dp tall, 180dp made a long flat field that
+                                                    // dropped off in one short step.
+                                                    .fillMaxHeight(0.6f)
                                                     .align(Alignment.BottomCenter)
                                                     .background(artworkScrimBrush(pageBackground)),
                                         )
@@ -772,20 +849,15 @@ fun HomeScreen(
                                             .padding(horizontal = 15.dp),
                                 ) {
                                     if (index == 0) {
+                                        // The header's own height plus 8dp, so the first section does not
+                                        // sit right under the chips.
                                         Spacer(
                                             Modifier.height(
-                                                with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                                                with(LocalDensity.current) { topAppBarHeightPx.toDp() } + 8.dp,
                                             ),
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    if (index == 0 && accountInfo != null && accountShow) {
-                                        AccountLayout(
-                                            accountName = accountInfo?.first ?: "",
-                                            url = accountInfo?.second ?: "",
-                                        )
-                                        Spacer(Modifier.height(8.dp))
-                                    }
                                     if (item.title == stringResource(Res.string.quick_picks)) {
                                         AnimatedVisibility(
                                             visible =
@@ -953,7 +1025,7 @@ fun HomeScreen(
                             Modifier.height(
                                 with(LocalDensity.current) {
                                     topAppBarHeightPx.toDp()
-                                },
+                                } + 8.dp,
                             ),
                         )
                         HomeShimmer()
@@ -961,8 +1033,11 @@ fun HomeScreen(
                 }
             }
         }
+        // Spotify's header: the avatar, the chips and Create on one row, with no app bar. At the
+        // top of the page it sits straight on the artwork glow; once the page scrolls under it, the blurred
+        // bar fades in behind it.
         AnimatedContent(
-            targetState = scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0,
+            targetState = atTop,
             transitionSpec = {
                 fadeIn(tween(300)).togetherWith(fadeOut(tween(300)))
             },
@@ -982,69 +1057,95 @@ fun HomeScreen(
                             topAppBarHeightPx = coordinates.size.height
                         },
             ) {
-                AnimatedVisibility(
-                    visible = isScrollingUp,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically(),
-                ) {
-                    HomeTopAppBar(navController)
-                }
-                AnimatedVisibility(
-                    visible = !isScrollingUp,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically(),
-                ) {
-                    Spacer(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .windowInsetsPadding(
-                                    WindowInsets.statusBars,
-                                ),
+                Spacer(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(
+                                WindowInsets.statusBars,
+                            ),
+                )
+                // The avatar stays put and the chips scroll only to its right, clipped there instead of
+                // passing over it, each end faded while chips wait past that edge. On a phone held
+                // upright Create rides at the end of the chip row: the row is at least as wide as its
+                // strip, so at rest Create sits at the right edge, and a Mood that opens wide pushes it
+                // along instead of sliding under it. On Desktop and in landscape Create stays put at the
+                // right edge, like the avatar.
+                val createPinned = getPlatform() == Platform.Desktop || getScreenSizeInfo().let { it.wDP >= it.hDP }
+                val chipHeadFade by animateFloatAsState(if (chipRowState.canScrollBackward) 1f else 0f)
+                val chipTailFade by animateFloatAsState(if (chipRowState.canScrollForward) 1f else 0f)
+                // Notifications moved into the avatar menu, Listen Together into the Create sheet.
+                val createActions: @Composable () -> Unit = {
+                    CreateActions(
+                        backdrop = chipBackdrop,
+                        navController = navController,
+                        onSettings = { navController.navigate(SettingsDestination) },
                     )
                 }
                 Row(
                     modifier =
                         Modifier
-                            .horizontalScroll(chipRowState)
-                            .padding(vertical = 8.dp, horizontal = 15.dp)
-                            .background(Color.Transparent),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    listOfHomeChip.forEach { id ->
-                        val isSelected =
-                            when (params) {
-                                HOME_PARAMS_RELAX -> id == Res.string.relax
-                                HOME_PARAMS_SLEEP -> id == Res.string.sleep
-                                HOME_PARAMS_ENERGIZE -> id == Res.string.energize
-                                HOME_PARAMS_SAD -> id == Res.string.sad
-                                HOME_PARAMS_ROMANCE -> id == Res.string.romance
-                                HOME_PARAMS_FEEL_GOOD -> id == Res.string.feel_good
-                                HOME_PARAMS_WORKOUT -> id == Res.string.workout
-                                HOME_PARAMS_PARTY -> id == Res.string.party
-                                HOME_PARAMS_COMMUTE -> id == Res.string.commute
-                                HOME_PARAMS_FOCUS -> id == Res.string.focus
-                                else -> id == Res.string.all
-                            }
-                        Chip(
-                            isAnimated = loading,
-                            isSelected = isSelected,
-                            text = stringResource(id),
+                    Box(Modifier.padding(start = 16.dp, end = 8.dp)) {
+                        HomeAccountButton(
+                            accountName = accountInfo?.first,
+                            thumbnailUrl = accountInfo?.second,
+                            navController = navController,
+                        )
+                    }
+                    BoxWithConstraints(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    ) {
+                        Row(
+                            modifier =
+                                Modifier
+                                    .fillMaxHeight()
+                                    .chipStripEdgeFades(32.dp, start = { chipHeadFade }, end = { chipTailFade })
+                                    .horizontalScroll(chipRowState)
+                                    .widthIn(min = maxWidth)
+                                    .padding(end = if (createPinned) 0.dp else 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            when (id) {
-                                Res.string.all -> viewModel.setParams(null)
-                                Res.string.relax -> viewModel.setParams(HOME_PARAMS_RELAX)
-                                Res.string.sleep -> viewModel.setParams(HOME_PARAMS_SLEEP)
-                                Res.string.energize -> viewModel.setParams(HOME_PARAMS_ENERGIZE)
-                                Res.string.sad -> viewModel.setParams(HOME_PARAMS_SAD)
-                                Res.string.romance -> viewModel.setParams(HOME_PARAMS_ROMANCE)
-                                Res.string.feel_good -> viewModel.setParams(HOME_PARAMS_FEEL_GOOD)
-                                Res.string.workout -> viewModel.setParams(HOME_PARAMS_WORKOUT)
-                                Res.string.party -> viewModel.setParams(HOME_PARAMS_PARTY)
-                                Res.string.commute -> viewModel.setParams(HOME_PARAMS_COMMUTE)
-                                Res.string.focus -> viewModel.setParams(HOME_PARAMS_FOCUS)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Chip(
+                                    isAnimated = loading,
+                                    isSelected = params == null && !moodExpanded,
+                                    text = stringResource(Res.string.all),
+                                    backdrop = chipBackdrop,
+                                ) {
+                                    moodExpanded = false
+                                    viewModel.setParams(null)
+                                }
+                                ExpandableChip(
+                                    text = stringResource(Res.string.mood),
+                                    options = homeMoods.map { stringResource(it.first) },
+                                    selectedIndex = homeMoods.indexOfFirst { it.second == params }.takeIf { it >= 0 },
+                                    expanded = moodExpanded,
+                                    onExpandedChange = { moodExpanded = it },
+                                    onSelect = { index ->
+                                        moodExpanded = false
+                                        viewModel.setParams(homeMoods[index].second)
+                                    },
+                                    isAnimated = loading,
+                                    backdrop = chipBackdrop,
+                                )
+                            }
+                            if (!createPinned) {
+                                Box(Modifier.padding(start = 8.dp)) { createActions() }
                             }
                         }
+                    }
+                    if (createPinned) {
+                        Box(Modifier.padding(start = 8.dp, end = 16.dp)) { createActions() }
                     }
                 }
             }
@@ -1052,113 +1153,182 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeTopAppBar(navController: NavController) {
-    val hour =
-        remember {
-            val date = now().time
-            date.hour
+/**
+ * Fades each end of the chip strip out (a DstIn mask) while chips wait past that edge, so the row
+ * reads as running on rather than cut off. [start] and [end] ease each fade in and out and are read
+ * at draw time. Smoothstep, like every fade in the app: a linear ramp shows a line where it begins.
+ */
+private fun Modifier.chipStripEdgeFades(
+    width: Dp,
+    start: () -> Float,
+    end: () -> Float,
+): Modifier =
+    graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            val fadePx = width.toPx().coerceAtMost(size.width / 2f)
+            val startFade = start()
+            if (startFade > 0f) {
+                drawRect(
+                    brush = Brush.horizontalGradient(colorStops = chipFadeStops(startFade, fadingOut = false), startX = 0f, endX = fadePx),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+            val endFade = end()
+            if (endFade > 0f) {
+                drawRect(
+                    brush =
+                        Brush.horizontalGradient(
+                            colorStops = chipFadeStops(endFade, fadingOut = true),
+                            startX = size.width - fadePx,
+                            endX = size.width,
+                        ),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
         }
-    TopAppBar(
-        windowInsets =
-            TopAppBarDefaults.windowInsets.exclude(
-                TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Start),
-            ),
-        title = {
-            Column {
-                Text(
-                    text = stringResource(Res.string.app_name),
-                    style = typo().titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 4.dp),
+
+// Opaque → transparent left to right when [fadingOut], the other way round otherwise; [fade] scales
+// how far towards transparent the far end goes.
+private fun chipFadeStops(
+    fade: Float,
+    fadingOut: Boolean,
+): Array<Pair<Float, Color>> =
+    Array(CHIP_FADE_STEPS + 1) { i ->
+        val t = i / CHIP_FADE_STEPS.toFloat()
+        val ramp = t * t * (3f - 2f * t)
+        t to Color.Black.copy(alpha = 1f - fade * (if (fadingOut) ramp else 1f - ramp))
+    }
+
+private const val CHIP_FADE_STEPS = 24
+
+/**
+ * The avatar at the start of Home's header. It opens a menu showing who is signed in and the
+ * greeting the old app bar used to show. Signed out, the avatar is a person glyph and the menu
+ * offers the log-in.
+ */
+@Composable
+private fun HomeAccountButton(
+    accountName: String?,
+    thumbnailUrl: String?,
+    navController: NavController,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    // Sign-out blanks the stored account name, so a blank name is the signed-out state.
+    val signedIn = !accountName.isNullOrBlank()
+    val displayName = if (signedIn) accountName.orEmpty() else stringResource(Res.string.guest)
+    val hour = remember { now().time.hour }
+    val greeting =
+        stringResource(
+            when (hour) {
+                in 6..12 -> Res.string.good_morning
+                in 13..17 -> Res.string.good_afternoon
+                in 18..23 -> Res.string.good_evening
+                else -> Res.string.good_night
+            },
+        )
+    Box {
+        AccountAvatar(
+            signedIn = signedIn,
+            thumbnailUrl = thumbnailUrl,
+            // The Create pill's height, as Apple sizes an avatar like the glass buttons beside it.
+            size = 44.dp,
+            contentDescription = displayName,
+            modifier = Modifier.clickable { menuOpen = true },
+        )
+        DropdownMenu(
+            expanded = menuOpen,
+            onDismissRequest = { menuOpen = false },
+            // The draft's 280dp (also Material's widest menu item) instead of wrapping its content,
+            // which left the menu as narrow as its longest row. Capped, not fixed: a window narrower
+            // than that gets a menu as wide as the window instead of one that runs off it.
+            modifier =
+                Modifier
+                    .widthIn(max = 280.dp)
+                    .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                AccountAvatar(
+                    signedIn = signedIn,
+                    thumbnailUrl = thumbnailUrl,
+                    size = 40.dp,
+                    contentDescription = null,
                 )
-                Text(
-                    text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(Res.string.good_morning)
-                            }
-
-                            in 13..17 -> {
-                                stringResource(Res.string.good_afternoon)
-                            }
-
-                            in 18..23 -> {
-                                stringResource(Res.string.good_evening)
-                            }
-
-                            else -> {
-                                stringResource(Res.string.good_night)
-                            }
-                        },
-                    style = typo().bodySmall,
-                )
+                Column {
+                    Text(text = displayName, style = typo().titleSmall, maxLines = 1)
+                    Text(text = greeting, style = typo().bodySmall)
+                }
             }
-        },
-        actions = {
-            RippleIconButton(imageVector = SimpIcons.Notifications, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(NotificationDestination)
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.notification), style = typo().bodyMedium) },
+                leadingIcon = { Icon(SimpIcons.Notifications, contentDescription = null) },
+                onClick = {
+                    menuOpen = false
+                    navController.navigate(NotificationDestination)
+                },
+            )
+            if (!signedIn) {
+                Button(
+                    onClick = {
+                        menuOpen = false
+                        navController.navigate(LoginDestination)
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                ) {
+                    Text(stringResource(Res.string.log_in_to_YouTube), color = LocalContentColor.current)
+                }
             }
-            RippleIconButton(imageVector = SimpIcons.History, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(RecentlySongsDestination)
-            }
-            // Fourth button, immediately before Settings — the position the design canvas fixes.
-            ListenTogetherIconButton { navController.navigate(ListenTogetherDestination) }
-            RippleIconButton(imageVector = SimpIcons.Settings, tint = MaterialTheme.colorScheme.onBackground) {
-                navController.navigate(SettingsDestination)
-            }
-        },
-        colors =
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-            ),
-    )
+        }
+    }
 }
 
 @Composable
-fun AccountLayout(
-    accountName: String,
-    url: String,
+private fun AccountAvatar(
+    signedIn: Boolean,
+    thumbnailUrl: String?,
+    size: Dp,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
-        Text(
-            text = stringResource(Res.string.welcome_back),
-            style = typo().bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 3.dp),
+    val avatarModifier =
+        Modifier
+            .size(size)
+            .clip(CircleShape)
+            .then(modifier)
+    if (signedIn && !thumbnailUrl.isNullOrBlank()) {
+        AsyncImage(
+            model =
+                ImageRequest
+                    .Builder(LocalPlatformContext.current)
+                    .data(thumbnailUrl)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumbnailUrl)
+                    .crossfade(true)
+                    .build(),
+            placeholder = rememberHolderPainter(),
+            error = rememberHolderPainter(),
+            contentDescription = contentDescription,
+            contentScale = ContentScale.Crop,
+            modifier = avatarModifier,
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+    } else {
+        Box(
+            modifier = avatarModifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+            contentAlignment = Alignment.Center,
         ) {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalPlatformContext.current)
-                        .data(url)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(url)
-                        .crossfade(true)
-                        .build(),
-                placeholder = rememberHolderPainter(),
-                error = rememberHolderPainter(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(
-                            CircleShape,
-                        ),
-            )
-            Text(
-                text = accountName,
-                style = typo().headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+            Icon(
+                imageVector = SimpIcons.Person,
+                contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(size * 0.6f),
             )
         }
     }
@@ -1229,15 +1399,10 @@ fun QuickPicks(
                 )
             }
             if (homeItem.playAllEndpoint != null) {
-                TextButton(
+                SectionHeaderButton(
+                    text = stringResource(Res.string.play_all),
                     onClick = { viewModel.playAll(homeItem) },
-                    colors =
-                        ButtonDefaults
-                            .textButtonColors()
-                            .copy(contentColor = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    Text(stringResource(Res.string.play_all), style = typo().bodySmall)
-                }
+                )
             }
         }
         LazyHorizontalGrid(

@@ -428,26 +428,18 @@ fun AppNavigationRail(
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }
-    NavigationRail {
+    // Transparent, not the default `surface`: the rail sits on the Desktop window (pure black/white)
+    // and on the page background on tablets, and must read as part of whatever is behind it.
+    NavigationRail(containerColor = Color.Transparent) {
         Spacer(Modifier.height(16.dp))
-        Box(Modifier.padding(horizontal = 16.dp)) {
-            Box(
+        Image(
+            painter = painterResource(Res.drawable.circle_app_icon),
+            contentDescription = null,
+            modifier =
                 Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.mono),
-                    contentDescription = null,
-                    modifier =
-                        Modifier
-                            .height(32.dp)
-                            .clip(CircleShape),
-                )
-            }
-        }
+                    .padding(horizontal = 16.dp)
+                    .size(48.dp),
+        )
         Spacer(Modifier.weight(1f))
         bottomNavScreens.forEach { screen ->
             NavigationRailItem(

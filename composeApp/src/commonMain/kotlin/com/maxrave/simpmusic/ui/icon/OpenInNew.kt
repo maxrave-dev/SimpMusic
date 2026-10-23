@@ -83,7 +83,7 @@ val SimpIcons.OpenInNew: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _OpenInNew!!
   }
 

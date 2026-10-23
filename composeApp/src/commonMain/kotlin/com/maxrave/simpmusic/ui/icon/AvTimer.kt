@@ -107,7 +107,7 @@ val SimpIcons.AvTimer: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _AvTimer!!
   }
 

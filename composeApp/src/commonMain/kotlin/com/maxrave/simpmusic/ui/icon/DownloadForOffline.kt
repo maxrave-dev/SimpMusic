@@ -89,7 +89,7 @@ val SimpIcons.DownloadForOffline: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _DownloadForOffline!!
   }
 

@@ -61,7 +61,7 @@ val SimpIcons.Pause: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Pause!!
   }
 

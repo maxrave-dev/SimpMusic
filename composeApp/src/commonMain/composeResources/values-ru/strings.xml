@@ -115,6 +115,7 @@
     <string name="let_s_start_with_a_radio">ДАВАЙТЕ НАЧНЕМ С РАДИО</string>
     <string name="let_s_pick_a_playlist_for_you">ДАВАЙТЕ ВЫБЕРЕМ ПЛЕЙЛИСТ ДЛЯ ВАС</string>
     <string name="moods_amp_moment"><![CDATA[Настроение и Моменты]]></string>
+    <string name="mood">Настроение</string>
     <string name="genre">Жанр</string>
     <string name="what_is_best_choice_today">КАКОЙ ЛУЧШИЙ ВЫБОР СЕГОДНЯ</string>
     <string name="chart">Чарт</string>
@@ -129,6 +130,8 @@
     <string name="storage">Хранилище</string>
     <string name="player_cache">Кэш плеера</string>
     <string name="downloaded_cache">Скачанный кэш</string>
+    <string name="cached">Закэшировано</string>
+    <string name="remove_from_cache">Удалить из кэша</string>
     <string name="thumbnail_cache">Кэш миниатюры</string>
     <string name="backup">Резервное копирование</string>
     <string name="backup_your_data">Резервная копия ваших данных</string>
@@ -144,6 +147,7 @@
     <string name="developer_blog">Блог разработчика</string>
     <string name="developer_blog_tagline">Читайте заметки разработчика, руководства и информацию о процессе разработки</string>
     <string name="blog_promo_title">Что-то новое из разработки</string>
+    <string name="blog_promo_message">Я только что запустил свой персональный блог на simpmusic.org — поделитесь историей за SimpMusic, музыкальными погружениями и инженерными заметками. Читайте, если интересно ✨</string>
     <string name="visit_blog">Посетить блог</string>
     <string name="paypal">PayPal</string>
     <string name="title">Название</string>
@@ -156,6 +160,8 @@
     <string name="recently">Недавние</string>
     <string name="settings">Настройки</string>
     <string name="now_playing_upper">СЕЙЧАС ИГРАЕТ</string>
+    <string name="radio_mix_upper">РАДИО/МИКС</string>
+    <string name="radio_mix">Радио/Микс</string>
     <string name="language">Язык</string>
     <string name="what_do_you_want_to_listen_to">Что вы хотите послушать?</string>
     <string name="songs_inArtist">Треки</string>
@@ -321,6 +327,9 @@
     <string name="play_video_instead_of_audio_warning">Это действие удалит кэш плеера. Продолжить?</string>
     <string name="quality_video">Качество видео</string>
     <string name="add_to_queue">Добавить в очередь</string>
+    <string name="add_to_queue_disabled_radio">Добавить в очередь (отключено при воспроизведении радио или микса)</string>
+    <string name="add_to_queue_disabled_endless">Добавить в очередь (отключено, когда включена бесконечная очередь)</string>
+    <string name="download_disabled_live">Скачать (недоступно для трансляций)</string>
     <string name="added_to_queue">Добавлено в очередь!</string>
     <string name="new_release">Новинки</string>
     <string name="music_video">Музыкальное видео</string>
@@ -398,6 +407,9 @@
     <string name="offline_mode">Офлайн режим</string>
     <string name="added_to_youtube_liked">Добавлено в лайки YouTube</string>
     <string name="removed_from_youtube_liked">Удалено из лайков YouTube</string>
+    <string name="dislike_on_youtube">Дизлайк (YouTube Music не будет рекомендовать эту песню часто)</string>
+    <string name="disliked">Дизлайк поставлен</string>
+    <string name="disliking">Ставим дизлайк...</string>
     <string name="home_limit">Лимит получения данных главной страницы</string>
     <string name="no_album">Нет альбома</string>
     <string name="app_widget_description">Виджет плеера</string>
@@ -563,6 +575,13 @@
     <string name="auto_download_liked_songs">Автоматически скачивать понравившиеся песни</string>
     <string name="auto_download_liked_songs_description">Автоматически загружает песню для воспроизведения в офлайн режиме при добавлении ее в Понравившееся, используя параметры качества загрузки. Включение этой опции также загружает песни, которые уже есть в Понравившемся. Удаление лайка не удаляет загрузку.</string>
     <string name="downloading_liked_songs">Загрузка %1$d понравившихся песен</string>
+    <string name="smart_downloads">Умные загрузки</string>
+    <string name="smart_downloads_description">Песни, которые вы слушаете чаще всего, останутся скачанными. Обновляется раз в день, когда вы заходите в приложение через Wi-Fi</string>
+    <string name="smart_downloads_needs_local_tracking">Включите локальную историю прослушивания треков для использования этой функции</string>
+    <string name="smart_downloads_size">Сохраняемые треки</string>
+    <string name="smart_downloads_size_value">%1$d треков</string>
+    <string name="smart_downloads_downloading">Умные загрузки: скачивание %1$d песен</string>
+    <string name="smart_downloads_waiting_for_wifi">Умные загрузки будут запущены при следующем запуске приложения через Wi-Fi</string>
     <string name="crossfade_skip_album">Убрать кроссфейд в альбомах</string>
     <string name="crossfade_skip_album_description">Убирает кроссфейд между песнями в альбомах, в которых предусмотрен свой переход. На выходе из альбома кроссфейд сохраняется.</string>
     <string name="youtube_subtitle_language">Язык перевода субтитров YouTube</string>
@@ -971,4 +990,13 @@
     <string name="log_stack_trace_lines">Стек трейс · %1$s строк</string>
     <string name="log_hide_stack_trace">Спрятать стек трейс</string>
     <string name="log_export_failed">Не удалось экспортировать логи</string>
+    <string name="comments">Комментарии</string>
+    <string name="reply">Ответить</string>
+    <string name="replying_to">Ответить %1$s</string>
+    <string name="comments_log_in_hint">Войдите в систему, чтобы писать, отвечать и лайкать комментарии</string>
+    <string name="comments_log_in_message">Войдите в YouTube, чтобы писать, отвечать и лайкать комментарии.</string>
+    <string name="comments_turned_off">Комментарии отключены</string>
+    <string name="comments_load_error">Не удалось загрузить комментарии</string>
+    <string name="comment_post_error">Не удалось опубликовать ваш комментарий</string>
+    <string name="comments_need_channel">Создайте YouTube канал, чтобы прокомментировать</string>
 </resources>

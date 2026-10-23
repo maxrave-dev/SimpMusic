@@ -81,7 +81,7 @@ val SimpIcons.FavoriteBorder: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _FavoriteBorder!!
   }
 

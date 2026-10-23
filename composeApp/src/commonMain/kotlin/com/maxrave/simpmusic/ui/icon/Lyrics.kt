@@ -117,7 +117,7 @@ val SimpIcons.Lyrics: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Lyrics!!
   }
 

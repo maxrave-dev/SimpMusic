@@ -65,7 +65,7 @@ val SimpIcons.Search: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Search!!
   }
 

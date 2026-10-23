@@ -72,7 +72,7 @@ val SimpIcons.ThumbDown: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ThumbDown!!
   }
 

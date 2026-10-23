@@ -214,6 +214,8 @@ sentry {
         includeDependenciesReport.set(false)
         includeSourceContext.set(false)
         includeNativeSources.set(false)
+        // FOSS ships no Sentry SDK: injected AppStartMetrics calls crash it at launch.
+        tracingInstrumentation.enabled.set(false)
     }
     telemetry.set(false)
 }

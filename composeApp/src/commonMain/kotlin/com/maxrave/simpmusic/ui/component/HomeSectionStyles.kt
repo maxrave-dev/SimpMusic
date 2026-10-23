@@ -47,13 +47,15 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import kotlinx.coroutines.launch
 
-// Rows at least this wide (tablets, desktop) get the wide-window hero.
-private const val WIDE_LAYOUT_MIN_DP = 600
+// The large card's target width. Fixed rather than a share of the row, so a wider row fits more
+// large cards instead of the same two stretched wider.
+private val HERO_TARGET_WIDTH = 360.dp
 
 /**
- * "Your daily discover" as ArchiveTune's hero carousel: one large card in the middle, narrow
- * neighbours, and the song's name on the art over a scrim. Past half the row only one large item
- * fits, so the large width is set above that and a wide window never lines up two side by side.
+ * "Your daily discover" as ArchiveTune's hero carousel: large cards in the middle, narrow
+ * neighbours, and the song's name on the art over a scrim. The carousel fits as many large cards
+ * of about [HERO_TARGET_WIDTH] as the row holds (Material's hero keylines pick the count closest to
+ * the target), so a phone shows one and a desktop window more as it widens.
  * Tapping a neighbour brings it to the middle; tapping the middle card starts the song's radio, a
  * long press opens the song menu, and on a pointer device the card's play button shows on hover.
  */
@@ -79,8 +81,8 @@ fun HomeDiscoverSection(
     Column {
         HomeSectionHeader(data = data, navController = navController, onPlayAll = { homeViewModel.playAll(data) })
         BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val wide = maxWidth >= WIDE_LAYOUT_MIN_DP.dp
-            val heroWidth = maxWidth * (if (wide) 0.6f else 0.74f)
+            // A phone narrower than two targets still gets one large card with neighbours beside it.
+            val heroWidth = (maxWidth * 0.74f).coerceAtMost(HERO_TARGET_WIDTH)
             HorizontalCenteredHeroCarousel(
                 state = state,
                 maxItemWidth = heroWidth,
@@ -89,7 +91,9 @@ fun HomeDiscoverSection(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .height(if (wide) 400.dp else heroWidth * 1.1f),
+                        // The gap other shelves get from their cards' own 10dp top padding.
+                        .padding(top = 10.dp)
+                        .height(320.dp),
             ) { index ->
                 val song = songs[index]
                 val info = carouselItemDrawInfo
@@ -121,7 +125,7 @@ fun HomeDiscoverSection(
                         placeholder = rememberHolderPainter(),
                         error = rememberHolderPainter(),
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().hoverZoom(hovered),
                     )
                     Box(
                         Modifier
@@ -143,7 +147,8 @@ fun HomeDiscoverSection(
                         ) {
                             Text(
                                 text = song.title,
-                                style = if (wide) typo().titleLarge else typo().headlineMedium,
+                                // The size of Home's section titles (HomeSectionHeader).
+                                style = typo().headlineMedium,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                             )

@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.maxrave.common.Config.MAIN_PLAYER
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
@@ -371,378 +372,382 @@ fun FullscreenPlayer(
                                 }
                             },
                         )
-                        Row(
-                            Modifier
-                                .align(Alignment.Center)
-                                .fillMaxWidth(0.3f),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FilledTonalIconButton(
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .size(48.dp)
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            CircleShape,
-                                        ),
-                                enabled = controllerState.isPreviousAvailable,
-                                onClick = {
-                                    sharedViewModel.onUIEvent(UIEvent.Previous)
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = SimpIcons.SkipPrevious,
-                                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
-                                    contentDescription = "",
-                                    modifier =
-                                        Modifier
-                                            .size(36.dp),
-                                )
-                            }
-                            FilledTonalIconButton(
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .size(48.dp)
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            CircleShape,
-                                        ),
-                                onClick = {
-                                    sharedViewModel.onUIEvent(UIEvent.Backward)
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = SimpIcons.Replay5,
-                                    tint = Color.White,
-                                    contentDescription = "",
-                                    modifier =
-                                        Modifier
-                                            .size(36.dp),
-                                )
-                            }
-                            FilledTonalIconButton(
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .size(64.dp)
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            CircleShape,
-                                        ),
-                                onClick = {
-                                    sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                },
-                            ) {
-                                Crossfade(controllerState.isPlaying) {
-                                    if (it) {
-                                        Icon(
-                                            imageVector = SimpIcons.Pause,
-                                            tint = Color.White,
-                                            contentDescription = "",
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp),
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = SimpIcons.PlayArrow,
-                                            tint = Color.White,
-                                            contentDescription = "",
-                                            modifier =
-                                                Modifier
-                                                    .size(48.dp),
-                                        )
-                                    }
-                                }
-                            }
-                            FilledTonalIconButton(
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .size(48.dp)
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            CircleShape,
-                                        ),
-                                onClick = {
-                                    sharedViewModel.onUIEvent(UIEvent.Forward)
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = SimpIcons.Forward5,
-                                    tint = Color.White,
-                                    contentDescription = "",
-                                    modifier =
-                                        Modifier
-                                            .size(36.dp),
-                                )
-                            }
-                            FilledTonalIconButton(
-                                colors =
-                                    IconButtonDefaults.iconButtonColors().copy(
-                                        containerColor = Color.Transparent,
-                                    ),
-                                modifier =
-                                    Modifier
-                                        .size(48.dp)
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            CircleShape,
-                                        ),
-                                enabled = controllerState.isNextAvailable,
-                                onClick = {
-                                    sharedViewModel.onUIEvent(UIEvent.Next)
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = SimpIcons.SkipNext,
-                                    tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
-                                    contentDescription = "",
-                                    modifier =
-                                        Modifier
-                                            .size(36.dp),
-                                )
-                            }
-                        }
-                        Column(
-                            modifier =
+                        LeftToRight {
+                            Row(
                                 Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(0.3f)
-                                    .padding(horizontal = 40.dp),
-                            verticalArrangement = Arrangement.Bottom,
-                        ) {
-                            Box(
-                                Modifier
-                                    .padding(
-                                        vertical = 5.dp,
-                                    ),
+                                    .align(Alignment.Center)
+                                    .fillMaxWidth(0.3f),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Box(
+                                FilledTonalIconButton(
+                                    colors =
+                                        IconButtonDefaults.iconButtonColors().copy(
+                                            containerColor = Color.Transparent,
+                                        ),
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth()
-                                            .height(24.dp),
-                                    contentAlignment = Alignment.Center,
+                                            .size(48.dp)
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                CircleShape,
+                                            ),
+                                    enabled = controllerState.isPreviousAvailable,
+                                    onClick = {
+                                        sharedViewModel.onUIEvent(UIEvent.Previous)
+                                    },
                                 ) {
-                                    Crossfade(timelineState.loading) {
+                                    Icon(
+                                        imageVector = SimpIcons.SkipPrevious,
+                                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.DarkGray,
+                                        contentDescription = "",
+                                        modifier =
+                                            Modifier
+                                                .size(36.dp),
+                                    )
+                                }
+                                FilledTonalIconButton(
+                                    colors =
+                                        IconButtonDefaults.iconButtonColors().copy(
+                                            containerColor = Color.Transparent,
+                                        ),
+                                    modifier =
+                                        Modifier
+                                            .size(48.dp)
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                CircleShape,
+                                            ),
+                                    onClick = {
+                                        sharedViewModel.onUIEvent(UIEvent.Backward)
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.Replay5,
+                                        tint = Color.White,
+                                        contentDescription = "",
+                                        modifier =
+                                            Modifier
+                                                .size(36.dp),
+                                    )
+                                }
+                                FilledTonalIconButton(
+                                    colors =
+                                        IconButtonDefaults.iconButtonColors().copy(
+                                            containerColor = Color.Transparent,
+                                        ),
+                                    modifier =
+                                        Modifier
+                                            .size(64.dp)
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                CircleShape,
+                                            ),
+                                    onClick = {
+                                        sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                    },
+                                ) {
+                                    Crossfade(controllerState.isPlaying) {
                                         if (it) {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                    strokeCap = StrokeCap.Round,
-                                                )
-                                            }
+                                            Icon(
+                                                imageVector = SimpIcons.Pause,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                                modifier =
+                                                    Modifier
+                                                        .size(48.dp),
+                                            )
                                         } else {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                LinearProgressIndicator(
-                                                    progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                                    modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(4.dp)
-                                                            .padding(
-                                                                horizontal = 3.dp,
-                                                            ).clip(
-                                                                RoundedCornerShape(8.dp),
-                                                            ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                    strokeCap = StrokeCap.Round,
-                                                    drawStopIndicator = {},
-                                                )
-                                            }
+                                            Icon(
+                                                imageVector = SimpIcons.PlayArrow,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                                modifier =
+                                                    Modifier
+                                                        .size(48.dp),
+                                            )
                                         }
                                     }
                                 }
-                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                    Slider(
-                                        // Fraction, not 0..100 — see the note in NowPlayingScreen:
-                                        // material3 alpha25 drops valueRange on its
-                                        // binary-compatibility overload.
-                                        value = sliderValue / 100f,
-                                        onValueChange = { value ->
-                                            isSliding = true
-                                            sliderValue = value * 100f
-                                        },
-                                        onValueChangeFinished = {
-                                            isSliding = false
-                                            sharedViewModel.onUIEvent(
-                                                UIEvent.UpdateProgress(sliderValue),
-                                            )
-                                        },
+                                FilledTonalIconButton(
+                                    colors =
+                                        IconButtonDefaults.iconButtonColors().copy(
+                                            containerColor = Color.Transparent,
+                                        ),
+                                    modifier =
+                                        Modifier
+                                            .size(48.dp)
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                CircleShape,
+                                            ),
+                                    onClick = {
+                                        sharedViewModel.onUIEvent(UIEvent.Forward)
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.Forward5,
+                                        tint = Color.White,
+                                        contentDescription = "",
+                                        modifier =
+                                            Modifier
+                                                .size(36.dp),
+                                    )
+                                }
+                                FilledTonalIconButton(
+                                    colors =
+                                        IconButtonDefaults.iconButtonColors().copy(
+                                            containerColor = Color.Transparent,
+                                        ),
+                                    modifier =
+                                        Modifier
+                                            .size(48.dp)
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                CircleShape,
+                                            ),
+                                    enabled = controllerState.isNextAvailable,
+                                    onClick = {
+                                        sharedViewModel.onUIEvent(UIEvent.Next)
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = SimpIcons.SkipNext,
+                                        tint = if (controllerState.isNextAvailable) Color.White else Color.DarkGray,
+                                        contentDescription = "",
+                                        modifier =
+                                            Modifier
+                                                .size(36.dp),
+                                    )
+                                }
+                            }
+                        }
+                        LeftToRight {
+                            Column(
+                                modifier =
+                                    Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.3f)
+                                        .padding(horizontal = 40.dp),
+                                verticalArrangement = Arrangement.Bottom,
+                            ) {
+                                Box(
+                                    Modifier
+                                        .padding(
+                                            vertical = 5.dp,
+                                        ),
+                                ) {
+                                    Box(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(top = 3.dp)
-                                                .align(
-                                                    Alignment.TopCenter,
-                                                ),
-                                        track = { sliderState ->
-                                            SliderDefaults.Track(
-                                                modifier =
-                                                    Modifier
-                                                        .height(5.dp),
-                                                enabled = true,
-                                                sliderState = sliderState,
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                thumbTrackGapSize = 0.dp,
-                                                drawTick = { _, _ -> },
-                                                drawStopIndicator = null,
-                                            )
-                                        },
-                                        thumb = {
-                                            SliderDefaults.Thumb(
-                                                modifier =
-                                                    Modifier
-                                                        .height(18.dp)
-                                                        .width(8.dp)
-                                                        .padding(
-                                                            vertical = 4.dp,
-                                                        ),
-                                                thumbSize = DpSize(8.dp, 8.dp),
-                                                interactionSource =
-                                                    remember {
-                                                        MutableInteractionSource()
-                                                    },
-                                                colors =
-                                                    SliderDefaults.colors().copy(
-                                                        thumbColor = Color.White,
-                                                        activeTrackColor = Color.White,
-                                                        inactiveTrackColor = Color.Transparent,
-                                                    ),
-                                                enabled = true,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            // /
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .height(48.dp)
-                                        .fillMaxWidth(),
-                            ) {
-                                Row(
-                                    modifier =
-                                        Modifier
-                                            .wrapContentSize()
-                                            .align(Alignment.TopStart),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = timelineState.elapsedLabel(sliderValue / 100f),
-                                        style = typo().labelSmall,
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        // LIVE stands on its own: there is no elapsed time in front of it to divide from.
-                                        text = if (timelineState.isLive) timelineState.lengthLabel() else " / ${timelineState.lengthLabel()}",
-                                        style = typo().bodySmall,
-                                    )
-                                }
-                                Row(
-                                    Modifier
-                                        .fillMaxHeight()
-                                        .wrapContentWidth()
-                                        .align(Alignment.CenterEnd),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    FilledTonalIconButton(
-                                        colors =
-                                            IconButtonDefaults.iconButtonColors().copy(
-                                                containerColor = Color.Transparent,
-                                            ),
-                                        modifier =
-                                            Modifier
-                                                .size(32.dp)
-                                                .aspectRatio(1f)
-                                                .clip(
-                                                    CircleShape,
-                                                ),
-                                        onClick = {
-                                            shouldShowSubtitle = !shouldShowSubtitle
-                                        },
+                                                .height(24.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
-                                        Crossfade(shouldShowSubtitle) {
+                                        Crossfade(timelineState.loading) {
                                             if (it) {
-                                                Icon(
-                                                    imageVector = SimpIcons.SubtitlesOff,
-                                                    tint = Color.White,
-                                                    contentDescription = "",
-                                                    modifier =
-                                                        Modifier
-                                                            .size(24.dp),
-                                                )
+                                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                                    LinearProgressIndicator(
+                                                        modifier =
+                                                            Modifier
+                                                                .fillMaxWidth()
+                                                                .height(4.dp)
+                                                                .padding(
+                                                                    horizontal = 3.dp,
+                                                                ).clip(
+                                                                    RoundedCornerShape(8.dp),
+                                                                ),
+                                                        color = Color.Gray,
+                                                        trackColor = Color.DarkGray,
+                                                        strokeCap = StrokeCap.Round,
+                                                    )
+                                                }
                                             } else {
-                                                Icon(
-                                                    imageVector = SimpIcons.Subtitles,
-                                                    tint = Color.White,
-                                                    contentDescription = "",
-                                                    modifier =
-                                                        Modifier
-                                                            .size(24.dp),
-                                                )
+                                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                                    LinearProgressIndicator(
+                                                        progress = { timelineState.bufferedPercent.toFloat() / 100 },
+                                                        modifier =
+                                                            Modifier
+                                                                .fillMaxWidth()
+                                                                .height(4.dp)
+                                                                .padding(
+                                                                    horizontal = 3.dp,
+                                                                ).clip(
+                                                                    RoundedCornerShape(8.dp),
+                                                                ),
+                                                        color = Color.Gray,
+                                                        trackColor = Color.DarkGray,
+                                                        strokeCap = StrokeCap.Round,
+                                                        drawStopIndicator = {},
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                    Spacer(Modifier.width(8.dp))
-                                    FilledTonalIconButton(
-                                        colors =
-                                            IconButtonDefaults.iconButtonColors().copy(
-                                                containerColor = Color.Transparent,
-                                            ),
-                                        modifier =
-                                            Modifier
-                                                .size(32.dp)
-                                                .aspectRatio(1f)
-                                                .clip(
-                                                    CircleShape,
-                                                ),
-                                        onClick = {
-                                            navController.navigateUp()
-                                        },
-                                    ) {
-                                        Icon(
-                                            imageVector = SimpIcons.FullscreenExit,
-                                            tint = Color.White,
-                                            contentDescription = "",
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                        Slider(
+                                            // Fraction, not 0..100 — see the note in NowPlayingScreen:
+                                            // material3 alpha25 drops valueRange on its
+                                            // binary-compatibility overload.
+                                            value = sliderValue / 100f,
+                                            onValueChange = { value ->
+                                                isSliding = true
+                                                sliderValue = value * 100f
+                                            },
+                                            onValueChangeFinished = {
+                                                isSliding = false
+                                                sharedViewModel.onUIEvent(
+                                                    UIEvent.UpdateProgress(sliderValue),
+                                                )
+                                            },
                                             modifier =
                                                 Modifier
-                                                    .size(24.dp),
+                                                    .fillMaxWidth()
+                                                    .padding(top = 3.dp)
+                                                    .align(
+                                                        Alignment.TopCenter,
+                                                    ),
+                                            track = { sliderState ->
+                                                SliderDefaults.Track(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(5.dp),
+                                                    enabled = true,
+                                                    sliderState = sliderState,
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = Color.White,
+                                                            activeTrackColor = Color.White,
+                                                            inactiveTrackColor = Color.Transparent,
+                                                        ),
+                                                    thumbTrackGapSize = 0.dp,
+                                                    drawTick = { _, _ -> },
+                                                    drawStopIndicator = null,
+                                                )
+                                            },
+                                            thumb = {
+                                                SliderDefaults.Thumb(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(18.dp)
+                                                            .width(8.dp)
+                                                            .padding(
+                                                                vertical = 4.dp,
+                                                            ),
+                                                    thumbSize = DpSize(8.dp, 8.dp),
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = Color.White,
+                                                            activeTrackColor = Color.White,
+                                                            inactiveTrackColor = Color.Transparent,
+                                                        ),
+                                                    enabled = true,
+                                                )
+                                            },
                                         )
+                                    }
+                                }
+                                // /
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .height(48.dp)
+                                            .fillMaxWidth(),
+                                ) {
+                                    Row(
+                                        modifier =
+                                            Modifier
+                                                .wrapContentSize()
+                                                .align(Alignment.TopStart),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            text = timelineState.elapsedLabel(sliderValue / 100f),
+                                            style = typo().labelSmall,
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            // LIVE stands on its own: there is no elapsed time in front of it to divide from.
+                                            text = if (timelineState.isLive) timelineState.lengthLabel() else " / ${timelineState.lengthLabel()}",
+                                            style = typo().bodySmall,
+                                        )
+                                    }
+                                    Row(
+                                        Modifier
+                                            .fillMaxHeight()
+                                            .wrapContentWidth()
+                                            .align(Alignment.CenterEnd),
+                                        verticalAlignment = Alignment.Top,
+                                    ) {
+                                        FilledTonalIconButton(
+                                            colors =
+                                                IconButtonDefaults.iconButtonColors().copy(
+                                                    containerColor = Color.Transparent,
+                                                ),
+                                            modifier =
+                                                Modifier
+                                                    .size(32.dp)
+                                                    .aspectRatio(1f)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ),
+                                            onClick = {
+                                                shouldShowSubtitle = !shouldShowSubtitle
+                                            },
+                                        ) {
+                                            Crossfade(shouldShowSubtitle) {
+                                                if (it) {
+                                                    Icon(
+                                                        imageVector = SimpIcons.SubtitlesOff,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier =
+                                                            Modifier
+                                                                .size(24.dp),
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = SimpIcons.Subtitles,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier =
+                                                            Modifier
+                                                                .size(24.dp),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        FilledTonalIconButton(
+                                            colors =
+                                                IconButtonDefaults.iconButtonColors().copy(
+                                                    containerColor = Color.Transparent,
+                                                ),
+                                            modifier =
+                                                Modifier
+                                                    .size(32.dp)
+                                                    .aspectRatio(1f)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ),
+                                            onClick = {
+                                                navController.navigateUp()
+                                            },
+                                        ) {
+                                            Icon(
+                                                imageVector = SimpIcons.FullscreenExit,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                                modifier =
+                                                    Modifier
+                                                        .size(24.dp),
+                                            )
+                                        }
                                     }
                                 }
                             }

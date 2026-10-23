@@ -92,7 +92,7 @@ val SimpIcons.AddPhotoAlternate: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _AddPhotoAlternate!!
   }
 

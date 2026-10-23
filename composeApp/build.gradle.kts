@@ -105,6 +105,9 @@ kotlin {
             implementation(libs.camera.lifecycle)
             implementation(libs.camera.view)
             implementation(libs.zxing.core)
+
+            // Login WebViews: startUpWebView moves Chromium startup off the main thread
+            implementation(libs.androidx.webkit)
         }
         commonMain.dependencies {
             implementation(libs.runtime)

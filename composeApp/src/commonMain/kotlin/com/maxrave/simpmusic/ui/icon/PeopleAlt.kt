@@ -93,7 +93,7 @@ val SimpIcons.PeopleAlt: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PeopleAlt!!
   }
 

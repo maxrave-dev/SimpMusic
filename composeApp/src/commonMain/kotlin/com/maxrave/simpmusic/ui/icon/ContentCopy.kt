@@ -67,7 +67,7 @@ val SimpIcons.ContentCopy: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ContentCopy!!
   }
 

@@ -70,7 +70,7 @@ val SimpIcons.PushPin: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PushPin!!
   }
 

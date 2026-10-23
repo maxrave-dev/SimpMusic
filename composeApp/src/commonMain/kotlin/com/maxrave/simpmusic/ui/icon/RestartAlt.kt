@@ -87,7 +87,7 @@ val SimpIcons.RestartAlt: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _RestartAlt!!
   }
 

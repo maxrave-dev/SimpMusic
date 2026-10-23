@@ -59,7 +59,7 @@ val SimpIcons.ArrowOutward: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ArrowOutward!!
   }
 

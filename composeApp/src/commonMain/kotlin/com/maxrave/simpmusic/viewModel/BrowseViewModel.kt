@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.song
 
 class BrowseViewModel(
     private val homeRepository: HomeRepository,
@@ -23,7 +24,7 @@ class BrowseViewModel(
     ) {
         viewModelScope.launch {
             _uiState.value = BrowseUIState.Loading
-            homeRepository.getBrowsePage(browseId, params).collect { resource ->
+            homeRepository.getBrowsePage(browseId, params, getString(Res.string.song)).collect { resource ->
                 val page = resource.data
                 _uiState.value =
                     if (resource is Resource.Success && page != null && (page.contents.isNotEmpty() || page.moods.isNotEmpty())) {

@@ -44,11 +44,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +75,7 @@ import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
+import com.maxrave.simpmusic.ui.component.DesktopSidebar
 import com.maxrave.simpmusic.ui.component.LiquidGlassAppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.LocalAppDialogOpen
 import com.maxrave.simpmusic.ui.component.LocalNowPlayingOpen
@@ -113,6 +114,7 @@ import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
@@ -498,10 +500,8 @@ fun App(
             UnofficialBuildScreen()
             return@AppTheme
         }
-        // Backdrop base must match the theme: white page → white glass, dark/AMOLED → black glass.
-        // Read inside AppTheme so MaterialTheme reflects the resolved scheme (light background is #FFFFFF).
+        // Read inside AppTheme so MaterialTheme reflects the resolved scheme.
         val isLightScheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-        val backdrop = rememberBackdrop(if (isLightScheme) Color.White else Color.Black)
 
         // The desktop shell is a window colour with panels floating on it. The two schemes mirror
         // each other: the window takes the extreme (pure black / pure white) and the panel steps
@@ -509,6 +509,11 @@ fun App(
         val desktopWindow = if (isLightScheme) desktopWindowLight else desktopWindowDark
         val desktopPanel =
             if (isLightScheme) MaterialTheme.colorScheme.surfaceContainer else desktopPanelDark
+
+        // Backdrop base must match the page, so glass over an empty area reads as the page itself.
+        // On Desktop the page is the panel: its colour is painted outside the recorded layer, and
+        // colorScheme.background carries the seed's hue, which the glass's saturation boost brings out.
+        val backdrop = rememberBackdrop(if (isDesktopShell) desktopPanel else MaterialTheme.colorScheme.background)
         Scaffold(
             // Watches for userStarted without consuming anything. Dialogs and sheets are windows or
             // layers of their own, so a press inside one (closing the update dialog, say) does not count.
@@ -601,131 +606,168 @@ fun App(
                             },
                         ),
                 ) {
+                    val tabletMiniPlayer: @Composable (Modifier) -> Unit = { modifier ->
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isShowMiniPlayer && isTablet && !isInFullscreen,
+                            modifier = modifier,
+                            enter = fadeIn() + slideInHorizontally(),
+                            exit = fadeOut(),
+                        ) {
+                            MiniPlayer(
+                                if (getPlatform() == Platform.Android) {
+                                    Modifier
+                                        // Glass keeps its 52dp card; the flat one is 56dp.
+                                        .height(if (isLiquidGlassEnabled == TRUE) 56.dp else 60.dp)
+                                        .fillMaxWidth(0.8f)
+                                        .padding(
+                                            horizontal = 12.dp,
+                                        ).padding(
+                                            bottom = 4.dp,
+                                        )
+                                } else {
+                                    // Floating capsule, Apple Music style: a fixed size so it never
+                                    // stretches to the window width, and no haze at all — the capsule
+                                    // paints its own liquid glass. Layering haze underneath blurs the
+                                    // same pixels twice and reads as a dark smear, not glass.
+                                    // padding BEFORE height: the other way round the bottom margin
+                                    // eats into the 72dp and the capsule ends up 52dp tall.
+                                    // 60dp is the floor for this layout: the content row is centred
+                                    // on the capsule's axis and the 16dp progress box hangs off the
+                                    // bottom, so the height has to cover the taller of the artwork
+                                    // (32dp) and the two text lines (~33dp), plus that 16dp, plus a
+                                    // gap. Going lower means shrinking the artwork again.
+                                    Modifier
+                                        .wrapContentWidth()
+                                        .padding(bottom = 20.dp)
+                                        .height(60.dp)
+                                },
+                                backdrop = backdrop,
+                                navController = navController,
+                                onClick = {
+                                    isShowNowPlaylistScreen = true
+                                },
+                                onClose = {
+                                    viewModel.stopPlayer()
+                                    viewModel.isServiceRunning = false
+                                },
+                                // The page lives in the Now Playing panel, so the panel opens with it.
+                                onOpenFullscreenLyrics = {
+                                    viewModel.requestFullscreenLyrics()
+                                    isShowNowPlaylistScreen = true
+                                },
+                            )
+                        }
+                    }
                     Row(
                         Modifier.fillMaxSize(),
                     ) {
-                        if (isTablet && !isInFullscreen) {
-                            AppNavigationRail(
-                                navController = navController,
-                                showAnalyticsTab = showAnalyticsTab,
-                                showMixForYouTab = showMixForYouTab,
-                            ) { klass ->
-                                viewModel.reloadDestination(klass)
-                            }
-                        }
-                        // Desktop only: the content sits in its own rounded panel floating on a
-                        // pure black window, Spotify style, while the rail stays flat black
-                        // outside it. Phones keep one continuous surface — the inset only reads
-                        // as deliberate when there is a window frame around it.
+                        // Everything left of Now Playing. On Desktop the capsule player sits on the centre of
+                        // this whole area, sidebar included, so it lives here rather than in the content panel,
+                        // which is both narrower than the capsule and clipped; and the area is what its glass
+                        // records, so the part over the sidebar refracts the sidebar instead of nothing.
                         Box(
                             Modifier
-                                .fillMaxSize()
                                 .weight(1f)
-                                .then(
-                                    if (isDesktopShell) {
-                                        Modifier
-                                            .padding(8.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(desktopPanel)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
+                                .fillMaxHeight(),
                         ) {
-                            Box(
+                            Row(
                                 Modifier
                                     .fillMaxSize()
                                     .then(
                                         // Desktop is unconditional: the floating capsule player is ALWAYS
                                         // liquid glass there, and glass with no recorded source draws as
-                                        // plain transparency. Gating the source on the setting while the
-                                        // capsule ignored it was exactly the nested-flag split that kept
-                                        // the capsule see-through.
-                                        if ((isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop) &&
-                                            isTablet &&
-                                            !isInFullscreen
-                                        ) {
+                                        // plain transparency.
+                                        if (isDesktopShell && isTablet && !isInFullscreen) {
                                             Modifier.layerBackdrop(backdrop)
                                         } else {
                                             Modifier
                                         },
-                                    ).hazeSource(hazeState),
+                                    ),
                             ) {
-                                CompositionLocalProvider(
-                                    LocalAppDialogOpen provides appDialogOpen,
-                                    LocalNowPlayingOpen provides isShowNowPlaylistScreen,
-                                    LocalUserStarted provides userStarted,
+                                if (isTablet && !isInFullscreen) {
+                                    if (isDesktopShell) {
+                                        DesktopSidebar(
+                                            navController = navController,
+                                            containerColor = desktopPanel,
+                                            showAnalyticsTab = showAnalyticsTab,
+                                            showMixForYouTab = showMixForYouTab,
+                                            // No end padding: the content panel's own 8dp is the gap between the two.
+                                            modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
+                                    } else {
+                                        AppNavigationRail(
+                                            navController = navController,
+                                            showAnalyticsTab = showAnalyticsTab,
+                                            showMixForYouTab = showMixForYouTab,
+                                        ) { klass ->
+                                            viewModel.reloadDestination(klass)
+                                        }
+                                    }
+                                }
+                                // Desktop only: the content sits in its own rounded panel floating on a
+                                // pure black window, Spotify style, while the rail stays flat black
+                                // outside it. Phones keep one continuous surface — the inset only reads
+                                // as deliberate when there is a window frame around it.
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .weight(1f)
+                                        .then(
+                                            if (isDesktopShell) {
+                                                Modifier
+                                                    .padding(8.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(desktopPanel)
+                                            } else {
+                                                Modifier
+                                            },
+                                        ),
                                 ) {
-                                    AppNavigationGraph(
-                                        innerPadding = innerPadding,
-                                        navController = navController,
-                                        hideNavBar = {
-                                            isNavBarVisible = false
-                                        },
-                                        showNavBar = {
-                                            isNavBarVisible = true
-                                        },
-                                        showNowPlayingSheet = {
-                                            isShowNowPlaylistScreen = true
-                                        },
-                                        onScrolling = {
-                                            isScrolledToTop = it
-                                        },
-                                    )
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .then(
+                                                // Tablets record the capsule's source here; Desktop records it on
+                                                // the Row above, which takes in the sidebar as well.
+                                                if (isLiquidGlassEnabled == TRUE && !isDesktopShell && isTablet && !isInFullscreen) {
+                                                    Modifier.layerBackdrop(backdrop)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ).hazeSource(hazeState),
+                                    ) {
+                                        CompositionLocalProvider(
+                                            LocalAppDialogOpen provides appDialogOpen,
+                                            LocalNowPlayingOpen provides isShowNowPlaylistScreen,
+                                            LocalUserStarted provides userStarted,
+                                        ) {
+                                            AppNavigationGraph(
+                                                innerPadding = innerPadding,
+                                                navController = navController,
+                                                hideNavBar = {
+                                                    isNavBarVisible = false
+                                                },
+                                                showNavBar = {
+                                                    isNavBarVisible = true
+                                                },
+                                                showNowPlayingSheet = {
+                                                    isShowNowPlaylistScreen = true
+                                                },
+                                                onScrolling = {
+                                                    isScrolledToTop = it
+                                                },
+                                            )
+                                        }
+                                    }
+                                    if (!isDesktopShell) {
+                                        tabletMiniPlayer(Modifier.padding(innerPadding).align(Alignment.BottomCenter))
+                                    }
                                 }
                             }
-                            this@Row.AnimatedVisibility(
-                                modifier =
-                                    Modifier
-                                        .padding(innerPadding)
-                                        .align(Alignment.BottomCenter),
-                                visible = isShowMiniPlayer && isTablet && !isInFullscreen,
-                                enter = fadeIn() + slideInHorizontally(),
-                                exit = fadeOut(),
-                            ) {
-                                MiniPlayer(
-                                    if (getPlatform() == Platform.Android) {
-                                        Modifier
-                                            // Glass keeps its 52dp card; the flat one is 56dp.
-                                            .height(if (isLiquidGlassEnabled == TRUE) 56.dp else 60.dp)
-                                            .fillMaxWidth(0.8f)
-                                            .padding(
-                                                horizontal = 12.dp,
-                                            ).padding(
-                                                bottom = 4.dp,
-                                            )
-                                    } else {
-                                        // Floating capsule, Apple Music style: a fixed size so it never
-                                        // stretches to the window width, and no haze at all — the capsule
-                                        // paints its own liquid glass. Layering haze underneath blurs the
-                                        // same pixels twice and reads as a dark smear, not glass.
-                                        // padding BEFORE height: the other way round the bottom margin
-                                        // eats into the 72dp and the capsule ends up 52dp tall.
-                                        // 60dp is the floor for this layout: the content row is centred
-                                        // on the capsule's axis and the 16dp progress box hangs off the
-                                        // bottom, so the height has to cover the taller of the artwork
-                                        // (32dp) and the two text lines (~33dp), plus that 16dp, plus a
-                                        // gap. Going lower means shrinking the artwork again.
-                                        Modifier
-                                            .wrapContentWidth()
-                                            .padding(bottom = 20.dp)
-                                            .height(60.dp)
-                                    },
-                                    backdrop = backdrop,
-                                    navController = navController,
-                                    onClick = {
-                                        isShowNowPlaylistScreen = true
-                                    },
-                                    onClose = {
-                                        viewModel.stopPlayer()
-                                        viewModel.isServiceRunning = false
-                                    },
-                                    // The page lives in the Now Playing panel, so the panel opens with it.
-                                    onOpenFullscreenLyrics = {
-                                        viewModel.requestFullscreenLyrics()
-                                        isShowNowPlaylistScreen = true
-                                    },
-                                )
+                            if (isDesktopShell) {
+                                tabletMiniPlayer(Modifier.padding(innerPadding).align(Alignment.BottomCenter))
                             }
                         }
                         if (isTablet && isTabletLandscape && !isInFullscreen) {
@@ -737,9 +779,24 @@ fun App(
                                 Row(
                                     Modifier
                                         .fillMaxHeight()
-                                        .fillMaxWidth(0.35f),
+                                        // The width Now Playing has always had: `fillMaxWidth(0.35f)` of what the
+                                        // 80dp NavigationRail left in this Row. The rail and the sidebar now sit
+                                        // inside the weighted Box, so that share is taken by hand from the Row's
+                                        // own width; otherwise it would follow the sidebar. On Desktop it is 8dp
+                                        // less, the spacer it no longer has, so the card keeps its exact size.
+                                        .layout { measurable, constraints ->
+                                            val width =
+                                                (
+                                                    ((constraints.maxWidth - 80.dp.roundToPx()) * 0.35f).roundToInt() -
+                                                        if (isDesktopShell) 8.dp.roundToPx() else 0
+                                                ).coerceIn(0, constraints.maxWidth)
+                                            val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+                                            layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
+                                        },
                                 ) {
-                                    Spacer(Modifier.width(8.dp))
+                                    // On Desktop the content panel's own 8dp end padding is already the gap,
+                                    // the same 8dp it keeps from the sidebar; a spacer here doubled it.
+                                    if (!isDesktopShell) Spacer(Modifier.width(8.dp))
                                     Box(
                                         Modifier
                                             .padding(

@@ -64,7 +64,7 @@ val SimpIcons.Edit: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Edit!!
   }
 

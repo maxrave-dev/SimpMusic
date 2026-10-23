@@ -17,6 +17,7 @@
         <item quantity="many">%1$d композицій</item>
         <item quantity="other">%1$d композиції</item>
     </plurals>
+    <string name="library_favorite_empty_hint">Торкніться серця на будь-якій пісні, щоб залишити її тут.</string>
     <string name="like">Вподобати</string>
     <string name="hello_blank_fragment">Привіт, порожній фрагмент</string>
     <string name="download">Завантажити</string>
@@ -101,6 +102,7 @@
     <string name="move_down">Перемістити вниз</string>
     <string name="delete_from_queue">Видалити з черги</string>
     <string name="more">Більше</string>
+    <string name="play_all">Слухати всі</string>
     <string name="singles">Сингли</string>
     <string name="related_artists">Схожі виконавці</string>
     <string name="about">Про додаток</string>
@@ -136,6 +138,7 @@
     <string name="developer_blog">Блог розробника</string>
     <string name="developer_blog_tagline">Читайте нотатки розробника, навчальні посібники та закулісся</string>
     <string name="blog_promo_title">Щось нове від розробника</string>
+    <string name="blog_promo_message">Я щойно запустив свій особистий блог на simpmusic.org — ділюся історією SimpMusic, глибоким зануренням у музичні технології та інженерними нотатками. Почитайте, якщо вам цікаво ✨</string>
     <string name="visit_blog">Відвідати блог</string>
     <string name="paypal">PayPal</string>
     <string name="title">Назва</string>
@@ -313,6 +316,8 @@
     <string name="play_video_instead_of_audio_warning">Ця дія видалить кеш плеєра. Продовжити?</string>
     <string name="quality_video">Якість відео</string>
     <string name="add_to_queue">Додати до черги</string>
+    <string name="add_to_queue_disabled_radio">Додати до черги (вимкнено, поки відтворюється радіо чи мікс)</string>
+    <string name="add_to_queue_disabled_endless">Додати до черги (вимкнено, коли ввімкнено нескінченну чергу)</string>
     <string name="added_to_queue">Додано до черги</string>
     <string name="new_release">Новинки</string>
     <string name="music_video">Музичне відео</string>

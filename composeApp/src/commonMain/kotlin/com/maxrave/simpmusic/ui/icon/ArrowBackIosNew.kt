@@ -55,7 +55,7 @@ val SimpIcons.ArrowBackIosNew: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _ArrowBackIosNew!!
   }
 

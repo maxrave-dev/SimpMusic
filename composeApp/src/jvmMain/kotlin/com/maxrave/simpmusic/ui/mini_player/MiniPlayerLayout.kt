@@ -62,6 +62,7 @@ import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.ControlState
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
@@ -96,68 +97,70 @@ private fun MiniPlayerSeekBar(
         (timeline.current.toFloat() / timeline.total.toFloat())
             .coerceIn(0f, 1f)
 
-    BoxWithConstraints(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(hitHeight)
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        val percent =
-                            (offset.x / size.width)
-                                .coerceIn(0f, 1f) * 100f
-                        onUIEvent(UIEvent.UpdateProgress(percent))
-                    }
-                }.pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
+    LeftToRight {
+        BoxWithConstraints(
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .height(hitHeight)
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
                             val percent =
                                 (offset.x / size.width)
                                     .coerceIn(0f, 1f) * 100f
                             onUIEvent(UIEvent.UpdateProgress(percent))
-                        },
-                        onDrag = { change, _ ->
-                            val percent =
-                                (change.position.x / size.width)
-                                    .coerceIn(0f, 1f) * 100f
-                            onUIEvent(UIEvent.UpdateProgress(percent))
-                        },
-                    )
-                },
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        // Track
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(trackHeight)
-                .align(Alignment.Center)
-                .background(
-                    Color.White.copy(alpha = 0.25f),
-                    RoundedCornerShape(50),
-                ),
-        )
+                        }
+                    }.pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = { offset ->
+                                val percent =
+                                    (offset.x / size.width)
+                                        .coerceIn(0f, 1f) * 100f
+                                onUIEvent(UIEvent.UpdateProgress(percent))
+                            },
+                            onDrag = { change, _ ->
+                                val percent =
+                                    (change.position.x / size.width)
+                                        .coerceIn(0f, 1f) * 100f
+                                onUIEvent(UIEvent.UpdateProgress(percent))
+                            },
+                        )
+                    },
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            // Track
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(trackHeight)
+                    .align(Alignment.Center)
+                    .background(
+                        Color.White.copy(alpha = 0.25f),
+                        RoundedCornerShape(50),
+                    ),
+            )
 
-        // Progress
-        Box(
-            Modifier
-                .width(maxWidth * progress)
-                .height(trackHeight)
-                .align(Alignment.CenterStart)
-                .background(
-                    Color.White,
-                    RoundedCornerShape(50),
-                ),
-        )
+            // Progress
+            Box(
+                Modifier
+                    .width(maxWidth * progress)
+                    .height(trackHeight)
+                    .align(Alignment.CenterStart)
+                    .background(
+                        Color.White,
+                        RoundedCornerShape(50),
+                    ),
+            )
 
-        // Thumb
-        Box(
-            Modifier
-                .offset(x = (maxWidth * progress) - (thumbSize / 2))
-                .size(thumbSize)
-                .align(Alignment.CenterStart)
-                .background(Color.White, CircleShape),
-        )
+            // Thumb
+            Box(
+                Modifier
+                    .offset(x = (maxWidth * progress) - (thumbSize / 2))
+                    .size(thumbSize)
+                    .align(Alignment.CenterStart)
+                    .background(Color.White, CircleShape),
+            )
+        }
     }
 }
 
@@ -196,37 +199,39 @@ fun CompactMiniLayout(
                         .alpha(alpha),
                 contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RippleIconButton(
-                        imageVector = SimpIcons.SkipPrevious,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
-                            }
-                        },
-                    )
+                LeftToRight {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RippleIconButton(
+                            imageVector = SimpIcons.SkipPrevious,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isPreviousAvailable) {
+                                    onUIEvent(UIEvent.Previous)
+                                }
+                            },
+                        )
 
-                    PlayPauseButton(
-                        isPlaying = controllerState.isPlaying,
-                        modifier = Modifier.size(36.dp),
-                        onClick = { onUIEvent(UIEvent.PlayPause) },
-                    )
+                        PlayPauseButton(
+                            isPlaying = controllerState.isPlaying,
+                            modifier = Modifier.size(36.dp),
+                            onClick = { onUIEvent(UIEvent.PlayPause) },
+                        )
 
-                    RippleIconButton(
-                        imageVector = SimpIcons.SkipNext,
-                        modifier = Modifier.size(28.dp),
-                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                        onClick = {
-                            if (controllerState.isNextAvailable) {
-                                onUIEvent(UIEvent.Next)
-                            }
-                        },
-                    )
+                        RippleIconButton(
+                            imageVector = SimpIcons.SkipNext,
+                            modifier = Modifier.size(28.dp),
+                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                            onClick = {
+                                if (controllerState.isNextAvailable) {
+                                    onUIEvent(UIEvent.Next)
+                                }
+                            },
+                        )
+                    }
                 }
             }
 
@@ -300,93 +305,95 @@ fun MediumMiniLayout(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // Controls - show extra buttons only if width >= 300dp
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // Like button - only show if width >= 300dp
-                        AnimatedVisibility(
-                            visible = showExtraButtons,
-                            enter = scaleIn() + fadeIn(),
-                            exit = scaleOut() + fadeOut(),
+                    LeftToRight {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            IconButton(
-                                onClick = { onUIEvent(UIEvent.ToggleLike) },
-                                modifier = Modifier.size(28.dp),
+                            // Like button - only show if width >= 300dp
+                            AnimatedVisibility(
+                                visible = showExtraButtons,
+                                enter = scaleIn() + fadeIn(),
+                                exit = scaleOut() + fadeOut(),
                             ) {
-                                Icon(
-                                    imageVector =
-                                        if (controllerState.isLiked) {
-                                            SimpIcons.Favorite
-                                        } else {
-                                            SimpIcons.FavoriteBorder
-                                        },
-                                    contentDescription = "Like",
-                                    tint =
-                                        if (controllerState.isLiked) {
-                                            Color(0xFFFF4081)
-                                        } else {
-                                            Color.White.copy(alpha = 0.7f)
-                                        },
-                                    modifier = Modifier.size(18.dp),
-                                )
+                                IconButton(
+                                    onClick = { onUIEvent(UIEvent.ToggleLike) },
+                                    modifier = Modifier.size(28.dp),
+                                ) {
+                                    Icon(
+                                        imageVector =
+                                            if (controllerState.isLiked) {
+                                                SimpIcons.Favorite
+                                            } else {
+                                                SimpIcons.FavoriteBorder
+                                            },
+                                        contentDescription = "Like",
+                                        tint =
+                                            if (controllerState.isLiked) {
+                                                Color(0xFFFF4081)
+                                            } else {
+                                                Color.White.copy(alpha = 0.7f)
+                                            },
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
-                        }
 
-                        RippleIconButton(
-                            imageVector = SimpIcons.SkipPrevious,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    onUIEvent(UIEvent.Previous)
-                                }
-                            },
-                        )
-
-                        PlayPauseButton(
-                            isPlaying = controllerState.isPlaying,
-                            modifier = Modifier.size(36.dp),
-                            onClick = { onUIEvent(UIEvent.PlayPause) },
-                        )
-
-                        RippleIconButton(
-                            imageVector = SimpIcons.SkipNext,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isNextAvailable) {
-                                    onUIEvent(UIEvent.Next)
-                                }
-                            },
-                        )
-
-                        // Volume button - only show if width >= 300dp
-                        AnimatedVisibility(
-                            visible = showExtraButtons,
-                            enter = scaleIn() + fadeIn(),
-                            exit = scaleOut() + fadeOut(),
-                        ) {
-                            val previousVolume = rememberPreviousVolume(controllerState.volume)
-                            IconButton(
-                                onClick = {
-                                    // Toggle mute/unmute
-                                    val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
-                                    onUIEvent(UIEvent.UpdateVolume(newVolume))
-                                },
+                            RippleIconButton(
+                                imageVector = SimpIcons.SkipPrevious,
                                 modifier = Modifier.size(28.dp),
+                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                onClick = {
+                                    if (controllerState.isPreviousAvailable) {
+                                        onUIEvent(UIEvent.Previous)
+                                    }
+                                },
+                            )
+
+                            PlayPauseButton(
+                                isPlaying = controllerState.isPlaying,
+                                modifier = Modifier.size(36.dp),
+                                onClick = { onUIEvent(UIEvent.PlayPause) },
+                            )
+
+                            RippleIconButton(
+                                imageVector = SimpIcons.SkipNext,
+                                modifier = Modifier.size(28.dp),
+                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                                onClick = {
+                                    if (controllerState.isNextAvailable) {
+                                        onUIEvent(UIEvent.Next)
+                                    }
+                                },
+                            )
+
+                            // Volume button - only show if width >= 300dp
+                            AnimatedVisibility(
+                                visible = showExtraButtons,
+                                enter = scaleIn() + fadeIn(),
+                                exit = scaleOut() + fadeOut(),
                             ) {
-                                Icon(
-                                    imageVector =
-                                        if (controllerState.volume > 0f) {
-                                            SimpIcons.VolumeUp
-                                        } else {
-                                            SimpIcons.VolumeOff
-                                        },
-                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                    tint = Color.White.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(18.dp),
-                                )
+                                val previousVolume = rememberPreviousVolume(controllerState.volume)
+                                IconButton(
+                                    onClick = {
+                                        // Toggle mute/unmute
+                                        val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
+                                        onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                    },
+                                    modifier = Modifier.size(28.dp),
+                                ) {
+                                    Icon(
+                                        imageVector =
+                                            if (controllerState.volume > 0f) {
+                                                SimpIcons.VolumeUp
+                                            } else {
+                                                SimpIcons.VolumeOff
+                                            },
+                                        contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                                        tint = Color.White.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -611,86 +618,88 @@ fun SquareMiniLayout(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Main playback controls
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Like/Favorite button
-                IconButton(
-                    onClick = { onUIEvent(UIEvent.ToggleLike) },
-                    modifier = Modifier.size(32.dp),
+            LeftToRight {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector =
-                            if (controllerState.isLiked) {
-                                SimpIcons.Favorite
-                            } else {
-                                SimpIcons.FavoriteBorder
-                            },
-                        contentDescription = "Like",
-                        tint =
-                            if (controllerState.isLiked) {
-                                Color(0xFFFF4081)
-                            } else {
-                                Color.White.copy(alpha = 0.7f)
-                            },
-                        modifier = Modifier.size(24.dp),
+                    // Like/Favorite button
+                    IconButton(
+                        onClick = { onUIEvent(UIEvent.ToggleLike) },
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (controllerState.isLiked) {
+                                    SimpIcons.Favorite
+                                } else {
+                                    SimpIcons.FavoriteBorder
+                                },
+                            contentDescription = "Like",
+                            tint =
+                                if (controllerState.isLiked) {
+                                    Color(0xFFFF4081)
+                                } else {
+                                    Color.White.copy(alpha = 0.7f)
+                                },
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+
+                    // Previous
+                    RippleIconButton(
+                        imageVector = SimpIcons.SkipPrevious,
+                        modifier = Modifier.size(36.dp),
+                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isPreviousAvailable) {
+                                onUIEvent(UIEvent.Previous)
+                            }
+                        },
                     )
-                }
 
-                // Previous
-                RippleIconButton(
-                    imageVector = SimpIcons.SkipPrevious,
-                    modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                    onClick = {
-                        if (controllerState.isPreviousAvailable) {
-                            onUIEvent(UIEvent.Previous)
-                        }
-                    },
-                )
-
-                // Play/Pause
-                PlayPauseButton(
-                    isPlaying = controllerState.isPlaying,
-                    modifier = Modifier.size(52.dp),
-                    onClick = { onUIEvent(UIEvent.PlayPause) },
-                )
-
-                // Next
-                RippleIconButton(
-                    imageVector = SimpIcons.SkipNext,
-                    modifier = Modifier.size(36.dp),
-                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                    onClick = {
-                        if (controllerState.isNextAvailable) {
-                            onUIEvent(UIEvent.Next)
-                        }
-                    },
-                )
-
-                // Volume/Mute button
-                val previousVolume = rememberPreviousVolume(controllerState.volume)
-                IconButton(
-                    onClick = {
-                        // Toggle mute/unmute
-                        val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
-                        onUIEvent(UIEvent.UpdateVolume(newVolume))
-                    },
-                    modifier = Modifier.size(32.dp),
-                ) {
-                    Icon(
-                        imageVector =
-                            if (controllerState.volume > 0f) {
-                                SimpIcons.VolumeUp
-                            } else {
-                                SimpIcons.VolumeOff
-                            },
-                        contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp),
+                    // Play/Pause
+                    PlayPauseButton(
+                        isPlaying = controllerState.isPlaying,
+                        modifier = Modifier.size(52.dp),
+                        onClick = { onUIEvent(UIEvent.PlayPause) },
                     )
+
+                    // Next
+                    RippleIconButton(
+                        imageVector = SimpIcons.SkipNext,
+                        modifier = Modifier.size(36.dp),
+                        tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                        onClick = {
+                            if (controllerState.isNextAvailable) {
+                                onUIEvent(UIEvent.Next)
+                            }
+                        },
+                    )
+
+                    // Volume/Mute button
+                    val previousVolume = rememberPreviousVolume(controllerState.volume)
+                    IconButton(
+                        onClick = {
+                            // Toggle mute/unmute
+                            val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
+                            onUIEvent(UIEvent.UpdateVolume(newVolume))
+                        },
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (controllerState.volume > 0f) {
+                                    SimpIcons.VolumeUp
+                                } else {
+                                    SimpIcons.VolumeOff
+                                },
+                            contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 }
             }
 
@@ -811,84 +820,86 @@ fun ExpandedMiniLayout(
                     enter = fadeIn(tween(300, delayMillis = 150)),
                     exit = fadeOut(tween(200)),
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // Like button
-                        IconButton(
-                            onClick = { onUIEvent(UIEvent.ToggleLike) },
-                            modifier = Modifier.size(28.dp),
+                    LeftToRight {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(
-                                imageVector =
-                                    if (controllerState.isLiked) {
-                                        SimpIcons.Favorite
-                                    } else {
-                                        SimpIcons.FavoriteBorder
-                                    },
-                                contentDescription = "Like",
-                                tint =
-                                    if (controllerState.isLiked) {
-                                        Color(0xFFFF4081)
-                                    } else {
-                                        Color.White.copy(alpha = 0.7f)
-                                    },
-                                modifier = Modifier.size(20.dp),
+                            // Like button
+                            IconButton(
+                                onClick = { onUIEvent(UIEvent.ToggleLike) },
+                                modifier = Modifier.size(28.dp),
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (controllerState.isLiked) {
+                                            SimpIcons.Favorite
+                                        } else {
+                                            SimpIcons.FavoriteBorder
+                                        },
+                                    contentDescription = "Like",
+                                    tint =
+                                        if (controllerState.isLiked) {
+                                            Color(0xFFFF4081)
+                                        } else {
+                                            Color.White.copy(alpha = 0.7f)
+                                        },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+
+                            RippleIconButton(
+                                imageVector = SimpIcons.SkipPrevious,
+                                modifier = Modifier.size(32.dp),
+                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                onClick = {
+                                    if (controllerState.isPreviousAvailable) {
+                                        onUIEvent(UIEvent.Previous)
+                                    }
+                                },
                             )
-                        }
 
-                        RippleIconButton(
-                            imageVector = SimpIcons.SkipPrevious,
-                            modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    onUIEvent(UIEvent.Previous)
-                                }
-                            },
-                        )
-
-                        PlayPauseButton(
-                            isPlaying = controllerState.isPlaying,
-                            modifier = Modifier.size(40.dp),
-                            onClick = {
-                                onUIEvent(UIEvent.PlayPause)
-                            },
-                        )
-
-                        RippleIconButton(
-                            imageVector = SimpIcons.SkipNext,
-                            modifier = Modifier.size(32.dp),
-                            tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                            onClick = {
-                                if (controllerState.isNextAvailable) {
-                                    onUIEvent(UIEvent.Next)
-                                }
-                            },
-                        )
-
-                        // Volume button
-                        val previousVolume = rememberPreviousVolume(controllerState.volume)
-                        IconButton(
-                            onClick = {
-                                // Toggle mute/unmute
-                                val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
-                                onUIEvent(UIEvent.UpdateVolume(newVolume))
-                            },
-                            modifier = Modifier.size(28.dp),
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (controllerState.volume > 0f) {
-                                        SimpIcons.VolumeUp
-                                    } else {
-                                        SimpIcons.VolumeOff
-                                    },
-                                contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
-                                tint = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier.size(20.dp),
+                            PlayPauseButton(
+                                isPlaying = controllerState.isPlaying,
+                                modifier = Modifier.size(40.dp),
+                                onClick = {
+                                    onUIEvent(UIEvent.PlayPause)
+                                },
                             )
+
+                            RippleIconButton(
+                                imageVector = SimpIcons.SkipNext,
+                                modifier = Modifier.size(32.dp),
+                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                                onClick = {
+                                    if (controllerState.isNextAvailable) {
+                                        onUIEvent(UIEvent.Next)
+                                    }
+                                },
+                            )
+
+                            // Volume button
+                            val previousVolume = rememberPreviousVolume(controllerState.volume)
+                            IconButton(
+                                onClick = {
+                                    // Toggle mute/unmute
+                                    val newVolume = if (controllerState.volume > 0f) 0f else previousVolume.coerceIn(0.1f, 1f)
+                                    onUIEvent(UIEvent.UpdateVolume(newVolume))
+                                },
+                                modifier = Modifier.size(28.dp),
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (controllerState.volume > 0f) {
+                                            SimpIcons.VolumeUp
+                                        } else {
+                                            SimpIcons.VolumeOff
+                                        },
+                                    contentDescription = if (controllerState.volume > 0f) "Mute" else "Unmute",
+                                    tint = Color.White.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     }
                 }

@@ -110,7 +110,7 @@ val SimpIcons.Groups: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Groups!!
   }
 

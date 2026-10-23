@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -65,6 +66,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
@@ -144,6 +146,24 @@ fun LazyListState.visibilityPercent(info: LazyListItemInfo): Float {
 }
 
 fun Modifier.greyScale() = this.then(GreyScaleModifier())
+
+/**
+ * [colors] as gradient stops eased with smoothstep, the way [smoothScrimBrush] eases a scrim. Handed
+ * to the renderer as two stops, each ramp is a straight line with a corner where it leaves one colour
+ * and another where it reaches the next, and those corners read as creases across the glow.
+ */
+private fun easedColorStops(
+    colors: List<Color>,
+    stepsPerSegment: Int = 24,
+): Array<Pair<Float, Color>> {
+    val segments = colors.size - 1
+    val total = segments * stepsPerSegment
+    return Array(total + 1) { i ->
+        val segment = minOf(i / stepsPerSegment, segments - 1)
+        val t = (i - segment * stepsPerSegment) / stepsPerSegment.toFloat()
+        i / total.toFloat() to androidx.compose.ui.graphics.lerp(colors[segment], colors[segment + 1], t * t * (3f - 2f * t))
+    }
+}
 
 fun Modifier.angledGradientBackground(
     colors: List<Color>,
@@ -230,7 +250,7 @@ fun Modifier.angledGradientBackground(
             drawRect(
                 brush =
                     Brush.linearGradient(
-                        colors = colors,
+                        colorStops = easedColorStops(colors),
                         // negative here so that 0 degrees is left -> right
                         start = Offset(center.x - centerOffsetX, center.y - centerOffsetY),
                         end = Offset(center.x + centerOffsetX, center.y + centerOffsetY),
@@ -819,6 +839,16 @@ fun PaddingValues.copy(
         end = end ?: this.calculateEndPadding(layoutDirection),
         bottom = bottom ?: this.calculateBottomPadding(),
     )
+}
+
+/**
+ * Lays [content] out left-to-right even in a right-to-left language. For playback controls, seek
+ * bars and anything else that shows which way time runs: those follow the timeline, not the
+ * reading direction, so ⏮ stays left of ⏭ and a progress bar fills from the left.
+ */
+@Composable
+fun LeftToRight(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr, content = content)
 }
 
 fun ImageBitmap.toResizedBitmap(

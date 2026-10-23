@@ -107,7 +107,7 @@ val SimpIcons.Insights: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Insights!!
   }
 

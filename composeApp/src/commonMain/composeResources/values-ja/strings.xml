@@ -109,6 +109,7 @@
     <string name="let_s_start_with_a_radio">ラジオモードで聽く</string>
     <string name="let_s_pick_a_playlist_for_you">あなたにおすすめの再生リスト</string>
     <string name="moods_amp_moment"><![CDATA[ムード]]></string>
+    <string name="mood">ムード</string>
     <string name="genre">ジャンル</string>
     <string name="what_is_best_choice_today">今日のベストチョイス</string>
     <string name="chart">チャート</string>
@@ -123,6 +124,8 @@
     <string name="storage">保存領域</string>
     <string name="player_cache">プレーヤーのキャッシュ</string>
     <string name="downloaded_cache">ダウンロードしたキャッシュ</string>
+    <string name="cached">キャッシュ済み</string>
+    <string name="remove_from_cache">キャッシュから削除</string>
     <string name="thumbnail_cache">サムネイルのキャッシュ</string>
     <string name="backup">バックアップ</string>
     <string name="backup_your_data">データをバックアップ</string>
@@ -151,6 +154,8 @@
     <string name="recently">最近の視聴履歴</string>
     <string name="settings">設定</string>
     <string name="now_playing_upper">再生中</string>
+    <string name="radio_mix_upper">ラジオ/ミックス</string>
+    <string name="radio_mix">ラジオ/ミックス</string>
     <string name="language">言語</string>
     <string name="what_do_you_want_to_listen_to">何を聴きたいですか？</string>
     <string name="songs_inArtist">曲</string>
@@ -313,6 +318,9 @@
     <string name="play_video_instead_of_audio_warning">この操作によりプレイヤーのキャッシュが削除されます。続行しますか？</string>
     <string name="quality_video">画質</string>
     <string name="add_to_queue">キューに追加</string>
+    <string name="add_to_queue_disabled_radio">キューに追加(ラジオまたはミックス再生中は無効)</string>
+    <string name="add_to_queue_disabled_endless">キューに追加（無限のキューが有効になっている場合は無効）</string>
+    <string name="download_disabled_live">ダウンロード（ライブ配信では利用できません）</string>
     <string name="added_to_queue">キューに追加しました</string>
     <string name="new_release">新作</string>
     <string name="music_video">ミュージックビデオ</string>
@@ -338,7 +346,7 @@
     <string name="audio_delay">遅延時間</string>
     <string name="audio_delay_description">繰り返し遅延で音をエコーする</string>
     <string name="audio_reverb">リバーブ</string>
-    <string name="audio_reverb_description">音楽を部屋、ホール、またはプレートに配置</string>
+    <string name="audio_reverb_description">音楽を部屋・ホール・プレートに配置する</string>
     <string name="effect_time">時間</string>
     <string name="effect_feedback">フィードバック</string>
     <string name="effect_mix">ミックス</string>
@@ -390,6 +398,9 @@
     <string name="offline_mode">オフラインモード</string>
     <string name="added_to_youtube_liked">YouTubeの高評価に追加しました</string>
     <string name="removed_from_youtube_liked">YouTubeの高評価から削除しました</string>
+    <string name="dislike_on_youtube">低評価（YouTube Musicでこの曲がおすすめに表示される頻度が減ります）</string>
+    <string name="disliked">低評価済み</string>
+    <string name="disliking">低評価中…</string>
     <string name="home_limit">ホームのデータ取得数の上限</string>
     <string name="no_album">アルバムなし</string>
     <string name="app_widget_description">プレーヤーウィジェット</string>
@@ -423,7 +434,7 @@
     <string name="ai_translated">AI翻訳</string>
     <string name="lyrics_style">歌詞スタイル</string>
     <string name="lyrics_style_classic">クラシック</string>
-    <string name="lyrics_offset">歌詞のタイミングオフセット</string>
+    <string name="lyrics_offset">歌詞の表示タイミングの調整</string>
     <string name="lyrics_offset_message">各歌詞行をこのミリ秒数だけずらします。Bluetoothヘッドホンのように、音声が歌詞よりも遅れて表示される場合はプラスを、歌詞が早く表示される場合はマイナスを使用してください。</string>
     <string name="lyrics_offset_value">%1$s ミリ秒</string>
     <string name="lyrics_offset_invalid">ミリ秒単位の整数を入力してください</string>
@@ -553,8 +564,15 @@
     <string name="crossfade_dj_mode">DJスタイルのトランジション</string>
     <string name="crossfade_dj_mode_description">クロスフェード中にローパス フィルターとハイパス フィルターのスイープを適用して、よりスムーズな DJ のようなトランジションを実現します (Apple Music Automix と同様)。</string>
     <string name="auto_download_liked_songs">高評価済みの曲をダウンロード</string>
-    <string name="auto_download_liked_songs_description">ダウンロード品質の設定を使用して、お気に入りに追加したときに、オフライン再生用の曲を自動的にダウンロードします。 これをオンにすると、すでに好きな曲もダウンロードできます。似たような曲を削除すると、ダウンロードが削除されることはありません。</string>
+    <string name="auto_download_liked_songs_description">お気に入りに追加した曲を、設定したダウンロード音質で自動的にダウンロードし、オフラインで再生できるようにします。この機能をオンにすると、すでに「高評価」した曲もダウンロードされます。「高評価」を解除しても、ダウンロード済みの曲は削除されません。</string>
     <string name="downloading_liked_songs">%1$d高評価済みの曲をダウンロード中</string>
+    <string name="smart_downloads">スマートダウンロード</string>
+    <string name="smart_downloads_description">よく再生する曲をダウンロードした状態に保ち、Wi-Fi接続時にアプリを開くと、1日1回更新します</string>
+    <string name="smart_downloads_needs_local_tracking">これを使用するには、ローカルの再生履歴の記録をオンにしてください</string>
+    <string name="smart_downloads_size">保持する曲</string>
+    <string name="smart_downloads_size_value">%1$d曲</string>
+    <string name="smart_downloads_downloading">スマートダウンロード：%1$d曲をダウンロード中</string>
+    <string name="smart_downloads_waiting_for_wifi">スマートダウンロードは、次回Wi-Fi接続時にアプリを開くと開始されます</string>
     <string name="crossfade_skip_album">アルバム内の曲を途切れずに再生</string>
     <string name="crossfade_skip_album_description">同じアルバム内の曲間ではクロスフェードをスキップし、曲間を空けずに続くよう意図されたアルバムでは、そのまま再生します。アルバムから次の曲への切り替えでは、通常どおりクロスフェードします。</string>
     <string name="youtube_subtitle_language">YouTube字幕 翻訳言語</string>
@@ -670,7 +688,7 @@
     <string name="analytics_decade_coverage">%1$s に基づいてアルバム情報を収録しています。ラジオやスタンドアロン動画から再生される曲にはリリース年がありません。</string>
     <string name="analytics_decade_pre">%1$d の前</string>
     <string name="analytics_axis_consistency">持続度</string>
-    <string name="analytics_axis_discovery">音楽のディスカバリー率</string>
+    <string name="analytics_axis_discovery">探索率</string>
     <string name="analytics_axis_diversity">多様度</string>
     <string name="analytics_axis_concentration">集中度</string>
     <string name="analytics_axis_replay">再生率</string>
@@ -679,7 +697,7 @@
     <string name="your_top_albums">あなたのトップアルバム</string>
     <string name="your_top_tracks">あなたのトップトラック</string>
     <string name="date_range">日付範囲</string>
-    <string name="no_data_analytics">アナリティクスを見るために音楽を再生してください</string>
+    <string name="no_data_analytics">統計を見るために音楽を再生してください</string>
     <string name="rate_translated_lyrics">翻訳を評価</string>
     <string name="rate_lyrics">歌詞を評価</string>
     <string name="vote_for_lyrics">歌詞に投票する</string>
@@ -726,7 +744,7 @@
     <string name="import_result_skipped">曲がファイルに存在しなかったため、%1$d件の項目をスキップしました。</string>
     <string name="import_failed">インポートに失敗しました</string>
     <string name="import_invalid_file">このファイルは有効なSimpMusicインポートファイルではありません。まず、simpmusic.orgでライブラリを変換してください。</string>
-    <string name="analytics">アナリティクス</string>
+    <string name="analytics">統計</string>
     <string name="select_all">すべて選択</string>
     <string name="n_selected">%1$d件選択済み</string>
     <string name="n_songs_selected">%1$d 曲選択されました</string>
@@ -734,7 +752,7 @@
     <string name="exit_selection">選択解除</string>
     <string name="remove_from_playlist">プレイリストから削除</string>
     <!-- Listen Together -->
-    <string name="listen_together">一緒に聴く</string>
+    <string name="listen_together">一緒に聴こう</string>
     <string name="lt_tagline">1曲を、同じところから、みんなで一緒に。ルームを作成して、コードを友達と共有しましょう。</string>
     <string name="lt_not_connected">接続されていません</string>
     <string name="lt_connected">接続されました</string>
@@ -755,7 +773,7 @@
     <string name="lt_just_asked">参加を求められました</string>
     <string name="lt_suggestions">おすすめの曲</string>
     <string name="lt_leave_room">ルームから退出</string>
-    <string name="lt_credit_protocol">MetrolistによるListen Togetherプロトコル</string>
+    <string name="lt_credit_protocol">Metrolistの「一緒に聴く」プロトコル</string>
     <string name="lt_credit_compatible">ルームはMetrolistクライアントと互換性があります</string>
     <string name="lt_server">サーバー</string>
     <string name="lt_custom_server">カスタムサーバー</string>
@@ -846,7 +864,7 @@
     <string name="wrapped_not_enough_body">Wrappedが正確な内容を表示するには、約1か月分の再生データが必要です。現在、%1$sあります。</string>
     <string name="wrapped_not_enough_days">%1$s 日間</string>
     <string name="wrapped_not_enough_progress">%1$s / %2$s 日</string>
-    <string name="wrapped_open_analytics">代わりにアナリティクスを開く</string>
+    <string name="wrapped_open_analytics">代わりに統計を開く</string>
     <string name="wrapped_recap_month">%1$sの振り返り</string>
     <string name="wrapped_recap_month_year">%1$s %2$sの振り返り</string>
     <string name="wrapped_recap_subtitle">その月に最も聴いた曲</string>
@@ -962,4 +980,13 @@
     <string name="log_stack_trace_lines">スタックトレース · %1$s行</string>
     <string name="log_hide_stack_trace">スタックトレースを隠す</string>
     <string name="log_export_failed">ログをエクスポートできませんでした</string>
+    <string name="comments">コメント</string>
+    <string name="reply">返信</string>
+    <string name="replying_to">%1$sに返信</string>
+    <string name="comments_log_in_hint">コメント、返信、高評価を行うには、ログイン</string>
+    <string name="comments_log_in_message">コメント、返信、高評価を行うには、YouTube にログインしてください。</string>
+    <string name="comments_turned_off">コメントはオフになっています</string>
+    <string name="comments_load_error">コメントを読み込めませんでした</string>
+    <string name="comment_post_error">コメントを投稿できませんでした</string>
+    <string name="comments_need_channel">コメントするためにはYoutubeチャンネルを作成する必要があります</string>
 </resources>

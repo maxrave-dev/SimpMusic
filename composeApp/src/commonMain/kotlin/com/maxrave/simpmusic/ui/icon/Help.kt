@@ -91,7 +91,7 @@ val SimpIcons.Help: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Help!!
   }
 

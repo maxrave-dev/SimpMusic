@@ -74,7 +74,7 @@ val SimpIcons.Share: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Share!!
   }
 

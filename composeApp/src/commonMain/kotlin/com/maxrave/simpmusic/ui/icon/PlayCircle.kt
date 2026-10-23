@@ -66,7 +66,7 @@ val SimpIcons.PlayCircle: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _PlayCircle!!
   }
 

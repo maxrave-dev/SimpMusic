@@ -53,7 +53,7 @@ val SimpIcons.Done: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Done!!
   }
 

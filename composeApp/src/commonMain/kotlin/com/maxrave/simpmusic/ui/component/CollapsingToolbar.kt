@@ -254,8 +254,8 @@ private fun Header(
                     it.result.image.toImageBitmap(),
                 )
             },
-            placeholder = rememberHolderPainter(isVideo = true),
-            error = rememberHolderPainter(isVideo = true),
+            placeholder = rememberHolderPainter(),
+            error = rememberHolderPainter(),
             contentDescription = null,
             contentScale = ContentScale.FillWidth,
             modifier =

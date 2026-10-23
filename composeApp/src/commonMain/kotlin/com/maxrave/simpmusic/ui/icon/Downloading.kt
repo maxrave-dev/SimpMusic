@@ -133,7 +133,7 @@ val SimpIcons.Downloading: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Downloading!!
   }
 

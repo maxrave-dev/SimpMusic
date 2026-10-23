@@ -116,7 +116,7 @@ val SimpIcons.LogoDev: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _LogoDev!!
   }
 

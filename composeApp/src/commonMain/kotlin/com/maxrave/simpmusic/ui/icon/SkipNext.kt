@@ -66,7 +66,7 @@ val SimpIcons.SkipNext: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _SkipNext!!
   }
 

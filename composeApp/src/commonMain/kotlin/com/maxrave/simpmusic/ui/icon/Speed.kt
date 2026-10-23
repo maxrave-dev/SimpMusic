@@ -66,7 +66,7 @@ val SimpIcons.Speed: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _Speed!!
   }
 

@@ -61,7 +61,7 @@ val SimpIcons.DragHandle: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _DragHandle!!
   }
 

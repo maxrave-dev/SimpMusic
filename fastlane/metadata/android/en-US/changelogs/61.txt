@@ -1,0 +1,11 @@
+New:
+- Your library sidebar on Desktop, Smart downloads
+- YouTube comments and Dislike
+- New Home header with a Create button, Cached songs
+- Search in Add to playlist, new app icon
+Improved:
+- Home glass chips and backdrop, dark theme without pure black
+- Radio names, LIVE badges, Apple Music player artwork, even icon sizes
+Fixed:
+- FOSS launch crash, sign-in crashes and freezes, failed downloads shown as done
+- Add to queue on an empty queue, Android Auto shuffle icon, Hebrew/RTL, banners

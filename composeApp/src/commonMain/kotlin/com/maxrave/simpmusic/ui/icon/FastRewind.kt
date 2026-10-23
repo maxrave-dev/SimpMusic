@@ -71,7 +71,7 @@ val SimpIcons.FastRewind: ImageVector
             close()
           }
         }
-        .build()
+        .buildSimpIcon()
     return _FastRewind!!
   }
 
