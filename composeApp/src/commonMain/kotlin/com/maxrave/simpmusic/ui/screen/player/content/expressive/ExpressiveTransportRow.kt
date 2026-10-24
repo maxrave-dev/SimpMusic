@@ -64,8 +64,9 @@ private val TOGGLE_SEPARATION = 8.dp
  * - Icon swaps ride Crossfade with the fast effects spec.
  * - While [loading], a small CircularProgressIndicator replaces the play/pause icon and the
  *   press is a no-op — mirroring the spinner block in NowPlayingContentSpotify's toolbar.
- * - Prev/next respect [ControlState.isPreviousAvailable]/[ControlState.isNextAvailable] the
- *   way the Classic style does: icon at 0.4f alpha and a no-op click.
+ * - Next respects [ControlState.isNextAvailable] the way the Classic style does: icon at
+ *   0.4f alpha and a no-op click. Previous is always enabled: with no previous track the
+ *   player restarts the current one.
  *
  * Sends [UIEvent.PlayPause] / [UIEvent.Previous] / [UIEvent.Next] exactly like
  * [com.maxrave.simpmusic.ui.component.PlayerControlLayout].
@@ -131,9 +132,7 @@ fun ExpressiveTransportRow(
         // Previous — full pill on secondaryContainer.
         Surface(
             onClick = {
-                if (controllerState.isPreviousAvailable) {
-                    onUIEvent(UIEvent.Previous)
-                }
+                onUIEvent(UIEvent.Previous)
             },
             shape = RoundedCornerShape(34.dp),
             color = colorScheme.secondaryContainer,
@@ -147,10 +146,7 @@ fun ExpressiveTransportRow(
                 Icon(
                     imageVector = SimpIcons.SkipPrevious,
                     contentDescription = "",
-                    tint =
-                        colorScheme.onSecondaryContainer.copy(
-                            alpha = if (controllerState.isPreviousAvailable) 1f else 0.4f,
-                        ),
+                    tint = colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(32.dp),
                 )
             }

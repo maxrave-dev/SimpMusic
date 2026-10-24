@@ -111,15 +111,13 @@ fun PlayerControlLayout(
                             CircleShape,
                         )
                         .clickable {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
-                            }
+                            onUIEvent(UIEvent.Previous)
                         },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = SimpIcons.SkipPrevious,
-                    tint = if (controllerState.isPreviousAvailable) contentColor else contentColor.copy(alpha = 0.4f),
+                    tint = contentColor,
                     contentDescription = "",
                     modifier = Modifier.size(mediumIcon.first),
                 )
