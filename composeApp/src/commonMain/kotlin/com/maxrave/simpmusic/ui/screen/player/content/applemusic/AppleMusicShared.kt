@@ -695,13 +695,13 @@ internal fun AppleMusicTransportRow(
             )
         }
         IconButton(
-            onClick = { if (controllerState.isPreviousAvailable) onUIEvent(UIEvent.Previous) },
+            onClick = { onUIEvent(UIEvent.Previous) },
             modifier = Modifier.appleMusicPressInflate().size(56.dp).clip(CircleShape),
         ) {
             Icon(
                 imageVector = SimpIcons.FastRewind,
                 contentDescription = "",
-                tint = Color.White.copy(alpha = if (controllerState.isPreviousAvailable) 1f else 0.4f),
+                tint = Color.White,
                 modifier = Modifier.size(46.dp),
             )
         }

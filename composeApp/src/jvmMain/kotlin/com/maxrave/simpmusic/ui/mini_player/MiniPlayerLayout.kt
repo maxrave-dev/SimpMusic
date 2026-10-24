@@ -207,11 +207,9 @@ fun CompactMiniLayout(
                         RippleIconButton(
                             imageVector = SimpIcons.SkipPrevious,
                             modifier = Modifier.size(28.dp),
-                            tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                            tint = Color.White,
                             onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    onUIEvent(UIEvent.Previous)
-                                }
+                                onUIEvent(UIEvent.Previous)
                             },
                         )
 
@@ -342,11 +340,9 @@ fun MediumMiniLayout(
                             RippleIconButton(
                                 imageVector = SimpIcons.SkipPrevious,
                                 modifier = Modifier.size(28.dp),
-                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                tint = Color.White,
                                 onClick = {
-                                    if (controllerState.isPreviousAvailable) {
-                                        onUIEvent(UIEvent.Previous)
-                                    }
+                                    onUIEvent(UIEvent.Previous)
                                 },
                             )
 
@@ -651,11 +647,9 @@ fun SquareMiniLayout(
                     RippleIconButton(
                         imageVector = SimpIcons.SkipPrevious,
                         modifier = Modifier.size(36.dp),
-                        tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                        tint = Color.White,
                         onClick = {
-                            if (controllerState.isPreviousAvailable) {
-                                onUIEvent(UIEvent.Previous)
-                            }
+                            onUIEvent(UIEvent.Previous)
                         },
                     )
 
@@ -851,11 +845,9 @@ fun ExpandedMiniLayout(
                             RippleIconButton(
                                 imageVector = SimpIcons.SkipPrevious,
                                 modifier = Modifier.size(32.dp),
-                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                tint = Color.White,
                                 onClick = {
-                                    if (controllerState.isPreviousAvailable) {
-                                        onUIEvent(UIEvent.Previous)
-                                    }
+                                    onUIEvent(UIEvent.Previous)
                                 },
                             )
 
