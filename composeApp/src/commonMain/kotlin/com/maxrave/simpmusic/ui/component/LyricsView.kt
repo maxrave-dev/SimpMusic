@@ -7,6 +7,7 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +47,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
@@ -925,7 +925,7 @@ private fun rememberSmoothPlayhead(
         // the interpolation can accumulate error for at most one tick before being corrected.
         var baseNanos = -1L
         while (true) {
-            withFrameNanos { frameNanos ->
+            withInfiniteAnimationFrameNanos { frameNanos ->
                 if (baseNanos < 0L) baseNanos = frameNanos
                 val elapsedMs = (frameNanos - baseNanos) / 1_000_000L
                 playhead.longValue = rawMs + elapsedMs.coerceIn(0L, PLAYHEAD_TICK_MS)

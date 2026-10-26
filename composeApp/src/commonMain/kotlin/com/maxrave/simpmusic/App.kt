@@ -492,9 +492,8 @@ fun App(
         themeMode = themeMode,
         themeColorSource = themeColorSource,
         customThemeColor = parseThemeColorHex(customThemeColorHex),
-        // Desktop is unconditionally true — the liquid-glass setting row is Android-only, and the
-        // Desktop capsule player is glass by design. Same rule as MiniPlayer's useGlassSurface.
-        liquidGlassEnabled = isLiquidGlassEnabled == TRUE || getPlatform() == Platform.Desktop,
+        // The setting governs Desktop too, the same as Android: off, every glass surface draws flat.
+        liquidGlassEnabled = isLiquidGlassEnabled == TRUE,
     ) {
         if (!isOfficialBuild) {
             UnofficialBuildScreen()
@@ -674,10 +673,9 @@ fun App(
                                 Modifier
                                     .fillMaxSize()
                                     .then(
-                                        // Desktop is unconditional: the floating capsule player is ALWAYS
-                                        // liquid glass there, and glass with no recorded source draws as
-                                        // plain transparency.
-                                        if (isDesktopShell && isTablet && !isInFullscreen) {
+                                        // The Desktop capsule player's glass refracts this. Off, the capsule
+                                        // draws flat and nothing reads the recording, so skip it.
+                                        if (isLiquidGlassEnabled == TRUE && isDesktopShell && isTablet && !isInFullscreen) {
                                             Modifier.layerBackdrop(backdrop)
                                         } else {
                                             Modifier

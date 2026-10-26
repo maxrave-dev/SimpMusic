@@ -79,6 +79,7 @@ import com.maxrave.simpmusic.ui.icon.TrendingUp
 import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibrarySidebarItem
 import com.maxrave.simpmusic.viewModel.LibrarySidebarKind
@@ -217,7 +218,8 @@ fun DesktopSidebar(
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor),
     ) {
-        Box(Modifier.matchParentSize().layerBackdrop(backdrop))
+        // Off, the controls draw flat and nothing reads the recording.
+        if (LocalLiquidGlassEnabled.current) Box(Modifier.matchParentSize().layerBackdrop(backdrop))
         Column(
             Modifier.fillMaxSize().padding(top = 8.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),

@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -129,17 +128,11 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     System.setProperty("compose.interop.blending", "true")
     System.setProperty("compose.layers.type", "COMPONENT")
 
-    // Skiko's vsync wait can park the EDT forever after a display change:
-    // macOS waits on a CVDisplayLink-signalled NSConditionLock with no timeout
-    // (DisplayLinkThrottler.mm), Linux blocks inside the vsync'd glXSwapBuffers
-    // when X11 loses its sync source (CMP-9725 / CMP-10019). Both surface as
-    // "UI frozen, audio keeps playing" when the window moves to another
-    // monitor. With vsync off, skiko paces frames with its refresh-rate frame
-    // limiter (skiko.vsync.framelimit.fallback, on by default) instead.
-    // Windows renders via DirectX and shows no such freeze — leave it alone.
-    if (!System.getProperty("os.name", "").contains("Windows", ignoreCase = true)) {
-        System.setProperty("skiko.vsync.enabled", "false")
-    }
+    // Vsync stays at skiko's default (on) everywhere: it is skiko's only frame cap. It used to be
+    // forced off on macOS and Linux against a feared freeze on display changes (CMP-9725 /
+    // CMP-10019); with it off skiko drew every frame asked for at once, measured at 300–700 fps on
+    // 60/75 Hz monitors and ~300 fps minimized. On Linux, dragging the window between a 60 Hz and a
+    // 75 Hz monitor with vsync on did not freeze.
 
     // Handle deep link URIs
     // macOS: receives URI via Desktop open URI handler (app already running or launched via scheme)
@@ -280,7 +273,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         sharedViewModel.setIntent(intent)
     }
 
-    application {
+    governedApplication {
         // Main Window
         val windowState =
             rememberWindowState(
