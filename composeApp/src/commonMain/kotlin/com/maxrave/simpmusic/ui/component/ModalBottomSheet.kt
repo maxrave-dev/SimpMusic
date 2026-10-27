@@ -196,6 +196,19 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.maxrave.domain.data.player.InstrumentalRegistry
+import com.maxrave.domain.data.player.InstrumentalState
+import com.maxrave.domain.data.player.InstrumentalStep
+import com.maxrave.domain.repository.InstrumentalRepository
+import com.maxrave.simpmusic.ui.icon.GraphicEq
+import simpmusic.composeapp.generated.resources.remove_vocals
+import simpmusic.composeapp.generated.resources.play_with_vocals
+import simpmusic.composeapp.generated.resources.instrumental_failed
+import simpmusic.composeapp.generated.resources.instrumental_downloading
+import simpmusic.composeapp.generated.resources.instrumental_uploading
+import simpmusic.composeapp.generated.resources.instrumental_queued
+import simpmusic.composeapp.generated.resources.instrumental_separating
+import simpmusic.composeapp.generated.resources.instrumental_saving
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
@@ -1910,6 +1923,10 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
+                    // Only for the song playing now: the instrumental replaces its source in the player.
+                    if (setSleepTimerEnable && uiState.songUIState.videoId.isNotEmpty()) {
+                        InstrumentalActionButton(videoId = uiState.songUIState.videoId)
+                    }
                     ActionButton(
                         icon = SimpIcons.Share,
                         text = Res.string.share,
@@ -1952,6 +1969,42 @@ fun AddToQueueBlock?.addToQueueLabel(): StringResource {
         null -> if (queueData?.data?.listTracks.isNullOrEmpty()) Res.string.create_new_queue_and_play else Res.string.add_to_queue
         AddToQueueBlock.RADIO -> Res.string.add_to_queue_disabled_radio
         AddToQueueBlock.ENDLESS_QUEUE -> Res.string.add_to_queue_disabled_endless
+    }
+}
+
+/** Remove vocals / play with vocals for [videoId], showing the vocal remover's progress while it works. */
+@Composable
+private fun InstrumentalActionButton(
+    videoId: String,
+    instrumentalRepository: InstrumentalRepository = koinInject(),
+) {
+    val states by InstrumentalRegistry.states.collectAsState()
+    val state = states[videoId]
+    val label =
+        when (state) {
+            null -> stringResource(Res.string.remove_vocals)
+            is InstrumentalState.On -> stringResource(Res.string.play_with_vocals)
+            is InstrumentalState.Failed -> stringResource(Res.string.instrumental_failed, state.message)
+            is InstrumentalState.Working ->
+                stringResource(
+                    when (state.step) {
+                        InstrumentalStep.DOWNLOADING -> Res.string.instrumental_downloading
+                        InstrumentalStep.UPLOADING -> Res.string.instrumental_uploading
+                        InstrumentalStep.QUEUED -> Res.string.instrumental_queued
+                        InstrumentalStep.SEPARATING -> Res.string.instrumental_separating
+                        InstrumentalStep.SAVING -> Res.string.instrumental_saving
+                    },
+                )
+        }
+    val highlight = if (state is InstrumentalState.On || state is InstrumentalState.Working) seed else null
+    ActionButton(
+        icon = SimpIcons.GraphicEq,
+        text = null,
+        textString = label,
+        textColor = highlight,
+        iconColor = highlight ?: Color.Unspecified,
+    ) {
+        instrumentalRepository.toggle(videoId)
     }
 }
 

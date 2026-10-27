@@ -1033,4 +1033,16 @@
     <string name="search_in_your_library">Search in Your library</string>
     <string name="collapse_your_library">Collapse Your library</string>
     <string name="expand_your_library">Expand Your library</string>
+    <string name="remove_vocals">Remove vocals</string>
+    <string name="play_with_vocals">Play with vocals (instrumental is on)</string>
+    <string name="instrumental_downloading">Removing vocals: downloading the song… (tap to cancel)</string>
+    <string name="instrumental_uploading">Removing vocals: uploading to MVSEP… (tap to cancel)</string>
+    <string name="instrumental_queued">Removing vocals: waiting in MVSEP's queue… (tap to cancel)</string>
+    <string name="instrumental_separating">Removing vocals: separating… (tap to cancel)</string>
+    <string name="instrumental_saving">Removing vocals: saving the instrumental… (tap to cancel)</string>
+    <string name="instrumental_failed">Removing vocals failed: %1$s (tap to retry)</string>
+    <string name="mvsep_api_token">MVSEP API token (vocal removal)</string>
+    <string name="mvsep_api_token_description">Remove vocals uses MVSEP (mvsep.com), an AI stem separator. Make a free account and paste the API token shown at mvsep.com/en/full_api. Free accounts get 50 songs a day, one at a time. Each instrumental is kept, so a song costs one separation however often you play it. Leave the field empty to remove the token.</string>
+    <string name="instrumental_cache">Instrumental cache</string>
+    <string name="clear_instrumental_cache">Clear instrumental cache</string>
 </resources>

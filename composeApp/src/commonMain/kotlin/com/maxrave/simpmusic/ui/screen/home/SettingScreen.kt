@@ -227,6 +227,10 @@ import simpmusic.composeapp.generated.resources.check_for_update
 import simpmusic.composeapp.generated.resources.checking
 import simpmusic.composeapp.generated.resources.clear
 import simpmusic.composeapp.generated.resources.clear_canvas_cache
+import simpmusic.composeapp.generated.resources.clear_instrumental_cache
+import simpmusic.composeapp.generated.resources.instrumental_cache
+import simpmusic.composeapp.generated.resources.mvsep_api_token_description
+import simpmusic.composeapp.generated.resources.mvsep_api_token
 import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_listening_history
 import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
@@ -562,6 +566,8 @@ fun SettingScreen(
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
+    val mvsepApiToken by viewModel.mvsepApiToken.collectAsStateWithLifecycle()
+    val instrumentalCache by viewModel.instrumentalCacheSize.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val translationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
@@ -2051,6 +2057,46 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.use_ai_translation_description),
                     switch = (useAITranslation to { viewModel.setAITranslation(it) }),
                     isEnable = isHasApiKey,
+                )
+                // Vocal removal has its own key: it runs on MVSEP, not on the AI provider above.
+                SettingItem(
+                    title = stringResource(Res.string.mvsep_api_token),
+                    subtitle = if (mvsepApiToken.isNotEmpty()) stringResource(Res.string.configured) else stringResource(Res.string.not_set),
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = runBlocking { getString(Res.string.mvsep_api_token) },
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = runBlocking { getString(Res.string.mvsep_api_token) },
+                                        value = mvsepApiToken,
+                                    ),
+                                message = runBlocking { getString(Res.string.mvsep_api_token_description) },
+                                confirm =
+                                    runBlocking { getString(Res.string.set) } to { state ->
+                                        viewModel.setMvsepApiToken(state.textField?.value ?: "")
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.instrumental_cache),
+                    subtitle = "${instrumentalCache.bytesToMB()} MB",
+                    onClick = {
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = runBlocking { getString(Res.string.clear_instrumental_cache) },
+                                message = null,
+                                confirm =
+                                    runBlocking { getString(Res.string.clear) } to {
+                                        viewModel.clearInstrumentalCache()
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
                 )
             }
         }
