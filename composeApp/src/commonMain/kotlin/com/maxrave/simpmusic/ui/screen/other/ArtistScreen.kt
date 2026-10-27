@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.hexToColorOrNull
 import com.maxrave.simpmusic.extension.rgbFactor
@@ -956,7 +957,10 @@ private fun ArtistSections(
                         Text(stringResource(Res.string.more), style = typo().bodySmall)
                     }
                 }
+                val singlesRowState = rememberLazyListState()
                 LazyRow(
+                    modifier = Modifier.mouseDragScroll(singlesRowState),
+                    state = singlesRowState,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1024,7 +1028,10 @@ private fun ArtistSections(
                         Text(stringResource(Res.string.more), style = typo().bodySmall)
                     }
                 }
+                val albumsRowState = rememberLazyListState()
                 LazyRow(
+                    modifier = Modifier.mouseDragScroll(albumsRowState),
+                    state = albumsRowState,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1091,7 +1098,10 @@ private fun ArtistSections(
                         Text(stringResource(Res.string.more), style = typo().bodySmall)
                     }
                 }
+                val videosRowState = rememberLazyListState()
                 LazyRow(
+                    modifier = Modifier.mouseDragScroll(videosRowState),
+                    state = videosRowState,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1158,7 +1168,10 @@ private fun ArtistSections(
                                 .padding(vertical = 10.dp),
                     )
                 }
+                val featuredRowState = rememberLazyListState()
                 LazyRow(
+                    modifier = Modifier.mouseDragScroll(featuredRowState),
+                    state = featuredRowState,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {
@@ -1206,7 +1219,10 @@ private fun ArtistSections(
                                 .padding(vertical = 10.dp),
                     )
                 }
+                val relatedRowState = rememberLazyListState()
                 LazyRow(
+                    modifier = Modifier.mouseDragScroll(relatedRowState),
+                    state = relatedRowState,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     item {

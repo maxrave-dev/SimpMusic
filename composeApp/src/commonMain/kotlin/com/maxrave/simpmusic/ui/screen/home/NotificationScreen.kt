@@ -64,6 +64,7 @@ import coil3.request.crossfade
 import com.maxrave.domain.data.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.formatTimeAgo
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -269,8 +270,10 @@ fun NotificationItem(
                     Text(text = notification.name, style = typo().headlineMedium)
                 }
             }
+            val singlesRowState = rememberLazyListState()
             LazyRow(
-                Modifier.padding(top = 15.dp),
+                Modifier.padding(top = 15.dp).mouseDragScroll(singlesRowState),
+                state = singlesRowState,
             ) {
                 items(notification.single) { single ->
                     ItemAlbumNotification(

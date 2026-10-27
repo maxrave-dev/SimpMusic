@@ -11,7 +11,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.domain.data.model.ui.ScreenSizeInfo
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.LocalAppColors
 import dev.chrisbanes.haze.blur.HazeBlurStyle
@@ -849,6 +856,27 @@ fun PaddingValues.copy(
 @Composable
 fun LeftToRight(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr, content = content)
+}
+
+/**
+ * Lets a mouse drag a horizontal list, on Desktop only. `scrollable` turns every mouse drag down (its
+ * CanDragCalculation is internal and has no switch), so the drag reaches [state] through this instead. A
+ * touchscreen laptop is unchanged: the list's own `scrollable` sits inside this modifier, takes a finger
+ * drag first and consumes it, and a consumed drag also cancels the click on the card under the pointer.
+ * On release the list flings with [flingBehavior], so a list that snaps to its cards settles on one.
+ */
+@Composable
+fun Modifier.mouseDragScroll(
+    state: ScrollableState,
+    flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
+): Modifier {
+    if (getPlatform() != Platform.Desktop) return this
+    return draggable(
+        state = rememberDraggableState { state.dispatchRawDelta(-it) },
+        orientation = Orientation.Horizontal,
+        reverseDirection = LocalLayoutDirection.current == LayoutDirection.Rtl,
+        onDragStopped = { velocity -> state.scroll { with(flingBehavior) { performFling(-velocity) } } },
+    )
 }
 
 fun ImageBitmap.toResizedBitmap(

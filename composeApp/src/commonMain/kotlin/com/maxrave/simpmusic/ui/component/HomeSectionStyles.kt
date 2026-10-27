@@ -41,7 +41,10 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -170,6 +173,18 @@ fun HomeDiscoverSection(
                     HoverPlayButton(visible = hovered && info.isHero(), onClick = play)
                 }
             }
+        }
+        if (getPlatform() == Platform.Desktop) {
+            HorizontalScrollBar(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        // The cards end flush with the carousel, so the gap other shelves get from their
+                        // cards' own bottom padding is added here.
+                        .padding(start = 16.dp, top = 10.dp, end = 16.dp),
+                scrollState = state,
+                itemCount = songs.size,
+            )
         }
     }
 }

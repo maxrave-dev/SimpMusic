@@ -292,6 +292,12 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
         }
+
+        // forceLinuxWmClass() in Main.kt needs this to rename the window "SimpMusic"; without it
+        // the dock falls back to the class name. Packaged builds get it from conveyor.conf.
+        if (System.getProperty("os.name").contains("Linux")) {
+            jvmArgs("--add-opens", "java.desktop/sun.awt.X11=ALL-UNNAMED")
+        }
     }
 }
 
