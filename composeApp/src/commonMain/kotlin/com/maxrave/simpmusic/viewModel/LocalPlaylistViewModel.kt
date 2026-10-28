@@ -1041,6 +1041,10 @@ class LocalPlaylistViewModel(
                                 trackCount = pl.tracks?.size ?: 0,
                             )
                         }
+                        viewModelScope.launch {
+                            val albumCount = localPlaylistRepository.getAlbumCountOfLocalPlaylist(id)
+                            _uiState.update { it.copy(albumCount = albumCount) }
+                        }
                         if (refresh) {
                             getTracksPagingState(id, _uiState.value.filterState)
                         }
@@ -1179,6 +1183,7 @@ data class LocalPlaylistState(
     val syncState: Int = LocalPlaylistEntity.YouTubeSyncState.NotSynced,
     val ytPlaylistId: String? = null,
     val trackCount: Int = 0,
+    val albumCount: Int = 0,
     val page: Int = 0,
     val isLoadedFull: Boolean = false,
     val loadState: PlaylistLoadState = PlaylistLoadState.Loading,

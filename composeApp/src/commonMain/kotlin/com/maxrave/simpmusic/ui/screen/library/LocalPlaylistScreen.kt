@@ -200,6 +200,7 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.created_at
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.playlist_length_with_albums
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.sort_by
@@ -1197,11 +1198,19 @@ fun LocalPlaylistScreen(
                                 }
                                 Text(
                                     text =
-                                        stringResource(
-                                            Res.string.album_length,
-                                            (uiState.trackCount).toString(),
-                                            "",
-                                        ),
+                                        if (uiState.albumCount > 0) {
+                                            stringResource(
+                                                Res.string.playlist_length_with_albums,
+                                                uiState.trackCount.toString(),
+                                                uiState.albumCount.toString(),
+                                            )
+                                        } else {
+                                            stringResource(
+                                                Res.string.album_length,
+                                                (uiState.trackCount).toString(),
+                                                "",
+                                            )
+                                        },
                                     color = Color.White,
                                     style = typo().bodyMedium,
                                     modifier = Modifier.padding(vertical = 8.dp),

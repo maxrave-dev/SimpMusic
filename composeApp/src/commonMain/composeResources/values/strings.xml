@@ -6,6 +6,7 @@
     <string name="subscribers">%1$s subscribers</string>
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracks  %2$s</string>
+    <string name="playlist_length_with_albums">%1$s tracks • %2$s albums</string>
     <string name="view_count">%1$s views</string>
     <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>

@@ -6,6 +6,7 @@
     <string name="subscribers">%1$s abone</string>
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s parçalar %2$s</string>
+    <string name="playlist_length_with_albums">%1$s parça • %2$s albüm</string>
     <string name="view_count">%1$s görüntüleme</string>
     <string name="clear_search_history">Arama geçmişini temizle</string>
     <string name="liked">Beğenildi</string>
