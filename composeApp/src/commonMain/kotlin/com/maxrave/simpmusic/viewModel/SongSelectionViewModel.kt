@@ -152,6 +152,7 @@ class SongSelectionViewModel(
         albumBrowseId: String,
         title: String?,
         thumbnail: String?,
+        artistName: String?,
     ) {
         viewModelScope.launch {
             localPlaylistRepository
@@ -160,6 +161,7 @@ class SongSelectionViewModel(
                     albumBrowseId = albumBrowseId,
                     title = title,
                     thumbnail = thumbnail,
+                    artistName = artistName,
                     successMessage = getString(Res.string.added_to_playlist),
                 ).collectResource(
                     onSuccess = { },

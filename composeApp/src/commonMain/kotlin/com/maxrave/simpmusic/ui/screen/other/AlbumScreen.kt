@@ -1069,6 +1069,7 @@ fun AlbumScreen(
                                 albumBrowseId = browseId,
                                 title = uiState.title,
                                 thumbnail = uiState.thumbnail,
+                                artistName = uiState.artist.name.takeIf { it.isNotBlank() },
                             )
                             showAlbumAddToPlaylist = false
                         },
