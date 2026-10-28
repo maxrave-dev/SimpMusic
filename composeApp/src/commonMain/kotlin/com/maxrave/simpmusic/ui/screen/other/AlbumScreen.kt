@@ -106,7 +106,7 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
@@ -455,7 +455,7 @@ fun AlbumScreen(
                                                             style = typo().titleMedium,
                                                             // The app accent, standing in for the brand red
                                                             // Apple uses on this line.
-                                                            color = seed,
+                                                            color = LocalAccentColor.current,
                                                             modifier =
                                                                 Modifier.clickable {
                                                                     uiState.artist.id?.let { channelId ->

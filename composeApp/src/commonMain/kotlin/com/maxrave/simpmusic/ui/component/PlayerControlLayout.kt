@@ -33,7 +33,7 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.SkipPrevious
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.viewModel.UIEvent
 
 @Composable
@@ -46,13 +46,14 @@ fun PlayerControlLayout(
     // The capsule already pads its own edges; stacking this 20dp on top of that
     // read as a hole at both ends of the transport cluster.
     horizontalPadding: Dp = 20.dp,
-    // Tint for the ACTIVE shuffle/repeat state. The default keeps the raw seed (#8ECAE6) every
-    // existing call site had; the capsule passes a theme-aware colour because pastel seed on a
-    // light glass surface is nearly invisible.
-    activeColor: Color = seed,
+    // Tint for the ACTIVE shuffle/repeat state. Null follows the user's accent, which is what every
+    // call site that does not pass one wants; the capsule passes a theme-aware colour because a
+    // pastel accent on a light glass surface is nearly invisible.
+    activeColor: Color? = null,
     contentColor: Color = Color.White,
     onUIEvent: (UIEvent) -> Unit,
 ) = LeftToRight {
+    val tint = activeColor ?: LocalAccentColor.current
     val height = if (isSmallSize) 48.dp else 96.dp
     val smallIcon = if (isSmallSize) 20.dp to 28.dp else 32.dp to 42.dp
     val mediumIcon = if (isSmallSize) 28.dp to 38.dp else 42.dp to 52.dp
@@ -92,7 +93,7 @@ fun PlayerControlLayout(
                     } else {
                         Icon(
                             imageVector = SimpIcons.Shuffle,
-                            tint = activeColor,
+                            tint = tint,
                             contentDescription = "",
                             modifier = Modifier.size(smallIcon.first),
                         )
@@ -212,7 +213,7 @@ fun PlayerControlLayout(
                         RepeatState.All -> {
                             Icon(
                                 imageVector = SimpIcons.Repeat,
-                                tint = activeColor,
+                                tint = tint,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
                             )
@@ -221,7 +222,7 @@ fun PlayerControlLayout(
                         RepeatState.One -> {
                             Icon(
                                 imageVector = SimpIcons.RepeatOne,
-                                tint = activeColor,
+                                tint = tint,
                                 contentDescription = "",
                                 modifier = Modifier.size(smallIcon.first),
                             )

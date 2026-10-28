@@ -112,7 +112,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPla
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AnalyticsUiState
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
@@ -758,7 +758,7 @@ private fun PortraitHeader(
                     Text(
                         text = formatListeningTime(topTrack.first.totalListeningTime),
                         style = typo().bodyLarge,
-                        color = seed,
+                        color = LocalAccentColor.current,
                         maxLines = 1,
                     )
                 }
@@ -807,7 +807,7 @@ private fun LandscapeHeader(
                     text = topTrack.second.title,
                     style = typo().labelMedium,
                     // The app accent, standing in for the brand red Apple uses on this line.
-                    color = seed,
+                    color = LocalAccentColor.current,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -946,7 +946,7 @@ private fun HeadlineCount(
                 Text(
                     text = if (delta >= 0) "+$delta%" else "$delta%",
                     style = typo().labelSmall,
-                    color = seed,
+                    color = LocalAccentColor.current,
                     maxLines = 1,
                 )
                 Text(stringResource(Res.string.analytics_vs_previous), style = typo().bodySmall, maxLines = 1)
@@ -1021,7 +1021,7 @@ private fun QuickFactsSection(
                                     Text(
                                         text = if (delta >= 0) "+$delta%" else "$delta%",
                                         style = typo().bodySmall,
-                                        color = seed,
+                                        color = LocalAccentColor.current,
                                         maxLines = 1,
                                     )
                                 }
@@ -1342,7 +1342,7 @@ private fun DateRangeSection(
                                 .fillMaxWidth((playCount.toFloat() / maxPlays).coerceIn(0.001f, 1f))
                                 .height(24.dp)
                                 .clip(CircleShape)
-                                .background(seed),
+                                .background(LocalAccentColor.current),
                         )
                         Text(
                             text = "$playCount ${stringResource(Res.string.lower_plays)}",

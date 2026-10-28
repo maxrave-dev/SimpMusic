@@ -437,7 +437,11 @@
     <string name="user_interface">Interface</string>
     <string name="theme">Theme</string>
     <string name="theme_mode_system">System default</string>
+    <string name="theme_hue">Hue</string>
+    <string name="theme_saturation">Saturation</string>
+    <string name="theme_brightness">Brightness</string>
     <string name="theme_mode_dark">Dark</string>
+    <string name="theme_mode_amoled">AMOLED black</string>
     <string name="theme_mode_light">Light</string>
     <string name="now_playing_style">Now Playing style</string>
     <string name="now_playing_style_spotify">Classic</string>

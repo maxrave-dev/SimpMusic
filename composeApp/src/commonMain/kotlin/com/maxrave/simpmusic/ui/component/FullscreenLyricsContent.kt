@@ -121,7 +121,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.SpotifyPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicPlaybackControls
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -828,7 +828,7 @@ private fun FullscreenLyricsLandscape(
                 AppleMusicArtworkBackdrop(
                     state = state,
                     actions = actions,
-                    seedColor = if (paletteColor == Color.Black) seed else paletteColor,
+                    seedColor = if (paletteColor == Color.Black) LocalAccentColor.current else paletteColor,
                 )
             } else {
                 AnimatedLyricsGradientBackground(color = color)
