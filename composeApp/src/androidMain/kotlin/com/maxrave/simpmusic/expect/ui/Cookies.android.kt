@@ -266,7 +266,13 @@ private fun webViewOrFallback(
     setup: WebView.() -> Unit,
 ): View {
     val webView = runCatching { WebView(context) }.getOrElse { e -> return unavailableView(context, unavailable, e) }
-    return runCatching { webView.apply(setup) }.getOrElse { e ->
+    return runCatching {
+        webView.apply {
+            // Keep login pages off WebView's GPU draw path, which can crash the host RenderThread.
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+            setup()
+        }
+    }.getOrElse { e ->
         // onRelease only ever sees the fallback view, so a WebView that failed setup is destroyed here.
         runCatching { webView.destroy() }
         unavailableView(context, unavailable, e)
