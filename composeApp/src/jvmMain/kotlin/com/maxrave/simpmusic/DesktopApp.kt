@@ -204,10 +204,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             ),
         )
         loadKoinModules(
-            viewModelModule,
-            module {
-                single<ArtworkStore> { NoOpArtworkStore }
-            },
+            listOf(
+                viewModelModule,
+                module {
+                    single<ArtworkStore> { NoOpArtworkStore }
+                },
+            )
         )
     }
 
