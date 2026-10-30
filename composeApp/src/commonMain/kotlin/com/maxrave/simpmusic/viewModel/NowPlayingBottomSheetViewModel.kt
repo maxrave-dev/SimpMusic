@@ -26,6 +26,8 @@ import com.maxrave.domain.utils.collectLatestResource
 import com.maxrave.domain.utils.isLive
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
+import com.maxrave.simpmusic.artwork.ArtworkStore
+import com.maxrave.simpmusic.artwork.artworkFileName
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -56,6 +59,7 @@ class NowPlayingBottomSheetViewModel(
     private val songRepository: SongRepository,
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
+    private val artworkStore: ArtworkStore by inject()
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
@@ -265,6 +269,7 @@ class NowPlayingBottomSheetViewModel(
                                 songUIState.videoId,
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
+                            deleteArtworkIfUnused(songUIState.videoId, songUIState.thumbnails)
                             makeToast(getString(Res.string.removed_download))
                         }
 
@@ -274,6 +279,7 @@ class NowPlayingBottomSheetViewModel(
                                 songUIState.videoId,
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
+                            deleteArtworkIfUnused(songUIState.videoId, songUIState.thumbnails)
                             makeToast(getString(Res.string.removed_download))
                         }
                     }
@@ -381,6 +387,32 @@ class NowPlayingBottomSheetViewModel(
                         }
                 }
             }
+        }
+    }
+
+    /**
+     * Deletes a removed download's cover unless another download still uses the same image.
+     * YouTube Music can hand the same album cover to several tracks, and those tracks share one
+     * pinned file, so deleting it with the first removal would leave the others without artwork.
+     */
+    private suspend fun deleteArtworkIfUnused(
+        videoId: String,
+        url: String?,
+    ) {
+        val keep =
+            buildSet {
+                addAll(
+                    songRepository.getDownloadedSongs().firstOrNull().orEmpty()
+                        .mapNotNull { artworkFileName(it.thumbnails ?: "") },
+                )
+                addAll(
+                    songRepository.getDownloadingSongs().firstOrNull().orEmpty()
+                        .mapNotNull { artworkFileName(it.thumbnails ?: "") },
+                )
+            }
+        val fileName = url?.let(::artworkFileName) ?: "$videoId.jpg"
+        if (fileName !in keep) {
+            artworkStore.delete(videoId, url)
         }
     }
 }
