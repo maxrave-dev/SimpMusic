@@ -71,6 +71,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.artwork.ArtworkStore
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.isOnUnmeteredNetwork
 import com.maxrave.simpmusic.expect.ui.toByteArray
@@ -150,6 +151,8 @@ class SharedViewModel(
     var showedUpdateDialog: Boolean = false
 
     private val appIdentity: AppIdentity by inject()
+    private val downloadHandler: DownloadHandler by inject()
+    private val artworkStore: ArtworkStore by inject()
 
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
@@ -285,6 +288,9 @@ class SharedViewModel(
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
     init {
+        viewModelScope.launch {
+            observeDownloadedArtwork()
+        }
         viewModelScope.launch {
             log("SharedViewModel init")
             if (dataStoreManager.appVersion.first() != VersionManager.getVersionName()) {
@@ -878,6 +884,56 @@ class SharedViewModel(
         }
     }
 
+    /**
+     * Renders the lyrics already saved on this device before the selected provider is asked.
+     *
+     * A song that has been played before therefore shows its lyrics immediately, and keeps them
+     * when the device is offline; the provider fetch that follows still replaces them when it
+     * returns a fresh copy. The saved copy is not written back or offered to the community
+     * database: it came from a provider in the first place.
+     */
+    private suspend fun showSavedLyricsFirst(
+        song: SongEntity,
+        duration: Int,
+    ) {
+        val savedLyrics =
+            lyricsCanvasRepository
+                .getSavedLyrics(song.videoId)
+                .firstOrNull()
+                ?.takeUnless { it.error || it.lines.isNullOrEmpty() }
+                ?: return
+        val lyrics = savedLyrics.toLyrics()
+        Logger.d(tag, "Show saved lyrics for ${song.videoId} before provider fetch")
+        updateLyrics(
+            song.videoId,
+            duration,
+            lyrics,
+            false,
+            LyricsProvider.OFFLINE,
+            saveToDatabase = false,
+        )
+        showSavedTranslatedLyrics(song.videoId)
+    }
+
+    private suspend fun showSavedTranslatedLyrics(videoId: String) {
+        if (dataStoreManager.useAITranslation.first() != TRUE) return
+        val savedTranslation =
+            lyricsCanvasRepository
+                .getSavedTranslatedLyrics(
+                    videoId,
+                    dataStoreManager.translationLanguage.first(),
+                ).firstOrNull()
+                ?: return
+        updateLyrics(
+            videoId,
+            0,
+            savedTranslation.toLyrics(),
+            true,
+            LyricsProvider.AI,
+            saveToDatabase = false,
+        )
+    }
+
     fun loadSharedMediaItem(videoId: String) {
         viewModelScope.launch {
             val localSong = songRepository.getSongById(videoId).firstOrNull()
@@ -1118,6 +1174,67 @@ class SharedViewModel(
         }
     }
 
+    private var artworkSyncJob: Job? = null
+
+    /**
+     * Pins covers for downloads that predate this feature, finishes covers for downloads still in
+     * progress, and drops pinned covers whose download is gone. Called when the app comes to the
+     * foreground: a widget creating this ViewModel in the background must not start a batch of
+     * image downloads. Cheap after the first pass, because [ArtworkStore.save] returns before the
+     * network when the file is already there.
+     */
+    fun ensureDownloadedArtwork() {
+        if (artworkSyncJob?.isActive == true) return
+        artworkSyncJob =
+            viewModelScope.launch {
+                val downloaded = songRepository.getDownloadedSongs().firstOrNull().orEmpty()
+                // A download that is still running keeps its cover too: retainOnly must not delete
+                // it just because the song is not in the downloaded table yet.
+                val downloading = songRepository.getDownloadingSongs().firstOrNull().orEmpty()
+                val songs = downloaded + downloading
+                val urls = songs.mapNotNull { it.thumbnails?.takeIf { url -> url.isNotBlank() } }
+                artworkStore.retainOnly(urls)
+                songs.forEach { song ->
+                    val url = song.thumbnails?.takeIf { it.isNotBlank() } ?: return@forEach
+                    artworkStore.save(song.videoId, url)
+                }
+            }
+    }
+
+    /**
+     * Pins the cover of every song whose download starts while this process is alive. A download
+     * that was already running when the ViewModel was created is picked up by
+     * [ensureDownloadedArtwork]; completed ones are left to it too, so they are not fetched again
+     * in the background.
+     */
+    private suspend fun observeDownloadedArtwork() {
+        var previous = emptyMap<String, Int>()
+        downloadHandler.downloadTask.collect { tasks ->
+            tasks.forEach { (videoId, state) ->
+                val wasDownloading =
+                    previous[videoId] == DownloadState.STATE_PREPARING ||
+                        previous[videoId] == DownloadState.STATE_DOWNLOADING
+                val isDownloading =
+                    state == DownloadState.STATE_PREPARING ||
+                        state == DownloadState.STATE_DOWNLOADING
+                if (!wasDownloading && isDownloading) {
+                    // Save off the collector: fetching a cover can take a while, and the download
+                    // state flow conflates, so blocking here could drop the next song's transition.
+                    viewModelScope.launch {
+                        saveArtworkFor(videoId)
+                    }
+                }
+            }
+            previous = tasks
+        }
+    }
+
+    private suspend fun saveArtworkFor(videoId: String) {
+        val song = songRepository.getSongById(videoId).firstOrNull() ?: return
+        val url = song.thumbnails?.takeIf { it.isNotBlank() } ?: return
+        artworkStore.save(videoId, url)
+    }
+
     private var smartDownloadsJob: Job? = null
 
     /**
@@ -1288,6 +1405,7 @@ class SharedViewModel(
         inputLyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
+        saveToDatabase: Boolean = true,
     ) {
         if (inputLyrics == null) {
             _nowPlayingScreenData.update {
@@ -1412,10 +1530,12 @@ class SharedViewModel(
         }
 
         val shouldSendLyricsToSimpMusic =
-            runBlocking {
-                dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
-            } &&
-                lyricsProvider != LyricsProvider.SIMPMUSIC
+            saveToDatabase &&
+                runBlocking {
+                    dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
+                } &&
+                lyricsProvider != LyricsProvider.SIMPMUSIC &&
+                lyricsProvider != LyricsProvider.OFFLINE
         if (_nowPlayingState.value?.songEntity?.videoId == videoId) {
             val track = _nowPlayingState.value?.track
             when (isTranslatedLyrics) {
@@ -1478,15 +1598,17 @@ class SharedViewModel(
                         )
                     }
                     // Save lyrics to database
-                    viewModelScope.launch {
-                        lyricsCanvasRepository.insertLyrics(
-                            LyricsEntity(
-                                videoId = videoId,
-                                error = false,
-                                lines = lyrics.lines,
-                                syncType = lyrics.syncType,
-                            ),
-                        )
+                    if (saveToDatabase) {
+                        viewModelScope.launch {
+                            lyricsCanvasRepository.insertLyrics(
+                                LyricsEntity(
+                                    videoId = videoId,
+                                    error = false,
+                                    lines = lyrics.lines,
+                                    syncType = lyrics.syncType,
+                                ),
+                            )
+                        }
                     }
                     if (shouldSendLyricsToSimpMusic && track != null) {
                         viewModelScope.launch {
@@ -1541,6 +1663,7 @@ class SharedViewModel(
                         ?: ""
                 }
             resetLyricsVoteState()
+            showSavedLyricsFirst(song, duration)
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
             when (lyricsProvider) {
                 DataStoreManager.SIMPMUSIC -> {

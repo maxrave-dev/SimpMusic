@@ -35,6 +35,8 @@ import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.notification.DesktopNotificationManager
 import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.artwork.ArtworkStore
+import com.maxrave.simpmusic.artwork.NoOpArtworkStore
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
@@ -67,6 +69,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
 import org.simpmusic.lastfm.configLastfm
@@ -200,7 +203,14 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 isDevBuild = System.getProperty("simpmusic.dev") == "true",
             ),
         )
-        loadKoinModules(viewModelModule)
+        loadKoinModules(
+            listOf(
+                viewModelModule,
+                module {
+                    single<ArtworkStore> { NoOpArtworkStore }
+                },
+            )
+        )
     }
 
     val language =
