@@ -114,6 +114,7 @@ import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.PairSongLocalPlaylist
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.entities.isAlbumItem
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
@@ -136,6 +137,7 @@ import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.LoadingDialog
+import com.maxrave.simpmusic.ui.component.LocalPlaylistAlbumBottomSheet
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -160,8 +162,9 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Sort
 import com.maxrave.simpmusic.ui.icon.TipsAndUpdates
+import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
@@ -197,6 +200,7 @@ import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.created_at
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.downloading
+import simpmusic.composeapp.generated.resources.playlist_length_with_albums
 import simpmusic.composeapp.generated.resources.reload
 import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.sort_by
@@ -295,6 +299,12 @@ fun LocalPlaylistScreen(
     }
 
     var itemBottomSheetShow by remember {
+        mutableStateOf(false)
+    }
+    var currentAlbum by remember {
+        mutableStateOf<Pair<SongEntity, PairSongLocalPlaylist>?>(null)
+    }
+    var albumBottomSheetShow by remember {
         mutableStateOf(false)
     }
     var playlistBottomSheetShow by remember {
@@ -768,7 +778,7 @@ fun LocalPlaylistScreen(
                                                 text = stringResource(Res.string.your_playlist),
                                                 style = typo().titleMedium,
                                                 // The app accent, standing in for the brand red Apple uses here.
-                                                color = seed,
+                                                color = LocalAccentColor.current,
                                             )
                                             Spacer(modifier = Modifier.height(6.dp))
                                             Text(
@@ -1188,11 +1198,19 @@ fun LocalPlaylistScreen(
                                 }
                                 Text(
                                     text =
-                                        stringResource(
-                                            Res.string.album_length,
-                                            (uiState.trackCount).toString(),
-                                            "",
-                                        ),
+                                        if (uiState.albumCount > 0) {
+                                            stringResource(
+                                                Res.string.playlist_length_with_albums,
+                                                uiState.trackCount.toString(),
+                                                uiState.albumCount.toString(),
+                                            )
+                                        } else {
+                                            stringResource(
+                                                Res.string.album_length,
+                                                (uiState.trackCount).toString(),
+                                                "",
+                                            )
+                                        },
                                     color = Color.White,
                                     style = typo().bodyMedium,
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -1338,6 +1356,12 @@ fun LocalPlaylistScreen(
         }) { index ->
             val item = trackPagingItems[index]?.first
             if (item != null) {
+                // An album entry is drawn through the same row but has no song behind it: a tap
+                // plays the album and carries on into the rest of the playlist, a double tap opens
+                // the album page, and the song-only actions — more sheet, add to queue, selection —
+                // are withheld so they cannot act on the placeholder.
+                val albumBrowseId = trackPagingItems[index]?.second?.takeIf { it.isAlbumItem }?.albumBrowseId
+                val isAlbumRow = trackPagingItems[index]?.second?.isAlbumItem == true
                 val content = @Composable { mod: Modifier ->
                     if (playingTrack?.videoId == item.videoId && isPlaying) {
                         SongFullWidthItems(
@@ -1345,20 +1369,38 @@ fun LocalPlaylistScreen(
                             isPlaying = true,
                             shouldShowDragHandle = changingOrder,
                             songEntity = item,
-                            onMoreClickListener = { onItemMoreClick(it) },
+                            onMoreClickListener = if (isAlbumRow) {
+                                {
+                                    currentAlbum = trackPagingItems[index]
+                                    albumBottomSheetShow = true
+                                }
+                            } else {
+                                { onItemMoreClick(it) }
+                            },
                             onClickListener = {
-                                Logger.w("PlaylistScreen", "index: $index")
-                                onPlaylistItemClick(it)
+                                if (isAlbumRow) {
+                                    albumBrowseId?.let { browseId ->
+                                        viewModel.onUIEvent(LocalPlaylistUIEvent.AlbumClick(browseId))
+                                    }
+                                } else {
+                                    Logger.w("PlaylistScreen", "index: $index")
+                                    onPlaylistItemClick(it)
+                                }
                             },
-                            onAddToQueue = {
-                                sharedViewModel.addListToQueue(
-                                    arrayListOf(item.toTrack()),
-                                )
+                            onDoubleClickListener = if (isAlbumRow && albumBrowseId != null) {
+                                { navController.navigate(AlbumDestination(browseId = albumBrowseId)) }
+                            } else {
+                                null
                             },
-                            selectionMode = selectionState.isActive,
+                            onAddToQueue = if (isAlbumRow) {
+                                null
+                            } else {
+                                { sharedViewModel.addListToQueue(arrayListOf(item.toTrack())) }
+                            },
+                            selectionMode = selectionState.isActive && !isAlbumRow,
                             isSelected = selectionState.isSelected(item.videoId),
                             // No long press while reordering: that gesture already belongs to drag.
-                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
+                            onLongClick = if (changingOrder || isAlbumRow) null else ({ selectionState.start(it) }),
                             onSelectToggle = { selectionState.toggle(it) },
                             modifier = mod,
                         )
@@ -1368,20 +1410,38 @@ fun LocalPlaylistScreen(
                             isPlaying = false,
                             shouldShowDragHandle = changingOrder,
                             songEntity = item,
-                            onMoreClickListener = { onItemMoreClick(it) },
+                            onMoreClickListener = if (isAlbumRow) {
+                                {
+                                    currentAlbum = trackPagingItems[index]
+                                    albumBottomSheetShow = true
+                                }
+                            } else {
+                                { onItemMoreClick(it) }
+                            },
                             onClickListener = {
-                                Logger.w("PlaylistScreen", "index: $index")
-                                onPlaylistItemClick(it)
+                                if (isAlbumRow) {
+                                    albumBrowseId?.let { browseId ->
+                                        viewModel.onUIEvent(LocalPlaylistUIEvent.AlbumClick(browseId))
+                                    }
+                                } else {
+                                    Logger.w("PlaylistScreen", "index: $index")
+                                    onPlaylistItemClick(it)
+                                }
                             },
-                            onAddToQueue = {
-                                sharedViewModel.addListToQueue(
-                                    arrayListOf(item.toTrack()),
-                                )
+                            onDoubleClickListener = if (isAlbumRow && albumBrowseId != null) {
+                                { navController.navigate(AlbumDestination(browseId = albumBrowseId)) }
+                            } else {
+                                null
                             },
-                            selectionMode = selectionState.isActive,
+                            onAddToQueue = if (isAlbumRow) {
+                                null
+                            } else {
+                                { sharedViewModel.addListToQueue(arrayListOf(item.toTrack())) }
+                            },
+                            selectionMode = selectionState.isActive && !isAlbumRow,
                             isSelected = selectionState.isSelected(item.videoId),
                             // No long press while reordering: that gesture already belongs to drag.
-                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
+                            onLongClick = if (changingOrder || isAlbumRow) null else ({ selectionState.start(it) }),
                             onSelectToggle = { selectionState.toggle(it) },
                             modifier = mod,
                         )
@@ -1506,6 +1566,21 @@ fun LocalPlaylistScreen(
             },
             navController = navController,
             song = track,
+        )
+    }
+    val albumEntry = currentAlbum
+    if (albumBottomSheetShow && albumEntry != null) {
+        LocalPlaylistAlbumBottomSheet(
+            onDismiss = {
+                albumBottomSheetShow = false
+                currentAlbum = null
+            },
+            onOpenAlbum = {
+                albumEntry.second.albumBrowseId?.let { browseId ->
+                    navController.navigate(AlbumDestination(browseId = browseId))
+                }
+            },
+            onRemove = { viewModel.deleteAlbumItem(uiState.id, albumEntry) },
         )
     }
     if (playlistBottomSheetShow) {

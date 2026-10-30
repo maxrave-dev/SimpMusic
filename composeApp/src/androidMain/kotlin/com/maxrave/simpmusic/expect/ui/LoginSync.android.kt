@@ -68,7 +68,7 @@ import com.maxrave.simpmusic.ui.component.QrScanner
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.SimpIcons
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LoginSyncSenderViewModel
 import com.maxrave.simpmusic.viewModel.LoginSyncSenderViewModel.Step
@@ -370,7 +370,7 @@ private fun SheetButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = seed),
+        colors = ButtonDefaults.buttonColors(containerColor = LocalAccentColor.current),
     ) {
         Text(
             text = text,

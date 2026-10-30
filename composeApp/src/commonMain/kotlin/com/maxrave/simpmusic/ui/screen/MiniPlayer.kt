@@ -685,7 +685,7 @@ fun MiniPlayer(
                         horizontalPadding = 0.dp,
                         // Dark keeps the familiar seed; light needs the darker seed-derived
                         // primary or the active state washes out on the light glass.
-                        activeColor = if (isDarkTheme) com.maxrave.simpmusic.ui.theme.seed else MaterialTheme.colorScheme.primary,
+                        activeColor = if (isDarkTheme) com.maxrave.simpmusic.ui.theme.LocalAccentColor.current else MaterialTheme.colorScheme.primary,
                         contentColor = textColor,
                     ) {
                         sharedViewModel.onUIEvent(it)

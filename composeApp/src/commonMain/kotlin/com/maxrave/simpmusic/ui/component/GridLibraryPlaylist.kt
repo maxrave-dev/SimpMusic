@@ -62,7 +62,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -188,7 +188,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
                                             .angledGradientBackground(
                                                 colors =
                                                     listOf(
-                                                        seed,
+                                                        LocalAccentColor.current,
                                                         Color.White.copy(alpha = 0.8f),
                                                     ),
                                                 degrees = 45f,

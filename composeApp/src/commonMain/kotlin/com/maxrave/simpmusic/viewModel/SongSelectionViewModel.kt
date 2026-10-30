@@ -142,6 +142,35 @@ class SongSelectionViewModel(
         }
     }
 
+    /**
+     * Add a whole album as a single entry. Unlike [addToPlaylist] the album is not expanded to its
+     * tracks and is stored with no YouTube playlist to sync against, so a second add is allowed
+     * (an album may legitimately appear twice, as a playlist may hold a song twice).
+     */
+    fun addAlbumToPlaylist(
+        playlistId: Long,
+        albumBrowseId: String,
+        title: String?,
+        thumbnail: String?,
+        artistName: String?,
+    ) {
+        viewModelScope.launch {
+            localPlaylistRepository
+                .addAlbumToLocalPlaylist(
+                    id = playlistId,
+                    albumBrowseId = albumBrowseId,
+                    title = title,
+                    thumbnail = thumbnail,
+                    artistName = artistName,
+                    successMessage = getString(Res.string.added_to_playlist),
+                ).collectResource(
+                    onSuccess = { },
+                    onError = { },
+                )
+            makeToast(getString(Res.string.added_to_playlist))
+        }
+    }
+
     fun removeFromLocalPlaylist(
         playlistId: Long,
         videoIds: List<String>,

@@ -88,7 +88,7 @@ import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -122,6 +122,7 @@ fun SongFullWidthItems(
     shouldShowDragHandle: Boolean = false,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
+    onDoubleClickListener: ((videoId: String) -> Unit)? = null,
     onAddToQueue: ((videoId: String) -> Unit)? = null,
     selectionMode: Boolean = false,
     isSelected: Boolean = false,
@@ -182,7 +183,7 @@ fun SongFullWidthItems(
                 modifier
                     .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                     .background(
-                        if (isSelected) seed.copy(alpha = 0.18f) else Color.Transparent,
+                        if (isSelected) LocalAccentColor.current.copy(alpha = 0.18f) else Color.Transparent,
                     ).combinedClickable(
                         onClick = {
                             if (selectionMode) {
@@ -194,6 +195,12 @@ fun SongFullWidthItems(
                         onLongClick =
                             if (onLongClick != null) {
                                 { onLongClick(itemVideoId) }
+                            } else {
+                                null
+                            },
+                        onDoubleClick =
+                            if (onDoubleClickListener != null) {
+                                { onDoubleClickListener(itemVideoId) }
                             } else {
                                 null
                             },
@@ -249,10 +256,10 @@ fun SongFullWidthItems(
                                 Modifier
                                     .size(20.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) seed else Color.Transparent)
+                                    .background(if (isSelected) LocalAccentColor.current else Color.Transparent)
                                     .border(
                                         width = 1.5.dp,
-                                        color = if (isSelected) seed else contentColor.copy(alpha = 0.6f),
+                                        color = if (isSelected) LocalAccentColor.current else contentColor.copy(alpha = 0.6f),
                                         shape = CircleShape,
                                     ),
                             contentAlignment = Alignment.Center,

@@ -49,6 +49,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -143,8 +144,12 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestina
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
+import com.maxrave.simpmusic.ui.theme.hsvToColor
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
+import com.maxrave.simpmusic.ui.theme.toArgbHex
+import com.maxrave.simpmusic.ui.theme.toHsv
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.ImportViewModel
@@ -420,10 +425,14 @@ import simpmusic.composeapp.generated.resources.such_as_music_video_lyrics_video
 import simpmusic.composeapp.generated.resources.sync_follow_to_youtube
 import simpmusic.composeapp.generated.resources.sync_follow_to_youtube_description
 import simpmusic.composeapp.generated.resources.theme
+import simpmusic.composeapp.generated.resources.theme_brightness
+import simpmusic.composeapp.generated.resources.theme_hue
+import simpmusic.composeapp.generated.resources.theme_saturation
 import simpmusic.composeapp.generated.resources.theme_color
 import simpmusic.composeapp.generated.resources.theme_color_custom
 import simpmusic.composeapp.generated.resources.theme_color_default
 import simpmusic.composeapp.generated.resources.theme_color_wallpaper
+import simpmusic.composeapp.generated.resources.theme_mode_amoled
 import simpmusic.composeapp.generated.resources.theme_mode_dark
 import simpmusic.composeapp.generated.resources.theme_mode_light
 import simpmusic.composeapp.generated.resources.theme_mode_system
@@ -729,6 +738,7 @@ fun SettingScreen(
                         listOf(
                             DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
                             DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
+                            DataStoreManager.THEME_MODE_AMOLED to stringResource(Res.string.theme_mode_amoled),
                             DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
                         )
                     SettingItem(
@@ -2887,49 +2897,87 @@ fun SettingScreen(
     if (showColorPickerDialog) {
         val presetColors =
             listOf(
-                "FF8ECAE6",
-                "FF4C82EF",
-                "FF9B72CF",
-                "FFEF6C9B",
-                "FFEF5350",
-                "FFF4A340",
-                "FFFFCA28",
-                "FF66BB6A",
-                "FF26A69A",
-                "FFBDBDBD",
+                "FFFF8A65", "FFF4A340", "FFFFCA28", "FFD4E157", "FF66BB6A",
+                "FF26A69A", "FF4DD0E1", "FF4C82EF", "FF5C6BC0", "FF9B72CF",
+                "FFD35B9A", "FFEF6C9B", "FFEF5350", "FF8D6E63", "FFBDBDBD",
+                "FF8ECAE6", "FF00C853", "FFFF6D00", "FFAA00FF", "FF0091EA",
             )
         var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
+        val initialHsv = remember { (parseThemeColorHex(customThemeColorHex) ?: seed).toHsv() }
+        var hue by rememberSaveable { mutableStateOf(initialHsv.first) }
+        var saturation by rememberSaveable { mutableStateOf(initialHsv.second) }
+        var brightness by rememberSaveable { mutableStateOf(initialHsv.third) }
         val parsedColor = parseThemeColorHex(pendingHex)
+        fun useHsv(h: Float, s: Float, v: Float) {
+            hue = h
+            saturation = s
+            brightness = v
+            pendingHex = hsvToColor(h, s, v).toArgbHex().takeLast(6)
+        }
         AlertDialog(
             onDismissRequest = { showColorPickerDialog = false },
             title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
             text = {
                 Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(hsvToColor(hue, saturation, brightness))
+                                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(text = "#${pendingHex.uppercase()}", style = typo().bodyMedium)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(text = stringResource(Res.string.theme_hue), style = typo().labelSmall)
+                    Slider(
+                        value = hue,
+                        onValueChange = { useHsv(it, saturation, brightness) },
+                        valueRange = 0f..360f,
+                    )
+                    Text(text = stringResource(Res.string.theme_saturation), style = typo().labelSmall)
+                    Slider(value = saturation, onValueChange = { useHsv(hue, it, brightness) })
+                    Text(text = stringResource(Res.string.theme_brightness), style = typo().labelSmall)
+                    Slider(value = brightness, onValueChange = { useHsv(hue, saturation, it) })
+                    Spacer(Modifier.height(8.dp))
                     presetColors.chunked(5).forEach { rowColors ->
-                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Row(modifier = Modifier.padding(vertical = 2.dp)) {
                             rowColors.forEach { hex ->
                                 val color = parseThemeColorHex(hex) ?: Color.Gray
                                 val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
                                 Box(
                                     modifier =
                                         Modifier
-                                            .padding(4.dp)
-                                            .size(36.dp)
+                                            .padding(3.dp)
+                                            .size(32.dp)
                                             .clip(CircleShape)
                                             .background(color)
                                             .border(
                                                 width = if (isSelected) 3.dp else 0.dp,
                                                 color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                                 shape = CircleShape,
-                                            ).clickable { pendingHex = hex.takeLast(6) },
+                                            ).clickable {
+                                                val hsv = color.toHsv()
+                                                useHsv(hsv.first, hsv.second, hsv.third)
+                                            },
                                 )
                             }
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(8.dp))
                     TextField(
                         value = pendingHex,
-                        onValueChange = { pendingHex = it.removePrefix("#").take(8).uppercase() },
+                        onValueChange = {
+                            pendingHex = it.removePrefix("#").take(8).uppercase()
+                            parseThemeColorHex(pendingHex)?.toHsv()?.let { hsv ->
+                                hue = hsv.first
+                                saturation = hsv.second
+                                brightness = hsv.third
+                            }
+                        },
                         label = { Text("HEX") },
                         prefix = { Text("#") },
                         singleLine = true,

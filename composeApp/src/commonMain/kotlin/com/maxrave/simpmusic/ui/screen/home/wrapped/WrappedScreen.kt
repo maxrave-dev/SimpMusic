@@ -84,7 +84,7 @@ import com.maxrave.simpmusic.ui.screen.home.wrapped.cards.WrappedTopAlbumsCard
 import com.maxrave.simpmusic.ui.screen.home.wrapped.cards.WrappedTopArtistsCard
 import com.maxrave.simpmusic.ui.screen.home.wrapped.cards.WrappedTopTracksCard
 import com.maxrave.simpmusic.ui.screen.home.wrapped.cards.WrappedTypeCard
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.viewModel.WrappedCard
 import com.maxrave.simpmusic.viewModel.WrappedUiState
 import com.maxrave.simpmusic.viewModel.WrappedViewModel
@@ -192,8 +192,8 @@ private fun WrappedTheme(
     val networkLoader = rememberNetworkLoader(httpClient)
     val dominantColorState =
         rememberDominantColorState(
-            defaultColor = seed,
-            defaultOnColor = seed,
+            defaultColor = LocalAccentColor.current,
+            defaultOnColor = LocalAccentColor.current,
             loader = networkLoader,
         )
     LaunchedEffect(artworkUrl) {

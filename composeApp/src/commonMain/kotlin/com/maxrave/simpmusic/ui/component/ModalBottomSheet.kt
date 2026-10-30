@@ -180,7 +180,7 @@ import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
-import com.maxrave.simpmusic.ui.theme.seed
+import com.maxrave.simpmusic.ui.theme.LocalAccentColor
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
@@ -256,6 +256,7 @@ import simpmusic.composeapp.generated.resources.no_results_found
 import simpmusic.composeapp.generated.resources.now_playing
 import simpmusic.composeapp.generated.resources.now_playing_upper
 import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.open_album
 import simpmusic.composeapp.generated.resources.pitch
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.playback_speed
@@ -267,6 +268,7 @@ import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.remove_from_cache
+import simpmusic.composeapp.generated.resources.remove_from_playlist
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
 import simpmusic.composeapp.generated.resources.saved_to_local_playlist
@@ -1878,8 +1880,8 @@ fun NowPlayingBottomSheet(
                                                 stringResource(Res.string.sleep_timer, sleepTimerState.timeRemaining.toString())
                                             },
                                         text = null,
-                                        textColor = seed,
-                                        iconColor = seed,
+                                        textColor = LocalAccentColor.current,
+                                        iconColor = LocalAccentColor.current,
                                     ) {
                                         sleepTimerWarning = true
                                     }
@@ -2328,7 +2330,7 @@ fun SleepTimerBottomSheet(
                     Image(
                         imageVector = SimpIcons.AccessAlarm,
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(seed),
+                        colorFilter = ColorFilter.tint(LocalAccentColor.current),
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -2360,19 +2362,19 @@ fun SleepTimerBottomSheet(
                                 shape = RoundedCornerShape(12.dp),
                                 colors =
                                     ButtonDefaults.outlinedButtonColors(
-                                        containerColor = if (isSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                        containerColor = if (isSelected) LocalAccentColor.current.copy(alpha = 0.15f) else Color.Transparent,
                                     ),
                                 border =
                                     BorderStroke(
                                         width = if (isSelected) 1.5.dp else 1.dp,
-                                        color = if (isSelected) seed else rememberSurfaceDarkColors().disabled,
+                                        color = if (isSelected) LocalAccentColor.current else rememberSurfaceDarkColors().disabled,
                                     ),
                                 contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                             ) {
                                 Text(
                                     text = preset.label,
                                     style = typo().bodySmall,
-                                    color = if (isSelected) seed else rememberSurfaceDarkColors().subtitle,
+                                    color = if (isSelected) LocalAccentColor.current else rememberSurfaceDarkColors().subtitle,
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                                 )
                             }
@@ -2398,19 +2400,19 @@ fun SleepTimerBottomSheet(
                         shape = RoundedCornerShape(12.dp),
                         colors =
                             ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (isEndSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                containerColor = if (isEndSelected) LocalAccentColor.current.copy(alpha = 0.15f) else Color.Transparent,
                             ),
                         border =
                             BorderStroke(
                                 width = if (isEndSelected) 1.5.dp else 1.dp,
-                                color = if (isEndSelected) seed else rememberSurfaceDarkColors().disabled,
+                                color = if (isEndSelected) LocalAccentColor.current else rememberSurfaceDarkColors().disabled,
                             ),
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
                             text = "End of song",
                             style = typo().bodySmall,
-                            color = if (isEndSelected) seed else rememberSurfaceDarkColors().subtitle,
+                            color = if (isEndSelected) LocalAccentColor.current else rememberSurfaceDarkColors().subtitle,
                             fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
                         )
                     }
@@ -2426,19 +2428,19 @@ fun SleepTimerBottomSheet(
                         shape = RoundedCornerShape(12.dp),
                         colors =
                             ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (isCustomSelected) seed.copy(alpha = 0.15f) else Color.Transparent,
+                                containerColor = if (isCustomSelected) LocalAccentColor.current.copy(alpha = 0.15f) else Color.Transparent,
                             ),
                         border =
                             BorderStroke(
                                 width = if (isCustomSelected) 1.5.dp else 1.dp,
-                                color = if (isCustomSelected) seed else rememberSurfaceDarkColors().disabled,
+                                color = if (isCustomSelected) LocalAccentColor.current else rememberSurfaceDarkColors().disabled,
                             ),
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
                             text = "Custom",
                             style = typo().bodySmall,
-                            color = if (isCustomSelected) seed else rememberSurfaceDarkColors().subtitle,
+                            color = if (isCustomSelected) LocalAccentColor.current else rememberSurfaceDarkColors().subtitle,
                             fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
                         )
                     }
@@ -2523,8 +2525,8 @@ fun SleepTimerBottomSheet(
                     shape = RoundedCornerShape(12.dp),
                     colors =
                         ButtonDefaults.buttonColors(
-                            containerColor = seed,
-                            disabledContainerColor = seed.copy(alpha = 0.3f),
+                            containerColor = LocalAccentColor.current,
+                            disabledContainerColor = LocalAccentColor.current.copy(alpha = 0.3f),
                         ),
                     enabled = isSetEnabled,
                 ) {
@@ -2886,6 +2888,7 @@ fun PlaylistBottomSheet(
     onEditTitle: (newTitle: String) -> Unit = {},
     onSaveToLocal: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
+    onAddToPlaylist: (() -> Unit)? = null,
     localPlaylistRepository: LocalPlaylistRepository = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -3020,6 +3023,12 @@ fun PlaylistBottomSheet(
                         enable = !isSavedToLocal,
                     ) {
                         onSaveToLocal.invoke()
+                        hideModalBottomSheet()
+                    }
+                }
+                if (onAddToPlaylist != null) {
+                    ActionButton(icon = SimpIcons.PlaylistAdd, text = Res.string.add_to_a_playlist) {
+                        onAddToPlaylist.invoke()
                         hideModalBottomSheet()
                     }
                 }
@@ -3297,14 +3306,14 @@ fun SortPlaylistBottomSheet(
                                 text = stringResource(filterOption.displayNameRes()),
                                 style = typo().labelMedium,
                                 fontWeight = FontWeight.Medium,
-                                color = if (isSelected) seed else rememberSurfaceDarkColors().content,
+                                color = if (isSelected) LocalAccentColor.current else rememberSurfaceDarkColors().content,
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             if (isSelected) {
                                 Image(
                                     imageVector = SimpIcons.Done,
                                     contentDescription = "Selected",
-                                    colorFilter = ColorFilter.tint(seed),
+                                    colorFilter = ColorFilter.tint(LocalAccentColor.current),
                                     modifier = Modifier.size(32.dp),
                                 )
                             } else {
@@ -3312,6 +3321,58 @@ fun SortPlaylistBottomSheet(
                             }
                         }
                     }
+                }
+                EndOfModalBottomSheet()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LocalPlaylistAlbumBottomSheet(
+    onDismiss: () -> Unit,
+    onOpenAlbum: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val act: (() -> Unit) -> Unit = { action ->
+        action()
+        onDismiss()
+    }
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().container),
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier = Modifier.width(60.dp).height(4.dp),
+                    colors = CardDefaults.cardColors().copy(containerColor = rememberSurfaceDarkColors().handle),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(16.dp))
+                ActionButton(icon = SimpIcons.Album, text = Res.string.open_album) {
+                    act(onOpenAlbum)
+                }
+                ActionButton(
+                    icon = SimpIcons.Delete,
+                    text = Res.string.remove_from_playlist,
+                    iconColor = Color.Red,
+                    textColor = Color.Red,
+                ) {
+                    act(onRemove)
                 }
                 EndOfModalBottomSheet()
             }
