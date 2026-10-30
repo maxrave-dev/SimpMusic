@@ -998,6 +998,56 @@ class SharedViewModel(
         }
     }
 
+    /**
+     * Renders the lyrics already saved on this device before the selected provider is asked.
+     *
+     * A song that has been played before therefore shows its lyrics immediately, and keeps them
+     * when the device is offline; the provider fetch that follows still replaces them when it
+     * returns a fresh copy. The saved copy is not written back or offered to the community
+     * database: it came from a provider in the first place.
+     */
+    private suspend fun showSavedLyricsFirst(
+        song: SongEntity,
+        duration: Int,
+    ) {
+        val savedLyrics =
+            lyricsCanvasRepository
+                .getSavedLyrics(song.videoId)
+                .firstOrNull()
+                ?.takeUnless { it.error || it.lines.isNullOrEmpty() }
+                ?: return
+        val lyrics = savedLyrics.toLyrics()
+        Logger.d(tag, "Show saved lyrics for ${song.videoId} before provider fetch")
+        updateLyrics(
+            song.videoId,
+            duration,
+            lyrics,
+            false,
+            LyricsProvider.OFFLINE,
+            saveToDatabase = false,
+        )
+        showSavedTranslatedLyrics(song.videoId)
+    }
+
+    private suspend fun showSavedTranslatedLyrics(videoId: String) {
+        if (dataStoreManager.useAITranslation.first() != TRUE) return
+        val savedTranslation =
+            lyricsCanvasRepository
+                .getSavedTranslatedLyrics(
+                    videoId,
+                    dataStoreManager.translationLanguage.first(),
+                ).firstOrNull()
+                ?: return
+        updateLyrics(
+            videoId,
+            0,
+            savedTranslation.toLyrics(),
+            true,
+            LyricsProvider.AI,
+            saveToDatabase = false,
+        )
+    }
+
     fun loadSharedMediaItem(videoId: String) {
         viewModelScope.launch {
             val localSong = songRepository.getSongById(videoId).firstOrNull()
@@ -1408,6 +1458,7 @@ class SharedViewModel(
         inputLyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
+        saveToDatabase: Boolean = true,
     ) {
         if (inputLyrics == null) {
             _nowPlayingScreenData.update {
@@ -1532,10 +1583,12 @@ class SharedViewModel(
         }
 
         val shouldSendLyricsToSimpMusic =
-            runBlocking {
-                dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
-            } &&
-                lyricsProvider != LyricsProvider.SIMPMUSIC
+            saveToDatabase &&
+                runBlocking {
+                    dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
+                } &&
+                lyricsProvider != LyricsProvider.SIMPMUSIC &&
+                lyricsProvider != LyricsProvider.OFFLINE
         if (_nowPlayingState.value?.songEntity?.videoId == videoId) {
             val track = _nowPlayingState.value?.track
             when (isTranslatedLyrics) {
@@ -1599,15 +1652,17 @@ class SharedViewModel(
                         )
                     }
                     // Save lyrics to database
-                    viewModelScope.launch {
-                        lyricsCanvasRepository.insertLyrics(
-                            LyricsEntity(
-                                videoId = videoId,
-                                error = false,
-                                lines = lyrics.lines,
-                                syncType = lyrics.syncType,
-                            ),
-                        )
+                    if (saveToDatabase) {
+                        viewModelScope.launch {
+                            lyricsCanvasRepository.insertLyrics(
+                                LyricsEntity(
+                                    videoId = videoId,
+                                    error = false,
+                                    lines = lyrics.lines,
+                                    syncType = lyrics.syncType,
+                                ),
+                            )
+                        }
                     }
                     if (shouldSendLyricsToSimpMusic && track != null) {
                         viewModelScope.launch {
@@ -1665,6 +1720,7 @@ class SharedViewModel(
                         ?: ""
                 }
             resetLyricsVoteState()
+            showSavedLyricsFirst(song, duration)
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
             when (lyricsProvider) {
                 DataStoreManager.SIMPMUSIC -> {
