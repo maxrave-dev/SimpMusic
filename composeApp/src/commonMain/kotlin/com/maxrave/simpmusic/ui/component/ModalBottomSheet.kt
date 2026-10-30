@@ -199,6 +199,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.add_lyrics
 import simpmusic.composeapp.generated.resources.add_to_a_playlist
 import simpmusic.composeapp.generated.resources.add_to_queue
 import simpmusic.composeapp.generated.resources.add_to_queue_disabled_endless
@@ -1358,6 +1359,8 @@ fun NowPlayingBottomSheet(
     onLibraryDelete: (() -> Unit)? = null,
     /** Set when opened from the "Cached" list: adds a row that drops the song from the player cache. */
     onRemoveFromCache: (() -> Unit)? = null,
+    /** Set while the song playing has no lyrics: adds Add lyrics under Main Lyrics Provider. */
+    onAddLyrics: (() -> Unit)? = null,
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
     /**
@@ -1859,6 +1862,15 @@ fun NowPlayingBottomSheet(
                             ) {
                                 mainLyricsProvider = true
                             }
+                        }
+                    }
+                    if (onAddLyrics != null) {
+                        ActionButton(
+                            icon = SimpIcons.Edit,
+                            text = Res.string.add_lyrics,
+                        ) {
+                            hideModalBottomSheet()
+                            onAddLyrics()
                         }
                     }
                     Crossfade(targetState = setSleepTimerEnable) {

@@ -1097,6 +1097,10 @@ if (getPlatform() == Platform.Android) {
   - **Kyant0/AndroidLiquidGlass#126's two fixes were tried and did not help here.** backdrop 2.0.1 re-records a glass element's backdrop on every `onGloballyPositioned` (a `neverEqualPolicy` coordinates state) and re-records shadow/highlight layers on every draw; vendoring 2.0.1 with both fixes applied measured EDT ~64% / app GPU ~34% focused, the same as before, so the vendored module was rolled back to the Maven artifact. The cost is per frame, in our own code.
 
 - **macOS app icon is the rounded-square logo (2026-10-26)**: `conveyor.conf` sets `app.mac.icons = composeApp/icon/rounded_app_icon.png` (and the Compose `macOS.iconFile` is `rounded_app_icon.icns`), while Windows and Linux keep `circle_app_icon`. The PNG is the Play Store / Android launcher logo (`fastlane/.../images/icon.png`, 512 px) placed in the same 32..993 frame of a 1024 canvas as the circle icon, so both read the same size. Conveyor adds no padding or rounding to a supplied PNG.
+- **Add lyrics for a song that has none (2026-10-31, issue #2338)**: when every provider and the offline cache come back empty, `getSavedLyrics` sets `NowPlayingScreenData.lyricsNotFound` (cleared whenever a fetch starts, so switching the provider does not offer it while the new one may still answer), and the ⋯ sheet of Now Playing and of the fullscreen video player offers **Add lyrics** right under Main Lyrics Provider. `AddLyricsSheet` takes plain LRC or word-by-word eLRC, colours the times as they are typed (`BasicTextField(TextFieldState)` + `OutputTransformation`; `VisualTransformation` is deprecated) and names every problem with its line; Save stays off until none is left. `utils/UserLrc.kt` (`checkUserLrc`, tested in jvmTest) turns the text into the `Lyrics` the providers return: line text trimmed, an empty line `♫`, word times written `<mm:ss.cc>`, so contributed lyrics read back the same.
+  - **Added lyrics are type OFFLINE, nothing new**: `SharedViewModel.saveUserLyrics` calls the existing `updateLyrics(..., LyricsProvider.OFFLINE)`, which caches them in `lyrics`, shows the "Offline mode" label and, with Help build lyrics database on, contributes them to SimpMusic Lyrics. No provider, label, table or migration was added. The next play finds them through `getSavedLyrics`; a provider that finds lyrics later replaces them, and Clear listening history deletes them like any cached lyrics.
+  - Save goes to the song the sheet was opened for (`addLyricsFor`, its id, title and artist in `rememberSaveable`, since a rotation recreates the activity) and writes the cache itself, because typing a song's lyrics by hand can outlast the song and `updateLyrics` skips a song that is no longer playing.
+  - **An LRCLIB search with no match used to end the chain in silence**: `getLrclibLyricsData` emitted nothing when the request succeeded without a match, so `getLrclibLyrics` never reached its `getSavedLyrics` fallback; the offline cache was read only when the LRCLIB request itself failed. It now emits `Resource.Error("Not found")`, and that is what lets the not-found flag be set and lyrics added by hand come back on a later play. A provider flow that can finish without emitting skips every `else` branch after it.
 
 ## 🔄 CLAUDE.md Auto-Update Rule (MANDATORY)
 
@@ -1122,6 +1126,6 @@ After completing any of the following types of changes, the AI agent **MUST** up
 
 *This document helps AI Agents quickly understand the SimpMusic project. Update regularly when there are major changes to architecture or structure.*
 
-**Last updated**: 2026-10-27
+**Last updated**: 2026-10-31
 **Project version**: Check latest release on GitHub
 **Maintained by**: maxrave-dev and contributors
