@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import coil3.imageLoader
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.size.Size
 import coil3.toBitmap
 import com.maxrave.logger.Logger
@@ -88,7 +89,7 @@ class AndroidArtworkStore(
         }
     }
 
-    override suspend fun retainOnly(urls: Collection<String>) =
+    override suspend fun retainOnly(urls: Collection<String>): Unit =
         mutex.withLock {
             withContext(Dispatchers.IO) {
                 val keep = urls.mapNotNullTo(HashSet(), ::artworkFileName)

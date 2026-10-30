@@ -78,10 +78,12 @@ class SimpMusicApplication :
                 ),
             )
             loadKoinModules(
-                viewModelModule,
-                module {
-                    single<ArtworkStore> { AndroidArtworkStore(this@SimpMusicApplication) }
-                },
+                listOf(
+                    viewModelModule,
+                    module {
+                        single<ArtworkStore> { AndroidArtworkStore(this@SimpMusicApplication) }
+                    },
+                )
             )
         }
         // provide custom configuration
