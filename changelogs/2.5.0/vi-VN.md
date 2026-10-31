@@ -14,5 +14,6 @@
 
 ## Sửa lỗi
 - Nút Trước không làm gì ở bài đầu tiên của hàng chờ. Giờ nút sẽ phát lại bài đó từ đầu. ([#2737](https://github.com/maxrave-dev/SimpMusic/issues/2737), [core 74fa662](https://github.com/maxrave-dev/core/commit/74fa66245ff2cfbcf2efbc10c4cc4796e4b63774))
-- Android: app bị crash trên một số máy khi đang mở trang đăng nhập. ([5397d0af](https://github.com/maxrave-dev/SimpMusic/commit/5397d0af1b2a849d6994822f269b1995d7d5ca23))
+- Android: app bị crash do Android System WebView trên một số máy khi đang mở trang đăng nhập. ([5397d0af](https://github.com/maxrave-dev/SimpMusic/commit/5397d0af1b2a849d6994822f269b1995d7d5ca23))
 - Lời bài hát đã lưu trong máy không hiện khi LRCLIB không tìm thấy bài. ([core 1830a60](https://github.com/maxrave-dev/core/commit/1830a60416dcac82d402fcedcc92c09fde94d567))
+- Chia sẻ album ra link hỏng. Giờ link chia sẻ là link YouTube Music của album. ([5a5ef03c](https://github.com/maxrave-dev/SimpMusic/commit/5a5ef03cbcb80cccb24fcd2e78a448bf41917ff8))

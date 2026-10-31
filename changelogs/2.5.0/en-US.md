@@ -14,5 +14,6 @@
 
 ## Fixed
 - The Previous button doing nothing on the first song of the queue. It now restarts the song. ([#2737](https://github.com/maxrave-dev/SimpMusic/issues/2737), [core 74fa662](https://github.com/maxrave-dev/core/commit/74fa66245ff2cfbcf2efbc10c4cc4796e4b63774))
-- Android: a crash on some phones while a log-in page was open. ([5397d0af](https://github.com/maxrave-dev/SimpMusic/commit/5397d0af1b2a849d6994822f269b1995d7d5ca23))
+- Android: a crash in Android System WebView on some phones while a log-in page was open. ([5397d0af](https://github.com/maxrave-dev/SimpMusic/commit/5397d0af1b2a849d6994822f269b1995d7d5ca23))
 - Lyrics saved on your device not showing when LRCLIB found no match for the song. ([core 1830a60](https://github.com/maxrave-dev/core/commit/1830a60416dcac82d402fcedcc92c09fde94d567))
+- Sharing an album giving a broken link. It now shares the album's YouTube Music link. ([5a5ef03c](https://github.com/maxrave-dev/SimpMusic/commit/5a5ef03cbcb80cccb24fcd2e78a448bf41917ff8))
