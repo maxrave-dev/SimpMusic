@@ -25,6 +25,10 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
   
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background
+- Recognize the song playing near you, then find it in SimpMusic (Android) (NEW)
+- Add your own synced lyrics, line by line or word by word, to songs that have none (NEW)
+- Read YouTube comments in Now Playing, and post, reply or like them when signed in (NEW)
+- Your library sidebar on Desktop with your playlists, albums, artists and podcasts (NEW)
 - Three Now Playing styles: Classic, Material 3 Expressive and a redesigned Apple Music player with Apple Music-style lyrics (NEW)
 - Ten-band equalizer with presets and AutoEq headphone profiles, plus Delay and Reverb effects, or your phone's system equalizer on Android (NEW)
 - Pick the speaker, headphones or Cast device SimpMusic plays on, without moving other apps' audio (NEW)
@@ -45,11 +49,12 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - Import playlists converted from Spotify and other apps
 - Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
-- Caching and offline playback support    
+- Caching and offline playback support, plus Smart downloads of the songs you play most (Android) (NEW)    
 - Crossfade with DJ-style like Apple Music
 - Customizing THEME (Light, Dark, Color, etc)
-- Synced lyrics from SimpMusic Lyrics, LRCLIB, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
+- Synced lyrics from SimpMusic Lyrics, LRCLIB, BetterLyrics, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
+- Dislike songs on YouTube Music so it recommends them less (NEW)
 - Last.fm scrobbling (Full version)
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
@@ -100,6 +105,7 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 - ReturnYouTubeDislike for getting information on votes 
 - Main lyrics data from SimpMusic Lyrics
 - Alternative lyrics data from LRCLIB. More information [LRCLIB](https://lrclib.net/)    
+- Song recognition by Shazam, with the recognizer ported from [Metrolist](https://github.com/MetrolistGroup/Metrolist)
  
  ## Privacy    
  SimpMusic doesn't have any tracker or third-party server for collecting user data in FOSS version. If YouTube      
