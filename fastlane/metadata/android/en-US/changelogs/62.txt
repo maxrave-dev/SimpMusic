@@ -1,0 +1,8 @@
+New:
+- Song recognition (Android)
+- Add lyrics to songs that have none
+Improved:
+- Desktop uses far less CPU and GPU, Liquid glass switch on Desktop
+- Repeat One, mouse dragging on Desktop, Linux and macOS icons
+Fixed:
+- Previous on the first song, log-in page crash, offline lyrics with LRCLIB
