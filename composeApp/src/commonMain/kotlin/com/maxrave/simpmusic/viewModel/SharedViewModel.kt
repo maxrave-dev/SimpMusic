@@ -75,7 +75,9 @@ import com.maxrave.simpmusic.expect.getDownloadFolderPath
 import com.maxrave.simpmusic.expect.isOnUnmeteredNetwork
 import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.utils.LyricsPromo
 import com.maxrave.simpmusic.utils.VersionManager
+import com.maxrave.simpmusic.utils.decodeLyricsPromos
 import com.maxrave.simpmusic.utils.decodePromos
 import com.maxrave.simpmusic.utils.shownPromoIds
 import com.maxrave.simpmusic.utils.withShownPromo
@@ -736,12 +738,22 @@ class SharedViewModel(
             .distinctUntilChanged()
             .map(::decodePromos)
 
+    /** The same block's entries placed under the lyrics, as it changes. */
+    fun cachedLyricsPromos(): Flow<List<LyricsPromo>> =
+        dataStoreManager
+            .getString(Promo.cacheKey(appIdentity.isDevBuild))
+            .distinctUntilChanged()
+            .map(::decodeLyricsPromos)
+
     /** The ids of the launch banners this app version has already shown. */
-    suspend fun shownPromos(): Set<String> =
-        shownPromoIds(
-            stored = dataStoreManager.getString(Promo.shownKey(appIdentity.isDevBuild)).first(),
-            appVersion = VersionManager.getVersionName(),
-        )
+    suspend fun shownPromos(): Set<String> = shownPromosFlow().first()
+
+    /** The same ids as they change: the lyrics line stays on screen, and on two pages at once. */
+    fun shownPromosFlow(): Flow<Set<String>> =
+        dataStoreManager
+            .getString(Promo.shownKey(appIdentity.isDevBuild))
+            .distinctUntilChanged()
+            .map { shownPromoIds(stored = it, appVersion = VersionManager.getVersionName()) }
 
     /** Each banner once per app version, however it was closed. */
     fun markPromoShown(id: String) {

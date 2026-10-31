@@ -176,6 +176,7 @@ import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.utils.eligiblePromos
+import com.maxrave.simpmusic.utils.osRequirementOf
 import com.maxrave.simpmusic.viewModel.FOOTGUNS_STAR_KEY
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
@@ -591,7 +592,8 @@ fun HomeScreen(
         val youTubeLoggedIn = sharedViewModel.getYouTubeLoggedIn().first() == TRUE
         val shown = sharedViewModel.shownPromos()
         val promos = sharedViewModel.cachedPromos().first()
-        val eligible = eligiblePromos(promos, VersionManager.getVersionName(), language, localTracking, youTubeLoggedIn)
+        val os = osRequirementOf(getPlatform().osName())
+        val eligible = eligiblePromos(promos, VersionManager.getVersionName(), language, localTracking, youTubeLoggedIn, os)
         val banner =
             eligible
                 .firstOrNull { (promo, _) -> promo.id.orEmpty() !in shown }

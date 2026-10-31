@@ -28,7 +28,8 @@ class PromoSelectionTest {
         language: String = "vi",
         localTracking: Boolean = true,
         youTubeLoggedIn: Boolean = true,
-    ) = eligiblePromos(promos, appVersion, language, localTracking, youTubeLoggedIn)
+        os: String? = null,
+    ) = eligiblePromos(promos, appVersion, language, localTracking, youTubeLoggedIn, os)
 
     @Test
     fun `picks the image for the user's language`() {
@@ -55,6 +56,106 @@ class PromoSelectionTest {
     fun `skips when a requirement is not met or not understood`() {
         assertEquals(emptyList(), eligible(localTracking = false))
         assertEquals(emptyList(), eligible(promos = listOf(receipt.copy(requires = listOf("something_new")))))
+    }
+
+    @Test
+    fun `an entry that names no os shows on every device, as before`() {
+        listOf("android", "macos", "windows", "linux", null).forEach { os ->
+            assertEquals(listOf(receipt), eligible(os = os).map { it.first }, "os = $os")
+        }
+    }
+
+    @Test
+    fun `an entry limited by os shows on any of the systems it names`() {
+        val mac = wrapped.copy(id = "mac", requires = listOf("macos"))
+        val pc = wrapped.copy(id = "pc", requires = listOf("windows", "linux"))
+        fun ids(os: String?) = eligible(promos = listOf(mac, pc), os = os).map { it.first.id }
+
+        assertEquals(listOf("mac"), ids("macos"))
+        assertEquals(listOf("pc"), ids("windows"))
+        assertEquals(listOf("pc"), ids("linux"))
+        assertEquals(emptyList(), ids("android"))
+        assertEquals(emptyList(), ids(null))
+    }
+
+    @Test
+    fun `an os still needs every other requirement`() {
+        val promo = receipt.copy(requires = listOf("android", "local_tracking"))
+        assertEquals(listOf(promo), eligible(promos = listOf(promo), os = "android").map { it.first })
+        assertEquals(emptyList(), eligible(promos = listOf(promo), os = "android", localTracking = false))
+        assertEquals(emptyList(), eligible(promos = listOf(promo), os = "macos"))
+    }
+
+    @Test
+    fun `a mac gets the macos banner on its turn, other devices skip it`() {
+        // A has no os, B is for macOS only: the config's order decides which comes first on a Mac.
+        val a = wrapped.copy(id = "a")
+        val b = wrapped.copy(id = "b", requires = listOf("macos"))
+        fun next(
+            os: String,
+            stored: String?,
+        ) = eligible(promos = listOf(a, b), os = os).firstOrNull { it.first.id !in shownPromoIds(stored, "2.3.0") }?.first?.id
+
+        val afterA = withShownPromo(null, "2.3.0", "a")
+        assertEquals("a", next("macos", null))
+        assertEquals("b", next("macos", afterA))
+        assertEquals("a", next("windows", null))
+        assertEquals(null, next("windows", afterA))
+    }
+
+    @Test
+    fun `names the os the way requires spells it`() {
+        assertEquals("android", osRequirementOf("android"))
+        assertEquals("macos", osRequirementOf("Mac OS X"))
+        assertEquals("windows", osRequirementOf("Windows 11"))
+        assertEquals("linux", osRequirementOf("Linux"))
+        assertEquals(null, osRequirementOf("FreeBSD"))
+    }
+
+    private val lyricsLine =
+        LyricsPromo(
+            id = "line",
+            placement = "lyrics",
+            text = mapOf("en" to "Sing it yourself", "vi" to "Tự hát"),
+            link = "https://x",
+            requires = listOf("macos"),
+        )
+
+    private fun line(
+        promos: List<LyricsPromo> = listOf(lyricsLine),
+        shown: Set<String> = emptySet(),
+        language: String = "vi",
+        os: String? = "macos",
+    ) = lyricsPromo(promos, shown, "2.4.1", language, localTrackingEnabled = true, os = os)
+
+    @Test
+    fun `the lyrics line takes the words for the user's language, english otherwise`() {
+        assertEquals("Tự hát", line()?.second)
+        assertEquals("Sing it yourself", line(language = "fr")?.second)
+    }
+
+    @Test
+    fun `the lyrics line keeps a banner's rules`() {
+        assertEquals(null, line(os = "windows"))
+        assertEquals(null, line(shown = setOf("line")))
+        assertEquals(null, line(promos = listOf(lyricsLine.copy(placement = null))))
+        assertEquals(null, line(promos = listOf(lyricsLine.copy(link = "ftp://x"))))
+        assertEquals(null, line(promos = listOf(lyricsLine.copy(text = mapOf("en" to " ")))))
+    }
+
+    @Test
+    fun `the lyrics line opens only an https page, since an app screen would open behind the player`() {
+        assertEquals("line", line(promos = listOf(lyricsLine.copy(link = "HTTPS://x")))?.first?.id)
+        assertEquals(null, line(promos = listOf(lyricsLine.copy(link = "simpmusic://analytics"))))
+    }
+
+    @Test
+    fun `a lyrics entry is never a launch banner, and a banner never a lyrics line`() {
+        val block =
+            """[{"id":"line","placement":"lyrics","text":{"en":"Sing"},"link":"https://x","requires":["macos"]},""" +
+                """{"id":"banner","image":{"en":"u"},"link":"https://x"}]"""
+        assertEquals(listOf("line"), decodeLyricsPromos(block).map { it.id })
+        assertEquals(listOf("banner"), eligiblePromos(decodePromos(block), "2.4.1", "en", true, true, "macos").map { it.first.id })
     }
 
     @Test
