@@ -175,12 +175,10 @@ fun MiniPlayer(
 
     val layer = rememberGraphicsLayer()
 
-    // The Desktop capsule is always liquid glass, so it needs the glass code paths whatever the
-    // setting says — both the luminance sampling loop that drives the glass and the theme-following
-    // text colour. Leaving them gated left the capsule with luminance stuck at 0: a 2dp blur and a
-    // 0.12 darken, which is why it looked like a smear rather than glass. The setting still governs
-    // the Android card below.
-    val useGlassSurface = isLiquidGlassEnabled == DataStoreManager.TRUE || getPlatform() == Platform.Desktop
+    // Glass needs both the luminance sampling loop that drives it and the theme-following text
+    // colour; without the loop the glass sits at luminance 0, a 2dp blur and a 0.12 darken, which
+    // reads as a smear. The setting governs the Android card and the Desktop capsule alike.
+    val useGlassSurface = isLiquidGlassEnabled == DataStoreManager.TRUE
     val luminance = rememberGlassLuminance(layer, enabled = useGlassSurface && isVisible)
 
     val isDarkTheme = LocalIsDarkTheme.current
@@ -647,14 +645,19 @@ fun MiniPlayer(
         // Apple Music-style floating capsule: transport on the left, the track and its slim
         // progress slider in the middle, the action cluster on the right. Size and placement come
         // from the caller (App.kt), so the capsule keeps a fixed width and floats over content.
-        // Always liquid glass, not gated on the setting: the capsule IS the glass shape here, and
-        // falling back to a haze blur gives a dark smear instead of a floating pill.
+        // Without glass it is an opaque theme surface, the Android flat card's colour; a haze blur
+        // instead gives a dark smear rather than a floating pill.
         val capsuleShape = RoundedCornerShape(50)
         val density = LocalDensity.current
         Box(
             modifier
-                .liquidGlass(backdrop, layer, luminance, capsuleShape, blurScale = 1.2f)
-                .clip(capsuleShape)
+                .then(
+                    if (useGlassSurface) {
+                        Modifier.liquidGlass(backdrop, layer, luminance, capsuleShape, blurScale = 1.2f)
+                    } else {
+                        Modifier.background(MaterialTheme.colorScheme.surfaceContainer, capsuleShape)
+                    },
+                ).clip(capsuleShape)
                 .clickable {
                     onClick()
                 },

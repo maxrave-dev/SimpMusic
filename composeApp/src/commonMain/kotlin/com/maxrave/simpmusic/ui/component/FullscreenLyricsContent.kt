@@ -1153,6 +1153,19 @@ private fun FullscreenLyricsList(
                 }
             }
         }
+        // Bottom-start, clear of the offset button at bottom-end; glass like the rest of this page's
+        // floating chrome. Shows only what the remote config places under the lyrics, and only over
+        // lyrics, as on the Apple Music player's Lyrics tab.
+        if (lyricsData != null) {
+            LyricsPromoLine(
+                backdrop = backdrop,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 12.dp, end = 72.dp, bottom = 12.dp),
+                sharedViewModel = sharedViewModel,
+            )
+        }
         // Here rather than in either layout, so portrait, landscape and Desktop all get it. Bottom-end,
         // over the dimmest lines. Glass, like the rest of this page's floating chrome.
         if (lyricsData.hasTiming()) {

@@ -1,0 +1,8 @@
+Mới:
+- Nhận diện bài hát (Android)
+- Thêm lời cho bài chưa có lời
+Cải thiện:
+- Bản máy tính tốn ít CPU và GPU hơn hẳn, công tắc Liquid glass trên máy tính
+- Lặp lại một bài, kéo bằng chuột trên máy tính, icon Linux và macOS
+Sửa lỗi:
+- Nút Trước ở bài đầu hàng chờ, crash trang đăng nhập, lời offline khi dùng LRCLIB

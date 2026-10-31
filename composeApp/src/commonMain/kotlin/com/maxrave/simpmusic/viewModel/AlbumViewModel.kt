@@ -56,6 +56,7 @@ class AlbumViewModel(
                             _uiState.update {
                                 it.copy(
                                     browseId = browseId,
+                                    audioPlaylistId = data.audioPlaylistId,
                                     title = data.title,
                                     thumbnail = data.thumbnails?.lastOrNull()?.url,
                                     artist =
@@ -114,6 +115,7 @@ class AlbumViewModel(
                                 _uiState.update {
                                     it.copy(
                                         browseId = browseId,
+                                        audioPlaylistId = albumEntity.audioPlaylistId,
                                         title = albumEntity.title,
                                         thumbnail = albumEntity.thumbnails,
                                         artist =
@@ -281,6 +283,7 @@ class AlbumViewModel(
 
 data class AlbumUIState(
     val browseId: String = "",
+    val audioPlaylistId: String = "",
     val title: String = "",
     val thumbnail: String? = null,
     val colors: List<Color> = listOf(Color.Black, Color.Black),

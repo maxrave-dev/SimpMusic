@@ -108,6 +108,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.getStringBlocking
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -160,6 +161,7 @@ fun HomeItem(
     Column {
         HomeSectionHeader(data = data, navController = navController, onPlayAll = { homeViewModel.playAll(data) })
         LazyRow(
+            modifier = Modifier.mouseDragScroll(lazyListState, snapperFlingBehavior),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -881,7 +883,12 @@ fun QuickPicksItem(
                                 velocity = 25.dp,
                             ),
                 )
-                LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                val subtitleRowState = rememberLazyListState()
+                LazyRow(
+                    modifier = Modifier.mouseDragScroll(subtitleRowState),
+                    state = subtitleRowState,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     item {
                         androidx.compose.animation.AnimatedVisibility(visible = data.isExplicit == true) {
                             ExplicitBadge(
@@ -1609,11 +1616,14 @@ fun MoodAndGenresContentItem(
                         horizontal = 15.dp,
                     ).fillMaxWidth(),
         )
+        val rowState = rememberLazyListState()
         LazyRow(
             modifier =
-                Modifier.padding(
-                    10.dp,
-                ),
+                Modifier
+                    .padding(
+                        10.dp,
+                    ).mouseDragScroll(rowState),
+            state = rowState,
         ) {
             val itemList =
                 when (data) {

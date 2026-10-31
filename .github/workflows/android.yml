@@ -70,8 +70,10 @@ jobs:
           echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
           echo Last build tool version is: $BUILD_TOOL_VERSION
 
+      # A pull request from a fork gets no secrets, so it only checks that the APK builds.
       - uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           releaseDirectory: androidApp/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
@@ -83,6 +85,7 @@ jobs:
             BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
       - name: Upload APK
+        if: steps.sign_app.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: app
@@ -137,8 +140,10 @@ jobs:
           echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
           echo Last build tool version is: $BUILD_TOOL_VERSION
 
+      # A pull request from a fork gets no secrets, so it only checks that the APK builds.
       - uses: kevin-david/zipalign-sign-android-release@v2
         id: sign_app
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           releaseDirectory: vivoAndroidApp/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
@@ -150,6 +155,7 @@ jobs:
             BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
       - name: Upload APK
+        if: steps.sign_app.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: app-vivo

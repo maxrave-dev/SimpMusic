@@ -340,7 +340,7 @@ jobs:
 
   wrap-mac-dmg:
     name: Wrap macOS .zip → .dmg (installer UX)
-    runs-on: macos-14
+    runs-on: macos-latest
     needs: build-desktop-packages
     defaults:
       run:

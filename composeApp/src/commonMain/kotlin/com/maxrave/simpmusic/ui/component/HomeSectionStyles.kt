@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.CarouselDefaults
 import androidx.compose.material3.carousel.CarouselItemDrawInfo
 import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
@@ -41,7 +42,11 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.ForceDarkContent
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -77,6 +82,8 @@ fun HomeDiscoverSection(
         )
     }
     val state = rememberCarouselState { songs.size }
+    // The carousel's own default, named so a mouse drag released on Desktop advances the same one card.
+    val flingBehavior = CarouselDefaults.singleAdvanceFlingBehavior(state = state)
     val scope = rememberCoroutineScope()
     Column {
         HomeSectionHeader(data = data, navController = navController, onPlayAll = { homeViewModel.playAll(data) })
@@ -87,13 +94,15 @@ fun HomeDiscoverSection(
                 state = state,
                 maxItemWidth = heroWidth,
                 itemSpacing = 8.dp,
+                flingBehavior = flingBehavior,
                 contentPadding = PaddingValues(horizontal = 10.dp),
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         // The gap other shelves get from their cards' own 10dp top padding.
                         .padding(top = 10.dp)
-                        .height(320.dp),
+                        .height(320.dp)
+                        .mouseDragScroll(state, flingBehavior),
             ) { index ->
                 val song = songs[index]
                 val info = carouselItemDrawInfo
@@ -170,6 +179,18 @@ fun HomeDiscoverSection(
                     HoverPlayButton(visible = hovered && info.isHero(), onClick = play)
                 }
             }
+        }
+        if (getPlatform() == Platform.Desktop) {
+            HorizontalScrollBar(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        // The cards end flush with the carousel, so the gap other shelves get from their
+                        // cards' own bottom padding is added here.
+                        .padding(start = 16.dp, top = 10.dp, end = 16.dp),
+                scrollState = state,
+                itemCount = songs.size,
+            )
         }
     }
 }

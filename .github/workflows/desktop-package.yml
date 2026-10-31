@@ -3,7 +3,7 @@ name: Build desktop packages (cross-OS via Conveyor)
 # Two-job pipeline:
 #  1) build-desktop-packages (ubuntu-22.04) — Conveyor cross-builds
 #     AppImage, Mac .zip (aarch64 + amd64), Windows .msix from Linux.
-#  2) wrap-mac-dmg (macos-14, depends on job 1) — extracts each
+#  2) wrap-mac-dmg (macos-latest, depends on job 1) — extracts each
 #     mac.zip and wraps it into a polished .dmg (background + drag-to-
 #     Applications + volume icon). This step needs macOS because
 #     `create-dmg` + `hdiutil` are macOS-only, but it's fast (~1-2 min
@@ -193,7 +193,7 @@ jobs:
 
   wrap-mac-dmg:
     name: Wrap macOS .zip → .dmg (installer UX)
-    runs-on: macos-14
+    runs-on: macos-latest
     needs: build-desktop-packages
     defaults:
       run:

@@ -1,0 +1,19 @@
+# SimpMusic 2.5.0
+
+## New
+- **Song recognition** (Android): when the search field is empty, the button at its end listens for a few seconds and recognizes the song playing near you through Shazam, and Find in SimpMusic then searches for it. A Recognize song tile in Quick Settings opens it from anywhere. ([#2665](https://github.com/maxrave-dev/SimpMusic/issues/2665))
+- **Add lyrics**: when no provider has lyrics for a song, the ⋯ menu in Now Playing offers Add lyrics right under Main Lyrics Provider. Type or paste lyrics timed by line (LRC) or by word (eLRC); the times are highlighted as you type, and every mistake is pointed out on its line. The lyrics are saved for that song and work offline, and if you help build the SimpMusic lyrics database, they are shared with it too. ([#2338](https://github.com/maxrave-dev/SimpMusic/issues/2338))
+
+## Improved
+- **Desktop uses far less CPU and GPU**: frames are capped to your display's refresh rate, a minimized or hidden window stops drawing, endless animations slow down while the window is not focused, and video stops decoding while no window is on screen. ([#2625](https://github.com/maxrave-dev/SimpMusic/issues/2625), [d354de3d](https://github.com/maxrave-dev/SimpMusic/commit/d354de3d0388dcc5a81ae9e31d543d7c2d29244d), [core c899921](https://github.com/maxrave-dev/core/commit/c8999216813587995d941a3215dcf365e60e8422))
+- **Liquid glass on Desktop**: it is now off by default and follows Settings → Interface → Enable liquid glass (BETA), as on Android. ([d354de3d](https://github.com/maxrave-dev/SimpMusic/commit/d354de3d0388dcc5a81ae9e31d543d7c2d29244d))
+- **Repeat One**: Next and Previous move to another song even with Repeat One on, and a song repeats only when it ends by itself. ([core 74fa662](https://github.com/maxrave-dev/core/commit/74fa66245ff2cfbcf2efbc10c4cc4796e4b63774))
+- **Mouse on Desktop**: drag horizontal lists and chips with the mouse. Your daily discover moves one card at a time, by dragging or with its scrollbar, chart grids snap to their start, and the Your library sidebar scrolls under a blurred header with search next to the collapse button. ([7c0a9839](https://github.com/maxrave-dev/SimpMusic/commit/7c0a9839243a4882988636aca1086a3bd1c118ce), [2be4b24b](https://github.com/maxrave-dev/SimpMusic/commit/2be4b24b2c96fb2a3035f88350892e2721bec42f))
+- **Playback after YouTube updates**: when YouTube changes its player, SimpMusic also checks a second player table, shared with Metrolist, so songs play again sooner. ([core f4de76a](https://github.com/maxrave-dev/core/commit/f4de76a88ab1b50c55eec2092ea1f564845df148))
+- **Icons on Linux and macOS**: GNOME's media controls show the SimpMusic logo, the AppImage carries the current logo, and the macOS app uses the rounded-square logo. ([core f4de76a](https://github.com/maxrave-dev/core/commit/f4de76a88ab1b50c55eec2092ea1f564845df148), [7c0a9839](https://github.com/maxrave-dev/SimpMusic/commit/7c0a9839243a4882988636aca1086a3bd1c118ce), [d354de3d](https://github.com/maxrave-dev/SimpMusic/commit/d354de3d0388dcc5a81ae9e31d543d7c2d29244d))
+
+## Fixed
+- The Previous button doing nothing on the first song of the queue. It now restarts the song. ([#2737](https://github.com/maxrave-dev/SimpMusic/issues/2737), [core 74fa662](https://github.com/maxrave-dev/core/commit/74fa66245ff2cfbcf2efbc10c4cc4796e4b63774))
+- Android: a crash in Android System WebView on some phones while a log-in page was open. ([5397d0af](https://github.com/maxrave-dev/SimpMusic/commit/5397d0af1b2a849d6994822f269b1995d7d5ca23))
+- Lyrics saved on your device not showing when LRCLIB found no match for the song. ([core 1830a60](https://github.com/maxrave-dev/core/commit/1830a60416dcac82d402fcedcc92c09fde94d567))
+- Sharing an album giving a broken link. It now shares the album's YouTube Music link. ([5a5ef03c](https://github.com/maxrave-dev/SimpMusic/commit/5a5ef03cbcb80cccb24fcd2e78a448bf41917ff8))

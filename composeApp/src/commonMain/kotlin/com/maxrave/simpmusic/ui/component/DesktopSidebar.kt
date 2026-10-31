@@ -1,13 +1,22 @@
 package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,13 +53,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +82,8 @@ import com.maxrave.domain.data.model.library.LibraryCollectionPreview
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
+import com.maxrave.simpmusic.extension.barBlurStyle
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.FormatListBulleted
 import com.maxrave.simpmusic.ui.icon.LeftPanelClose
@@ -78,11 +95,17 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.TrendingUp
 import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.ui.screen.home.chipStripEdgeFades
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibrarySidebarItem
 import com.maxrave.simpmusic.viewModel.LibrarySidebarKind
 import com.maxrave.simpmusic.viewModel.LibrarySidebarViewModel
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.hazeBlur
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -210,6 +233,17 @@ fun DesktopSidebar(
     // What the glass controls refract: the panel's own colour, recorded by a box that is their sibling,
     // never their parent (nesting them inside the source is the RuntimeShader feedback loop).
     val backdrop = rememberBackdrop(containerColor)
+    val listState = rememberLazyListState()
+    val hazeState = rememberHazeState()
+    // The list runs the panel's full height, under the navigation and the library header that float
+    // over it, so its top padding is their measured height.
+    var headerHeightPx by remember { mutableIntStateOf(0) }
+    // Derived, so scrolling recomposes only when the list reaches or leaves its very top.
+    val atTop by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 }
+    }
+    // Home's header: nothing behind it at the top of the list, the list blurred once it scrolls under.
+    val blurAlpha by animateFloatAsState(if (atTop) 0f else 1f, tween(300), label = "sidebarHeaderBlur")
     Box(
         modifier
             .width(width)
@@ -217,108 +251,116 @@ fun DesktopSidebar(
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor),
     ) {
-        Box(Modifier.matchParentSize().layerBackdrop(backdrop))
-        Column(
-            Modifier.fillMaxSize().padding(top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+        // Off, the controls draw flat and nothing reads the recording.
+        if (LocalLiquidGlassEnabled.current) Box(Modifier.matchParentSize().layerBackdrop(backdrop))
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(hazeState),
+            // The capsule player floats over the panel's bottom (60dp tall, 20dp above the window's
+            // edge, i.e. 72dp above this panel's), so the last row can scroll up clear of it.
+            contentPadding = PaddingValues(top = with(LocalDensity.current) { headerHeightPx.toDp() }, bottom = 80.dp),
         ) {
-            navScreens.forEach { screen ->
-                SidebarNavRow(
-                    backdrop = backdrop,
-                    label = stringResource(screen.title),
-                    selected = selectedIndex == screen.ordinal,
-                    collapsed = collapsed,
-                    onClick = { selectTab(screen) },
-                    icon = screen.icon,
-                )
-            }
-            HorizontalDivider(
-                Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-            )
-            LibraryHeader(
-                backdrop = backdrop,
-                selected = selectedIndex == BottomNavScreen.Library.ordinal,
-                collapsed = collapsed,
-                onOpenLibrary = { selectTab(BottomNavScreen.Library) },
-                onToggle = {
-                    searching = false
-                    query = ""
-                    viewModel.setCollapsed(!collapsed)
-                },
-            )
-            if (!collapsed) {
-                if (kinds.isNotEmpty()) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        kinds.forEach { kind ->
-                            Chip(
-                                isSelected = filter == kind,
-                                text = stringResource(kind.chipLabel()),
-                                backdrop = backdrop,
-                                compact = true,
-                                onClick = { filter = if (filter == kind) null else kind },
-                            )
+            pinned.forEachIndexed { index, collection ->
+                if (pinnedTitles[index].contains(activeQuery, ignoreCase = true)) {
+                    item(key = "pinned_${collection.type.toStringParams()}") {
+                        SidebarLibraryRow(
+                            title = pinnedTitles[index],
+                            subtitle =
+                                "${stringResource(Res.string.playlist)} · " +
+                                    pluralStringResource(Res.plurals.liked_songs_count, collection.preview?.count ?: 0, collection.preview?.count ?: 0),
+                            pinned = true,
+                            playing = false,
+                            collapsed = collapsed,
+                            onClick = { navController.navigate(LibraryDynamicPlaylistDestination(type = collection.type.toStringParams())) },
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                                contentAlignment = Alignment.Center,
+                            ) { collection.icon() }
                         }
                     }
                 }
-                SearchAndSortRow(
+            }
+            items(shown, key = { it.key }) { item ->
+                SidebarLibraryRow(
+                    title = item.title,
+                    subtitle = item.subtitleText(),
+                    pinned = false,
+                    playing = item.queueId != null && item.queueId.removePrefix("VL") == playingQueueId,
+                    collapsed = collapsed,
+                    onClick = { navController.navigate(item.destination) },
+                ) {
+                    SidebarCover(item)
+                }
+            }
+            item { Spacer(Modifier.height(8.dp)) }
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .onSizeChanged { headerHeightPx = it.height }
+                // A wheel turned over the header scrolls the list under it, as anywhere else in the panel.
+                // Reversed once, like the list's own: the wheel moves the content, not the viewport.
+                .scrollable(listState, Orientation.Vertical, reverseDirection = true),
+        ) {
+            if (blurAlpha > 0f) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .graphicsLayer { alpha = blurAlpha }
+                        .hazeBlur(HazeInput.Sources(hazeState), barBlurStyle(containerColor, 0.3f)),
+                )
+            }
+            Column(
+                Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                navScreens.forEach { screen ->
+                    SidebarNavRow(
+                        backdrop = backdrop,
+                        label = stringResource(screen.title),
+                        selected = selectedIndex == screen.ordinal,
+                        collapsed = collapsed,
+                        onClick = { selectTab(screen) },
+                        icon = screen.icon,
+                    )
+                }
+                HorizontalDivider(
+                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                )
+                LibraryHeader(
                     backdrop = backdrop,
+                    selected = selectedIndex == BottomNavScreen.Library.ordinal,
+                    collapsed = collapsed,
                     searching = searching,
                     query = query,
-                    alphabetical = alphabetical,
+                    onOpenLibrary = { selectTab(BottomNavScreen.Library) },
+                    onToggle = {
+                        searching = false
+                        query = ""
+                        viewModel.setCollapsed(!collapsed)
+                    },
                     onStartSearch = { searching = true },
                     onQueryChange = { query = it },
                     onCloseSearch = {
                         searching = false
                         query = ""
                     },
-                    onSortChange = { alphabetical = it },
                 )
-            }
-            LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
-                pinned.forEachIndexed { index, collection ->
-                    if (pinnedTitles[index].contains(activeQuery, ignoreCase = true)) {
-                        item(key = "pinned_${collection.type.toStringParams()}") {
-                            SidebarLibraryRow(
-                                title = pinnedTitles[index],
-                                subtitle =
-                                    "${stringResource(Res.string.playlist)} · " +
-                                        pluralStringResource(Res.plurals.liked_songs_count, collection.preview?.count ?: 0, collection.preview?.count ?: 0),
-                                pinned = true,
-                                playing = false,
-                                collapsed = collapsed,
-                                onClick = { navController.navigate(LibraryDynamicPlaylistDestination(type = collection.type.toStringParams())) },
-                            ) {
-                                Box(
-                                    Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                                    contentAlignment = Alignment.Center,
-                                ) { collection.icon() }
-                            }
-                        }
-                    }
+                if (!collapsed) {
+                    LibraryFilterRow(
+                        backdrop = backdrop,
+                        kinds = kinds,
+                        filter = filter,
+                        alphabetical = alphabetical,
+                        onFilterChange = { filter = it },
+                        onSortChange = { alphabetical = it },
+                    )
                 }
-                items(shown, key = { it.key }) { item ->
-                    SidebarLibraryRow(
-                        title = item.title,
-                        subtitle = item.subtitleText(),
-                        pinned = false,
-                        playing = item.queueId != null && item.queueId.removePrefix("VL") == playingQueueId,
-                        collapsed = collapsed,
-                        onClick = { navController.navigate(item.destination) },
-                    ) {
-                        SidebarCover(item)
-                    }
-                }
-                item { Spacer(Modifier.height(8.dp)) }
             }
         }
     }
@@ -391,8 +433,13 @@ private fun LibraryHeader(
     backdrop: PlatformBackdrop,
     selected: Boolean,
     collapsed: Boolean,
+    searching: Boolean,
+    query: String,
     onOpenLibrary: () -> Unit,
     onToggle: () -> Unit,
+    onStartSearch: () -> Unit,
+    onQueryChange: (String) -> Unit,
+    onCloseSearch: () -> Unit,
 ) {
     if (collapsed) {
         Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
@@ -401,31 +448,60 @@ private fun LibraryHeader(
         return
     }
     val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    // The field grows out of the search button (its width) over the title, and folds back into it.
+    val searchButtonPx = with(LocalDensity.current) { 36.dp.roundToPx() }
     Row(
         Modifier
             .padding(horizontal = 8.dp)
             .fillMaxWidth()
             .height(48.dp)
-            .then(if (selected) Modifier.liquidGlass(backdrop, RoundedCornerShape(24.dp), highlight = SidebarGlassRim) else Modifier)
-            .clip(RoundedCornerShape(24.dp))
-            .clickable(onClick = onOpenLibrary)
-            .padding(start = 12.dp, end = 6.dp),
+            .then(
+                if (selected && !searching) {
+                    Modifier.liquidGlass(backdrop, RoundedCornerShape(24.dp), highlight = SidebarGlassRim)
+                } else {
+                    Modifier
+                },
+            ).clip(RoundedCornerShape(24.dp))
+            .clickable(enabled = !searching, onClick = onOpenLibrary)
+            .padding(start = 4.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(
-            SimpIcons.LibraryMusic,
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            stringResource(Res.string.your_library),
-            style = typo().labelSmall,
-            color = color,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = !searching,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        SimpIcons.LibraryMusic,
+                        contentDescription = null,
+                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        stringResource(Res.string.your_library),
+                        style = typo().labelSmall,
+                        color = color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SidebarGlassButton(backdrop, SimpIcons.Search, stringResource(Res.string.search_in_your_library), onStartSearch)
+                }
+            }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = searching,
+                enter = expandHorizontally(expandFrom = Alignment.End, initialWidth = { searchButtonPx }) + fadeIn(),
+                exit = shrinkHorizontally(shrinkTowards = Alignment.End, targetWidth = { searchButtonPx }) + fadeOut(),
+            ) {
+                LibrarySearchField(backdrop, query, onQueryChange, onCloseSearch, Modifier.fillMaxWidth())
+            }
+        }
         SidebarGlassButton(backdrop, SimpIcons.LeftPanelClose, stringResource(Res.string.collapse_your_library), onToggle)
     }
 }
@@ -469,85 +545,89 @@ private fun SidebarGlassButton(
 }
 
 @Composable
-private fun SearchAndSortRow(
+private fun LibrarySearchField(
     backdrop: PlatformBackdrop,
-    searching: Boolean,
     query: String,
-    alphabetical: Boolean,
-    onStartSearch: () -> Unit,
     onQueryChange: (String) -> Unit,
     onCloseSearch: () -> Unit,
-    onSortChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    var sortMenu by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
     Row(
-        Modifier
-            .fillMaxWidth()
-            .height(44.dp)
-            .padding(horizontal = 12.dp),
+        modifier
+            .height(36.dp)
+            .liquidGlass(backdrop, RoundedCornerShape(18.dp), interactive = false, highlight = SidebarGlassRim)
+            .padding(start = 12.dp, end = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (searching) {
-            val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
-            Row(
-                Modifier
-                    .weight(1f)
-                    .height(36.dp)
-                    .liquidGlass(backdrop, RoundedCornerShape(18.dp), interactive = false, highlight = SidebarGlassRim)
-                    .padding(start = 12.dp, end = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(SimpIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                Box(Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                    if (query.isEmpty()) {
-                        Text(
-                            stringResource(Res.string.search_in_your_library),
-                            style = typo().bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                        )
-                    }
-                    BasicTextField(
-                        value = query,
-                        onValueChange = onQueryChange,
-                        singleLine = true,
-                        textStyle = typo().bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                    )
-                }
-                SidebarIconButton(SimpIcons.Close, stringResource(Res.string.search_in_your_library), onCloseSearch)
-            }
-        } else {
-            SidebarGlassButton(backdrop, SimpIcons.Search, stringResource(Res.string.search_in_your_library), onStartSearch)
-            Spacer(Modifier.weight(1f))
-        }
-        Box {
-            Row(
-                Modifier
-                    .padding(start = 8.dp)
-                    .height(36.dp)
-                    .liquidGlass(backdrop, RoundedCornerShape(18.dp), highlight = SidebarGlassRim)
-                    .clip(RoundedCornerShape(18.dp))
-                    .clickable { sortMenu = true }
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+        Icon(SimpIcons.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        Box(Modifier.weight(1f).padding(horizontal = 8.dp)) {
+            if (query.isEmpty()) {
                 Text(
-                    stringResource(if (alphabetical) Res.string.alphabetical else Res.string.recents),
+                    stringResource(Res.string.search_in_your_library),
                     style = typo().bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                 )
-                Icon(
-                    SimpIcons.FormatListBulleted,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
+            }
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                singleLine = true,
+                textStyle = typo().bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            )
+        }
+        SidebarIconButton(SimpIcons.Close, stringResource(Res.string.search_in_your_library), onCloseSearch)
+    }
+}
+
+/** The kind chips, scrolling between faded ends, with the sort button anchored at the row's end. */
+@Composable
+private fun LibraryFilterRow(
+    backdrop: PlatformBackdrop,
+    kinds: List<LibrarySidebarKind>,
+    filter: LibrarySidebarKind?,
+    alphabetical: Boolean,
+    onFilterChange: (LibrarySidebarKind?) -> Unit,
+    onSortChange: (Boolean) -> Unit,
+) {
+    val chipScroll = rememberScrollState()
+    val headFade by animateFloatAsState(if (chipScroll.canScrollBackward) 1f else 0f, label = "sidebarChipHeadFade")
+    val tailFade by animateFloatAsState(if (chipScroll.canScrollForward) 1f else 0f, label = "sidebarChipTailFade")
+    var sortMenu by remember { mutableStateOf(false) }
+    Row(
+        // 14dp at the end lines the sort button up with the collapse button above it.
+        Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp, end = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            Modifier
+                .weight(1f)
+                .chipStripEdgeFades(24.dp, start = { headFade }, end = { tailFade })
+                .mouseDragScroll(chipScroll)
+                .horizontalScroll(chipScroll)
+                .padding(start = 16.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            kinds.forEach { kind ->
+                Chip(
+                    isSelected = filter == kind,
+                    text = stringResource(kind.chipLabel()),
+                    backdrop = backdrop,
+                    compact = true,
+                    onClick = { onFilterChange(if (filter == kind) null else kind) },
                 )
             }
+        }
+        Box {
+            SidebarGlassButton(
+                backdrop,
+                SimpIcons.FormatListBulleted,
+                stringResource(if (alphabetical) Res.string.alphabetical else Res.string.recents),
+            ) { sortMenu = true }
             DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(Res.string.recents), style = typo().bodyMedium) },
@@ -600,7 +680,8 @@ private fun SidebarLibraryRow(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (pinned) {
-                        Icon(SimpIcons.PushPin, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        // Tilted like the pin on the Library's Recently Added rows (FullWidthItems).
+                        Icon(SimpIcons.PushPin, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.rotate(30f).size(14.dp))
                     }
                     Text(
                         subtitle,

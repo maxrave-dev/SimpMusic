@@ -1033,4 +1033,37 @@
     <string name="search_in_your_library">Search in Your library</string>
     <string name="collapse_your_library">Collapse Your library</string>
     <string name="expand_your_library">Expand Your library</string>
+    <string name="add_lyrics">Add lyrics</string>
+    <string name="add_lyrics_placeholder">[00:12.30] First line</string>
+    <string name="add_lyrics_hint"><![CDATA[Start each line with a time like [01:23.45]. Put <01:23.45> before each word to sync it word by word.]]></string>
+    <plurals name="add_lyrics_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <plurals name="add_lyrics_problems">
+        <item quantity="one">%1$d problem</item>
+        <item quantity="other">%1$d problems</item>
+    </plurals>
+    <string name="add_lyrics_line">Line %1$d</string>
+    <string name="add_lyrics_no_time">Add a time like [01:23.45] at the start</string>
+    <string name="add_lyrics_bad_time">%1$s is not a valid time</string>
+    <string name="add_lyrics_bad_word_time">%1$s is not a valid word time</string>
+    <string name="add_lyrics_word_time_backwards">Word times go backwards at %1$s</string>
+    <string name="add_lyrics_repeated_word_line">A line with word times can only have one line time</string>
+    <string name="add_lyrics_bad_offset">Offset must be whole milliseconds, like [offset:+250]</string>
+    <string name="add_lyrics_no_timed_lines">Add at least one timed line</string>
+    <string name="recognize_song">Recognize song</string>
+    <string name="recognize_listening">Listening…</string>
+    <string name="recognize_listening_hint">Hold your phone near the music</string>
+    <string name="recognize_identifying">Identifying…</string>
+    <string name="recognize_find">Find in SimpMusic</string>
+    <string name="recognize_listen_again">Listen again</string>
+    <string name="recognize_no_match">No match found</string>
+    <string name="recognize_no_match_hint">Try again closer to the music</string>
+    <string name="recognize_failed">Couldn't recognize the song</string>
+    <string name="recognize_failed_hint">Check your connection and try again</string>
+    <string name="recognize_try_again">Try again</string>
+    <string name="recognize_mic_needed">Microphone access needed</string>
+    <string name="recognize_mic_hint">SimpMusic listens for a few seconds to find the song playing near you</string>
+    <string name="recognize_allow_mic">Allow microphone</string>
 </resources>

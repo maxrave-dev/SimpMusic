@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.screen.home.wrapped
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -38,7 +39,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -281,7 +281,7 @@ private fun WrappedReel(
         var elapsed = 0L
         var lastFrame = 0L
         while (elapsed < holdMs) {
-            withFrameMillis { frame ->
+            withInfiniteAnimationFrameMillis { frame ->
                 // Frozen time still moves the clock forward, it just does not count: taking the
                 // delta from the previous frame regardless is what stops a long press from
                 // banking a second's worth of progress and consuming the card on release.

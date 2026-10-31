@@ -178,7 +178,7 @@ compose.desktop {
                     }
                 includeAllModules = true
                 packageVersion = formatedDate
-                iconFile.set(rootDir.resolve("composeApp/icon/circle_app_icon.icns"))
+                iconFile.set(rootDir.resolve("composeApp/icon/rounded_app_icon.icns"))
                 val macExtraPlistKeys =
                     """
                     <key>LSApplicationCategoryType</key>
@@ -250,6 +250,10 @@ afterEvaluate {
         // Marks a dev run, so the app reads remote-config-dev.json instead of the one real users get.
         systemProperty("simpmusic.dev", "true")
 
+        // Skiko's frame counter: prints "[timestamp] FPS avg (min-max)" to the console every 2 s.
+        // Temporary, to measure what liquid glass costs per frame on Desktop.
+        systemProperty("skiko.fps.enabled", "true")
+
         // Pass the bundled natives path to the runtime for `./gradlew desktopApp:run`.
         val osArch = System.getProperty("os.arch").lowercase()
         val osSubDir =
@@ -287,6 +291,12 @@ afterEvaluate {
             jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
             jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
+        }
+
+        // forceLinuxWmClass() in Main.kt needs this to rename the window "SimpMusic"; without it
+        // the dock falls back to the class name. Packaged builds get it from conveyor.conf.
+        if (System.getProperty("os.name").contains("Linux")) {
+            jvmArgs("--add-opens", "java.desktop/sun.awt.X11=ALL-UNNAMED")
         }
     }
 }

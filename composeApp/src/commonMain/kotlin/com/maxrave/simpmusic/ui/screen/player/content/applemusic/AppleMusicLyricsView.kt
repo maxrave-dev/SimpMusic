@@ -47,6 +47,7 @@ import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
 import com.maxrave.simpmusic.ui.component.AppleMusicLyricPaddingX
 import com.maxrave.simpmusic.ui.component.LyricsOffsetFloatingControl
+import com.maxrave.simpmusic.ui.component.LyricsPromoLine
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.hasTiming
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
@@ -243,6 +244,20 @@ internal fun AppleMusicLyricsView(
                         }
                     },
                 )
+                // Bottom-start, beside the floating buttons and in their flat style, coming and going
+                // with them. Shows only what the remote config places under the lyrics.
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showCluster,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.BottomStart),
+                ) {
+                    LyricsPromoLine(
+                        backdrop = null,
+                        height = 38.dp,
+                        modifier = Modifier.padding(start = 20.dp, end = 70.dp, bottom = 16.dp),
+                    )
+                }
                 // Bottom-end, inside the list's own bottom fade so they sit over the dimmest
                 // lyrics rather than over a bright active line.
                 androidx.compose.animation.AnimatedVisibility(

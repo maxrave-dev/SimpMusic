@@ -70,6 +70,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.ui.component.AddLyricsSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
@@ -126,6 +127,8 @@ fun FullscreenPlayer(
     val timelineState by sharedViewModel.timeline.collectAsStateWithLifecycle()
 
     var showBottom by rememberSaveable { mutableStateOf(false) }
+    // The song Add lyrics was opened for, as its id, title and artist; see NowPlayingScreen.
+    var addLyricsFor by rememberSaveable { mutableStateOf<List<String>?>(null) }
     var isSliding by rememberSaveable {
         mutableStateOf(false)
     }
@@ -762,6 +765,25 @@ fun FullscreenPlayer(
                     setSleepTimerEnable = true,
                     changeMainLyricsProviderEnable = true,
                     song = null,
+                    // Offered only once every provider and the offline cache came back empty for this song.
+                    onAddLyrics =
+                        if (nowPlayingState.lyricsNotFound && nowPlayingState.lyricsData == null) {
+                            {
+                                sharedViewModel.nowPlayingState.value?.songEntity?.let { song ->
+                                    addLyricsFor = arrayListOf(song.videoId, song.title, song.artistName?.joinToString(", ").orEmpty())
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                )
+            }
+            addLyricsFor?.let { (videoId, title, artist) ->
+                AddLyricsSheet(
+                    songTitle = title,
+                    artist = artist,
+                    onSave = { lyrics -> sharedViewModel.saveUserLyrics(videoId, lyrics) },
+                    onDismiss = { addLyricsFor = null },
                 )
             }
         }

@@ -127,6 +127,7 @@ import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.extension.rgbFactor
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
@@ -175,6 +176,7 @@ import com.maxrave.simpmusic.ui.theme.desktopPanelDark
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.utils.eligiblePromos
+import com.maxrave.simpmusic.utils.osRequirementOf
 import com.maxrave.simpmusic.viewModel.FOOTGUNS_STAR_KEY
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel.Companion.HOME_PARAMS_COMMUTE
@@ -590,7 +592,8 @@ fun HomeScreen(
         val youTubeLoggedIn = sharedViewModel.getYouTubeLoggedIn().first() == TRUE
         val shown = sharedViewModel.shownPromos()
         val promos = sharedViewModel.cachedPromos().first()
-        val eligible = eligiblePromos(promos, VersionManager.getVersionName(), language, localTracking, youTubeLoggedIn)
+        val os = osRequirementOf(getPlatform().osName())
+        val eligible = eligiblePromos(promos, VersionManager.getVersionName(), language, localTracking, youTubeLoggedIn, os)
         val banner =
             eligible
                 .firstOrNull { (promo, _) -> promo.id.orEmpty() !in shown }
@@ -1106,6 +1109,7 @@ fun HomeScreen(
                                 Modifier
                                     .fillMaxHeight()
                                     .chipStripEdgeFades(32.dp, start = { chipHeadFade }, end = { chipTailFade })
+                                    .mouseDragScroll(chipRowState)
                                     .horizontalScroll(chipRowState)
                                     .widthIn(min = maxWidth)
                                     .padding(end = if (createPinned) 0.dp else 16.dp),
@@ -1158,7 +1162,7 @@ fun HomeScreen(
  * reads as running on rather than cut off. [start] and [end] ease each fade in and out and are read
  * at draw time. Smoothstep, like every fade in the app: a linear ramp shows a line where it begins.
  */
-private fun Modifier.chipStripEdgeFades(
+internal fun Modifier.chipStripEdgeFades(
     width: Dp,
     start: () -> Float,
     end: () -> Float,
@@ -1407,7 +1411,7 @@ fun QuickPicks(
         }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
-            modifier = Modifier.height(256.dp),
+            modifier = Modifier.height(256.dp).mouseDragScroll(lazyListState, snapperFlingBehavior),
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
@@ -1481,7 +1485,7 @@ fun MoodMomentAndGenre(
             )
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(3),
-                modifier = Modifier.height(210.dp),
+                modifier = Modifier.height(210.dp).mouseDragScroll(gridState, flingBehavior),
                 state = gridState,
                 flingBehavior = flingBehavior,
             ) {
@@ -1538,7 +1542,9 @@ fun ChartData(
     val density = LocalDensity.current
 
     val lazyListState2 = rememberLazyGridState()
-    val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
+    // Start, not the default Center: a centred column leaves the one before it cut through its rank.
+    val snapperFlingBehavior2 =
+        rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2, snapPosition = SnapPosition.Start))
     val isPortrait = getScreenSizeInfo().let { it.wDP < it.hDP }
 
     Column(
@@ -1561,7 +1567,11 @@ fun ChartData(
             )
             val lazyListState = rememberLazyListState()
             val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
-            LazyRow(flingBehavior = snapperFlingBehavior) {
+            LazyRow(
+                modifier = Modifier.mouseDragScroll(lazyListState, snapperFlingBehavior),
+                state = lazyListState,
+                flingBehavior = snapperFlingBehavior,
+            ) {
                 items(item.playlists.size, key = { index ->
                     val data = item.playlists[index]
                     data.id + data.title + index
@@ -1592,7 +1602,7 @@ fun ChartData(
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(3),
-            modifier = Modifier.height(240.dp),
+            modifier = Modifier.height(240.dp).mouseDragScroll(lazyListState2, snapperFlingBehavior2),
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
@@ -1632,10 +1642,11 @@ fun ChartData(
                         .padding(vertical = 10.dp),
             )
             val podcastGridState = rememberLazyGridState()
-            val podcastFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = podcastGridState))
+            val podcastFlingBehavior =
+                rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = podcastGridState, snapPosition = SnapPosition.Start))
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(3),
-                modifier = Modifier.height(240.dp),
+                modifier = Modifier.height(240.dp).mouseDragScroll(podcastGridState, podcastFlingBehavior),
                 state = podcastGridState,
                 flingBehavior = podcastFlingBehavior,
             ) {
