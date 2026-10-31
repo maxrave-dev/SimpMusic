@@ -93,6 +93,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.player.FullscreenDestination
+import com.maxrave.simpmusic.ui.navigation.destination.search.SearchDestination
 import com.maxrave.simpmusic.ui.navigation.graph.AppNavigationGraph
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.screen.other.UnofficialBuildScreen
@@ -353,6 +354,19 @@ fun App(
                         if (isAppLinkAvailable(appPath, null, localTrackingOn, youTubeLoggedIn)) {
                             viewModel.requestLibraryTab(LibraryChipType.YOUR_LIBRARY)
                             navController.navigate(LibraryDestination)
+                        } else {
+                            viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
+                        }
+                    }
+
+                    // simpmusic://recognize — the Quick Settings tile (Android only): Search with the
+                    // song recognition sheet open.
+                    "recognize" -> {
+                        if (isAppLinkAvailable(appPath, null, localTrackingOn, youTubeLoggedIn)) {
+                            viewModel.requestSongRecognition(true)
+                            // Single top: already on Search, that screen opens the sheet. A second
+                            // copy would race the one leaving for the request.
+                            navController.navigate(SearchDestination) { launchSingleTop = true }
                         } else {
                             viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                         }

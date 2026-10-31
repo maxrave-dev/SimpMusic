@@ -1052,4 +1052,18 @@
     <string name="add_lyrics_repeated_word_line">A line with word times can only have one line time</string>
     <string name="add_lyrics_bad_offset">Offset must be whole milliseconds, like [offset:+250]</string>
     <string name="add_lyrics_no_timed_lines">Add at least one timed line</string>
+    <string name="recognize_song">Recognize song</string>
+    <string name="recognize_listening">Listening…</string>
+    <string name="recognize_listening_hint">Hold your phone near the music</string>
+    <string name="recognize_identifying">Identifying…</string>
+    <string name="recognize_find">Find in SimpMusic</string>
+    <string name="recognize_listen_again">Listen again</string>
+    <string name="recognize_no_match">No match found</string>
+    <string name="recognize_no_match_hint">Try again closer to the music</string>
+    <string name="recognize_failed">Couldn't recognize the song</string>
+    <string name="recognize_failed_hint">Check your connection and try again</string>
+    <string name="recognize_try_again">Try again</string>
+    <string name="recognize_mic_needed">Microphone access needed</string>
+    <string name="recognize_mic_hint">SimpMusic listens for a few seconds to find the song playing near you</string>
+    <string name="recognize_allow_mic">Allow microphone</string>
 </resources>

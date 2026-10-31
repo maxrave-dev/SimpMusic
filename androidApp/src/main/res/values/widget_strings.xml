@@ -2,7 +2,8 @@
 <!--
   Widget labels and descriptions live here, not in composeResources: the entries in res/xml
   reference them as @string/… and only Android resources resolve there. Not on Crowdin as a
-  result — these are the few strings the picker reads before any Compose code runs.
+  result — these are the few strings the picker reads before any Compose code runs. The Quick
+  Settings tile's label is the same case: the manifest names it, and the tile editor shows it.
 -->
 <resources>
     <string name="widget_turntable_label">Turntable</string>
@@ -16,4 +17,5 @@
     <string name="widget_insights_top_songs">Top songs · 30 days</string>
     <string name="widget_insights_top_artists">Top artists · 30 days</string>
     <string name="widget_recently_added">Recently added</string>
+    <string name="qs_tile_recognize_song">Recognize song</string>
 </resources>

@@ -23,6 +23,8 @@
          Android 17 (API 37) and up, where it is a runtime permission; LoginSync.android.kt asks
          for it then. Declared now so a targetSdk bump cannot make the connection silently time out. -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <!-- Song recognition in Search: a few seconds of microphone audio, fingerprinted for Shazam. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <uses-feature
         android:name="android.hardware.type.automotive"
@@ -30,6 +32,10 @@
     <!-- Requesting CAMERA implies a required camera, which would hide the app from TVs and cars. -->
     <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+    <!-- Likewise RECORD_AUDIO implies a required microphone. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.wifi"
@@ -289,6 +295,18 @@
         <meta-data
             android:name="io.sentry.auto-init"
             android:value="false" />
+
+        <!-- Quick Settings tile: a shortcut to the song recognition sheet (simpmusic://recognize). -->
+        <service
+            android:name=".service.RecognitionTileService"
+            android:exported="true"
+            android:icon="@drawable/rounded_graphic_eq_24"
+            android:label="@string/qs_tile_recognize_song"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
 
         <receiver android:name=".ui.widget.TurntableWidgetReceiver"

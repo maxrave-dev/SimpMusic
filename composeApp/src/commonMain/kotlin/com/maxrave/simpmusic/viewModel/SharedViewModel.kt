@@ -763,6 +763,15 @@ class SharedViewModel(
         _libraryTabRequest.value = tab
     }
 
+    // The song recognition sheet asked for from outside Search (simpmusic://recognize, the Quick
+    // Settings tile); Search opens it the next time it composes and clears the request.
+    private val _songRecognitionRequest = MutableStateFlow(false)
+    val songRecognitionRequest: StateFlow<Boolean> = _songRecognitionRequest.asStateFlow()
+
+    fun requestSongRecognition(requested: Boolean) {
+        _songRecognitionRequest.value = requested
+    }
+
     fun putString(
         key: String,
         value: String,
