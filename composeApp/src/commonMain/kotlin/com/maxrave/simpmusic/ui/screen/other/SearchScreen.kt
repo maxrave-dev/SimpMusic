@@ -171,6 +171,8 @@ import simpmusic.composeapp.generated.resources.search_for_songs_artists_albums_
 import simpmusic.composeapp.generated.resources.song
 import simpmusic.composeapp.generated.resources.videos
 import simpmusic.composeapp.generated.resources.what_do_you_want_to_listen_to
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -408,6 +410,22 @@ fun SearchScreen(
                         contentPadding = PaddingValues(top = searchBarHeight, bottom = 10.dp),
                     ) {
                         items(searchScreenState.suggestYTItems) { item ->
+                            val onItemLongClick: (() -> Unit)? =
+                                when (item) {
+                                    is SongsResult -> {
+                                        {
+                                            onMoreClick(item.toTrack().toSongEntity())
+                                        }
+                                    }
+
+                                    is VideosResult -> {
+                                        {
+                                            onMoreClick(item.toTrack().toSongEntity())
+                                        }
+                                    }
+
+                                    else -> null
+                                }
                             SuggestItemRow(
                                 searchResult = item,
                                 onItemClick = { item ->
@@ -448,6 +466,7 @@ fun SearchScreen(
                                         }
                                     }
                                 },
+                                onItemLongClick = onItemLongClick,
                             )
                         }
                         items(searchScreenState.suggestQueries) { suggestion ->
@@ -1181,16 +1200,23 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuggestItemRow(
     searchResult: SearchResultType,
     onItemClick: (SearchResultType) -> Unit,
+    onItemLongClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable { onItemClick(searchResult) }
+                .combinedClickable(
+                    onClick = {
+                        onItemClick(searchResult)
+                    },
+                    onLongClick = onItemLongClick,
+                )
                 .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
