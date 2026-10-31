@@ -1043,7 +1043,7 @@ fun AlbumScreen(
                 if (albumBottomSheetShow) {
                     PlaylistBottomSheet(
                         onDismiss = { albumBottomSheetShow = false },
-                        playlistId = browseId,
+                        playlistId = uiState.audioPlaylistId.ifEmpty { browseId },
                         playlistName = uiState.title,
                         isYourYouTubePlaylist = false,
                         onSaveToLocal = {},
