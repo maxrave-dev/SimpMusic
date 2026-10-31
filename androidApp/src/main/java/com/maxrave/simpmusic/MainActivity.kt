@@ -89,7 +89,13 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (shouldUnbind) {
-            unbindService(serviceConnection)
+            try {
+                unbindService(serviceConnection)
+            } catch (e: Exception) {
+                Logger.e("MainActivity", "Failed to unbind service: ${e.message}")
+            }
+            shouldUnbind = false
+            mBound = false
         }
     }
 
@@ -189,6 +195,7 @@ class MainActivity : AppCompatActivity() {
                     scrim = Color.Transparent.toArgb(),
                 ),
         )
+        setupHighRefreshRate()
         viewModel.checkIsRestoring()
         val request =
             PeriodicWorkRequestBuilder<NotifyWork>(
@@ -266,6 +273,13 @@ class MainActivity : AppCompatActivity() {
 
         // Always unbind service if it was bound to prevent MusicBinder leak
         if (shouldStopMusicService && shouldUnbind && isFinishing) {
+            try {
+                unbindService(serviceConnection)
+            } catch (e: Exception) {
+                Logger.e("MainActivity", "Failed to unbind service in onDestroy: ${e.message}")
+            }
+            shouldUnbind = false
+            mBound = false
             viewModel.isServiceRunning = false
         }
         unloadKoinModules(viewModelModule)
@@ -322,8 +336,49 @@ class MainActivity : AppCompatActivity() {
 
     private fun getString(key: String): String? = viewModel.getString(key)
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        setupHighRefreshRate()
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        setupHighRefreshRate()
         viewModel.activityRecreate()
+    }
+
+    private fun setupHighRefreshRate() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val display =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    display
+                } else {
+                    windowManager.defaultDisplay
+                } ?: return
+
+            val currentMode = display.mode
+            val supportedModes = display.supportedModes ?: return
+            val matchingResolutionModes =
+                if (currentMode != null) {
+                    supportedModes.filter { mode ->
+                        (mode.physicalWidth == currentMode.physicalWidth && mode.physicalHeight == currentMode.physicalHeight) ||
+                            (mode.physicalWidth == currentMode.physicalHeight && mode.physicalHeight == currentMode.physicalWidth)
+                    }
+                } else {
+                    supportedModes.toList()
+                }
+
+            val maxMode =
+                (if (matchingResolutionModes.isNotEmpty()) matchingResolutionModes else supportedModes.toList())
+                    .maxByOrNull { it.refreshRate }
+
+            if (maxMode != null && maxMode.refreshRate > 60f) {
+                val params = window.attributes
+                params.preferredDisplayModeId = maxMode.modeId
+                params.preferredRefreshRate = maxMode.refreshRate
+                window.attributes = params
+                Logger.d("MainActivity", "High refresh rate enabled: ${maxMode.refreshRate}Hz (mode: ${maxMode.modeId})")
+            }
+        }
     }
 }
