@@ -265,17 +265,14 @@ if (!isFullBuild) {
         }
     }
 
-    tasks.whenTaskAdded {
-        if (name.contains("injectSentryDebugMetaPropertiesIntoAssetsRelease")) {
-            val cleanSentryMetaTaskName = "cleanSentryMetaForRelease"
-            val cleanSentryMetaTask =
-                tasks.register<CleanSentryMetaTask>(cleanSentryMetaTaskName) {
-                    assetDirectories.from(android.sourceSets.flatMap { it.assets.directories })
-                    buildDirectory.set(layout.buildDirectory)
-                }
-            tasks.named(name).configure {
-                finalizedBy(cleanSentryMetaTask)
-            }
+    val cleanSentryMetaTask =
+        tasks.register<CleanSentryMetaTask>("cleanSentryMetaForRelease") {
+            assetDirectories.from(android.sourceSets.flatMap { it.assets.directories })
+            buildDirectory.set(layout.buildDirectory)
         }
+    // Lazy on purpose: whenTaskAdded creates every task as it is registered, and AGP 9.5.0's
+    // Compose Preview task throws while it is created unless unit tests include Android resources.
+    tasks.named { it.contains("injectSentryDebugMetaPropertiesIntoAssetsRelease") }.configureEach {
+        finalizedBy(cleanSentryMetaTask)
     }
 }
