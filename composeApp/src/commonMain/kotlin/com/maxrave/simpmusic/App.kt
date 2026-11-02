@@ -235,6 +235,10 @@ fun App(
         val data = intent.data
         Logger.d("MainActivity", "onCreate: $data")
         if (data != null) {
+            // A link that launched the app can get here before NavHost, composed further down, has
+            // set its graph, and navigating then throws. Wait here, before any setIntent(null):
+            // clearing the intent changes this effect's key and would cancel the wait.
+            navController.currentBackStackEntryFlow.first()
             if (data.scheme == "simpmusic" && data.host == "notification") {
                 viewModel.setIntent(null)
                 navController.navigate(
