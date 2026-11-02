@@ -102,7 +102,7 @@ kotlin {
                 implementation(projects.castEmpty)
             }
 
-            // Login sync QR scanner: CameraX + ZXing, not ML Kit, which F-Droid rejects as proprietary
+            // QR codes and their scanner: CameraX + ZXing, not ML Kit, which F-Droid rejects as proprietary
             implementation(libs.camera.camera2)
             implementation(libs.camera.lifecycle)
             implementation(libs.camera.view)
@@ -204,7 +204,7 @@ kotlin {
             implementation(projects.mediaJvmUi)
             // macOS: hand window drags to the Window Server (ui/component/MacWindowDrag.kt)
             implementation(libs.jna)
-            // Login sync QR code
+            // QR codes
             implementation(libs.zxing.core)
         }
     }
