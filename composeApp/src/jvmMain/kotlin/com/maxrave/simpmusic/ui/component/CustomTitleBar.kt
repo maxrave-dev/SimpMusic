@@ -96,15 +96,22 @@ fun CustomTitleBar(
                         },
                     )
                 }.pointerInput(Unit) {
+                    // True while macOS itself moves the window for the current drag (MacWindowDrag)
+                    var nativeDrag = false
                     detectDragGestures(
                         onDragStart = {
-                            val mouseLocation = MouseInfo.getPointerInfo().location
+                            // A maximized window keeps the restore-then-follow path below.
+                            nativeDrag = windowState.placement == WindowPlacement.Floating && MacWindowDrag.start(window)
+                            if (nativeDrag) return@detectDragGestures
+                            // Null while the pointer is on no screen's bounds; skip that event, as Compose's WindowDraggableArea does.
+                            val mouseLocation = MouseInfo.getPointerInfo()?.location ?: return@detectDragGestures
                             dragStartX = mouseLocation.x - window.x
                             dragStartY = mouseLocation.y - window.y
                         },
                         onDrag = { change, _ ->
                             change.consume()
-                            val mouseLocation = MouseInfo.getPointerInfo().location
+                            if (nativeDrag) return@detectDragGestures
+                            val mouseLocation = MouseInfo.getPointerInfo()?.location ?: return@detectDragGestures
                             // If maximized, restore before moving
                             if (windowState.placement == WindowPlacement.Maximized) {
                                 windowState.placement = WindowPlacement.Floating

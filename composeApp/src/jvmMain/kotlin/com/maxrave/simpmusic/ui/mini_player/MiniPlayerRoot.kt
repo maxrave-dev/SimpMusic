@@ -28,11 +28,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maxrave.simpmusic.ui.component.MacWindowDrag
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import java.awt.Cursor
 import java.awt.MouseInfo
+import java.awt.Window
 
 /**
  * Root composable for the mini player window content.
@@ -49,6 +51,7 @@ fun MiniPlayerRoot(
     sharedViewModel: SharedViewModel,
     onClose: () -> Unit,
     windowState: WindowState,
+    window: Window,
 ) {
     val nowPlayingData by sharedViewModel.nowPlayingScreenData.collectAsStateWithLifecycle()
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
@@ -149,10 +152,15 @@ fun MiniPlayerRoot(
                         .fillMaxWidth(0.5f)
                         .height(28.dp)
                         .pointerInput(Unit) {
+                            // True while macOS itself moves the window for the current drag (MacWindowDrag)
+                            var nativeDrag = false
                             detectDragGestures(
                                 onDragStart = {
+                                    nativeDrag = MacWindowDrag.start(window)
+                                    if (nativeDrag) return@detectDragGestures
                                     // Store initial mouse and window positions
-                                    val mousePos = MouseInfo.getPointerInfo().location
+                                    // Null while the pointer is on no screen's bounds; skip that event, as Compose's WindowDraggableArea does.
+                                    val mousePos = MouseInfo.getPointerInfo()?.location ?: return@detectDragGestures
                                     dragStartMousePos = Pair(mousePos.x, mousePos.y)
                                     val currentPos = windowState.position
                                     if (currentPos is androidx.compose.ui.window.WindowPosition.Absolute) {
@@ -161,10 +169,11 @@ fun MiniPlayerRoot(
                                 },
                                 onDrag = { change, _ ->
                                     change.consume()
+                                    if (nativeDrag) return@detectDragGestures
                                     val startMouse = dragStartMousePos
                                     val startWindow = dragStartWindowPos
                                     if (startMouse != null && startWindow != null) {
-                                        val currentMousePos = MouseInfo.getPointerInfo().location
+                                        val currentMousePos = MouseInfo.getPointerInfo()?.location ?: return@detectDragGestures
                                         val deltaX = currentMousePos.x - startMouse.first
                                         val deltaY = currentMousePos.y - startMouse.second
                                         windowState.position =
