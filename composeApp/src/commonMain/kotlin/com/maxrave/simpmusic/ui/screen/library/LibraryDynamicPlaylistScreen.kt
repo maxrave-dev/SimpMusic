@@ -452,12 +452,6 @@ fun LibraryDynamicPlaylistScreen(
                             arrayListOf(song.toTrack()),
                         )
                     },
-                    onSwipeToDelete =
-                        if (type == LibraryDynamicPlaylistType.Downloaded) {
-                            { viewModel.removeDownloads(listOf(it)) }
-                        } else {
-                            null
-                        },
                     selectionMode = selectionState.isActive,
                     isSelected = selectionState.isSelected(song.videoId),
                     onLongClick = { selectionState.start(it) },
@@ -505,7 +499,6 @@ fun LibraryDynamicPlaylistScreen(
                         SongSelectionAction(
                             icon = SimpIcons.Delete,
                             label = removeDownloadLabel,
-                            tint = Color.Red,
                         ) {
                             viewModel.removeDownloads(selectedIds)
                             selectionState.exit()

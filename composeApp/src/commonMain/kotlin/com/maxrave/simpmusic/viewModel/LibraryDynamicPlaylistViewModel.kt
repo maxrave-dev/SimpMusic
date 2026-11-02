@@ -211,8 +211,8 @@ class LibraryDynamicPlaylistViewModel(
     }
 
     /**
-     * Removes the downloads behind the Downloaded list's swipe and its multi-select action, the
-     * same way the song menu's Download toggle does.
+     * Removes the downloads behind the Downloaded list's multi-select action, the same way the
+     * song menu's Download toggle does.
      *
      * The rows leave the list first: [SongRepository.getDownloadedSongs] is read once rather than
      * observed, so nothing else would take them off the screen.
