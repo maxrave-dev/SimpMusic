@@ -1,7 +1,5 @@
 package com.maxrave.simpmusic.expect.ui
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,22 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.QRCodeWriter
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.maxrave.domain.data.model.loginsync.LoginSyncHostState
+import com.maxrave.simpmusic.ui.component.QrCodeImage
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LoginSyncHostViewModel
 import org.jetbrains.compose.resources.stringResource
@@ -86,7 +75,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
                     }
 
                     is LoginSyncHostState.Waiting -> {
-                        QrCode(s.invite, Modifier.size(240.dp))
+                        QrCodeImage(s.invite, Modifier.size(240.dp))
                         Text(
                             text = stringResource(Res.string.login_sync_desktop_instructions, stringResource(Res.string.login_sync_android_title)),
                             style = typo().bodyMedium,
@@ -163,36 +152,4 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
                 null
             },
     )
-}
-
-/** Dark modules on white whatever the theme: scanners expect that polarity. */
-@Composable
-private fun QrCode(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    val matrix =
-        remember(text) {
-            QRCodeWriter().encode(
-                text,
-                BarcodeFormat.QR_CODE,
-                0,
-                0,
-                mapOf(EncodeHintType.MARGIN to 2, EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M),
-            )
-        }
-    Canvas(
-        modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .padding(8.dp),
-    ) {
-        val cell = size.minDimension / matrix.width
-        for (y in 0 until matrix.height) {
-            for (x in 0 until matrix.width) {
-                // Half a pixel of overlap hides the seams between fractional-width modules.
-                if (matrix[x, y]) drawRect(Color.Black, Offset(x * cell, y * cell), Size(cell + 0.5f, cell + 0.5f))
-            }
-        }
-    }
 }

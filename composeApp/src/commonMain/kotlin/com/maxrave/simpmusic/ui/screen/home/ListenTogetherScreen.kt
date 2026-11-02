@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,6 +60,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
@@ -77,32 +83,45 @@ import com.maxrave.domain.data.model.listentogether.RoomConnection
 import com.maxrave.domain.data.model.listentogether.RoomJoinRequest
 import com.maxrave.domain.data.model.listentogether.RoomMember
 import com.maxrave.domain.data.model.listentogether.RoomSuggestion
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.expect.ui.RoomQrScanner
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.rgbFactor
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
+import com.maxrave.simpmusic.ui.component.QrCodeImage
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.ContentCopy
 import com.maxrave.simpmusic.ui.icon.Logout
+import com.maxrave.simpmusic.ui.icon.QrCode2
+import com.maxrave.simpmusic.ui.icon.QrCodeScanner
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherSettingsDestination
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.utils.ROOM_CODE_LENGTH
+import com.maxrave.simpmusic.utils.RoomFormProblem
+import com.maxrave.simpmusic.utils.listenTogetherLink
 import com.maxrave.simpmusic.viewModel.ListenTogetherViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.listen_together
+import simpmusic.composeapp.generated.resources.lt_already_in_room
 import simpmusic.composeapp.generated.resources.lt_background_warning
 import simpmusic.composeapp.generated.resources.lt_block
 import simpmusic.composeapp.generated.resources.lt_block_desc
@@ -116,6 +135,7 @@ import simpmusic.composeapp.generated.resources.lt_credit_protocol
 import simpmusic.composeapp.generated.resources.lt_disconnect
 import simpmusic.composeapp.generated.resources.lt_display_name
 import simpmusic.composeapp.generated.resources.lt_display_name_hint
+import simpmusic.composeapp.generated.resources.lt_display_name_required
 import simpmusic.composeapp.generated.resources.lt_host_badge
 import simpmusic.composeapp.generated.resources.lt_in_room
 import simpmusic.composeapp.generated.resources.lt_join_requests
@@ -126,7 +146,15 @@ import simpmusic.composeapp.generated.resources.lt_kick_desc
 import simpmusic.composeapp.generated.resources.lt_leave_room
 import simpmusic.composeapp.generated.resources.lt_not_connected
 import simpmusic.composeapp.generated.resources.lt_or_join_with_code
+import simpmusic.composeapp.generated.resources.lt_qr_desc
+import simpmusic.composeapp.generated.resources.lt_qr_title
+import simpmusic.composeapp.generated.resources.lt_required
 import simpmusic.composeapp.generated.resources.lt_room_code
+import simpmusic.composeapp.generated.resources.lt_room_code_incomplete
+import simpmusic.composeapp.generated.resources.lt_scan_qr
+import simpmusic.composeapp.generated.resources.lt_scan_qr_image
+import simpmusic.composeapp.generated.resources.lt_scan_unreadable
+import simpmusic.composeapp.generated.resources.lt_show_qr
 import simpmusic.composeapp.generated.resources.lt_suggestions
 import simpmusic.composeapp.generated.resources.lt_tagline
 import simpmusic.composeapp.generated.resources.lt_transfer_host
@@ -134,6 +162,7 @@ import simpmusic.composeapp.generated.resources.lt_transfer_host_desc
 import simpmusic.composeapp.generated.resources.lt_waiting_approval
 import simpmusic.composeapp.generated.resources.lt_waiting_approval_desc
 import simpmusic.composeapp.generated.resources.lt_you
+import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.settings
 
 /**
@@ -155,7 +184,6 @@ private const val TWO_COLUMN_MIN_DP = 900
 
 /** How long the copy button shows a tick before going back to the copy glyph. */
 private const val COPIED_FEEDBACK_MS = 1800L
-private const val ROOM_CODE_LENGTH = ListenTogetherViewModel.ROOM_CODE_LENGTH
 
 /** Avatar tints derived from the theme, so they move with it instead of fighting it. */
 @Composable
@@ -179,12 +207,26 @@ fun ListenTogetherScreen(
     navController: NavController,
     innerPadding: PaddingValues,
     viewModel: ListenTogetherViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val displayName by viewModel.displayName.collectAsStateWithLifecycle()
     val codeInput by viewModel.roomCodeInput.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     var managing by remember { mutableStateOf<RoomMember?>(null) }
+    // The code it was opened for, not a flag: leaving the room must not bring it back on the next one.
+    var showingQrFor by remember { mutableStateOf<String?>(null) }
+
+    // Clears the request last: that changes this effect's key, which would cancel it mid-way.
+    val roomRequest by sharedViewModel.listenTogetherRoomRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(roomRequest) {
+        roomRequest?.let { code ->
+            if (!viewModel.onRoomCodeReceived(code)) {
+                sharedViewModel.makeToast(getString(Res.string.lt_already_in_room))
+            }
+            sharedViewModel.requestListenTogetherRoom(null)
+        }
+    }
 
     // The back button refracts whatever the page has drawn, so the CONTENT is the backdrop source
     // and the button is its SIBLING — the same arrangement Album/Playlist/Analytics use. Nesting the
@@ -202,8 +244,9 @@ fun ListenTogetherScreen(
         val copyCode: () -> Unit = { state.roomCode?.let { clipboard.setText(AnnotatedString(it)) } }
         val shareTitle = stringResource(Res.string.listen_together)
         val shareCode: () -> Unit = {
-            state.roomCode?.let { shareUrl(title = shareTitle, url = SHARE_PREFIX + it) }
+            state.roomCode?.let { shareUrl(title = shareTitle, url = "$SHARE_PREFIX$it\n${listenTogetherLink(it)}") }
         }
+        val showQr: () -> Unit = { showingQrFor = state.roomCode }
         val openSettings: () -> Unit = { navController.navigate(ListenTogetherSettingsDestination) }
 
         // Home's ambient top glow, tinted from the THEME rather than artwork — this page has none.
@@ -262,7 +305,7 @@ fun ListenTogetherScreen(
                     TitleBlock(inRoom = state.inRoom)
                     ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                     AnimatedVisibility(visible = state.inRoom) {
-                        RoomCodePoster(state, copyCode, shareCode)
+                        RoomCodePoster(state, copyCode, shareCode, showQr)
                     }
                 }
 
@@ -294,7 +337,7 @@ fun ListenTogetherScreen(
                 TitleBlock(inRoom = state.inRoom)
                 ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
                 AnimatedVisibility(visible = state.inRoom) {
-                    RoomCodePoster(state, copyCode, shareCode)
+                    RoomCodePoster(state, copyCode, shareCode, showQr)
                 }
                 WorkArea(state, displayName, codeInput, viewModel, { managing = it }, openSettings)
             }
@@ -320,6 +363,10 @@ fun ListenTogetherScreen(
             },
             onDismiss = { managing = null },
         )
+    }
+
+    state.roomCode?.takeIf { it == showingQrFor }?.let { code ->
+        RoomQrDialog(code = code, onDismiss = { showingQrFor = null })
     }
 }
 
@@ -376,23 +423,67 @@ private fun ColumnScope.WorkArea(
         }
 
         else -> {
-            NameField(displayName, viewModel::onDisplayNameChange)
+            val problems by viewModel.formProblems.collectAsStateWithLifecycle()
+            val focusName by viewModel.focusNameField.collectAsStateWithLifecycle()
+            val connecting by viewModel.connectingForAction.collectAsStateWithLifecycle()
+            var scanning by remember { mutableStateOf(false) }
+            val connectingLabel = stringResource(Res.string.lt_connecting)
 
+            NameField(
+                value = displayName,
+                onValueChange = viewModel::onDisplayNameChange,
+                isMissing = RoomFormProblem.NAME_MISSING in problems,
+                focusRequested = focusName,
+                onFocusRequestHandled = viewModel::onNameFieldFocused,
+            )
+
+            // Only a connection in progress disables these. With a name or code missing they stay
+            // live, because a grey button cannot say what it is waiting for and a tap can.
             PrimaryButton(
-                text = stringResource(Res.string.lt_create_room),
-                enabled = displayName.isNotBlank() && state.isConnected,
+                text = if (connecting) connectingLabel else stringResource(Res.string.lt_create_room),
+                enabled = !connecting,
                 onClick = viewModel::createRoom,
             )
 
             DividerLabel(stringResource(Res.string.lt_or_join_with_code))
 
             CodeInput(codeInput, viewModel::onRoomCodeChange)
+            when {
+                RoomFormProblem.QR_UNREADABLE in problems -> FieldError(stringResource(Res.string.lt_scan_unreadable))
+                RoomFormProblem.CODE_INCOMPLETE in problems -> {
+                    FieldError(stringResource(Res.string.lt_room_code_incomplete, ROOM_CODE_LENGTH))
+                }
+            }
+
+            TextAction(
+                icon = SimpIcons.QrCodeScanner,
+                text =
+                    stringResource(
+                        if (getPlatform() == Platform.Android) Res.string.lt_scan_qr else Res.string.lt_scan_qr_image,
+                    ),
+                color = MaterialTheme.colorScheme.primary,
+                onClick = { scanning = true },
+            )
 
             SecondaryButton(
-                text = stringResource(Res.string.lt_join_room),
-                enabled = displayName.isNotBlank() && codeInput.length == ROOM_CODE_LENGTH && state.isConnected,
+                text = if (connecting) connectingLabel else stringResource(Res.string.lt_join_room),
+                enabled = !connecting,
                 onClick = viewModel::joinRoom,
             )
+
+            if (scanning) {
+                RoomQrScanner(
+                    onRoomCode = { code ->
+                        scanning = false
+                        viewModel.onRoomCodeReceived(code)
+                    },
+                    onUnreadable = {
+                        scanning = false
+                        viewModel.onQrUnreadable()
+                    },
+                    onDismiss = { scanning = false },
+                )
+            }
 
             Text(
                 text = stringResource(Res.string.lt_background_warning),
@@ -581,6 +672,7 @@ private fun RoomCodePoster(
     state: ListenTogetherRoom,
     onCopyCode: () -> Unit,
     onShareCode: () -> Unit,
+    onShowQr: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -644,7 +736,12 @@ private fun RoomCodePoster(
                         copied = true
                     }
                 }
-                GlyphButton(SimpIcons.Share, onShareCode)
+                GlyphButton(SimpIcons.Share, onClick = onShareCode)
+                GlyphButton(
+                    SimpIcons.QrCode2,
+                    contentDescription = stringResource(Res.string.lt_show_qr),
+                    onClick = onShowQr,
+                )
             }
         }
     }
@@ -945,6 +1042,56 @@ private fun TextAction(
     }
 }
 
+/**
+ * The room's code as a QR code, big enough to scan across a table. Sits on white in both themes, as
+ * [QrCodeImage] requires, with the code under it for anyone who would rather type.
+ */
+@Composable
+private fun RoomQrDialog(
+    code: String,
+    onDismiss: () -> Unit,
+) {
+    val description = stringResource(Res.string.lt_show_qr)
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier =
+                Modifier
+                    .width(320.dp)
+                    .clip(CARD_SHAPE)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                stringResource(Res.string.lt_qr_title),
+                style = typo().titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            QrCodeImage(
+                text = listenTogetherLink(code),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .semantics { contentDescription = description },
+            )
+            Text(
+                code.chunked(4).joinToString(" "),
+                style = typo().titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 3.sp),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                stringResource(Res.string.lt_qr_desc),
+                style = typo().bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Chip(stringResource(Res.string.ok), onClick = onDismiss)
+        }
+    }
+}
+
 @Composable
 private fun MemberActionDialog(
     member: RoomMember,
@@ -1088,6 +1235,7 @@ private fun Chip(
 @Composable
 private fun GlyphButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String? = null,
     onClick: () -> Unit,
 ) {
     Box(
@@ -1099,7 +1247,7 @@ private fun GlyphButton(
                 .clickable { onClick() },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = contentDescription, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -1240,9 +1388,33 @@ private fun DividerLabel(text: String) {
 private fun NameField(
     value: String,
     onValueChange: (String) -> Unit,
+    isMissing: Boolean,
+    focusRequested: Boolean,
+    onFocusRequestHandled: () -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val errorText = stringResource(Res.string.lt_display_name_required)
+    // Lives here because the requester must already be attached, and the form is not always composed.
+    LaunchedEffect(focusRequested) {
+        if (focusRequested) {
+            focusRequester.requestFocus()
+            onFocusRequestHandled()
+        }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(Res.string.lt_display_name), style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.lt_display_name),
+                style = typo().bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                stringResource(Res.string.lt_required),
+                style = typo().bodySmall,
+                color = if (isMissing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -1253,14 +1425,39 @@ private fun NameField(
                 Modifier
                     .fillMaxWidth()
                     .height(54.dp)
+                    .focusRequester(focusRequester)
                     .clip(ROW_SHAPE)
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f)),
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
+                    .then(
+                        if (isMissing) {
+                            Modifier
+                                .border(2.dp, MaterialTheme.colorScheme.error, ROW_SHAPE)
+                                .semantics { error(errorText) }
+                        } else {
+                            Modifier
+                        },
+                    ),
             decorationBox = { inner ->
                 Box(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) { inner() }
             },
         )
-        Text(stringResource(Res.string.lt_display_name_hint), style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (isMissing) {
+            FieldError(errorText)
+        } else {
+            Text(stringResource(Res.string.lt_display_name_hint), style = typo().bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
+}
+
+/** Announced when it appears, since the error is the only thing that changed on screen. */
+@Composable
+private fun FieldError(message: String) {
+    Text(
+        text = message,
+        style = typo().bodySmall,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    )
 }
 
 @Composable

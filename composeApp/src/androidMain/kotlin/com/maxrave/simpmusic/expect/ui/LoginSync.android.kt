@@ -335,7 +335,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
 
 /** A message centred in the viewfinder square, with an optional spinner above and action below. */
 @Composable
-private fun Status(
+internal fun Status(
     text: String,
     progress: Boolean,
     action: (@Composable () -> Unit)? = null,
@@ -362,7 +362,7 @@ private fun Status(
  * inherits that instead of onPrimary and renders pale text on a pale fill.
  */
 @Composable
-private fun SheetButton(
+internal fun SheetButton(
     text: String,
     onClick: () -> Unit,
 ) {
@@ -383,7 +383,7 @@ private fun SheetButton(
 
 /** Four corner brackets marking where the code should sit. */
 @Composable
-private fun ViewfinderCorners(modifier: Modifier = Modifier) {
+internal fun ViewfinderCorners(modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val arm = size.minDimension * 0.14f
         val stroke = 4.dp.toPx()
