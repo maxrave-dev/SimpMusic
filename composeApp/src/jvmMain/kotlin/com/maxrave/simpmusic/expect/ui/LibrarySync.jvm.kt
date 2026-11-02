@@ -36,6 +36,7 @@ import com.maxrave.domain.data.model.librarysync.SyncPeer
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.LibrarySyncHostRepository
 import com.maxrave.simpmusic.expect.openUrl
+import com.maxrave.simpmusic.ui.component.QrCodeImage
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
@@ -100,7 +101,7 @@ actual fun LibrarySyncDialog(onDismiss: () -> Unit) {
                     }
 
                     is LibrarySyncPairingState.Waiting -> {
-                        QrCode(p.invite, Modifier.size(240.dp))
+                        QrCodeImage(p.invite, Modifier.size(240.dp))
                         Text(text = stringResource(Res.string.library_sync_desktop_instructions), style = typo().bodyMedium, textAlign = TextAlign.Center)
                         Text(text = stringResource(Res.string.login_sync_pick_address), style = typo().bodySmall, textAlign = TextAlign.Center)
                         Column(Modifier.fillMaxWidth()) {
