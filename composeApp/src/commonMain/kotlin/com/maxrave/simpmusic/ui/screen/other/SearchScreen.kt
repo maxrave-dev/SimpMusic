@@ -778,7 +778,6 @@ fun SearchScreen(
                                                                             onMoreClick(result.toTrack().toSongEntity())
                                                                         },
                                                                         onClickListener = {
-                                                                            focusManager.clearFocus()
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
                                                                                 QueueData.Data(
@@ -818,7 +817,6 @@ fun SearchScreen(
                                                                             onMoreClick(result.toTrack().toSongEntity())
                                                                         },
                                                                         onClickListener = {
-                                                                            focusManager.clearFocus()
                                                                             val firstTrack = result.toTrack()
                                                                             searchViewModel.setQueueData(
                                                                                 QueueData.Data(
