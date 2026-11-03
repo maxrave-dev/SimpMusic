@@ -69,6 +69,7 @@ import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.mp.KoinPlatform.getKoin
+import org.simpmusic.discord.configDiscord
 import org.simpmusic.lastfm.configLastfm
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.app_name
@@ -188,6 +189,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     if (!isMacOS) {
         deepLinkArg?.let { DesktopDeepLinkHandler.onNewUri(it) }
     }
+
+    // Before Koin: DiscordRepository is created at start and reads which login this build uses.
+    configDiscord(BuildKonfig.discordClientId)
 
     // Initialize Koin ONCE before application starts
     startKoin {

@@ -9,9 +9,11 @@ import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestinat
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.screen.login.DiscordLoginScreen
+import com.maxrave.simpmusic.ui.screen.login.DiscordOAuthLoginScreen
 import com.maxrave.simpmusic.ui.screen.login.LastfmLoginScreen
 import com.maxrave.simpmusic.ui.screen.login.LoginScreen
 import com.maxrave.simpmusic.ui.screen.login.SpotifyLoginScreen
+import org.simpmusic.discord.isDiscordOAuthAvailable
 
 fun NavGraphBuilder.loginScreenGraph(
     innerPadding: PaddingValues,
@@ -38,12 +40,23 @@ fun NavGraphBuilder.loginScreenGraph(
     }
 
     composable<DiscordLoginDestination> {
-        DiscordLoginScreen(
-            innerPadding = innerPadding,
-            navController = navController,
-            hideBottomNavigation = hideBottomBar,
-            showBottomNavigation = showBottomBar,
-        )
+        // A Full build carries a Discord application and logs in through Discord's own page; a FOSS
+        // build keeps the WebView login whose token kizzy uses.
+        if (isDiscordOAuthAvailable()) {
+            DiscordOAuthLoginScreen(
+                innerPadding = innerPadding,
+                navController = navController,
+                hideBottomNavigation = hideBottomBar,
+                showBottomNavigation = showBottomBar,
+            )
+        } else {
+            DiscordLoginScreen(
+                innerPadding = innerPadding,
+                navController = navController,
+                hideBottomNavigation = hideBottomBar,
+                showBottomNavigation = showBottomBar,
+            )
+        }
     }
 
     composable<LastfmLoginDestination> {
