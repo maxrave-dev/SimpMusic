@@ -198,6 +198,8 @@ kotlin {
             implementation(libs.native.tray)
             implementation(libs.nucleus.core.runtime)
             implementation(projects.mediaJvmUi)
+            // macOS: hand window drags to the Window Server (ui/component/MacWindowDrag.kt)
+            implementation(libs.jna)
             // Login sync QR code
             implementation(libs.zxing.core)
         }
