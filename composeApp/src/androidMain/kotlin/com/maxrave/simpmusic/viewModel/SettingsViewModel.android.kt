@@ -115,6 +115,7 @@ actual suspend fun restoreNative(
                 }
 
             var downloadFolderCleared = false
+            var artworkFolderCleared = false
 
             while (entry != null) {
                 Logger.d("BackupRestore", "Processing entry: ${entry.name}")
@@ -159,6 +160,22 @@ actual suspend fun restoreNative(
                         restoreFolder(entry.name, inputStream, "download")
                     }
 
+                    entry.name.startsWith("artwork/") -> {
+                        Logger.d("BackupRestore", "Found artwork entry: ${entry.name}")
+                        // Clear artwork folder on first encounter
+                        if (!artworkFolderCleared) {
+                            val artworkFolder = application.filesDir / "artwork"
+                            Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents BEFORE clearing ===")
+                            debugFolderContents(artworkFolder)
+                            Logger.d("BackupRestore", "Clearing artwork folder: ${artworkFolder.absolutePath}")
+                            clearFolder(artworkFolder)
+                            Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents AFTER clearing ===")
+                            debugFolderContents(artworkFolder)
+                            artworkFolderCleared = true
+                        }
+                        restoreFolder(entry.name, inputStream, "artwork")
+                    }
+
                     else -> {
                         Logger.d("BackupRestore", "Unhandled entry: ${entry.name}")
                     }
@@ -171,6 +188,10 @@ actual suspend fun restoreNative(
     val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
     Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
     debugFolderContents(downloadFolder)
+
+    val artworkFolder = application.filesDir / "artwork"
+    Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents AFTER RESTORE ===")
+    debugFolderContents(artworkFolder)
 
     withContext(Dispatchers.Main) {
         showToast(getString(Res.string.restore_success), ToastGravity.Bottom)
@@ -319,6 +340,12 @@ actual suspend fun backupNative(
                 Logger.d("BackupRestore", "=== BACKUP: Download folder contents BEFORE backup ===")
                 debugFolderContents(downloadFolder)
                 backupFolder(downloadFolder, DOWNLOAD_EXOPLAYER_FOLDER, outputStream)
+
+                // Backup artwork folder (pinned covers for downloaded songs)
+                val artworkFolder = application.filesDir / "artwork"
+                Logger.d("BackupRestore", "=== BACKUP: Artwork folder contents BEFORE backup ===")
+                debugFolderContents(artworkFolder)
+                backupFolder(artworkFolder, "artwork", outputStream)
             }
         }
     }
