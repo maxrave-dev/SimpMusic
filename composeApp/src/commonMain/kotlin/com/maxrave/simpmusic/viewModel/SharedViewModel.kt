@@ -53,6 +53,7 @@ import com.maxrave.domain.mediaservice.handler.SleepTimerState
 import com.maxrave.domain.mediaservice.handler.addToQueueBlock
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.CacheRepository
+import com.maxrave.domain.repository.DiscordRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.PlaylistRepository
@@ -117,6 +118,7 @@ import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.disliked
 import simpmusic.composeapp.generated.resources.error
+import simpmusic.composeapp.generated.resources.discord_login_failed
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
 import simpmusic.composeapp.generated.resources.login_success
 import simpmusic.composeapp.generated.resources.play_next
@@ -145,6 +147,7 @@ class SharedViewModel(
     private val playlistRepository: PlaylistRepository,
     private val lyricsCanvasRepository: LyricsCanvasRepository,
     private val cacheRepository: CacheRepository,
+    private val discordRepository: DiscordRepository,
 ) : BaseViewModel() {
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
@@ -628,6 +631,20 @@ class SharedViewModel(
                 makeToast(getString(Res.string.login_success))
             } else {
                 makeToast(getString(Res.string.lastfm_login_failed))
+            }
+        }
+    }
+
+    /**
+     * Finishes a Discord login from the `simpmusic://discord-auth` redirect (Full builds). Like the
+     * Last.fm callback, the login screen is already open and closes itself once a login is stored.
+     */
+    fun completeDiscordLogin(callbackUrl: String) {
+        viewModelScope.launch {
+            if (discordRepository.completeLogin(callbackUrl)) {
+                makeToast(getString(Res.string.login_success))
+            } else {
+                makeToast(getString(Res.string.discord_login_failed))
             }
         }
     }

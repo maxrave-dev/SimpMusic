@@ -249,6 +249,13 @@ fun App(
                 // of it. The token is handed straight to the shared view model, and the screen
                 // closes itself when it sees a session key appear.
                 token?.let { viewModel.completeLastfmLogin(it) }
+            } else if (data.scheme == "simpmusic" && data.host == "discord-auth") {
+                // Discord sends the user back here after they approve SimpMusic (Full builds):
+                // simpmusic://discord-auth?code=…&state=…. No navigation, as with Last.fm: the login
+                // screen is already open and closes itself once the login is stored.
+                Logger.d("MainActivity", "Discord callback, code present: ${!data.getQueryParameter("code").isNullOrEmpty()}")
+                viewModel.setIntent(null)
+                viewModel.completeDiscordLogin(data.toString())
             } else if (data.host == "simpmusic.org" || data.scheme == "simpmusic") {
                 // https://simpmusic.org/app/watch?v=VIDEO_ID
                 // https://simpmusic.org/app/playlist?list=PLAYLIST_ID

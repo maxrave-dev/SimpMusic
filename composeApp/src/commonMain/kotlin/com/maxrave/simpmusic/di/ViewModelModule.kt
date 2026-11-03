@@ -46,6 +46,7 @@ val viewModelModule =
                 get(),
                 get(),
                 get(),
+                get(),
             )
         }
         single {
@@ -127,6 +128,7 @@ val viewModelModule =
                 get(),
                 get(),
                 get(),
+                get(),
             )
         }
         viewModel {
@@ -145,6 +147,7 @@ val viewModelModule =
         }
         viewModel {
             LogInViewModel(
+                get(),
                 get(),
             )
         }

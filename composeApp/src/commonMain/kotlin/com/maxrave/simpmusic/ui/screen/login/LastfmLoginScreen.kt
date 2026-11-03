@@ -257,7 +257,7 @@ fun LastfmLoginScreen(
 
 /** A step marker plus its instruction, so the two actions read as an ordered pair. */
 @Composable
-private fun NumberedStep(
+internal fun NumberedStep(
     number: String,
     text: String,
 ) {

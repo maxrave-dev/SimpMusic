@@ -20,6 +20,7 @@ import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
+import com.maxrave.domain.repository.DiscordRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.domain.repository.SongRepository
@@ -79,6 +80,7 @@ class SettingsViewModel(
     private val cacheRepository: CacheRepository,
     private val artistRepository: ArtistRepository,
     private val lyricsRomanizerRepository: LyricsRomanizerRepository,
+    private val discordRepository: DiscordRepository,
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
@@ -570,8 +572,8 @@ class SettingsViewModel(
 
     private fun getDiscordLoggedIn() {
         viewModelScope.launch {
-            dataStoreManager.discordToken.collect { loggedIn ->
-                _discordLoggedIn.value = loggedIn.isNotEmpty()
+            discordRepository.loggedIn.collect { loggedIn ->
+                _discordLoggedIn.value = loggedIn
             }
         }
     }
@@ -615,7 +617,7 @@ class SettingsViewModel(
 
     fun logOutDiscord() {
         viewModelScope.launch {
-            dataStoreManager.setDiscordToken("")
+            discordRepository.logout()
             // Turn Rich Presence off on logout: without a token it can't run, and leaving the flag on
             // would both strand the user (the toggle greys out when logged out) and let the player keep
             // a dead RPC alive (issue #2157). The existing richPresenceEnabled collector refreshes the UI.

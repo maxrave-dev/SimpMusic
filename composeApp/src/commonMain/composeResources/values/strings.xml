@@ -667,6 +667,10 @@
     <string name="lastfm_paste_callback_title">Did not come back automatically?</string>
     <string name="lastfm_paste_callback_hint">Paste the link your browser was redirected to</string>
     <string name="lastfm_paste_callback_confirm">Continue with this link</string>
+    <string name="discord_login_step_1">Open Discord and allow SimpMusic to show what you're listening to.</string>
+    <string name="discord_login_step_2">SimpMusic opens again on its own once you have allowed it.</string>
+    <string name="discord_open_authorize_page">Open Discord</string>
+    <string name="discord_login_failed">Could not log in to Discord. Please try again.</string>
     <string name="logged_in_as">Logged in as %1$s</string>
     <string name="youtube_liked_music">YouTube Liked Music</string>
     <string name="keep_your_youtube_playlist_offline">Keep showing your YouTube playlist when offline</string>
