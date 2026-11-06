@@ -84,6 +84,7 @@ import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.WrappedDestination
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDestination
@@ -107,9 +108,11 @@ import com.maxrave.simpmusic.ui.theme.desktopWindowLight
 import com.maxrave.simpmusic.ui.theme.fontFamily
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.utils.LISTEN_TOGETHER_APP_PATH
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.utils.isAppLinkAvailable
 import com.maxrave.simpmusic.utils.libraryTabOf
+import com.maxrave.simpmusic.utils.normalizedRoomCode
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
@@ -232,6 +235,10 @@ fun App(
         val data = intent.data
         Logger.d("MainActivity", "onCreate: $data")
         if (data != null) {
+            // A link that launched the app can get here before NavHost, composed further down, has
+            // set its graph, and navigating then throws. Wait here, before any setIntent(null):
+            // clearing the intent changes this effect's key and would cancel the wait.
+            navController.currentBackStackEntryFlow.first()
             if (data.scheme == "simpmusic" && data.host == "notification") {
                 viewModel.setIntent(null)
                 navController.navigate(
@@ -361,6 +368,19 @@ fun App(
                         if (isAppLinkAvailable(appPath, null, localTrackingOn, youTubeLoggedIn)) {
                             viewModel.requestLibraryTab(LibraryChipType.YOUR_LIBRARY)
                             navController.navigate(LibraryDestination)
+                        } else {
+                            viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
+                        }
+                    }
+
+                    // simpmusic://listen-together?code=ROOMCODE — a room's QR code, read by the phone's
+                    // camera app. It only fills in the form: joining a room stays the user's tap.
+                    LISTEN_TOGETHER_APP_PATH -> {
+                        val roomCode = normalizedRoomCode(data.getQueryParameter("code"))
+                        if (roomCode != null) {
+                            viewModel.requestListenTogetherRoom(roomCode)
+                            // Single top: already on Listen Together, that screen takes the request.
+                            navController.navigate(ListenTogetherDestination) { launchSingleTop = true }
                         } else {
                             viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                         }

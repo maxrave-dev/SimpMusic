@@ -94,7 +94,7 @@ nucleus-notification = "2.5.18"
 commonsIo = "2.5"
 packagedeps = "0.2.5"
 conveyor = "2.0"
-# Login sync: QR encode (Desktop) + decode (Android), and the Android scanner's camera
+# QR codes (Login sync, Listen Together): encode + decode on both platforms, and the Android scanner's camera
 zxing = "3.5.4"
 camerax = "1.6.2"
 
