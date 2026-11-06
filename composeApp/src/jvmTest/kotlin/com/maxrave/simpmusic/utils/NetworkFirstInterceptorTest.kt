@@ -229,7 +229,7 @@ class NetworkFirstInterceptorTest {
     fun localFilesAreNotSentThroughTheNetworkFirstPath() = withFixture { fixture ->
         val file = fixture.directory.resolve("local.img").toFile()
         file.writeText("cover:local")
-        val request = fixture.request.newBuilder().data(file.toURI().toString()).build()
+        val request = fixture.request.newBuilder().data(file).build()
 
         val result = assertIs<SuccessResult>(fixture.loader.execute(request))
 
