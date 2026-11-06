@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.player.content
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,8 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,15 +28,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
@@ -68,6 +66,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -90,6 +89,7 @@ import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
 import com.maxrave.simpmusic.expect.ui.MediaPlayerViewWithSubtitle
+import com.maxrave.simpmusic.expect.ui.PlatformBackHandler
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
@@ -104,16 +104,18 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.TIMESTAMP_REGEX
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
+import com.maxrave.simpmusic.ui.icon.AddCircleOutline
+import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.CommentOutline
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
-import com.maxrave.simpmusic.ui.icon.GraphicEq
 import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PlayArrow
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Repeat
 import com.maxrave.simpmusic.ui.icon.RepeatOne
@@ -125,11 +127,14 @@ import com.maxrave.simpmusic.ui.icon.SkipPrevious
 import com.maxrave.simpmusic.ui.icon.Subtitles
 import com.maxrave.simpmusic.ui.icon.SubtitlesOff
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicLyricStrip
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicLyricsView
+import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AppleMusicView
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
 import com.maxrave.simpmusic.ui.screen.player.content.soundcloud.SoundCloudWaveform
 import com.maxrave.simpmusic.ui.screen.player.content.soundcloud.rememberSteadyPlayhead
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
+import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SoundCloudPlayerViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -140,7 +145,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.comment_placeholder
-import simpmusic.composeapp.generated.resources.song_info
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -168,8 +172,87 @@ fun NowPlayingContentSoundCloud(
     // The waveform keeps the app's own primary on every track (owner's call), so it is read here,
     // before the artwork scheme is entered.
     val appPrimary = MaterialTheme.colorScheme.primary
-    NowPlayingExpressiveTheme(state = state) {
-        NowPlayingSoundCloudLayout(state = state, actions = actions, waveformColor = appPrimary)
+    // The Apple Music style's Lyrics page, borrowed without its bottom cluster (owner's call).
+    var showLyrics by rememberSaveable { mutableStateOf(false) }
+    // As the Apple Music style does: every track change starts with no lyrics until they arrive, so
+    // only a track that still has none after the wait sends the page back to the card.
+    LaunchedEffect(state.screenData.lyricsData, showLyrics) {
+        if (!showLyrics || state.screenData.lyricsData != null) return@LaunchedEffect
+        delay(SOUNDCLOUD_LYRICS_GRACE_MS)
+        showLyrics = false
+    }
+    Crossfade(targetState = showLyrics, animationSpec = tween(300), label = "soundCloudView") { lyrics ->
+        if (lyrics) {
+            SoundCloudLyricsPage(state = state, actions = actions, onBack = { showLyrics = false })
+        } else {
+            NowPlayingExpressiveTheme(state = state) {
+                NowPlayingSoundCloudLayout(
+                    state = state,
+                    actions = actions,
+                    waveformColor = appPrimary,
+                    // Nothing without lyrics, as the Apple Music style's Lyrics pill is disabled then.
+                    onOpenLyrics = { if (state.screenData.lyricsData != null) showLyrics = true },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The Apple Music style's Lyrics page as that style draws it — frosted cover, compact header, the
+ * app's lyrics renderer and its floating buttons — minus the bottom cluster. The header (or Back on
+ * Android) returns to the card.
+ */
+@Composable
+private fun SoundCloudLyricsPage(
+    state: NowPlayingContentState,
+    actions: NowPlayingContentActions,
+    onBack: () -> Unit,
+) {
+    val paletteColor = state.startColor.value
+    val seedColor = if (paletteColor == Color.Black) seed else paletteColor
+    val localDensity = LocalDensity.current
+    PlatformBackHandler(enabled = true, onBack = onBack)
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        AppleMusicArtworkBackdrop(state = state, actions = actions, seedColor = seedColor)
+        AppleMusicLyricsView(
+            state = state,
+            actions = actions,
+            typography = rememberAppleMusicTypography(),
+            viewState = AppleMusicView.LYRICS,
+            onSelectView = {},
+            activePillContainer = Color.Transparent,
+            activePillContent = Color.Transparent,
+            deviceVolumeController = null,
+            outputName = null,
+            onOpenOutput = {},
+            showBottomCluster = false,
+            onBack = onBack,
+        )
+        // The Apple Music style's grabber, which this page leaves room for; Desktop draws none on its
+        // Lyrics page either.
+        if (getPlatform() != Platform.Desktop) {
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() })
+                        .size(width = 64.dp, height = SOUNDCLOUD_GRABBER_HEIGHT)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { actions.onDismiss() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(width = 36.dp, height = 5.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White.copy(alpha = 0.35f)),
+                )
+            }
+        }
     }
 }
 
@@ -178,6 +261,7 @@ private fun NowPlayingSoundCloudLayout(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     waveformColor: Color,
+    onOpenLyrics: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     val glassOn = LocalLiquidGlassEnabled.current
@@ -346,8 +430,20 @@ private fun NowPlayingSoundCloudLayout(
                         stripAlpha = stripAlpha,
                         onClick = actions.onNavigateToArtist,
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    SongInfoChip(stripAlpha = stripAlpha, onClick = actions.onShowInfo)
+                    // Hidden until the track's info has arrived, then faded in. AnimatedContent, so
+                    // the outgoing chip keeps its own count while it fades.
+                    AnimatedContent(
+                        targetState = state.screenData.songInfoData?.viewCount?.toCompactCount(),
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "soundCloudPlayCount",
+                    ) { count ->
+                        if (count != null) {
+                            Column {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                PlayCountChip(count = count, stripAlpha = stripAlpha, onClick = actions.onShowInfo)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -372,8 +468,25 @@ private fun NowPlayingSoundCloudLayout(
                     CornerIconButton(
                         backdrop = backdrop,
                         icon = SimpIcons.Lyrics,
+                        // Dimmed while the track has no lyrics, when it does nothing.
+                        tint = if (state.screenData.lyricsData != null) colors.onSurface else colors.onSurface.copy(alpha = 0.38f),
+                        onClick = onOpenLyrics,
+                    )
+                    // The other styles' add-to-YouTube-Liked (signed in only, a tick once liked) and
+                    // add-to-playlist, with the same actions.
+                    if (state.isUserLoggedIn) {
+                        CornerIconButton(
+                            backdrop = backdrop,
+                            icon = if (state.likeStatus) SimpIcons.CheckCircle else SimpIcons.AddCircleOutline,
+                            tint = colors.onSurface,
+                            onClick = actions.onAddToYouTubeLiked,
+                        )
+                    }
+                    CornerIconButton(
+                        backdrop = backdrop,
+                        icon = SimpIcons.PlaylistAdd,
                         tint = colors.onSurface,
-                        onClick = actions.onShowFullscreenLyrics,
+                        onClick = actions.onShowAddToPlaylist,
                     )
                     // A music video gets what the other styles put over theirs: fullscreen, and the
                     // lyrics as subtitles on the video (on by default, as there).
@@ -478,7 +591,7 @@ private fun NowPlayingSoundCloudLayout(
                 AppleMusicLyricStrip(
                     state = state,
                     typography = rememberAppleMusicTypography(),
-                    onClick = actions.onShowFullscreenLyrics,
+                    onClick = onOpenLyrics,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 if (timeline.isLive) {
@@ -536,18 +649,14 @@ private fun NowPlayingSoundCloudLayout(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Like and comments (the track's counts), shuffle and repeat (how it plays), the queue, then more.
-                CountButton(
-                    icon = if (state.likeStatus) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
-                    tint = if (state.likeStatus) colors.primary else colors.onSurface,
-                    count = state.screenData.songInfoData?.like?.toCompactCount(),
+                // Like and comments, shuffle and repeat (how it plays), the queue, then more. No counts
+                // (owner's call): the like is the app's own, which has none.
+                RippleIconButton(
+                    imageVector = if (state.controllerState.isLiked) SimpIcons.Favorite else SimpIcons.FavoriteBorder,
+                    tint = if (state.controllerState.isLiked) colors.primary else colors.onSurface,
                     onClick = { actions.onUIEvent(UIEvent.ToggleLike) },
                 )
-                CountButton(
-                    icon = SimpIcons.CommentOutline,
-                    count = trackComments.takeIf { it.videoId == videoId }?.count,
-                    onClick = actions.onShowComments,
-                )
+                RippleIconButton(imageVector = SimpIcons.CommentOutline, tint = colors.onSurface, onClick = actions.onShowComments)
                 RippleIconButton(
                     imageVector = SimpIcons.Shuffle,
                     tint = if (state.controllerState.isShuffle) colors.primary else colors.onSurface,
@@ -559,10 +668,7 @@ private fun NowPlayingSoundCloudLayout(
                     tint = if (repeatState is RepeatState.None) colors.onSurface else colors.primary,
                     onClick = { actions.onUIEvent(UIEvent.Repeat) },
                 )
-                // Not on Desktop, whose capsule player already opens the queue; a phone has no other way in.
-                if (getPlatform() != Platform.Desktop) {
-                    RippleIconButton(imageVector = SimpIcons.QueueMusic, tint = colors.onSurface, onClick = actions.onShowQueue)
-                }
+                RippleIconButton(imageVector = SimpIcons.QueueMusic, tint = colors.onSurface, onClick = actions.onShowQueue)
                 RippleIconButton(imageVector = SimpIcons.MoreVert, tint = colors.onSurface, onClick = actions.onShowMoreSheet)
             }
         }
@@ -659,20 +765,38 @@ private fun SoundCloudArtwork(
             modifier = Modifier.fillMaxSize().alpha(coverAlpha).then(lowerBlur),
         )
         if (showVideo) {
-            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
-                MediaPlayerViewWithSubtitle(
-                    playerName = MAIN_PLAYER,
-                    // fillMaxWidth, never fillMaxSize: a free height lets the video keep its shape.
-                    modifier = Modifier.fillMaxWidth().align(Alignment.Center),
-                    shouldShowSubtitle = showSubtitle,
-                    shouldScaleDownSubtitle = true,
-                    isInPipMode = state.isInPipMode,
-                    timelineState = state.timelineState,
-                    lyricsData = state.screenData.lyricsData?.lyrics,
-                    translatedLyricsData = state.screenData.lyricsData?.translatedLyrics?.first,
-                    mainTextStyle = typo().bodyLarge,
-                    translatedTextStyle = typo().bodyMedium,
-                )
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
+                // A frame of the video's own shape, as M3 Expressive and the Apple Music style give
+                // theirs. Without it the view grows to the whole card (its subtitle layer fills its
+                // parent), so the subtitles sat on the card's bottom edge under the comment box and
+                // the scrim, and Desktop letterboxed the picture across the whole card. The frame fits
+                // above the lower block, and stays centred in the card unless that would run it under.
+                val ratio = state.videoAspectRatio.takeIf { it > 0f } ?: (16f / 9)
+                val lowerBlock = with(LocalDensity.current) { lowerBlockHeight.intValue.toDp() }
+                val zone = (maxHeight - lowerBlock).coerceAtLeast(0.dp)
+                val frameHeight = minOf(maxWidth / ratio, zone)
+                val frameTop = minOf((maxHeight - frameHeight) / 2, zone - frameHeight).coerceAtLeast(0.dp)
+                Box(
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = frameTop)
+                            .size(width = frameHeight * ratio, height = frameHeight),
+                ) {
+                    MediaPlayerViewWithSubtitle(
+                        playerName = MAIN_PLAYER,
+                        // fillMaxWidth, never fillMaxSize: a free height lets the video keep its shape.
+                        modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                        shouldShowSubtitle = showSubtitle,
+                        shouldScaleDownSubtitle = true,
+                        isInPipMode = state.isInPipMode,
+                        timelineState = state.timelineState,
+                        lyricsData = state.screenData.lyricsData?.lyrics,
+                        translatedLyricsData = state.screenData.lyricsData?.translatedLyrics?.first,
+                        mainTextStyle = typo().bodyLarge,
+                        translatedTextStyle = typo().bodyMedium,
+                    )
+                }
             }
         }
     }
@@ -731,9 +855,13 @@ private fun SoundCloudLabel(
     )
 }
 
-/** The "Song info" chip under the labels, on a strip of its own that fades with theirs. */
+/**
+ * The track's YouTube view count under the labels, where SoundCloud shows its play count, on a strip
+ * of its own that fades with theirs. A tap opens the track's info, as the chip did before.
+ */
 @Composable
-private fun SongInfoChip(
+private fun PlayCountChip(
+    count: String,
     stripAlpha: () -> Float,
     onClick: () -> Unit,
 ) {
@@ -746,10 +874,10 @@ private fun SongInfoChip(
                 .padding(horizontal = LABEL_PADDING_X, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = SimpIcons.GraphicEq, contentDescription = null, tint = colors.onSurface, modifier = Modifier.size(14.dp))
-        Spacer(modifier = Modifier.width(5.dp))
+        Icon(imageVector = SimpIcons.PlayArrow, contentDescription = null, tint = colors.onSurface, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = stringResource(Res.string.song_info),
+            text = count,
             style = typo().bodyMedium.copy(fontSize = 12.sp),
             color = colors.onSurface,
             maxLines = 1,
@@ -817,28 +945,6 @@ private fun CornerIconButton(
         RoundButton(backdrop = backdrop, icon = icon, size = 40.dp, iconSize = 24.dp, tint = tint, onClick = onClick)
     } else {
         RippleIconButton(imageVector = icon, tint = tint, onClick = onClick)
-    }
-}
-
-/** An icon with its count beside it, as SoundCloud draws like and comments. */
-@Composable
-private fun CountButton(
-    icon: ImageVector,
-    count: String?,
-    onClick: () -> Unit,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
-) {
-    TextButton(
-        onClick = onClick,
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
-        // Tighter than a TextButton's 12dp, so the six buttons a phone shows fit across 360dp.
-        contentPadding = PaddingValues(horizontal = 8.dp),
-    ) {
-        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
-        if (count != null) {
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(text = count, style = typo().labelLarge, color = LocalContentColor.current)
-        }
     }
 }
 
@@ -1011,3 +1117,8 @@ private const val PAUSE_SETTLE_MS = 250L
 private const val COMMENT_SHOWN_MS = 4_500L
 private const val SEEK_SETTLE_TIMEOUT_MS = 2_000L
 private const val SEEK_SETTLED_WITHIN_MS = 1_000L
+
+// How long the Lyrics page waits for a track's lyrics before going back to the card (the Apple Music
+// style's wait), and the height of the grabber it draws as that style does.
+private const val SOUNDCLOUD_LYRICS_GRACE_MS = 2_500L
+private val SOUNDCLOUD_GRABBER_HEIGHT = 28.dp

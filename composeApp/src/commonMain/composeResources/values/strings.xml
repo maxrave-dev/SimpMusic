@@ -444,7 +444,6 @@
     <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
     <string name="now_playing_style_apple_music" translatable="false">Apple Music</string>
     <string name="now_playing_style_soundcloud" translatable="false">SoundCloud</string>
-    <string name="song_info">Song info</string>
     <string name="ai_translated">AI translated</string>
     <string name="lyrics_style">Lyrics style</string>
     <string name="lyrics_style_classic">Classic</string>

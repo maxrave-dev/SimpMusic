@@ -2887,18 +2887,18 @@ fun SettingScreen(
         )
     }
     if (showColorPickerDialog) {
+        // The primary colour of each music app, as its brand publishes it. Names are brand names and
+        // are not translated.
         val presetColors =
             listOf(
-                "FF8ECAE6",
-                "FF4C82EF",
-                "FF9B72CF",
-                "FFEF6C9B",
-                "FFEF5350",
-                "FFF4A340",
-                "FFFFCA28",
-                "FF66BB6A",
-                "FF26A69A",
-                "FFBDBDBD",
+                "FF1ED760" to "Spotify",
+                "FFFF5500" to "SoundCloud",
+                "FFFA243C" to "Apple Music",
+                "FFFF0000" to "YouTube Music",
+                "FFA238FF" to "Deezer",
+                "FF3668FF" to "Pandora",
+                "FFFFA200" to "Audiomack",
+                "FF1DA0C3" to "Bandcamp",
             )
         var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
         val parsedColor = parseThemeColorHex(pendingHex)
@@ -2907,24 +2907,47 @@ fun SettingScreen(
             title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
             text = {
                 Column {
-                    presetColors.chunked(5).forEach { rowColors ->
-                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                            rowColors.forEach { hex ->
+                    // Four across: at five, a cell is too narrow for "SoundCloud" under its swatch.
+                    presetColors.chunked(4).forEach { rowColors ->
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            rowColors.forEach { (hex, name) ->
                                 val color = parseThemeColorHex(hex) ?: Color.Gray
                                 val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
-                                Box(
+                                Column(
                                     modifier =
                                         Modifier
-                                            .padding(4.dp)
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(color)
-                                            .border(
-                                                width = if (isSelected) 3.dp else 0.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                                                shape = CircleShape,
-                                            ).clickable { pendingHex = hex.takeLast(6) },
-                                )
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable { pendingHex = hex.takeLast(6) }
+                                            .padding(vertical = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(color)
+                                                .border(
+                                                    width = if (isSelected) 3.dp else 0.dp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                                    shape = CircleShape,
+                                                ),
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = name,
+                                        style = typo().bodySmall,
+                                        color =
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.onSurface
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            },
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                    )
+                                }
                             }
                         }
                     }
