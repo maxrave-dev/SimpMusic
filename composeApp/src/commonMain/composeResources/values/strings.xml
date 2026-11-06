@@ -443,6 +443,8 @@
     <string name="now_playing_style_spotify">Classic</string>
     <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
     <string name="now_playing_style_apple_music" translatable="false">Apple Music</string>
+    <string name="now_playing_style_soundcloud" translatable="false">SoundCloud</string>
+    <string name="song_info">Song info</string>
     <string name="ai_translated">AI translated</string>
     <string name="lyrics_style">Lyrics style</string>
     <string name="lyrics_style_classic">Classic</string>
@@ -1027,6 +1029,7 @@
     <string name="comments_load_error">Couldn't load comments</string>
     <string name="comment_post_error">Couldn't post your comment</string>
     <string name="comments_need_channel">Create a YouTube channel to comment</string>
+    <string name="comment_placeholder">Comment…</string>
     <string name="local_playlist">Local playlist</string>
     <string name="create_playlist_description">Build a playlist on this device</string>
     <string name="create_room_description">Start or join a room</string>

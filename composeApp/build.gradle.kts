@@ -764,7 +764,7 @@ val mpvBundleAll by tasks.registering {
  */
 val mpvNativesChecksums =
     mapOf(
-        "linux-x64" to "f583c29531355f83579b9f5509424c659bed2a122624a03d47fb41682afb24c4",
+        "linux-x64" to "ab9957e812f6b27ef28d24b13d38a00b428a6529c87876c1c80d0427d8251d05",
         "macos-arm64" to "e527daac8f6cc196324ea6f0ce54d119d04450af9795ff2856c1891806c1d5e0",
         "macos-x64" to "95170ea54e1f637fdee148a9efd97993c305a92e233b8478d3764fbecce3eb02",
         "windows-x64" to "256f17cf402c7583b8684d5a7cf585ad1b59695469219671f4887b9d8d272a99",

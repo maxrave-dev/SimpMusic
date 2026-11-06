@@ -358,6 +358,7 @@ import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
 import simpmusic.composeapp.generated.resources.now_playing_style
 import simpmusic.composeapp.generated.resources.now_playing_style_apple_music
+import simpmusic.composeapp.generated.resources.now_playing_style_soundcloud
 import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
 import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
@@ -766,6 +767,7 @@ fun SettingScreen(
                             DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
                             DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
                                 stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
+                            DataStoreManager.NOW_PLAYING_STYLE_SOUNDCLOUD to stringResource(Res.string.now_playing_style_soundcloud),
                         )
                     SettingItem(
                         title = stringResource(Res.string.now_playing_style),

@@ -69,6 +69,12 @@ RUN git clone --depth 1 --branch v7.351.0 --recursive \
 #   asplit + amix - the wet/dry blend: afir's dry/wet are input/output GAIN, not
 #            a mix, so the dry path is split off before afir and mixed back after
 #            (amix `weights` is a runtime command -> live mix slider).
+#
+# The three after amix measure the SoundCloud Now Playing style's waveform
+# (MpvWaveformReader), on a second, silent handle:
+#   asetnsamples - cuts the audio into one frame per waveform bar,
+#   astats       - measures each frame's RMS and exports it as frame metadata,
+#   ametadata    - prints that metadata to a file the app reads back.
 # ---------------------------------------------------------------------------
 RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
     cd ffmpeg && \
@@ -77,7 +83,7 @@ RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git ffm
         --enable-shared --disable-static \
         --disable-programs --disable-doc --disable-debug \
         --disable-encoders --disable-muxers --disable-devices \
-        --disable-filters --enable-filter=aresample,atempo,rubberband,scale,format,aformat,anull,null,volume,lavfi,acompressor,firequalizer,equalizer,highpass,lowpass,dynaudnorm,loudnorm,aecho,afir,amovie,asplit,amix \
+        --disable-filters --enable-filter=aresample,atempo,rubberband,scale,format,aformat,anull,null,volume,lavfi,acompressor,firequalizer,equalizer,highpass,lowpass,dynaudnorm,loudnorm,aecho,afir,amovie,asplit,amix,asetnsamples,astats,ametadata \
         --enable-openssl --enable-protocol=https,http,tls,file,pipe,crypto,hls,data \
         --enable-libdav1d \
         --enable-version3 \
