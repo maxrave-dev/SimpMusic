@@ -52,8 +52,10 @@ import com.maxrave.domain.data.type.MonthlyRecapItem
 import com.maxrave.domain.data.type.PlaylistType
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -136,6 +138,7 @@ internal inline fun <reified T> GridLibraryPlaylist(
         state = pullToRefreshState,
         onRefresh = onReload,
         isRefreshing = data is LocalResource.Loading,
+        enabled = getPlatform() != Platform.Desktop,
         indicator = {
             PullToRefreshDefaults.Indicator(
                 state = pullToRefreshState,

@@ -754,6 +754,7 @@ fun SearchScreen(
                                 }
                             },
                             isRefreshing = uiState is SearchScreenUIState.Loading,
+                            enabled = getPlatform() != Platform.Desktop,
                             indicator = {
                                 PullToRefreshDefaults.Indicator(
                                     state = pullToRefreshState,

@@ -744,6 +744,7 @@ fun HomeScreen(
             state = pullToRefreshState,
             onRefresh = onRefresh,
             isRefreshing = isRefreshing,
+            enabled = getPlatform() != Platform.Desktop,
             indicator = {
                 PullToRefreshDefaults.Indicator(
                     state = pullToRefreshState,
