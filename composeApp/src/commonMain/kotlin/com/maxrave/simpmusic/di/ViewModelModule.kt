@@ -7,6 +7,7 @@ import com.maxrave.simpmusic.viewModel.ListenTogetherSettingsViewModel
 import com.maxrave.simpmusic.viewModel.ListenTogetherViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.BrowseViewModel
+import com.maxrave.simpmusic.viewModel.BrowserLoginViewModel
 import com.maxrave.simpmusic.viewModel.CommentsViewModel
 import com.maxrave.simpmusic.viewModel.SoundCloudPlayerViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -67,6 +68,7 @@ val viewModelModule =
         // sender. Koin resolves dependencies when a ViewModel is created, not when it is declared.
         viewModel { LoginSyncHostViewModel(get()) }
         viewModel { LoginSyncSenderViewModel(get()) }
+        viewModel { BrowserLoginViewModel(get()) }
         viewModel { CommentsViewModel(get(), get()) }
         viewModel { SoundCloudPlayerViewModel(get()) }
         viewModel {

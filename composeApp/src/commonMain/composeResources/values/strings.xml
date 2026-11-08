@@ -1074,4 +1074,18 @@
     <string name="recognize_mic_needed">Microphone access needed</string>
     <string name="recognize_mic_hint">SimpMusic listens for a few seconds to find the song playing near you</string>
     <string name="recognize_allow_mic">Allow microphone</string>
+    <string name="browser_login_youtube">YouTube</string>
+    <string name="browser_login_description">Choose a browser profile to import its %1$s sign-in. Only %1$s cookies are imported; your browser is not changed.</string>
+    <string name="browser_login_found">%1$s sign-in cookies found</string>
+    <string name="browser_login_missing">No %1$s sign-in cookies found. Sign in in this browser profile, then refresh.</string>
+    <string name="browser_login_permission">Permission is required to read this profile. Allow access, then try again.</string>
+    <string name="browser_login_full_disk_access">Allow SimpMusic in Privacy &amp; Security → Full Disk Access. Use + to add the app if it is not listed, then return here.</string>
+    <string name="browser_login_open_settings">Open System Settings</string>
+    <string name="browser_login_unreadable">This profile could not be read. Try again, or close the browser and refresh.</string>
+    <string name="browser_login_unsupported">This profile uses unsupported cookie encryption. Use manual sign-in or send sign-ins from your phone.</string>
+    <string name="browser_login_importing">Importing sign-in… Approve browser storage access if your system asks.</string>
+    <string name="browser_login_key_unavailable">The browser storage key is unavailable. Unlock your keyring and try again, or use manual sign-in.</string>
+    <string name="browser_login_busy">The browser data changed while it was being read. Close the browser and try again.</string>
+    <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
+    <string name="browser_login_refresh">Refresh browser profiles</string>
 </resources>

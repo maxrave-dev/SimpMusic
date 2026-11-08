@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import org.simpmusic.lastfm.authorizeUrl
 import org.simpmusic.lastfm.completeLogin
 
@@ -28,7 +29,7 @@ class LogInViewModel(
     private val _fullYouTubeCookies: MutableStateFlow<List<Pair<String, String?>>> = MutableStateFlow(emptyList())
     val fullYouTubeCookies: StateFlow<List<Pair<String, String?>>> get() = _fullYouTubeCookies.asStateFlow()
 
-    fun saveSpotifySpdc(cookie: String) {
+    fun saveSpotifySpdc(cookie: String): Job =
         viewModelScope.launch {
             cookie
                 .split("; ")
@@ -42,7 +43,6 @@ class LogInViewModel(
                     _spotifyStatus.value = true
                 }
         }
-    }
 
     fun setVisitorData(visitorData: String) {
         viewModelScope.launch {
