@@ -5,6 +5,7 @@ import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.AnalyticsViewModel
 import com.maxrave.simpmusic.viewModel.ListenTogetherSettingsViewModel
 import com.maxrave.simpmusic.viewModel.ListenTogetherViewModel
+import com.maxrave.simpmusic.viewModel.SpotifyImportViewModel
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.BrowseViewModel
 import com.maxrave.simpmusic.viewModel.BrowserLoginViewModel
@@ -151,6 +152,13 @@ val viewModelModule =
         }
         viewModel {
             LogInViewModel(
+                get(),
+                get(),
+            )
+        }
+        viewModel {
+            SpotifyImportViewModel(
+                get(),
                 get(),
                 get(),
             )

@@ -142,6 +142,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.home.CreditDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.DiscordLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LastfmLoginDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyImportDestination
 import com.maxrave.simpmusic.ui.navigation.destination.login.SpotifyLoginDestination
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
@@ -415,6 +416,8 @@ import simpmusic.composeapp.generated.resources.sponsorBlock
 import simpmusic.composeapp.generated.resources.sponsor_block_intro
 import simpmusic.composeapp.generated.resources.spotify
 import simpmusic.composeapp.generated.resources.spotify_canvas_cache
+import simpmusic.composeapp.generated.resources.spotify_import_subtitle
+import simpmusic.composeapp.generated.resources.spotify_import_title
 import simpmusic.composeapp.generated.resources.spotify_lyrícs_info
 import simpmusic.composeapp.generated.resources.storage
 import simpmusic.composeapp.generated.resources.such_as_music_video_lyrics_video_podcasts_and_more
@@ -2088,6 +2091,12 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.spotify_lyrícs_info),
                     switch = (spotifyLyrics to { viewModel.setSpotifyLyrics(it) }),
                     isEnable = spotifyLoggedIn,
+                )
+                SettingItem(
+                    title = stringResource(Res.string.spotify_import_title),
+                    subtitle = stringResource(Res.string.spotify_import_subtitle),
+                    isEnable = spotifyLoggedIn,
+                    onClick = { navController.navigate(SpotifyImportDestination) },
                 )
                 SettingItem(
                     title = stringResource(Res.string.enable_canvas),

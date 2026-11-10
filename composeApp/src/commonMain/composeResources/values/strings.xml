@@ -1074,6 +1074,7 @@
     <string name="recognize_mic_needed">Microphone access needed</string>
     <string name="recognize_mic_hint">SimpMusic listens for a few seconds to find the song playing near you</string>
     <string name="recognize_allow_mic">Allow microphone</string>
+<<<<<<< ours
     <string name="browser_login_youtube">YouTube</string>
     <string name="browser_login_description">Choose a browser profile to import its %1$s sign-in. Only %1$s cookies are imported; your browser is not changed.</string>
     <string name="browser_login_found">%1$s sign-in cookies found</string>
@@ -1089,4 +1090,21 @@
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
     <string name="soundcloud_play_count_info">%1$s - song info</string>
+=======
+    <string name="spotify_import_title">Import from Spotify</string>
+    <string name="spotify_import_subtitle">Bring your Spotify playlists and liked songs in, matched to YT Music</string>
+    <string name="spotify_import_liked">Liked songs</string>
+    <string name="spotify_import_tracks">%1$d tracks</string>
+    <string name="spotify_import_progress">Importing %1$s: %2$d / %3$d</string>
+    <string name="spotify_import_done">%1$s: %2$d of %3$d added</string>
+    <string name="spotify_import_already">%1$d were already in the playlist</string>
+    <string name="spotify_import_skipped">%1$d could not be looked up (local files, podcasts, removed tracks)</string>
+    <string name="spotify_import_unmatched">%1$d not found on YT Music:</string>
+    <string name="spotify_import_error_login">Log in to Spotify first</string>
+    <string name="spotify_import_error_expired">Your Spotify session expired. Log in again</string>
+    <string name="spotify_import_error_not_allowed">Spotify does not let this account read that playlist</string>
+    <string name="spotify_import_error_rate_limited">Spotify is limiting requests. Try again in a minute</string>
+    <string name="spotify_import_error_network">Could not reach Spotify</string>
+    <string name="spotify_import_empty">No playlists found</string>
+>>>>>>> theirs
 </resources>
