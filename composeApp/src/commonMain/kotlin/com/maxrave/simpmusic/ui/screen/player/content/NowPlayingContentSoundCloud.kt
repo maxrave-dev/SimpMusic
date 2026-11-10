@@ -2,7 +2,12 @@ package com.maxrave.simpmusic.ui.screen.player.content
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,12 +31,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +43,7 @@ import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,12 +57,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.TileMode
@@ -100,6 +107,7 @@ import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.smoothScrimBrush
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LiquidGlassContainer
+import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.TIMESTAMP_REGEX
 import com.maxrave.simpmusic.ui.component.liquidGlass
@@ -145,6 +153,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.comment_placeholder
+import simpmusic.composeapp.generated.resources.crossfading
+import simpmusic.composeapp.generated.resources.soundcloud_play_count_info
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -395,14 +405,40 @@ private fun NowPlayingSoundCloudLayout(
                     .background(colors.surfaceContainer)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = togglePlayPause),
         ) {
-            SoundCloudArtwork(
-                state = state,
-                actions = actions,
-                showVideo = showVideo,
-                showSubtitle = showSubtitle,
-                lowerBlockHeight = lowerBlockHeight,
-                modifier = artworkModifier,
-            )
+            if (getPlatform() == Platform.Android) {
+                LeftToRight {
+                    HorizontalPager(
+                        state = state.artworkPagerState,
+                        // Record the visible pager once, not each neighboring page, for the glass.
+                        modifier = artworkModifier.fillMaxSize(),
+                        beyondViewportPageCount = 1,
+                        userScrollEnabled = state.controllerState.repeatState !is RepeatState.One && state.artworkQueue.isNotEmpty(),
+                        key = { page ->
+                            val id = state.artworkQueue.getOrNull(page)?.videoId.orEmpty()
+                            "soundCloudArtwork_${id}_$page"
+                        },
+                    ) { page ->
+                        SoundCloudArtwork(
+                            state = state,
+                            actions = actions,
+                            showVideo = showVideo,
+                            showSubtitle = showSubtitle,
+                            lowerBlockHeight = lowerBlockHeight,
+                            modifier = Modifier.clipToBounds(),
+                            page = page,
+                        )
+                    }
+                }
+            } else {
+                SoundCloudArtwork(
+                    state = state,
+                    actions = actions,
+                    showVideo = showVideo,
+                    showSubtitle = showSubtitle,
+                    lowerBlockHeight = lowerBlockHeight,
+                    modifier = artworkModifier,
+                )
+            }
 
             androidx.compose.animation.AnimatedVisibility(
                 visible = !scrubbing,
@@ -457,7 +493,17 @@ private fun NowPlayingSoundCloudLayout(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    RoundButton(backdrop = backdrop, icon = state.dismissIcon, size = 40.dp, iconSize = 24.dp, onClick = actions.onDismiss)
+                    LiquidGlassIconButton(
+                        backdrop = backdrop,
+                        imageVector = state.dismissIcon,
+                        modifier = Modifier.size(40.dp),
+                        tint = colors.onSurface,
+                        // Closing already animates the whole sheet; do not animate refraction and
+                        // press-scale on this button at the same time.
+                        interactive = false,
+                        highlight = Highlight(width = 1.dp),
+                        onClick = actions.onDismiss,
+                    )
                     // The output button Classic and M3 Expressive use, opening the same sheet.
                     CornerIconButton(
                         backdrop = backdrop,
@@ -606,7 +652,8 @@ private fun NowPlayingSoundCloudLayout(
                     // Time runs left to right in every language: the waveform's drag, its playhead and its label.
                     LeftToRight {
                         SoundCloudWaveform(
-                            bars = waveform?.takeIf { it.videoId == videoId }?.bars,
+                            mediaId = videoId,
+                            bars = waveform?.takeIf { it.videoId == videoId }?.bars?.takeIf { it.isNotEmpty() },
                             position = position,
                             durationMs = durationMs,
                             playedColor = waveformColor,
@@ -627,11 +674,12 @@ private fun NowPlayingSoundCloudLayout(
                         )
                     }
                 }
+                SoundCloudPlaybackStatus(state = state)
                 Spacer(modifier = Modifier.height(12.dp))
                 CommentBox(
                     backdrop = backdrop,
-                    onOpen = actions.onShowComments,
-                    onReaction = actions.onWriteComment,
+                    position = position,
+                    onWriteComment = actions.onWriteComment,
                     modifier = Modifier.padding(horizontal = CARD_PADDING),
                 )
             }
@@ -682,6 +730,60 @@ private fun NowPlayingSoundCloudLayout(
     }
 }
 
+/** One stable slot by the waveform: crossfade status takes the stream-quality line's place. */
+@Composable
+private fun SoundCloudPlaybackStatus(state: NowPlayingContentState) = LeftToRight {
+    val colors = MaterialTheme.colorScheme
+    val transition = rememberInfiniteTransition(label = "soundCloudCrossfadeSweep")
+    val sweep by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(3200, easing = LinearEasing), repeatMode = RepeatMode.Restart),
+        label = "soundCloudSweepHead",
+    )
+    Crossfade(
+        targetState = state.timelineState.isCrossfading to state.audioQualityLabel,
+        animationSpec = tween(300),
+        label = "soundCloudPlaybackStatus",
+        // Reserve the line even before format metadata arrives, so the waveform never jumps.
+        modifier = Modifier.fillMaxWidth().height(24.dp),
+    ) { (crossfading, quality) ->
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (crossfading) {
+                val span = 140f
+                val head = sweep * (span * 3f) - span
+                Text(
+                    text = stringResource(Res.string.crossfading),
+                    style =
+                        typo().labelSmall.copy(
+                            brush =
+                                Brush.horizontalGradient(
+                                    0f to colors.onSurface.copy(alpha = 0.45f),
+                                    0.5f to Color.White,
+                                    1f to colors.onSurface.copy(alpha = 0.45f),
+                                    startX = head,
+                                    endX = head + span,
+                                    tileMode = TileMode.Clamp,
+                                ),
+                        ),
+                    maxLines = 1,
+                )
+            } else if (quality != null) {
+                Row(modifier = Modifier.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = SimpIcons.Headphones,
+                        contentDescription = null,
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = quality, style = typo().labelSmall.copy(fontSize = 13.sp), color = colors.onSurfaceVariant, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
 /**
  * The artwork filling the card, or what plays in its place: a canvas (Spotify's, or Apple Music's
  * animated cover) cropped to the card, or the music video at its own shape on black. A video surface
@@ -700,8 +802,19 @@ private fun SoundCloudArtwork(
     showSubtitle: Boolean,
     lowerBlockHeight: IntState,
     modifier: Modifier = Modifier,
+    page: Int? = null,
 ) {
-    val canvas = state.screenData.canvasData
+    // Only the playing page may attach video/canvas or feed the shell's artwork palette.
+    // Neighboring pages preview their own queue covers; Desktop keeps its existing single page.
+    val isCurrentPage = page == null || state.artworkQueue.isEmpty() || page == state.currentOrderIndex
+    val canvas = state.screenData.canvasData.takeIf { isCurrentPage }
+    val showCurrentVideo = showVideo && isCurrentPage
+    val thumbnailUrl =
+        if (isCurrentPage) {
+            state.screenData.thumbnailURL
+        } else {
+            page?.let { state.artworkQueue.getOrNull(it) }?.thumbnails?.maxByOrNull { it.width * it.height }?.url
+        }
     Box(modifier = modifier.fillMaxSize()) {
         var canvasReady by remember(canvas?.url) { mutableStateOf(false) }
         if (canvas != null) {
@@ -713,11 +826,11 @@ private fun SoundCloudArtwork(
             )
         }
         val coverAlpha by animateFloatAsState(
-            targetValue = if (showVideo || (canvas != null && canvasReady)) 0f else 1f,
+            targetValue = if (showCurrentVideo || (canvas != null && canvasReady)) 0f else 1f,
             animationSpec = tween(COVER_FADE_MS),
             label = "soundCloudCover",
         )
-        var artworkUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+        var artworkUrl by remember(thumbnailUrl) { mutableStateOf(thumbnailUrl) }
         val request =
             ImageRequest
                 .Builder(LocalPlatformContext.current)
@@ -726,19 +839,23 @@ private fun SoundCloudArtwork(
                 .diskCacheKey(artworkUrl + "BIGGER")
                 .crossfade(550)
                 .build()
-        AsyncImage(
-            model = request,
-            contentDescription = null,
-            onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
-            onError = {
-                val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
-                if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
-            },
-            contentScale = ContentScale.Crop,
-            placeholder = rememberHolderPainter(),
-            error = rememberHolderPainter(),
-            modifier = Modifier.fillMaxSize().alpha(coverAlpha),
-        )
+        // Re-enter when a prefetched cover becomes current, even if its URL is unchanged, so the
+        // memory-cache success still hands the new track's bitmap to the shell.
+        key(isCurrentPage) {
+            AsyncImage(
+                model = request,
+                contentDescription = null,
+                onSuccess = { if (isCurrentPage) actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+                onError = {
+                    val fallback = artworkUrl?.replace("maxresdefault", "hqdefault")
+                    if (fallback != null && fallback != artworkUrl) artworkUrl = fallback
+                },
+                contentScale = ContentScale.Crop,
+                placeholder = rememberHolderPainter(),
+                error = rememberHolderPainter(),
+                modifier = Modifier.fillMaxSize().alpha(coverAlpha),
+            )
+        }
         // From the bottom up to the line of lyrics the cover melts into a blurred copy of itself, faded
         // in by a DstIn mask on the smoothstep curve the scrim over it uses. At the top of the ramp the
         // copy is fully transparent, so it leaves no seam (ArtistScreen's header does the same). It fades
@@ -764,7 +881,7 @@ private fun SoundCloudArtwork(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().alpha(coverAlpha).then(lowerBlur),
         )
-        if (showVideo) {
+        if (showCurrentVideo) {
             BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
                 // A frame of the video's own shape, as M3 Expressive and the Apple Music style give
                 // theirs. Without it the view grows to the whole card (its subtitle layer fills its
@@ -877,7 +994,7 @@ private fun PlayCountChip(
         Icon(imageVector = SimpIcons.PlayArrow, contentDescription = null, tint = colors.onSurface, modifier = Modifier.size(14.dp))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = count,
+            text = stringResource(Res.string.soundcloud_play_count_info, count),
             style = typo().bodyMedium.copy(fontSize = 12.sp),
             color = colors.onSurface,
             maxLines = 1,
@@ -886,8 +1003,7 @@ private fun PlayCountChip(
 }
 
 /**
- * A round button: liquid glass over the artwork while the app's glass is on, otherwise the black
- * circle SoundCloud gives its dismiss control and its paused transport.
+ * Shared glass surface with its built-in fallback, retaining each control's icon size and state.
  */
 @Composable
 private fun RoundButton(
@@ -899,23 +1015,6 @@ private fun RoundButton(
     tint: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit,
 ) {
-    if (!LocalLiquidGlassEnabled.current) {
-        FilledIconButton(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = Modifier.size(size),
-            colors =
-                IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                    contentColor = tint,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.6f),
-                    disabledContentColor = tint.copy(alpha = 0.38f),
-                ),
-        ) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(iconSize))
-        }
-        return
-    }
     // A 1dp highlight, as on the other small round glass buttons: a circle this size catches only a
     // short arc of the default directional rim and reads as rimless.
     LiquidGlassContainer(backdrop = backdrop, modifier = Modifier.size(size), highlight = Highlight(width = 1.dp)) {
@@ -931,8 +1030,7 @@ private fun RoundButton(
 }
 
 /**
- * Follow and output in the card's corner: plain icons on the artwork as SoundCloud draws them, or
- * glass circles matching the dismiss button above them while the app's glass is on.
+ * Corner controls share the dismiss button's glass circle and solid fallback.
  */
 @Composable
 private fun CornerIconButton(
@@ -941,25 +1039,24 @@ private fun CornerIconButton(
     tint: Color,
     onClick: () -> Unit,
 ) {
-    if (LocalLiquidGlassEnabled.current) {
-        RoundButton(backdrop = backdrop, icon = icon, size = 40.dp, iconSize = 24.dp, tint = tint, onClick = onClick)
-    } else {
-        RippleIconButton(imageVector = icon, tint = tint, onClick = onClick)
-    }
+    RoundButton(backdrop = backdrop, icon = icon, size = 40.dp, iconSize = 24.dp, tint = tint, onClick = onClick)
 }
 
 /**
- * SoundCloud's comment box under the waveform: a tap opens the comments sheet, an emoji opens it
- * with that emoji already typed.
+ * The current time leads the placeholder; opening the draft captures that time, including emoji.
  */
 @Composable
 private fun CommentBox(
     backdrop: PlatformBackdrop,
-    onOpen: () -> Unit,
-    onReaction: (String) -> Unit,
+    position: () -> Long,
+    onWriteComment: (String) -> Unit,
     modifier: Modifier = Modifier,
-) {
+) = LeftToRight {
     val colors = MaterialTheme.colorScheme
+    val latestPosition by rememberUpdatedState(position)
+    // Refresh just this label once a second, not the whole card on every playhead frame.
+    val elapsedSecond by remember { derivedStateOf { latestPosition().coerceAtLeast(0L) / 1000L } }
+    val timestamp = soundCloudCommentTimestamp(elapsedSecond * 1000L)
     Row(
         modifier =
             modifier
@@ -974,15 +1071,18 @@ private fun CommentBox(
                         Modifier.clip(CircleShape).background(colors.surfaceContainerLowest.copy(alpha = 0.6f))
                     },
                 ).clip(CircleShape)
-                .clickable(onClick = onOpen)
+                .clickable { onWriteComment("${soundCloudCommentTimestamp(latestPosition())} ") }
                 .padding(start = 16.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text(text = timestamp, style = typo().bodyMedium, color = colors.onSurfaceVariant, maxLines = 1)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = stringResource(Res.string.comment_placeholder),
             style = typo().bodyMedium,
             color = colors.onSurfaceVariant,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         QUICK_REACTIONS.forEach { emoji ->
@@ -992,10 +1092,22 @@ private fun CommentBox(
                 modifier =
                     Modifier
                         .clip(CircleShape)
-                        .clickable { onReaction(emoji) }
+                        .clickable { onWriteComment("${soundCloudCommentTimestamp(latestPosition())} $emoji") }
                         .padding(horizontal = 8.dp, vertical = 4.dp),
             )
         }
+    }
+}
+
+/** YouTube-compatible timestamps, including hour-long tracks; captured again at the actual tap. */
+internal fun soundCloudCommentTimestamp(positionMs: Long): String {
+    val totalSeconds = positionMs.coerceAtLeast(0L) / 1000L
+    val seconds = (totalSeconds % 60L).toString().padStart(2, '0')
+    val minutes = totalSeconds / 60L
+    return if (minutes < 60L) {
+        "${minutes.toString().padStart(2, '0')}:$seconds"
+    } else {
+        "${minutes / 60L}:${(minutes % 60L).toString().padStart(2, '0')}:$seconds"
     }
 }
 

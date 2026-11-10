@@ -1088,4 +1088,5 @@
     <string name="browser_login_busy">The browser data changed while it was being read. Close the browser and try again.</string>
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
+    <string name="soundcloud_play_count_info">%1$s - song info</string>
 </resources>

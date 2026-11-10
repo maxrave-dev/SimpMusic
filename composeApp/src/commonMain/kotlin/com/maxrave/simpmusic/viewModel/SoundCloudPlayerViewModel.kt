@@ -9,11 +9,14 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -21,6 +24,7 @@ import kotlinx.coroutines.withContext
 class TrackWaveform(
     val videoId: String,
     val bars: FloatArray,
+    val isComplete: Boolean = false,
 )
 
 /** The first page of a track's YouTube comments, as the SoundCloud style reads it. */
@@ -65,18 +69,33 @@ class SoundCloudPlayerViewModel(
      * still on screen, and a track came back to without a waveform is tried afresh.
      */
     private fun loadWaveform(videoId: String) {
-        if (_waveform.value?.videoId == videoId) return
+        if (_waveform.value?.let { it.videoId == videoId && it.isComplete } == true) return
         if (videoId == waveformVideoId && waveformJob?.isActive == true) return
         waveformVideoId = videoId
         waveformJob?.cancel()
-        _waveform.value = null
+        if (_waveform.value?.videoId != videoId) _waveform.value = TrackWaveform(videoId, floatArrayOf())
         waveformJob =
             viewModelScope.launch {
                 WAVEFORM_ATTEMPT_DELAYS_MS.forEachIndexed { attempt, wait ->
                     delay(wait)
                     val bars =
                         try {
-                            withContext(Dispatchers.IO) { mediaPlayerHandler.player.loadWaveform(videoId) }
+                            withContext(Dispatchers.IO) {
+                                val loadingContext = currentCoroutineContext()
+                                mediaPlayerHandler.player.loadWaveform(videoId) { partial ->
+                                    if (partial.isNotEmpty()) {
+                                        // A retry restarts decoding at zero; retain the longer prefix
+                                        // already visible until the new pass catches up.
+                                        _waveform.update { previous ->
+                                            if (!loadingContext.isActive || previous == null || previous.videoId != videoId || partial.size < previous.bars.size) {
+                                                previous
+                                            } else {
+                                                TrackWaveform(videoId, partial)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
@@ -84,7 +103,7 @@ class SoundCloudPlayerViewModel(
                             null
                         }
                     if (bars != null && bars.isNotEmpty()) {
-                        _waveform.value = TrackWaveform(videoId, bars)
+                        _waveform.value = TrackWaveform(videoId, bars, isComplete = true)
                         return@launch
                     }
                     Logger.d(tag, "No waveform for $videoId yet, attempt ${attempt + 1} of ${WAVEFORM_ATTEMPT_DELAYS_MS.size}")

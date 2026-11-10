@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.domain.mediaservice.player.WAVEFORM_BARS_PER_SECOND
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.ui.theme.typo
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -65,6 +66,7 @@ import kotlin.math.roundToLong
  */
 @Composable
 internal fun SoundCloudWaveform(
+    mediaId: String,
     bars: FloatArray?,
     position: () -> Long,
     durationMs: Long,
@@ -104,12 +106,22 @@ internal fun SoundCloudWaveform(
     // waveform arrives a few seconds after the track, once it is decoded: it rises out of the line
     // instead of popping in, and on a track change the old one sinks back into the line first.
     var shownBars by remember { mutableStateOf<FloatArray?>(null) }
+    var shownMediaId by remember { mutableStateOf(mediaId) }
     val rise = remember { Animatable(0f) }
-    LaunchedEffect(bars) {
-        if (bars === shownBars) return@LaunchedEffect
-        if (shownBars != null) rise.animateTo(0f, tween(SINK_MS, easing = LinearEasing))
+    val revealedBars = remember { Animatable(0f) }
+    LaunchedEffect(mediaId, bars) {
+        if (mediaId == shownMediaId && bars === shownBars) return@LaunchedEffect
+        if (mediaId != shownMediaId || bars == null) {
+            if (shownBars != null) rise.animateTo(0f, tween(SINK_MS, easing = LinearEasing))
+            revealedBars.snapTo(0f)
+            shownMediaId = mediaId
+        }
         shownBars = bars
-        if (bars != null) rise.animateTo(1f, tween(RISE_MS, easing = LinearEasing))
+        if (bars != null) {
+            // Appending data must not sink/restart the whole waveform. Only newly loaded bars rise.
+            launch { rise.animateTo(1f, tween(RISE_MS, easing = LinearEasing)) }
+            revealedBars.animateTo(bars.size.toFloat(), tween(RISE_MS, easing = LinearEasing))
+        }
     }
 
     BoxWithConstraints(
@@ -138,7 +150,8 @@ internal fun SoundCloudWaveform(
         Canvas(modifier = Modifier.fillMaxWidth().height(WAVEFORM_HEIGHT)) {
             val positionMs = currentPosition()
             val shown = shownBars
-            val barCount = shown?.size ?: (durationMs / 1000f * WAVEFORM_BARS_PER_SECOND).toInt()
+            // Keep the complete timeline; time not decoded yet is a flat line, not stretched data.
+            val barCount = maxOf(shown?.size ?: 0, (durationMs / 1000.0 * WAVEFORM_BARS_PER_SECOND).toInt())
             if (barCount <= 0) return@Canvas
             val step = stepPx.toFloat()
             val barWidth = BAR_WIDTH.roundToPx().coerceIn(1, stepPx - 1).toFloat()
@@ -158,11 +171,13 @@ internal fun SoundCloudWaveform(
             val risen = rise.value
             val playheadBar = (playheadX - origin) / step
             val reach = (size.width / 2f / step).coerceAtLeast(1f)
+            val loaded = revealedBars.value
 
             fun levelAt(i: Int): Float {
-                val target = shown?.getOrNull(i) ?: return FLAT_LEVEL
+                val target = shown?.getOrNull(i)?.takeIf { it > 0f } ?: return FLAT_LEVEL
                 val t = (risen * (1f + RISE_STAGGER) - abs(i - playheadBar) / reach * RISE_STAGGER).coerceIn(0f, 1f)
-                return FLAT_LEVEL + (target - FLAT_LEVEL) * t * t * (3f - 2f * t)
+                val available = (loaded - i).coerceIn(0f, 1f)
+                return FLAT_LEVEL + (target - FLAT_LEVEL) * t * t * (3f - 2f * t) * available
             }
 
             fun DrawScope.drawBars(
