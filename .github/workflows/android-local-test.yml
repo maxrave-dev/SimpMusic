@@ -1,4 +1,4 @@
-name: Build Android local-player test APK
+name: Build Android 10 ARM64 test APK
 
 on:
   workflow_dispatch:
@@ -15,10 +15,10 @@ permissions:
   contents: read
 
 jobs:
-  build-debug-apk:
+  build-arm64-test-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout selected branch and submodules
+      - name: Checkout feature branch and submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -33,12 +33,50 @@ jobs:
       - name: Generate library definitions
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Build Android debug APK
-        run: ./gradlew :androidApp:assembleDebug
+      - name: Build optimized release APKs
+        run: ./gradlew :androidApp:assembleRelease
 
-      - name: Upload installable debug APK
+      - name: Select ARM64 APK and sign for testing
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find androidApp/build/outputs/apk/release -maxdepth 1 -type f -name '*arm64-v8a*.apk' | head -n 1)"
+          if [ -z "$APK" ]; then
+            echo "ARM64 split APK was not produced."
+            echo "Available APK outputs:"
+            find androidApp/build/outputs/apk -type f -name '*.apk' -print
+            exit 1
+          fi
+
+          keytool -genkeypair -v \
+            -keystore "$RUNNER_TEMP/simpmusic-ci-test.jks" \
+            -storepass android -keypass android \
+            -alias androiddebugkey \
+            -dname "CN=SimpMusic CI Test,O=Open Source,C=IN" \
+            -keyalg RSA -keysize 2048 -validity 10000
+
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "Android apksigner was not found."
+            exit 1
+          fi
+
+          "$APKSIGNER" sign \
+            --ks "$RUNNER_TEMP/simpmusic-ci-test.jks" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out "$RUNNER_TEMP/SimpMusic-local-ARM64.apk" \
+            "$APK"
+
+          "$APKSIGNER" verify --verbose "$RUNNER_TEMP/SimpMusic-local-ARM64.apk"
+          mkdir -p release-artifact
+          cp "$RUNNER_TEMP/SimpMusic-local-ARM64.apk" release-artifact/SimpMusic-local-ARM64.apk
+          ls -lh release-artifact/SimpMusic-local-ARM64.apk
+
+      - name: Upload signed ARM64 Android 10 test APK
         uses: actions/upload-artifact@v4
         with:
-          name: simpmusic-android10-test
-          path: androidApp/build/outputs/apk/debug/*.apk
+          name: simpmusic-android10-arm64
+          path: release-artifact/SimpMusic-local-ARM64.apk
           if-no-files-found: error
