@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic
 
 import android.Manifest
+import android.app.SearchManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -9,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.SystemClock
+import android.provider.MediaStore
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -111,14 +113,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Logger.d("MainActivity", "onNewIntent: $intent")
-        viewModel.setIntent(
-            GenericIntent(
-                action = intent.action,
-                data = (intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull(),
-                type = intent.type,
-            ),
-        )
+        setIntent(intent)
+        handleIntent(intent)
     }
 
     @ExperimentalFoundationApi
@@ -140,16 +136,7 @@ class MainActivity : AppCompatActivity() {
             startMusicService()
         }
         Logger.d("MainActivity", "onCreate: ")
-        val data = (intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull()
-        if (data != null) {
-            viewModel.setIntent(
-                GenericIntent(
-                    action = intent.action,
-                    data = data,
-                    type = intent.type,
-                ),
-            )
-        }
+        handleIntent(intent)
         Logger.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
@@ -337,6 +324,72 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getString(key: String): String? = viewModel.getString(key)
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent == null) return
+        Logger.d("MainActivity", "handleIntent: action=${intent.action}, data=${intent.data}")
+
+        // 1. Check for Media / Voice search actions from Gemini / Google Assistant
+        val action = intent.action
+        val isMediaPlayFromSearch = action == MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH ||
+            action == "android.intent.action.MEDIA_SEARCH" ||
+            action == Intent.ACTION_SEARCH
+
+        if (isMediaPlayFromSearch) {
+            val query = intent.getStringExtra(SearchManager.QUERY)
+                ?: intent.getStringExtra(Intent.EXTRA_TEXT)
+                ?: intent.getStringExtra(MediaStore.EXTRA_MEDIA_TITLE)
+                ?: intent.getStringExtra("query")
+
+            if (query.isNullOrBlank()) {
+                viewModel.playRecommendations()
+            } else {
+                val clean = query.trim().lowercase()
+                when {
+                    clean.contains("recommandation") || clean.contains("recommendation") || clean.contains("pour moi") -> {
+                        viewModel.playRecommendations()
+                    }
+                    clean.contains("hors ligne") || clean.contains("offline") || clean.contains("téléchargé") || clean.contains("telecharge") -> {
+                        viewModel.playDownloaded()
+                    }
+                    clean.contains("favori") || clean.contains("favorite") || clean.contains("aimé") || clean.contains("liked") -> {
+                        viewModel.playFavorites()
+                    }
+                    clean.contains("cache") -> {
+                        viewModel.playCached()
+                    }
+                    clean.contains("pause") || clean.contains("stop") || clean.contains("arrête") || clean.contains("arrete") -> {
+                        viewModel.pausePlayback()
+                    }
+                    clean.contains("reprend") || clean.contains("resume") || clean.contains("relance") || clean.contains("play") -> {
+                        viewModel.resumePlayback()
+                    }
+                    clean.contains("suivant") || clean.contains("next") -> {
+                        viewModel.skipNextTrack()
+                    }
+                    clean.contains("précédent") || clean.contains("precedent") || clean.contains("previous") -> {
+                        viewModel.skipPreviousTrack()
+                    }
+                    else -> {
+                        viewModel.searchAndPlay(query)
+                    }
+                }
+            }
+            return
+        }
+
+        // 2. Generic and deep links
+        val data = (intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri())?.toKmpUriOrNull()
+        if (data != null) {
+            viewModel.setIntent(
+                GenericIntent(
+                    action = intent.action,
+                    data = data,
+                    type = intent.type,
+                ),
+            )
+        }
+    }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)

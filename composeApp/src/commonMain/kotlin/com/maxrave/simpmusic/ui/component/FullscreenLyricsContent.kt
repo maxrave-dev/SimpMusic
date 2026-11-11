@@ -104,6 +104,7 @@ import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.Share
+import com.maxrave.simpmusic.ui.icon.Translate
 import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
@@ -133,6 +134,7 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.crossfading
 import simpmusic.composeapp.generated.resources.share_lyrics
+import simpmusic.composeapp.generated.resources.translate_lyrics
 import simpmusic.composeapp.generated.resources.unavailable
 import kotlin.math.PI
 import kotlin.math.cos
@@ -449,6 +451,15 @@ fun FullscreenLyricsContent(
 
                         // Share lyrics — only when there are lyrics to share.
                         if (screenDataState.lyricsData != null) {
+                            IconButton(
+                                onClick = { sharedViewModel.translateCurrentLyrics() },
+                            ) {
+                                Icon(
+                                    imageVector = SimpIcons.Translate,
+                                    contentDescription = stringResource(Res.string.translate_lyrics),
+                                    tint = Color.White,
+                                )
+                            }
                             IconButton(
                                 onClick = { showShareLyricsSheet = true },
                             ) {

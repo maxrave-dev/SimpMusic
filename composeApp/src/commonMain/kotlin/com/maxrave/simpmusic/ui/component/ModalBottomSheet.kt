@@ -177,6 +177,8 @@ import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
 import com.maxrave.simpmusic.ui.icon.ThumbDownOutline
+import com.maxrave.simpmusic.ui.icon.Translate
+import com.maxrave.simpmusic.ui.icon.Subtitles
 import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
@@ -216,6 +218,8 @@ import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.cancel_download
 import simpmusic.composeapp.generated.resources.crop_cover
+import simpmusic.composeapp.generated.resources.generate_subtitles
+import simpmusic.composeapp.generated.resources.translate_lyrics
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.create_new_queue_and_play
@@ -1372,6 +1376,10 @@ fun NowPlayingBottomSheet(
     onRemoveFromCache: (() -> Unit)? = null,
     /** Set while the song playing has no lyrics: adds Add lyrics under Main Lyrics Provider. */
     onAddLyrics: (() -> Unit)? = null,
+    /** Triggered on demand to translate lyrics */
+    onTranslateLyrics: (() -> Unit)? = null,
+    /** Triggered on demand to generate or fetch subtitles */
+    onGenerateSubtitles: (() -> Unit)? = null,
     /** Set when opened from a queue row: adds that row's move and delete actions at the top. */
     queuePosition: QueuePosition? = null,
     /**
@@ -1885,6 +1893,24 @@ fun NowPlayingBottomSheet(
                         ) {
                             hideModalBottomSheet()
                             onAddLyrics()
+                        }
+                    }
+                    if (onTranslateLyrics != null) {
+                        ActionButton(
+                            icon = SimpIcons.Translate,
+                            text = Res.string.translate_lyrics,
+                        ) {
+                            hideModalBottomSheet()
+                            onTranslateLyrics()
+                        }
+                    }
+                    if (onGenerateSubtitles != null) {
+                        ActionButton(
+                            icon = SimpIcons.Subtitles,
+                            text = Res.string.generate_subtitles,
+                        ) {
+                            hideModalBottomSheet()
+                            onGenerateSubtitles()
                         }
                     }
                     Crossfade(targetState = setSleepTimerEnable) {

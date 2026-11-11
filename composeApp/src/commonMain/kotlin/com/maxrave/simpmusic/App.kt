@@ -379,6 +379,85 @@ fun App(
                         }
                     }
 
+                    // Actions & Assistant commands: simpmusic://recommendations, simpmusic://offline, etc.
+                    "recommendations", "recommandations" -> {
+                        viewModel.playRecommendations()
+                    }
+
+                    "downloaded", "offline", "horsligne" -> {
+                        viewModel.playDownloaded()
+                    }
+
+                    "favorites", "favoris" -> {
+                        viewModel.playFavorites()
+                    }
+
+                    "cached" -> {
+                        viewModel.playCached()
+                    }
+
+                    "pause" -> {
+                        viewModel.pausePlayback()
+                    }
+
+                    "resume" -> {
+                        viewModel.resumePlayback()
+                    }
+
+                    "next" -> {
+                        viewModel.skipNextTrack()
+                    }
+
+                    "previous" -> {
+                        viewModel.skipPreviousTrack()
+                    }
+
+                    "play" -> {
+                        val type = data.getQueryParameter("type")?.lowercase()
+                        val q = data.getQueryParameter("q") ?: data.getQueryParameter("query")
+                        val action = data.getQueryParameter("action")?.lowercase()
+                        when {
+                            type == "recommendations" || type == "recommandations" || action == "recommendations" -> {
+                                viewModel.playRecommendations()
+                            }
+                            type == "downloaded" || type == "offline" || type == "horsligne" || action == "downloaded" || action == "offline" -> {
+                                viewModel.playDownloaded()
+                            }
+                            type == "favorites" || type == "favoris" || action == "favorites" -> {
+                                viewModel.playFavorites()
+                            }
+                            type == "cached" || action == "cached" -> {
+                                viewModel.playCached()
+                            }
+                            !q.isNullOrBlank() -> {
+                                viewModel.searchAndPlay(q)
+                            }
+                            else -> {
+                                viewModel.resumePlayback()
+                            }
+                        }
+                    }
+
+                    "action" -> {
+                        val type = data.getQueryParameter("type")?.lowercase()
+                        when (type) {
+                            "recommendations", "recommandations" -> viewModel.playRecommendations()
+                            "downloaded", "offline", "horsligne" -> viewModel.playDownloaded()
+                            "favorites", "favoris" -> viewModel.playFavorites()
+                            "cached" -> viewModel.playCached()
+                            "pause" -> viewModel.pausePlayback()
+                            "resume" -> viewModel.resumePlayback()
+                            "next" -> viewModel.skipNextTrack()
+                            "previous" -> viewModel.skipPreviousTrack()
+                            else -> {
+                                val q = data.getQueryParameter("q") ?: data.getQueryParameter("query")
+                                if (!q.isNullOrBlank()) {
+                                    viewModel.searchAndPlay(q)
+                                }
+                            }
+                        }
+                    }
+
                     else -> {
                         viewModel.makeToast(getString(Res.string.this_link_is_not_supported))
                     }

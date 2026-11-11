@@ -720,6 +720,7 @@ fun NowPlayingScreenContent(
             },
             onShowFullscreenLyrics = { showFullscreenLyrics = true },
             onShowVoteDialog = { showVoteDialog = true },
+            onTranslateLyrics = { sharedViewModel.translateCurrentLyrics() },
             onLyricsOffsetChange = { sharedViewModel.setLyricsOffsetMs(it) },
             onEnterFullscreenVideo = {
                 onDismiss()
@@ -848,6 +849,11 @@ fun NowPlayingScreenContent(
                     ?.let { song ->
                         { addLyricsFor = arrayListOf(song.videoId, song.title, song.artistName?.joinToString(", ").orEmpty()) }
                     },
+            onTranslateLyrics =
+                if (screenDataState.lyricsData != null) {
+                    { sharedViewModel.translateCurrentLyrics() }
+                } else null,
+            onGenerateSubtitles = { sharedViewModel.fetchOrGenerateSubtitles() },
             youTubeDislike =
                 when {
                     !isUserLoggedIn -> null

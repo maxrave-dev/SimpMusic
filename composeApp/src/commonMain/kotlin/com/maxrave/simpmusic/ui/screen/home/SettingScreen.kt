@@ -61,6 +61,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -138,6 +139,7 @@ import com.maxrave.simpmusic.ui.component.SettingGroup
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Error
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.PlaylistAdd
@@ -177,9 +179,22 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.StringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.search_settings
+import simpmusic.composeapp.generated.resources.no_settings_found
+import simpmusic.composeapp.generated.resources.system_default
+import simpmusic.composeapp.generated.resources.assistant_and_ai
+import simpmusic.composeapp.generated.resources.assistant_and_ai_description
+import simpmusic.composeapp.generated.resources.play_recommendations_action
+import simpmusic.composeapp.generated.resources.play_recommendations_description
+import simpmusic.composeapp.generated.resources.play_downloaded_action
+import simpmusic.composeapp.generated.resources.play_downloaded_description
+import simpmusic.composeapp.generated.resources.play_favorites_action
+import simpmusic.composeapp.generated.resources.play_favorites_description
+import simpmusic.composeapp.generated.resources.voice_commands_info
 import simpmusic.composeapp.generated.resources.base_url
 import simpmusic.composeapp.generated.resources.configured
 import simpmusic.composeapp.generated.resources.custom_base_url
@@ -358,6 +373,10 @@ import simpmusic.composeapp.generated.resources.romanization_japanese_dict_faile
 import simpmusic.composeapp.generated.resources.romanization_korean
 import simpmusic.composeapp.generated.resources.romanization_kyrgyz
 import simpmusic.composeapp.generated.resources.romanization_macedonian
+import simpmusic.composeapp.generated.resources.romanization_kazakh
+import simpmusic.composeapp.generated.resources.romanization_mongolian
+import simpmusic.composeapp.generated.resources.romanization_greek
+import simpmusic.composeapp.generated.resources.romanization_georgian
 import simpmusic.composeapp.generated.resources.romanization_punjabi
 import simpmusic.composeapp.generated.resources.romanization_russian
 import simpmusic.composeapp.generated.resources.romanization_serbian
@@ -658,6 +677,12 @@ fun SettingScreen(
     var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
+    var searchQuery by rememberSaveable {
+        mutableStateOf("")
+    }
+    var isSearchActive by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(true) {
         viewModel.getAllGoogleAccount()
@@ -667,6 +692,43 @@ fun SettingScreen(
         viewModel.getData()
         viewModel.getThumbCacheSize(platformContext)
     }
+
+
+    val normalizedSearchQuery = searchQuery.trim().lowercase()
+    val sectionStringsCache = remember {
+        mutableStateMapOf<String, List<String>>()
+    }
+    LaunchedEffect(Unit) {
+        for ((section, resList) in settingSectionKeywords) {
+            val list = mutableListOf<String>()
+            for (res in resList) {
+                try {
+                    list.add(getString(res).lowercase())
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
+            sectionStringsCache[section] = list
+        }
+    }
+
+    val matchingSections by remember(normalizedSearchQuery, sectionStringsCache.size) {
+        derivedStateOf {
+            if (normalizedSearchQuery.isEmpty()) {
+                settingSectionKeywords.keys
+            } else {
+                val matches = mutableSetOf<String>()
+                for ((section, strings) in sectionStringsCache) {
+                    if (strings.any { it.contains(normalizedSearchQuery) }) {
+                        matches.add(section)
+                    }
+                }
+                matches
+            }
+        }
+    }
+    fun isSectionVisible(key: String): Boolean =
+        normalizedSearchQuery.isEmpty() || key in matchingSections
 
     val settingListState = rememberLazyListState()
     // The toolbar is part of the list and scrolls away with it; a pinned, frosted copy takes over
@@ -716,6 +778,13 @@ fun SettingScreen(
                 // where the pinned copy appears; the list's top padding already clears the status bar.
                 SettingTopBar(
                     onBack = { navController.navigateUp() },
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { searchQuery = it },
+                    isSearchActive = isSearchActive,
+                    onToggleSearch = {
+                        isSearchActive = !isSearchActive
+                        if (!isSearchActive) searchQuery = ""
+                    },
                     windowInsets = WindowInsets(0),
                     modifier =
                         Modifier.layout { measurable, constraints ->
@@ -725,6 +794,7 @@ fun SettingScreen(
                             layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
                         },
                 )
+                if (isSectionVisible("user_interface")) {
                 // Above every section, and inside item 0 rather than an item of its own, for the
                 // glow reason above.
                 SettingGroup(
@@ -892,6 +962,10 @@ fun SettingScreen(
                             RomanizationLanguage.BELARUSIAN to stringResource(Res.string.romanization_belarusian),
                             RomanizationLanguage.KYRGYZ to stringResource(Res.string.romanization_kyrgyz),
                             RomanizationLanguage.MACEDONIAN to stringResource(Res.string.romanization_macedonian),
+                            RomanizationLanguage.KAZAKH to stringResource(Res.string.romanization_kazakh),
+                            RomanizationLanguage.MONGOLIAN to stringResource(Res.string.romanization_mongolian),
+                            RomanizationLanguage.GREEK to stringResource(Res.string.romanization_greek),
+                            RomanizationLanguage.GEORGIAN to stringResource(Res.string.romanization_georgian),
                         )
                     val romanizationSelected = RomanizationLanguage.parse(romanizationStored)
                     SettingItem(
@@ -1001,9 +1075,11 @@ fun SettingScreen(
                         switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
                     )
                 }
+                }
             }
         }
-        item(key = "content") {
+        if (isSectionVisible("content")) {
+    item(key = "content") {
             SettingGroup(title = stringResource(Res.string.content)) {
                 SettingItem(
                     title = stringResource(Res.string.youtube_account),
@@ -1464,8 +1540,10 @@ fun SettingScreen(
                 }
             }
         }
+        }
         if (getPlatform() == Platform.Android) {
-            item(key = "audio") {
+        if (isSectionVisible("audio")) {
+    item(key = "audio") {
                 SettingGroup(title = stringResource(Res.string.audio)) {
                     SettingItem(
                         title = stringResource(Res.string.normalize_volume),
@@ -1525,7 +1603,9 @@ fun SettingScreen(
                 }
             }
         }
-        item(key = "playback") {
+        }
+        if (isSectionVisible("playback")) {
+    item(key = "playback") {
             SettingGroup(title = stringResource(Res.string.playback)) {
                 // Under Playback rather than Audio because that whole group sits inside an
                 // Android-only branch — "Open system equalizer" is an Android feature — and this
@@ -1707,10 +1787,12 @@ fun SettingScreen(
                 }
             }
         }
+        }
         // Deliberately not part of "storage" further down, which is Android-only: tracking and the
         // rows it leaves behind exist on Desktop just the same. The switch that produces the history
         // and the button that erases it belong together.
-        item(key = "listening_history") {
+        if (isSectionVisible("listening_history")) {
+    item(key = "listening_history") {
             SettingGroup(title = stringResource(Res.string.listening_history)) {
                 SettingItem(
                     title = stringResource(Res.string.local_tracking_title),
@@ -1740,7 +1822,9 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "lyrics") {
+        }
+        if (isSectionVisible("lyrics")) {
+    item(key = "lyrics") {
             SettingGroup(title = stringResource(Res.string.lyrics)) {
                 SettingItem(
                     title = stringResource(Res.string.main_lyrics_provider),
@@ -1827,26 +1911,47 @@ fun SettingScreen(
                     },
                 )
 
+                val defaultLangLabel = stringResource(Res.string.system_default)
+                val currentTransLangDisplay = if (translationLanguage.isNullOrEmpty()) {
+                    defaultLangLabel
+                } else {
+                    SUPPORTED_LANGUAGE.getLanguageFromCode(
+                        if (translationLanguage!!.length == 2) {
+                            SUPPORTED_LANGUAGE.codes.firstOrNull { it.startsWith(translationLanguage!!) } ?: translationLanguage
+                        } else translationLanguage
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.translation_language),
-                    subtitle = translationLanguage ?: "",
+                    subtitle = currentTransLangDisplay,
                     onClick = {
+                        val languageOptions = listOf(defaultLangLabel to "") + SUPPORTED_LANGUAGE.items.mapIndexed { index, item ->
+                            val fullCode = SUPPORTED_LANGUAGE.codes.getOrNull(index) ?: ""
+                            val twoLetter = fullCode.substringBefore("-")
+                            item.toString() to twoLetter
+                        }
+                        val currentSelectedCode = translationLanguage ?: ""
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = runBlocking { getString(Res.string.translation_language) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.translation_language) },
-                                        value = translationLanguage ?: "",
-                                        verifyCodeBlock = {
-                                            (it.length == 2 && it.isTwoLetterCode()) to
-                                                runBlocking { getString(Res.string.invalid_language_code) }
-                                        },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            languageOptions.map { (label, code) ->
+                                                val isSelected = if (code.isEmpty()) {
+                                                    currentSelectedCode.isEmpty()
+                                                } else {
+                                                    currentSelectedCode.equals(code, ignoreCase = true)
+                                                }
+                                                isSelected to label
+                                            },
                                     ),
                                 message = runBlocking { getString(Res.string.translation_language_message) },
                                 confirm =
                                     runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setTranslationLanguage(state.textField?.value ?: "")
+                                        val selectedLabel = state.selectOne?.getSelected()
+                                        val matchedCode = languageOptions.firstOrNull { it.first == selectedLabel }?.second ?: ""
+                                        viewModel.setTranslationLanguage(matchedCode)
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
                             ),
@@ -1854,26 +1959,46 @@ fun SettingScreen(
                     },
                     isEnable = true,
                 )
+                val currentSubLangDisplay = if (youtubeSubtitleLanguage.isEmpty()) {
+                    defaultLangLabel
+                } else {
+                    SUPPORTED_LANGUAGE.getLanguageFromCode(
+                        if (youtubeSubtitleLanguage.length == 2) {
+                            SUPPORTED_LANGUAGE.codes.firstOrNull { it.startsWith(youtubeSubtitleLanguage) } ?: youtubeSubtitleLanguage
+                        } else youtubeSubtitleLanguage
+                    )
+                }
                 SettingItem(
                     title = stringResource(Res.string.youtube_subtitle_language),
-                    subtitle = youtubeSubtitleLanguage,
+                    subtitle = currentSubLangDisplay,
                     onClick = {
+                        val languageOptions = listOf(defaultLangLabel to "") + SUPPORTED_LANGUAGE.items.mapIndexed { index, item ->
+                            val fullCode = SUPPORTED_LANGUAGE.codes.getOrNull(index) ?: ""
+                            val twoLetter = fullCode.substringBefore("-")
+                            item.toString() to twoLetter
+                        }
+                        val currentSelectedCode = youtubeSubtitleLanguage
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = runBlocking { getString(Res.string.youtube_subtitle_language) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.youtube_subtitle_language) },
-                                        value = youtubeSubtitleLanguage,
-                                        verifyCodeBlock = {
-                                            (it.length == 2 && it.isTwoLetterCode()) to
-                                                runBlocking { getString(Res.string.invalid_language_code) }
-                                        },
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            languageOptions.map { (label, code) ->
+                                                val isSelected = if (code.isEmpty()) {
+                                                    currentSelectedCode.isEmpty()
+                                                } else {
+                                                    currentSelectedCode.equals(code, ignoreCase = true)
+                                                }
+                                                isSelected to label
+                                            },
                                     ),
                                 message = runBlocking { getString(Res.string.youtube_subtitle_language_message) },
                                 confirm =
                                     runBlocking { getString(Res.string.change) } to { state ->
-                                        viewModel.setYoutubeSubtitleLanguage(state.textField?.value ?: "")
+                                        val selectedLabel = state.selectOne?.getSelected()
+                                        val matchedCode = languageOptions.firstOrNull { it.first == selectedLabel }?.second ?: ""
+                                        viewModel.setYoutubeSubtitleLanguage(matchedCode)
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
                             ),
@@ -1940,7 +2065,9 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "AI") {
+        }
+        if (isSectionVisible("AI")) {
+    item(key = "AI") {
             SettingGroup(title = stringResource(Res.string.ai)) {
                 SettingItem(
                     title = stringResource(Res.string.ai_provider),
@@ -2123,7 +2250,46 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "spotify") {
+        }
+        if (isSectionVisible("assistant_and_ai")) {
+    item(key = "assistant_and_ai") {
+            SettingGroup(
+                title = stringResource(Res.string.assistant_and_ai),
+                footer = {
+                    Text(
+                        text = stringResource(Res.string.voice_commands_info),
+                        style = typo().bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                },
+            ) {
+                SettingItem(
+                    title = stringResource(Res.string.play_recommendations_action),
+                    subtitle = stringResource(Res.string.play_recommendations_description),
+                    onClick = {
+                        sharedViewModel.playRecommendations()
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.play_downloaded_action),
+                    subtitle = stringResource(Res.string.play_downloaded_description),
+                    onClick = {
+                        sharedViewModel.playDownloaded()
+                    },
+                )
+                SettingItem(
+                    title = stringResource(Res.string.play_favorites_action),
+                    subtitle = stringResource(Res.string.play_favorites_description),
+                    onClick = {
+                        sharedViewModel.playFavorites()
+                    },
+                )
+            }
+        }
+        }
+        if (isSectionVisible("spotify")) {
+    item(key = "spotify") {
             SettingGroup(title = stringResource(Res.string.spotify)) {
                 SettingItem(
                     // The title follows the state: a row that still reads "Log in" while logged in
@@ -2172,7 +2338,9 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "discord") {
+        }
+        if (isSectionVisible("discord")) {
+    item(key = "discord") {
             SettingGroup(title = stringResource(Res.string.discord_integration)) {
                 SettingItem(
                     title =
@@ -2205,10 +2373,12 @@ fun SettingScreen(
                 )
             }
         }
+        }
         // Hidden entirely when the build carries no Last.fm credentials — a FOSS build, or a full
         // build whose local.properties has no key.
         if (viewModel.lastfmAvailable) {
-            item(key = "lastfm") {
+        if (isSectionVisible("lastfm")) {
+    item(key = "lastfm") {
                 SettingGroup(title = stringResource(Res.string.lastfm_integration)) {
                     SettingItem(
                         title =
@@ -2242,7 +2412,9 @@ fun SettingScreen(
                 }
             }
         }
-        item(key = "sponsor_block") {
+        }
+        if (isSectionVisible("sponsor_block")) {
+    item(key = "sponsor_block") {
             SettingGroup(
                 title = stringResource(Res.string.sponsorBlock),
                 // The project's note sits under the card, where a grouped list keeps its explanations.
@@ -2317,8 +2489,10 @@ fun SettingScreen(
                 )
             }
         }
+        }
         if (getPlatform() == Platform.Android) {
-            item(key = "storage") {
+        if (isSectionVisible("storage")) {
+    item(key = "storage") {
                 SettingGroup(title = stringResource(Res.string.storage)) {
                     SettingItem(
                         title = stringResource(Res.string.player_cache),
@@ -2624,7 +2798,9 @@ fun SettingScreen(
                 }
             }
         }
-        item(key = "backup") {
+        }
+        if (isSectionVisible("backup")) {
+    item(key = "backup") {
             SettingGroup(
                 title = stringResource(Res.string.backup),
                 footer = {
@@ -2788,7 +2964,9 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "about_us") {
+        }
+        if (isSectionVisible("about_us")) {
+    item(key = "about_us") {
             SettingGroup(title = stringResource(Res.string.about_us)) {
                 SettingItem(
                     title = stringResource(Res.string.version),
@@ -2888,7 +3066,9 @@ fun SettingScreen(
                 )
             }
         }
-        item(key = "developer_option") {
+        }
+        if (isSectionVisible("developer_option")) {
+    item(key = "developer_option") {
             SettingGroup(title = stringResource(Res.string.developer_option)) {
                 SettingItem(
                     title = stringResource(Res.string.app_log),
@@ -2898,6 +3078,7 @@ fun SettingScreen(
                     },
                 )
             }
+        }
         }
         item(key = "end") {
             EndOfPage()
@@ -3518,6 +3699,13 @@ fun SettingScreen(
     ) {
         SettingTopBar(
             onBack = { navController.navigateUp() },
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it },
+            isSearchActive = isSearchActive,
+            onToggleSearch = {
+                isSearchActive = !isSearchActive
+                if (!isSearchActive) searchQuery = ""
+            },
             // The house recipe from AlbumScreen's bars, thinned: ultraThin's built-in tint stacked
             // on this page's dark ground read as a solid lid. 0.3 keeps the blur doing the work and
             // the tint only settling legibility.
@@ -3530,19 +3718,66 @@ fun SettingScreen(
  * The page's toolbar. Drawn twice, the way Playlist and Artist draw theirs: once inside the list,
  * where it scrolls away with the content, and once pinned above it.
  */
+private val settingSectionKeywords: Map<String, List<StringResource>> = mapOf(
+    "user_interface" to listOf(Res.string.custom_color, Res.string.enable_liquid_glass_effect, Res.string.enable_liquid_glass_effect_description, Res.string.login_sync_android_description, Res.string.login_sync_android_title, Res.string.login_sync_desktop_description, Res.string.login_sync_desktop_title, Res.string.login_sync_section, Res.string.lyrics_romanization, Res.string.lyrics_romanization_description, Res.string.lyrics_style, Res.string.lyrics_style_apple_music, Res.string.lyrics_style_classic, Res.string.now_playing_style, Res.string.now_playing_style_apple_music, Res.string.now_playing_style_m3_expressive, Res.string.now_playing_style_soundcloud, Res.string.now_playing_style_spotify, Res.string.requires_android_12, Res.string.romanization_belarusian, Res.string.romanization_bulgarian, Res.string.romanization_chinese, Res.string.romanization_hindi, Res.string.romanization_japanese, Res.string.romanization_japanese_dict_downloading, Res.string.romanization_japanese_dict_failed, Res.string.romanization_korean, Res.string.romanization_kyrgyz, Res.string.romanization_macedonian, Res.string.romanization_punjabi, Res.string.romanization_russian, Res.string.romanization_serbian, Res.string.romanization_ukrainian, Res.string.theme, Res.string.theme_color, Res.string.theme_color_custom, Res.string.theme_color_default, Res.string.theme_color_wallpaper, Res.string.theme_mode_dark, Res.string.theme_mode_light, Res.string.theme_mode_system, Res.string.user_interface),
+    "content" to listOf(Res.string.auto_download_liked_songs, Res.string.auto_download_liked_songs_description, Res.string.change_language_warning, Res.string.content, Res.string.content_country, Res.string.download_quality, Res.string.http, Res.string.invalid_host, Res.string.invalid_language_code, Res.string.invalid_port, Res.string.keep_your_youtube_playlist_offline, Res.string.keep_your_youtube_playlist_offline_description, Res.string.language, Res.string.manage_your_youtube_accounts, Res.string.original_audio, Res.string.play_explicit_content, Res.string.play_explicit_content_description, Res.string.play_video_for_video_track_instead_of_audio_only, Res.string.preferred_audio_language, Res.string.preferred_audio_language_message, Res.string.proxy, Res.string.proxy_description, Res.string.proxy_host, Res.string.proxy_host_message, Res.string.proxy_password, Res.string.proxy_password_message, Res.string.proxy_port, Res.string.proxy_port_message, Res.string.proxy_type, Res.string.proxy_username, Res.string.proxy_username_message, Res.string.quality, Res.string.radio_audio_only, Res.string.radio_audio_only_description, Res.string.send_back_listening_data_to_google, Res.string.smart_downloads, Res.string.smart_downloads_description, Res.string.smart_downloads_needs_local_tracking, Res.string.smart_downloads_size, Res.string.smart_downloads_size_value, Res.string.socks, Res.string.such_as_music_video_lyrics_video_podcasts_and_more, Res.string.sync_follow_to_youtube, Res.string.sync_follow_to_youtube_description, Res.string.video_download_quality, Res.string.video_quality, Res.string.youtube_account),
+    "audio" to listOf(Res.string.audio, Res.string.balance_media_loudness, Res.string.equalizer_type, Res.string.equalizer_type_built_in, Res.string.equalizer_type_system, Res.string.normalize_volume, Res.string.not_available_while_casting, Res.string.open_system_equalizer, Res.string.skip_no_music_part, Res.string.skip_silent, Res.string.use_your_system_equalizer),
+    "playback" to listOf(Res.string.audio_delay, Res.string.audio_delay_description, Res.string.audio_reverb, Res.string.audio_reverb_description, Res.string.crossfade, Res.string.crossfade_auto, Res.string.crossfade_description, Res.string.crossfade_dj_mode, Res.string.crossfade_dj_mode_description, Res.string.crossfade_duration, Res.string.crossfade_skip_album, Res.string.crossfade_skip_album_description, Res.string.equalizer, Res.string.equalizer_description, Res.string.kill_service_on_exit, Res.string.kill_service_on_exit_description, Res.string.not_available_while_casting, Res.string.playback, Res.string.save_playback_state, Res.string.save_shuffle_and_repeat_mode),
+    "listening_history" to listOf(Res.string.clear_listening_history, Res.string.clear_listening_history_confirm, Res.string.clear_listening_history_description, Res.string.listening_history, Res.string.local_tracking_description, Res.string.local_tracking_title),
+    "lyrics" to listOf(Res.string.anonymous, Res.string.better_lyrics, Res.string.contributor_email, Res.string.contributor_name, Res.string.help_build_lyrics_database, Res.string.help_build_lyrics_database_description, Res.string.invalid, Res.string.lrclib, Res.string.lyrics, Res.string.lyrics_offset, Res.string.lyrics_offset_invalid, Res.string.lyrics_offset_message, Res.string.lyrics_offset_value, Res.string.main_lyrics_provider, Res.string.simpmusic_lyrics, Res.string.system_default, Res.string.translation_language, Res.string.translation_language_message, Res.string.unknown, Res.string.youtube_subtitle_language, Res.string.youtube_subtitle_language_message, Res.string.youtube_transcript),
+    "AI" to listOf(Res.string.ai, Res.string.ai_api_key, Res.string.ai_provider, Res.string.base_url, Res.string.custom_ai_model_id, Res.string.custom_base_url, Res.string.custom_base_url_message, Res.string.custom_headers, Res.string.custom_headers_json, Res.string.custom_headers_message, Res.string.custom_model_id_messages, Res.string.default_models, Res.string.gemini, Res.string.headers_json, Res.string.invalid, Res.string.invalid_api_key, Res.string.invalid_json_format, Res.string.invalid_url_format, Res.string.openai, Res.string.openai_api_compatible, Res.string.unknown, Res.string.use_ai_translation, Res.string.use_ai_translation_description),
+    "assistant_and_ai" to listOf(Res.string.assistant_and_ai, Res.string.play_downloaded_action, Res.string.play_downloaded_description, Res.string.play_favorites_action, Res.string.play_favorites_description, Res.string.play_recommendations_action, Res.string.play_recommendations_description, Res.string.voice_commands_info),
+    "spotify" to listOf(Res.string.animated_artwork_info, Res.string.canvas_info, Res.string.enable_animated_artwork, Res.string.enable_canvas, Res.string.enable_spotify_lyrics, Res.string.intro_login_to_spotify, Res.string.log_in_to_spotify, Res.string.log_out_from_spotify, Res.string.logged_in, Res.string.spotify, Res.string.spotify_lyrícs_info),
+    "discord" to listOf(Res.string.discord_integration, Res.string.enable_rich_presence, Res.string.intro_login_to_discord, Res.string.log_in_to_discord, Res.string.log_out_from_discord, Res.string.logged_in, Res.string.rich_presence_info),
+    "lastfm" to listOf(Res.string.enable_scrobbling, Res.string.intro_login_to_lastfm, Res.string.lastfm_integration, Res.string.log_in_to_lastfm, Res.string.log_out_from_lastfm, Res.string.logged_in_as, Res.string.scrobbling_info),
+    "sponsor_block" to listOf(Res.string.categories_sponsor_block, Res.string.enable_sponsor_block, Res.string.skip_sponsor_part_of_video, Res.string.sponsorBlock, Res.string.sponsor_block_intro, Res.string.what_segments_will_be_skipped),
+    "storage" to listOf(Res.string.clear_canvas_cache, Res.string.clear_downloaded_cache, Res.string.clear_player_cache, Res.string.clear_thumbnail_cache, Res.string.database, Res.string.downloaded_cache, Res.string.free_space, Res.string.limit_player_cache, Res.string.other_app, Res.string.player_cache, Res.string.spotify_canvas_cache, Res.string.storage, Res.string.thumbnail_cache),
+    "backup" to listOf(Res.string.auto_backup, Res.string.auto_backup_description, Res.string.backup, Res.string.backup_downloaded, Res.string.backup_downloaded_description, Res.string.backup_frequency, Res.string.daily, Res.string.import_data, Res.string.import_data_intro, Res.string.import_playlists_from_other_apps, Res.string.keep_backups, Res.string.keep_backups_format, Res.string.last_backup, Res.string.monthly, Res.string.never, Res.string.restore_your_data, Res.string.restore_your_saved_data, Res.string.save_all_your_playlist_data, Res.string.weekly),
+    "about_us" to listOf(Res.string.about_us, Res.string.author, Res.string.auto_check_for_update, Res.string.auto_check_for_update_description, Res.string.blog_notification_description, Res.string.blog_notification_title, Res.string.buy_me_a_coffee, Res.string.check_for_update, Res.string.description_and_licenses, Res.string.developer_blog, Res.string.developer_blog_tagline, Res.string.donation, Res.string.follow_me_on_x, Res.string.maxrave_dev, Res.string.third_party_libraries, Res.string.update_channel, Res.string.version, Res.string.version_format),
+    "developer_option" to listOf(Res.string.app_log, Res.string.app_log_description, Res.string.developer_option),
+)
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingTopBar(
     onBack: () -> Unit,
+    searchQuery: String = "",
+    onSearchQueryChange: (String) -> Unit = {},
+    isSearchActive: Boolean = false,
+    onToggleSearch: () -> Unit = {},
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
 ) {
     TopAppBar(
         title = {
-            Text(
-                text = stringResource(Res.string.settings),
-                style = typo().titleMedium,
-            )
+            if (isSearchActive) {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    placeholder = {
+                        Text(
+                            text = stringResource(Res.string.search_settings),
+                            style = typo().bodyMedium,
+                        )
+                    },
+                    singleLine = true,
+                    textStyle = typo().bodyMedium,
+                    colors =
+                        androidx.compose.material3.TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                Text(
+                    text = stringResource(Res.string.settings),
+                    style = typo().titleMedium,
+                )
+            }
         },
         navigationIcon = {
             Box(Modifier.padding(horizontal = 5.dp)) {
@@ -3552,7 +3787,23 @@ private fun SettingTopBar(
                     true,
                     tint = MaterialTheme.colorScheme.onSurface,
                 ) {
-                    onBack()
+                    if (isSearchActive) {
+                        onToggleSearch()
+                    } else {
+                        onBack()
+                    }
+                }
+            }
+        },
+        actions = {
+            Box(Modifier.padding(horizontal = 5.dp)) {
+                RippleIconButton(
+                    if (isSearchActive) SimpIcons.Close else SimpIcons.Search,
+                    Modifier.size(32.dp),
+                    true,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    onToggleSearch()
                 }
             }
         },

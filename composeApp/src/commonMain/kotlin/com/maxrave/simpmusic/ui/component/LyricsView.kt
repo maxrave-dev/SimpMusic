@@ -418,6 +418,18 @@ private fun buildSyncedTranslatedWordsByLineIndex(
             val _bt = bestTs
         }
     }
+    // Fallback: If time-based matching produced nothing or missed most lines while line count matches closely,
+    // fallback to line-index matching so translations never get dropped on timing drift.
+    if (result.isEmpty() || result.size < originalLines.size / 3) {
+        for (i in originalLines.indices) {
+            if (!result.containsKey(i)) {
+                val fallbackWords = translatedLines.getOrNull(i)?.words
+                if (!fallbackWords.isNullOrBlank()) {
+                    result[i] = fallbackWords
+                }
+            }
+        }
+    }
     return result
 }
 

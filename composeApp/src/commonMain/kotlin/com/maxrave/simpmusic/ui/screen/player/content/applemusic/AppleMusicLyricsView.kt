@@ -58,6 +58,7 @@ import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.AvTimer
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
+import com.maxrave.simpmusic.ui.icon.Translate
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentActions
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.canVote
@@ -297,6 +298,8 @@ internal fun AppleMusicLyricsView(
                         if (lyricsData.canVote()) {
                             AppleMusicFloatingCircleButton(icon = SimpIcons.ThumbsUpDown, onClick = { actions.onShowVoteDialog() })
                         }
+                        // Translate lyrics button
+                        AppleMusicFloatingCircleButton(icon = SimpIcons.Translate, onClick = { actions.onTranslateLyrics() })
                         AppleMusicFloatingCircleButton(icon = SimpIcons.Share, onClick = { showShareSheet = true })
                         AppleMusicFloatingCircleButton(icon = SimpIcons.OpenInFull, onClick = { actions.onShowFullscreenLyrics() })
                     }

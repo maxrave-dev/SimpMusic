@@ -276,3 +276,7 @@ if (!isFullBuild) {
         finalizedBy(cleanSentryMetaTask)
     }
 }
+
+configurations.configureEach {
+    exclude(group = "com.charleskorn.kaml")
+}

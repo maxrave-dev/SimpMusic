@@ -96,6 +96,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.generate_subtitles
 import simpmusic.composeapp.generated.resources.five_seconds
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -700,7 +701,13 @@ fun FullscreenPlayer(
                                                         CircleShape,
                                                     ),
                                             onClick = {
-                                                shouldShowSubtitle = !shouldShowSubtitle
+                                                if (nowPlayingState.lyricsData == null && !shouldShowSubtitle) {
+                                                    // If subtitles/lyrics are absent, trigger generating/fetching subtitles
+                                                    sharedViewModel.fetchOrGenerateSubtitles()
+                                                    shouldShowSubtitle = true
+                                                } else {
+                                                    shouldShowSubtitle = !shouldShowSubtitle
+                                                }
                                             },
                                         ) {
                                             Crossfade(shouldShowSubtitle) {
@@ -708,7 +715,7 @@ fun FullscreenPlayer(
                                                     Icon(
                                                         imageVector = SimpIcons.SubtitlesOff,
                                                         tint = Color.White,
-                                                        contentDescription = "",
+                                                        contentDescription = stringResource(Res.string.generate_subtitles),
                                                         modifier =
                                                             Modifier
                                                                 .size(24.dp),
@@ -717,7 +724,7 @@ fun FullscreenPlayer(
                                                     Icon(
                                                         imageVector = SimpIcons.Subtitles,
                                                         tint = Color.White,
-                                                        contentDescription = "",
+                                                        contentDescription = stringResource(Res.string.generate_subtitles),
                                                         modifier =
                                                             Modifier
                                                                 .size(24.dp),
@@ -776,6 +783,11 @@ fun FullscreenPlayer(
                         } else {
                             null
                         },
+                    onTranslateLyrics =
+                        if (nowPlayingState.lyricsData != null) {
+                            { sharedViewModel.translateCurrentLyrics() }
+                        } else null,
+                    onGenerateSubtitles = { sharedViewModel.fetchOrGenerateSubtitles() },
                 )
             }
             addLyricsFor?.let { (videoId, title, artist) ->
