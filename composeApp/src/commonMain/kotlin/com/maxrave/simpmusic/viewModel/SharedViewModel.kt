@@ -386,7 +386,7 @@ class SharedViewModel(
         viewModelScope.launch {
             mediaPlayerHandler.nowPlayingState
                 .distinctUntilChangedBy {
-                    it.songEntity?.videoId
+                    it.mediaItem.mediaId
                 }.collectLatest { state ->
                     canvasJob?.cancel()
                     _nowPlayingState.value = state
@@ -440,14 +440,30 @@ class SharedViewModel(
                     }
                     state.mediaItem.let { now ->
                         _canvas.value = null
-                        getLikeStatus(now.mediaId)
-                        getSongInfo(now.mediaId)
-                        getFormat(now.mediaId)
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                thumbnailURL = now.metadata.artworkUri,
-                                isVideo = now.isVideo(),
-                            )
+                        if (now.mediaId.startsWith(Config.LOCAL_MEDIA_ID_PREFIX)) {
+                            _liked.value = false
+                            _nowPlayingScreenData.value =
+                                NowPlayingScreenData(
+                                    nowPlayingTitle = now.metadata.title.orEmpty(),
+                                    artistName = now.metadata.artist.orEmpty(),
+                                    isVideo = false,
+                                    thumbnailURL = now.metadata.artworkUri,
+                                    canvasData = null,
+                                    lyricsData = null,
+                                    songInfoData = null,
+                                    playlistName = "",
+                                    isRadioQueue = false,
+                                )
+                        } else {
+                            getLikeStatus(now.mediaId)
+                            getSongInfo(now.mediaId)
+                            getFormat(now.mediaId)
+                            _nowPlayingScreenData.update {
+                                it.copy(
+                                    thumbnailURL = now.metadata.artworkUri,
+                                    isVideo = now.isVideo(),
+                                )
+                            }
                         }
                     }
                     state.songEntity?.let { song ->
