@@ -106,7 +106,7 @@ android {
             versionNameSuffix = "-dev"
         }
         // Optimized, independently installable build for the local-player Android test APK.
-        localTest {
+        create("localTest") {
             initWith(getByName("release"))
             applicationIdSuffix = ".localtest"
             versionNameSuffix = "-localtest"
