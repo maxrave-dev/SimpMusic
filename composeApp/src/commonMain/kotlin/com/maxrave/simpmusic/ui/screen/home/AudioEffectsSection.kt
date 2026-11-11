@@ -27,10 +27,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.data.player.DelayEffect
+import com.maxrave.domain.data.player.EightDDirection
+import com.maxrave.domain.data.player.EightDEffect
 import com.maxrave.domain.data.player.ReverbPreset
+import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.Help
@@ -47,6 +52,11 @@ import simpmusic.composeapp.generated.resources.delay_preset_slapback
 import simpmusic.composeapp.generated.resources.effect_feedback
 import simpmusic.composeapp.generated.resources.effect_mix
 import simpmusic.composeapp.generated.resources.effect_time
+import simpmusic.composeapp.generated.resources.eight_d_direction
+import simpmusic.composeapp.generated.resources.eight_d_left_to_right
+import simpmusic.composeapp.generated.resources.eight_d_right_to_left
+import simpmusic.composeapp.generated.resources.eight_d_period
+import simpmusic.composeapp.generated.resources.eight_d_seconds_unit
 import simpmusic.composeapp.generated.resources.ok
 import simpmusic.composeapp.generated.resources.reverb_help_cathedral
 import simpmusic.composeapp.generated.resources.reverb_help_damping
@@ -261,6 +271,62 @@ fun ReverbSection(viewModel: SettingsViewModel = koinViewModel()) {
     }
 }
 
+/** Direction and explicit seconds per turn, not a combined intensity level. */
+@Composable
+fun EightDSection(viewModel: SettingsViewModel = koinViewModel()) {
+    val direction by viewModel.eightDDirection.collectAsStateWithLifecycle()
+    val period by viewModel.eightDPeriodSeconds.collectAsStateWithLifecycle()
+    val secondsUnit = stringResource(Res.string.eight_d_seconds_unit)
+    val periodLabel = stringResource(Res.string.eight_d_period)
+    val periodLabelStyle = typo().bodySmall.copy(textDirection = TextDirection.Content)
+    EffectCard {
+        Text(
+            text = stringResource(Res.string.eight_d_direction),
+            style = typo().bodySmall,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        LeftToRight {
+            EffectPresetRow {
+                Chip(
+                    isSelected = direction == EightDDirection.LEFT_TO_RIGHT,
+                    text = stringResource(Res.string.eight_d_left_to_right),
+                    onClick = { viewModel.setEightDDirection(EightDDirection.LEFT_TO_RIGHT) },
+                )
+                Chip(
+                    isSelected = direction == EightDDirection.RIGHT_TO_LEFT,
+                    text = stringResource(Res.string.eight_d_right_to_left),
+                    onClick = { viewModel.setEightDDirection(EightDDirection.RIGHT_TO_LEFT) },
+                )
+            }
+        }
+        LeftToRight {
+            Column {
+                EffectSlider(
+                    label = periodLabel,
+                    labelStyle = periodLabelStyle,
+                    value = period,
+                    valueRange = EightDEffect.MIN_PERIOD_SECONDS..EightDEffect.MAX_PERIOD_SECONDS,
+                    snap = EightDEffect::normalizePeriod,
+                    readout = {
+                        val seconds = EightDEffect.normalizePeriod(it)
+                        "${if (seconds % 1f == 0f) seconds.toInt().toString() else seconds.toString()} $secondsUnit"
+                    },
+                    onCommit = viewModel::setEightDPeriodSeconds,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                // Match the Slider's weighted width, excluding its existing 60dp value + 12dp gap.
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(end = EFFECT_READOUT_WIDTH + 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("${EightDEffect.MIN_PERIOD_SECONDS.toInt()} $secondsUnit", style = typo().bodySmall)
+                    Text("${EightDEffect.MAX_PERIOD_SECONDS.toInt()} $secondsUnit", style = typo().bodySmall)
+                }
+            }
+        }
+    }
+}
+
 /**
  * What the four rooms and the mix slider actually do, in the user's language.
  *
@@ -402,6 +468,7 @@ private fun EffectSlider(
     onCommit: (Float) -> Unit,
     modifier: Modifier = Modifier,
     snap: (Float) -> Float = { it },
+    labelStyle: TextStyle? = null,
 ) {
     var draft by remember { mutableStateOf<Float?>(null) }
     LaunchedEffect(value) { draft = null }
@@ -410,7 +477,7 @@ private fun EffectSlider(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            style = typo().bodySmall,
+            style = labelStyle ?: typo().bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
         )

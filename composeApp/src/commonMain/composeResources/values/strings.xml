@@ -357,6 +357,14 @@
     <string name="audio_delay_description">Echo the sound with a repeating delay</string>
     <string name="audio_reverb">Reverb</string>
     <string name="audio_reverb_description">Place the music in a room, hall or plate</string>
+    <string name="audio_eight_d">8D audio</string>
+    <string name="audio_eight_d_description">Rotating stereo sound. Best with headphones.</string>
+    <string name="eight_d_direction">Rotation direction</string>
+    <string name="eight_d_left_to_right">Left → Right</string>
+    <string name="eight_d_right_to_left">Right → Left</string>
+    <string name="eight_d_period">Time per revolution</string>
+    <string name="eight_d_seconds_unit">s</string>
+    <string name="eight_d_unavailable">8D is unavailable in this audio engine</string>
     <string name="effect_time">Time</string>
     <string name="effect_feedback">Feedback</string>
     <string name="effect_mix">Mix</string>

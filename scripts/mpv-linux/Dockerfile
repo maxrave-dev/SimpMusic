@@ -83,7 +83,7 @@ RUN git clone --depth 1 --branch n7.1.1 https://github.com/FFmpeg/FFmpeg.git ffm
         --enable-shared --disable-static \
         --disable-programs --disable-doc --disable-debug \
         --disable-encoders --disable-muxers --disable-devices \
-        --disable-filters --enable-filter=aresample,atempo,rubberband,scale,format,aformat,anull,null,volume,lavfi,acompressor,firequalizer,equalizer,highpass,lowpass,dynaudnorm,loudnorm,aecho,afir,amovie,asplit,amix,asetnsamples,astats,ametadata \
+        --disable-filters --enable-filter=aresample,atempo,rubberband,scale,format,aformat,anull,null,volume,lavfi,acompressor,firequalizer,equalizer,highpass,lowpass,dynaudnorm,loudnorm,aecho,afir,amovie,asplit,amix,asetnsamples,astats,ametadata,aeval \
         --enable-openssl --enable-protocol=https,http,tls,file,pipe,crypto,hls,data \
         --enable-libdav1d \
         --enable-version3 \
