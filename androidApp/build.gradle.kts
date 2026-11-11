@@ -107,14 +107,16 @@ android {
         }
         // Optimized, independently installable build for the local-player Android test APK.
         create("localTest") {
-            initWith(getByName("release"))
-            // Use the project's recognized dev package and mark this as a debug build.
-            // SimpMusic intentionally skips release-key verification for debug builds.
+            // Build from debug to bypass release-only Sentry processing and avoid
+            // the Gradle finalizer deadlock seen in the optimized release-derived variant.
+            initWith(getByName("debug"))
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-localtest"
             isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("release")
+            matchingFallbacks += listOf("debug")
         }
     }
     compileOptions {
@@ -202,7 +204,7 @@ sentry {
     org.set("simpmusic")
     projectName.set("android")
     ignoredFlavors.set(setOf("foss"))
-    ignoredBuildTypes.set(setOf("debug"))
+    ignoredBuildTypes.set(setOf("debug", "localTest"))
     autoInstallation.enabled = false
     if (isFullBuild) {
         val token =
