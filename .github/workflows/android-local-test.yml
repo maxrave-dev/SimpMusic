@@ -33,14 +33,14 @@ jobs:
       - name: Generate library definitions
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Build optimized release APKs
-        run: ./gradlew :androidApp:assembleRelease
+      - name: Build optimized, separately installable local-test APKs
+        run: ./gradlew :androidApp:assembleLocalTest
 
       - name: Select ARM64 APK and sign for testing
         shell: bash
         run: |
           set -euo pipefail
-          APK="$(find androidApp/build/outputs/apk/release -maxdepth 1 -type f -name '*arm64-v8a*.apk' | head -n 1)"
+          APK="$(find androidApp/build/outputs/apk/localTest -maxdepth 1 -type f -name '*arm64-v8a*.apk' | head -n 1)"
           if [ -z "$APK" ]; then
             echo "ARM64 split APK was not produced."
             echo "Available APK outputs:"
