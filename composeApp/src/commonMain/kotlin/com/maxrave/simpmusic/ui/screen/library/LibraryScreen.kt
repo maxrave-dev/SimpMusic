@@ -210,6 +210,8 @@ fun LibraryScreen(
                 viewModel.getLocalPlaylist()
             }
 
+            LibraryChipType.DEVICE_AUDIO -> Unit
+
             LibraryChipType.FAVORITE_PLAYLIST -> {
                 viewModel.getPlaylistFavorite()
             }
@@ -350,6 +352,8 @@ fun LibraryScreen(
             // Nothing to draw: MixForYouScreen owns this content now, and the effect above bounces
             // the filter back to YOUR_LIBRARY the moment it lands here.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> Unit
+
+            LibraryChipType.DEVICE_AUDIO -> DeviceAudioScreen()
 
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
@@ -536,6 +540,7 @@ fun LibraryScreen(
                             LibraryChipType.YOUTUBE_MUSIC_PLAYLIST -> stringResource(Res.string.your_youtube_playlists)
                             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> stringResource(Res.string.mix_for_you)
                             LibraryChipType.LOCAL_PLAYLIST -> stringResource(Res.string.your_playlists)
+                            LibraryChipType.DEVICE_AUDIO -> "device audio"
                             LibraryChipType.FAVORITE_PLAYLIST -> stringResource(Res.string.favorite_playlists)
                             LibraryChipType.DOWNLOADED_PLAYLIST -> stringResource(Res.string.downloaded_playlists)
                             LibraryChipType.FAVORITE_PODCAST -> stringResource(Res.string.favorite_podcasts)
