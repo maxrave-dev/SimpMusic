@@ -130,7 +130,7 @@ actual fun DeviceAudioScreen() {
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     items(visibleTracks, key = { it.id }) { track ->
