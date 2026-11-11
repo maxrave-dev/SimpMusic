@@ -801,6 +801,15 @@ class SharedViewModel(
         _songRecognitionRequest.value = requested
     }
 
+    // A room code from a Listen Together link; that screen puts it in its form the next time it
+    // composes and clears the request.
+    private val _listenTogetherRoomRequest = MutableStateFlow<String?>(null)
+    val listenTogetherRoomRequest: StateFlow<String?> = _listenTogetherRoomRequest.asStateFlow()
+
+    fun requestListenTogetherRoom(roomCode: String?) {
+        _listenTogetherRoomRequest.value = roomCode
+    }
+
     fun putString(
         key: String,
         value: String,
