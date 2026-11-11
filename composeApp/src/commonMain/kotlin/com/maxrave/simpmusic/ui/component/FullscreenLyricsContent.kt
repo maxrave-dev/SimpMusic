@@ -84,6 +84,9 @@ import coil3.request.crossfade
 import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.isFullscreenPlayerOpen
+import com.maxrave.simpmusic.expect.setMiniPlayerOpen
+import com.maxrave.simpmusic.expect.toggleFullscreenPlayer
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
@@ -99,6 +102,8 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Fullscreen
+import com.maxrave.simpmusic.ui.icon.FullscreenExit
 import com.maxrave.simpmusic.ui.icon.Info
 import com.maxrave.simpmusic.ui.icon.MoreVert
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
@@ -1022,10 +1027,39 @@ private fun FullscreenLyricsDesktopChrome(
                     .liquidGlass(backdrop, RoundedCornerShape(24.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val isFullscreen = isFullscreenPlayerOpen()
             IconButton(onClick = onDismiss) {
-                Icon(imageVector = SimpIcons.Close, contentDescription = "", tint = Color.White)
+                Icon(
+                    imageVector = SimpIcons.Close,
+                    contentDescription = if (isFullscreen) "Exit Fullscreen" else "Close",
+                    tint = Color.White,
+                )
             }
-            IconButton(onClick = { toggleMiniPlayer() }) {
+            IconButton(
+                onClick = {
+                    if (isFullscreen) {
+                        onDismiss()
+                    } else {
+                        toggleFullscreenPlayer()
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = if (isFullscreen) SimpIcons.FullscreenExit else SimpIcons.Fullscreen,
+                    contentDescription = if (isFullscreen) "Exit Fullscreen" else "Fullscreen Player",
+                    tint = Color.White,
+                )
+            }
+            IconButton(
+                onClick = {
+                    if (isFullscreen) {
+                        onDismiss()
+                        setMiniPlayerOpen(true)
+                    } else {
+                        toggleMiniPlayer()
+                    }
+                },
+            ) {
                 Icon(
                     imageVector = SimpIcons.PictureInPictureAlt,
                     contentDescription = "Mini Player",
