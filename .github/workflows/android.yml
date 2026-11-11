@@ -62,6 +62,16 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
+      - name: Build installable debug APK for device testing
+        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: simpmusic-android10-test
+          path: androidApp/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
       - name: Build release APK
         run: ./gradlew androidApp:assembleRelease
 
