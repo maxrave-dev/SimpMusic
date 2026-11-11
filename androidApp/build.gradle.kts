@@ -105,6 +105,14 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
+        // Optimized, independently installable build for the local-player Android test APK.
+        localTest {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".localtest"
+            versionNameSuffix = "-localtest"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
