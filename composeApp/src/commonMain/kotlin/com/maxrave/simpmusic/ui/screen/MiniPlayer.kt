@@ -108,6 +108,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.player.GenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
@@ -199,6 +200,7 @@ fun MiniPlayer(
         remember {
             mutableStateOf<SongEntity?>(null)
         }
+    var nowPlayingMediaItem by remember { mutableStateOf<GenericMediaItem?>(null) }
     val (liked, setLiked) =
         remember {
             mutableStateOf(false)
@@ -237,6 +239,7 @@ fun MiniPlayer(
                 sharedViewModel.nowPlayingState.collect { item ->
                     if (item != null) {
                         setSongEntity(item.songEntity)
+                        nowPlayingMediaItem = item.mediaItem
                     }
                 }
             }
@@ -411,7 +414,7 @@ fun MiniPlayer(
                                     model =
                                         ImageRequest
                                             .Builder(LocalPlatformContext.current)
-                                            .data(songEntity?.thumbnails)
+                                            .data(songEntity?.thumbnails ?: nowPlayingMediaItem?.metadata?.artworkUri)
                                             .crossfade(550)
                                             .build(),
                                     placeholder = rememberHolderPainter(),
@@ -427,7 +430,7 @@ fun MiniPlayer(
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             AnimatedContent(
-                                targetState = songEntity,
+                                targetState = nowPlayingMediaItem?.mediaId?.takeIf { it.isNotBlank() } ?: songEntity?.videoId,
                                 modifier = Modifier.weight(1F).fillMaxHeight(),
                                 contentAlignment = Alignment.CenterStart,
                                 transitionSpec = {
@@ -466,7 +469,7 @@ fun MiniPlayer(
                                             .align(Alignment.CenterVertically),
                                     ) {
                                         Text(
-                                            text = (songEntity?.title ?: "").toString(),
+                                            text = (songEntity?.title ?: nowPlayingMediaItem?.metadata?.title.orEmpty()).toString(),
                                             style = if (isFlat) typo().titleSmall else typo().labelSmall,
                                             color = textColor,
                                             maxLines = 1,
@@ -491,7 +494,7 @@ fun MiniPlayer(
                                                 )
                                             }
                                             Text(
-                                                text = (songEntity?.artistName?.connectArtists() ?: ""),
+                                                text = (songEntity?.artistName?.connectArtists() ?: nowPlayingMediaItem?.metadata?.artist.orEmpty()),
                                                 style = if (isFlat) typo().bodySmall.copy(fontSize = 10.sp) else typo().bodySmall,
                                                 maxLines = 1,
                                                 color = if (isFlat) MaterialTheme.colorScheme.onSurfaceVariant else textColor,
