@@ -108,8 +108,11 @@ android {
         // Optimized, independently installable build for the local-player Android test APK.
         create("localTest") {
             initWith(getByName("release"))
-            applicationIdSuffix = ".localtest"
+            // Use the project's recognized dev package and mark this as a debug build.
+            // SimpMusic intentionally skips release-key verification for debug builds.
+            applicationIdSuffix = ".dev"
             versionNameSuffix = "-localtest"
+            isDebuggable = true
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += listOf("release")
         }
