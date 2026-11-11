@@ -2,6 +2,14 @@ name: Build Android local-player test APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/android-local-music-player
+    paths:
+      - '.github/workflows/android-local-test.yml'
+      - 'androidApp/**'
+      - 'composeApp/**'
+      - 'core'
 
 permissions:
   contents: read
