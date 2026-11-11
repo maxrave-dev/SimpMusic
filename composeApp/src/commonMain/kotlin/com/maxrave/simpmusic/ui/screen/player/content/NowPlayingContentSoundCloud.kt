@@ -1043,7 +1043,8 @@ private fun CornerIconButton(
 }
 
 /**
- * The current time leads the placeholder; opening the draft captures that time, including emoji.
+ * No running time on the box itself (owner's call): the time appears only once the draft opens,
+ * captured at the tap, emoji included.
  */
 @Composable
 private fun CommentBox(
@@ -1054,9 +1055,6 @@ private fun CommentBox(
 ) = LeftToRight {
     val colors = MaterialTheme.colorScheme
     val latestPosition by rememberUpdatedState(position)
-    // Refresh just this label once a second, not the whole card on every playhead frame.
-    val elapsedSecond by remember { derivedStateOf { latestPosition().coerceAtLeast(0L) / 1000L } }
-    val timestamp = soundCloudCommentTimestamp(elapsedSecond * 1000L)
     Row(
         modifier =
             modifier
@@ -1075,8 +1073,6 @@ private fun CommentBox(
                 .padding(start = 16.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = timestamp, style = typo().bodyMedium, color = colors.onSurfaceVariant, maxLines = 1)
-        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = stringResource(Res.string.comment_placeholder),
             style = typo().bodyMedium,
