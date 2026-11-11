@@ -210,7 +210,9 @@ fun LibraryScreen(
                 viewModel.getLocalPlaylist()
             }
 
-            LibraryChipType.DEVICE_AUDIO -> Unit
+            LibraryChipType.DEVICE_AUDIO -> {
+                if (getPlatform() != Platform.Android) viewModel.setCurrentScreen(LibraryChipType.YOUR_LIBRARY)
+            }
 
             LibraryChipType.FAVORITE_PLAYLIST -> {
                 viewModel.getPlaylistFavorite()
@@ -353,7 +355,9 @@ fun LibraryScreen(
             // the filter back to YOUR_LIBRARY the moment it lands here.
             LibraryChipType.YOUTUBE_MIX_FOR_YOU -> Unit
 
-            LibraryChipType.DEVICE_AUDIO -> DeviceAudioScreen()
+            LibraryChipType.DEVICE_AUDIO -> {
+                if (getPlatform() == Platform.Android) DeviceAudioScreen() else Unit
+            }
 
             LibraryChipType.LOCAL_PLAYLIST -> {
                 GridLibraryPlaylist(
@@ -521,6 +525,9 @@ fun LibraryScreen(
             LibraryChipType.entries.forEach { type ->
                 // Mix for you left this row for a tab of its own.
                 if (type == LibraryChipType.YOUTUBE_MIX_FOR_YOU) {
+                    return@forEach
+                }
+                if (type == LibraryChipType.DEVICE_AUDIO && getPlatform() != Platform.Android) {
                     return@forEach
                 }
                 if (type == LibraryChipType.YOUTUBE_MUSIC_PLAYLIST && !loggedIn) {
