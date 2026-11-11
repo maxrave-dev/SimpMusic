@@ -1,0 +1,36 @@
+name: Build Android local-player test APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected branch and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: 21
+          cache: gradle
+
+      - name: Generate library definitions
+        run: ./gradlew exportLibraryDefinitions
+
+      - name: Build Android debug APK
+        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: simpmusic-android10-test
+          path: androidApp/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
