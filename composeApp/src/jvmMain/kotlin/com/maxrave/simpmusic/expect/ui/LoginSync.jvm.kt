@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -149,14 +150,17 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(if (state is LoginSyncHostState.Done) Res.string.ok else Res.string.cancel))
+                Text(
+                    text = stringResource(if (state is LoginSyncHostState.Done) Res.string.ok else Res.string.cancel),
+                    color = LocalContentColor.current,
+                )
             }
         },
         dismissButton =
             if (canRestart) {
                 {
                     TextButton(onClick = viewModel::open) {
-                        Text(text = stringResource(Res.string.login_sync_new_code))
+                        Text(text = stringResource(Res.string.login_sync_new_code), color = LocalContentColor.current)
                     }
                 }
             } else {
@@ -167,7 +171,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
 
 /** Dark modules on white whatever the theme: scanners expect that polarity. */
 @Composable
-private fun QrCode(
+internal fun QrCode(
     text: String,
     modifier: Modifier = Modifier,
 ) {

@@ -157,6 +157,7 @@ import com.maxrave.simpmusic.ui.icon.Subtitles
 import com.maxrave.simpmusic.ui.icon.SubtitlesOff
 import com.maxrave.simpmusic.ui.icon.ThumbsUpDown
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.typo
@@ -554,7 +555,7 @@ fun NowPlayingContentSpotify(
                                                     .background(Color.Transparent)
                                                     .shadow(
                                                         elevation = 3.dp,
-                                                        shape = RoundedCornerShape(8.dp),
+                                                        shape = ArtworkShape,
                                                         spotColor =
                                                             state.spotShadowColor.copy(
                                                                 alpha = 0.6f,
@@ -602,7 +603,7 @@ fun NowPlayingContentSpotify(
                                                             },
                                                         ).background(Color.Transparent)
                                                         .clip(
-                                                            RoundedCornerShape(8.dp),
+                                                            ArtworkShape,
                                                         ).alpha(
                                                             if (!state.screenData.isVideo || !state.shouldShowVideo) 1f else 0f,
                                                         ),
@@ -625,7 +626,7 @@ fun NowPlayingContentSpotify(
                                                 modifier =
                                                     Modifier
                                                         .aspectRatio(state.videoAspectRatio)
-                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .clip(ArtworkShape)
                                                         .background(Color.Black),
                                             ) {
                                                 Box(Modifier.fillMaxSize()) {
@@ -781,7 +782,7 @@ fun NowPlayingContentSpotify(
                                                     .background(Color.Transparent)
                                                     .shadow(
                                                         elevation = 3.dp,
-                                                        shape = RoundedCornerShape(8.dp),
+                                                        shape = ArtworkShape,
                                                         spotColor = Color.Black.copy(alpha = 0.4f),
                                                         ambientColor = Color.Transparent,
                                                     ),
@@ -815,7 +816,7 @@ fun NowPlayingContentSpotify(
                                                         .padding(3.dp)
                                                         .fillMaxWidth()
                                                         .aspectRatio(1f)
-                                                        .clip(RoundedCornerShape(8.dp)),
+                                                        .clip(ArtworkShape),
                                             )
                                         }
                                     }
@@ -1852,7 +1853,7 @@ internal fun NowPlayingTrackInfoRow(
                         .width(55.dp)
                         .padding(end = 10.dp)
                         .clip(
-                            RoundedCornerShape(4.dp),
+                            ArtworkShape,
                         ).align(Alignment.CenterVertically),
             )
         }

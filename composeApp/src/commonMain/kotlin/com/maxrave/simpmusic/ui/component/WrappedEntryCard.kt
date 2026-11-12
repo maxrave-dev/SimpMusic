@@ -33,6 +33,7 @@ import com.maxrave.simpmusic.ui.icon.PlayArrow
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.screen.home.wrapped.formatCount
 import com.maxrave.simpmusic.ui.screen.home.wrapped.wholeMinutes
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.WrappedYear
 import org.jetbrains.compose.resources.stringResource
@@ -112,7 +113,7 @@ internal fun EntryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                modifier = Modifier.size(COVER_SIZE).clip(RoundedCornerShape(COVER_RADIUS)),
+                modifier = Modifier.size(COVER_SIZE).clip(ArtworkShape),
                 content = picture,
             )
             Spacer(Modifier.width(14.dp))
@@ -174,8 +175,6 @@ private val GUTTER = 14.dp
 
 /** Row height, not banner height — the whole card lands near 96dp with the gutter. */
 private val COVER_SIZE = 68.dp
-
-private val COVER_RADIUS = 8.dp
 
 private val CARD_RADIUS = 12.dp
 

@@ -41,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.SimpIcons
@@ -120,11 +122,12 @@ fun LastfmLoginScreen(
     val busy = state is LastfmLoginState.CompletingLogin
 
     Box(modifier = Modifier.fillMaxSize()) {
+        val scrollState = rememberScrollState()
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -226,6 +229,10 @@ fun LastfmLoginScreen(
 
             Spacer(Modifier.height(48.dp))
         }
+        VerticalScrollBar(
+            scrollState = scrollState,
+            modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+        )
 
         TopAppBar(
             modifier = Modifier.align(Alignment.TopCenter),

@@ -72,6 +72,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.comments.CommentLikeState
 import com.maxrave.domain.data.model.comments.YouTubeComment
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Send
@@ -365,6 +366,10 @@ private fun CommentsBody(
                     }
                 }
             }
+            VerticalScrollBar(
+                scrollState = listState,
+                modifier = Modifier.padding(bottom = bottomPadding),
+            )
         }
     }
 }

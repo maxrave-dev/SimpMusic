@@ -57,6 +57,7 @@ import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.mediaservice.handler.RepeatState
 import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.ui.component.DraggableItem
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.rememberDragDropState
@@ -289,6 +290,10 @@ internal fun AppleMusicQueueView(
                     }
                 }
             }
+            VerticalScrollBar(
+                scrollState = lazyListState,
+                modifier = Modifier.padding(top = QUEUE_TOP_FADE, bottom = QUEUE_BOTTOM_FADE),
+            )
         }
 
         AppleMusicBottomCluster(

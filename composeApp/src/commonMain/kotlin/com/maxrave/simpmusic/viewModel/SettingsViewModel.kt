@@ -23,6 +23,8 @@ import com.maxrave.domain.repository.AccountRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.DiscordRepository
+import com.maxrave.domain.repository.LibrarySyncRepository
+import com.maxrave.domain.data.model.librarysync.LibrarySyncState
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.domain.repository.LyricsRomanizerRepository
 import com.maxrave.domain.repository.SongRepository
@@ -83,12 +85,17 @@ class SettingsViewModel(
     private val artistRepository: ArtistRepository,
     private val lyricsRomanizerRepository: LyricsRomanizerRepository,
     private val discordRepository: DiscordRepository,
+    private val librarySyncRepository: LibrarySyncRepository,
 ) : BaseViewModel() {
     private val databasePath: String? = commonRepository.getDatabasePath()
     private val downloadUtils: DownloadHandler by inject()
 
     val castState: StateFlow<GenericCastState> get() = mediaPlayerHandler.castState
     val eightDAvailable: StateFlow<Boolean> get() = mediaPlayerHandler.player.eightDAvailable
+
+    /** Library sync (#2663): clearing history and restoring a backup both leave the pairing. */
+    val librarySyncPaired: Boolean get() = librarySyncRepository.state.value.isPaired
+    val librarySyncState: StateFlow<LibrarySyncState> get() = librarySyncRepository.state
 
     /** READY everywhere the dictionary is bundled (Desktop), so only Android ever leaves it. */
     val japaneseDictionaryState: StateFlow<RomanizationDictionaryState> =
@@ -1327,7 +1334,16 @@ class SettingsViewModel(
                     // last, so a run stopped in between — the user leaving Settings is enough to do
                     // it — has already dropped every cached playlist, album and artist and left the
                     // songs behind. Nothing resumes it afterwards, so it has to run to the end.
-                    withContext(NonCancellable) { songRepository.clearHistoryAndOrphanedSongs() }
+                    withContext(NonCancellable) {
+                        // Paired: leave the pairing first, so nothing synced lands after the wipe and
+                        // the wipe itself never reaches the other device. The wipe goes on regardless.
+                        try {
+                            librarySyncRepository.unpairAll()
+                        } catch (e: Exception) {
+                            Logger.e(tag, "library sync: unpair before clearing history failed", e)
+                        }
+                        songRepository.clearHistoryAndOrphanedSongs()
+                    }
                 } catch (e: CancellationException) {
                     // Not a failure, and it must not be swallowed: catching it breaks structured
                     // concurrency, and it would put the generic error toast in front of a user whose
@@ -1380,6 +1396,10 @@ class SettingsViewModel(
             makeToast(getString(Res.string.restore_in_progress))
             withContext(Dispatchers.IO) {
                 runCatching {
+                    // The restored database replaces everything the sync log and the other device
+                    // know about; pairing again starts both from it. A failure here must not stop the restore.
+                    runCatching { librarySyncRepository.unpairAll() }
+                        .onFailure { Logger.e(tag, "library sync: unpair before restore failed", it) }
                     restoreNative(commonRepository, uri) {
                         getData()
                     }

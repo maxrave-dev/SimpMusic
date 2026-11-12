@@ -95,6 +95,8 @@ import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
@@ -718,6 +720,10 @@ fun ArtistScreen(
                             )
                         }
                     }
+                    VerticalScrollBar(
+                        scrollState = lazyState,
+                        modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+                    )
 
                     // Haze top bar appears once the header scrolls away.
                     AnimatedVisibility(

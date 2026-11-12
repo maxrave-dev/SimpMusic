@@ -104,13 +104,18 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
+import com.maxrave.domain.data.model.librarysync.LibrarySyncProblem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.LibrarySyncDialog
 import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
+import com.maxrave.simpmusic.expect.ui.syncedAgo
 import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
@@ -234,6 +239,7 @@ import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_listening_history
 import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
 import simpmusic.composeapp.generated.resources.clear_listening_history_description
+import simpmusic.composeapp.generated.resources.clear_listening_history_unpairs
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -321,6 +327,13 @@ import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
+import simpmusic.composeapp.generated.resources.library_sync_not_paired_android
+import simpmusic.composeapp.generated.resources.library_sync_not_paired_desktop
+import simpmusic.composeapp.generated.resources.library_sync_peer_not_synced
+import simpmusic.composeapp.generated.resources.library_sync_peer_synced
+import simpmusic.composeapp.generated.resources.library_sync_send_logins_paired
+import simpmusic.composeapp.generated.resources.library_sync_title
+import simpmusic.composeapp.generated.resources.library_sync_windows_public
 import simpmusic.composeapp.generated.resources.login_sync_android_description
 import simpmusic.composeapp.generated.resources.login_sync_android_title
 import simpmusic.composeapp.generated.resources.login_sync_desktop_description
@@ -521,6 +534,7 @@ fun SettingScreen(
 
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
+    val librarySyncState by viewModel.librarySyncState.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
@@ -638,6 +652,9 @@ fun SettingScreen(
     var showLoginSyncDialog by rememberSaveable {
         mutableStateOf(false)
     }
+    var showLibrarySyncDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
     var showThirdPartyLibraries by rememberSaveable {
         mutableStateOf(false)
     }
@@ -714,20 +731,45 @@ fun SettingScreen(
                     title = stringResource(Res.string.login_sync_section),
                     modifier = Modifier.onSizeChanged { devicesGroupHeightPx = it.height },
                 ) {
+                    val syncPeer = librarySyncState.peers.firstOrNull()
                     SettingItem(
                         title =
                             stringResource(
                                 if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
                             ),
                         subtitle =
-                            stringResource(
-                                if (getPlatform() == Platform.Android) {
-                                    Res.string.login_sync_android_description
-                                } else {
-                                    Res.string.login_sync_desktop_description
-                                },
-                            ),
+                            when {
+                                getPlatform() != Platform.Android -> stringResource(Res.string.login_sync_desktop_description)
+                                syncPeer != null -> stringResource(Res.string.library_sync_send_logins_paired, syncPeer.name)
+                                else -> stringResource(Res.string.login_sync_android_description)
+                            },
                         onClick = { showLoginSyncDialog = true },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.library_sync_title),
+                        subtitle =
+                            when {
+                                librarySyncState.problem == LibrarySyncProblem.WINDOWS_PUBLIC_NETWORK -> {
+                                    stringResource(Res.string.library_sync_windows_public)
+                                }
+
+                                syncPeer == null -> {
+                                    stringResource(
+                                        if (getPlatform() == Platform.Android) {
+                                            Res.string.library_sync_not_paired_android
+                                        } else {
+                                            Res.string.library_sync_not_paired_desktop
+                                        },
+                                    )
+                                }
+
+                                else -> {
+                                    val names = librarySyncState.peers.joinToString { it.name }
+                                    librarySyncState.lastSyncAt?.let { stringResource(Res.string.library_sync_peer_synced, names, syncedAgo(it)) }
+                                        ?: stringResource(Res.string.library_sync_peer_not_synced, names)
+                                }
+                            },
+                        onClick = { showLibrarySyncDialog = true },
                     )
                 }
                 SettingGroup(title = stringResource(Res.string.user_interface)) {
@@ -1682,7 +1724,11 @@ fun SettingScreen(
                         viewModel.setBasicAlertData(
                             SettingBasicAlertState(
                                 title = runBlocking { getString(Res.string.clear_listening_history) },
-                                message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                message =
+                                    runBlocking {
+                                        val confirm = getString(Res.string.clear_listening_history_confirm)
+                                        if (viewModel.librarySyncPaired) "$confirm\n\n${getString(Res.string.clear_listening_history_unpairs)}" else confirm
+                                    },
                                 confirm =
                                     runBlocking { getString(Res.string.clear) } to {
                                         viewModel.clearListeningHistory()
@@ -2857,6 +2903,10 @@ fun SettingScreen(
             EndOfPage()
         }
     }
+    VerticalScrollBar(
+        scrollState = settingListState,
+        modifier = Modifier.padding(top = innerPadding.calculateTopPadding(), bottom = DesktopMiniPlayerClearance),
+    )
     importState?.let { progress ->
         ImportProgressDialog(
             progress = progress,
@@ -3006,6 +3056,9 @@ fun SettingScreen(
     }
     if (showLoginSyncDialog) {
         LoginSyncDialog(onDismiss = { showLoginSyncDialog = false })
+    }
+    if (showLibrarySyncDialog) {
+        LibrarySyncDialog(onDismiss = { showLibrarySyncDialog = false })
     }
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(

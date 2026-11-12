@@ -78,6 +78,7 @@ import com.maxrave.simpmusic.ui.icon.Refresh
 import com.maxrave.simpmusic.ui.icon.Replay
 import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -227,7 +228,7 @@ actual fun SongRecognitionSheet(
                                 modifier =
                                     Modifier
                                         .size(OrbSize)
-                                        .clip(RoundedCornerShape(14.dp))
+                                        .clip(ArtworkShape)
                                         .background(colors.handle),
                             )
                             Column(
