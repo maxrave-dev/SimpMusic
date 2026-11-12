@@ -33,9 +33,11 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.domain.notification.DesktopNotificationManager
+import com.maxrave.domain.repository.LibrarySyncHostRepository
 import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.expect.ui.LibrarySyncLoginPrompt
 import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
@@ -53,10 +55,14 @@ import io.sentry.Sentry
 import io.sentry.SentryLevel
 import io.sentry.protocol.OperatingSystem
 import io.sentry.protocol.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastHost
 import multiplatform.network.cmptoast.showToast
@@ -266,6 +272,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
 
     val desktopNotificationManager = getKoin().get<DesktopNotificationManager>()
     desktopNotificationManager.initialize()
+
+    // Library sync (#2663): reopens the server for paired phones. Off the startup path: it binds a port.
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { getKoin().get<LibrarySyncHostRepository>().start() }
 
     val sharedViewModel = getKoin().get<SharedViewModel>()
     if (sharedViewModel.shouldCheckForUpdate()) {
@@ -505,6 +514,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     onOpenDesktopNotificationSettings =
                         desktopNotificationManager::openNotificationSettings,
                 )
+                LibrarySyncLoginPrompt()
                 ToastHost()
             }
         }

@@ -77,6 +77,9 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.library_sync_logins_declined
+import simpmusic.composeapp.generated.resources.library_sync_logins_waiting
+import simpmusic.composeapp.generated.resources.library_sync_send_logins_paired
 import simpmusic.composeapp.generated.resources.login_sync_allow_camera
 import simpmusic.composeapp.generated.resources.login_sync_android_title
 import simpmusic.composeapp.generated.resources.login_sync_camera_blocked
@@ -182,7 +185,9 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
                     }
                 }
                 Text(
-                    text = stringResource(Res.string.login_sync_scan_hint),
+                    text =
+                        uiState.pairedTo?.let { stringResource(Res.string.library_sync_send_logins_paired, it.name) }
+                            ?: stringResource(Res.string.login_sync_scan_hint),
                     style = typo().bodySmall,
                     color = colors.subtitle,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -246,6 +251,18 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
 
                         Step.NoCamera -> {
                             Status(stringResource(Res.string.login_sync_no_camera), progress = false)
+                        }
+
+                        is Step.Waiting -> {
+                            Status(stringResource(Res.string.library_sync_logins_waiting, step.desktop.name), progress = true) {
+                                SheetButton(stringResource(Res.string.cancel), ::close)
+                            }
+                        }
+
+                        is Step.Declined -> {
+                            Status(stringResource(Res.string.library_sync_logins_declined, step.desktop.name), progress = false) {
+                                SheetButton(stringResource(Res.string.ok), ::close)
+                            }
                         }
 
                         Step.NothingSignedIn -> {
@@ -335,7 +352,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
 
 /** A message centred in the viewfinder square, with an optional spinner above and action below. */
 @Composable
-private fun Status(
+internal fun Status(
     text: String,
     progress: Boolean,
     action: (@Composable () -> Unit)? = null,
@@ -362,7 +379,7 @@ private fun Status(
  * inherits that instead of onPrimary and renders pale text on a pale fill.
  */
 @Composable
-private fun SheetButton(
+internal fun SheetButton(
     text: String,
     onClick: () -> Unit,
 ) {
@@ -383,7 +400,7 @@ private fun SheetButton(
 
 /** Four corner brackets marking where the code should sit. */
 @Composable
-private fun ViewfinderCorners(modifier: Modifier = Modifier) {
+internal fun ViewfinderCorners(modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val arm = size.minDimension * 0.14f
         val stroke = 4.dp.toPx()
@@ -413,7 +430,7 @@ internal fun Context.openAppSettings() {
  * grants ACCESS_LOCAL_NETWORK implicitly with INTERNET, but only to apps that do not declare it, and
  * our manifest does. Without it the connection does not fail — it times out (element-x-android#7694).
  */
-private fun loginSyncPermissions(): List<String> =
+internal fun loginSyncPermissions(): List<String> =
     buildList {
         add(Manifest.permission.CAMERA)
         if (Build.VERSION.SDK_INT >= 37) {

@@ -167,7 +167,7 @@ actual fun LoginSyncDialog(onDismiss: () -> Unit) {
 
 /** Dark modules on white whatever the theme: scanners expect that polarity. */
 @Composable
-private fun QrCode(
+internal fun QrCode(
     text: String,
     modifier: Modifier = Modifier,
 ) {

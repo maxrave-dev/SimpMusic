@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.SystemClock
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,6 +35,7 @@ import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.ToastType
+import com.maxrave.domain.repository.LibrarySyncPhoneRepository
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.di.viewModelModule
@@ -53,11 +55,15 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+// Process-wide, so a recreated activity (rotation, theme change) does not count as opening the app.
+private var lastLibrarySyncAt = 0L
+
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
     val mediaPlayerHandler by inject<MediaPlayerHandler>()
     val dataStoreManager: DataStoreManager by inject()
+    private val librarySync: LibrarySyncPhoneRepository by inject()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -84,6 +90,16 @@ class MainActivity : AppCompatActivity() {
         startMusicService()
         // Every return to the screen asks; the pass itself runs at most once a day.
         viewModel.runSmartDownloadsIfDue()
+        syncLibraryIfDue()
+    }
+
+    // ponytail: a fixed 5-minute gap between app-open rounds, since a computer that is off costs a
+    // LAN sweep each time; WorkManager covers the rest every 15 minutes, and "Sync now" ignores it.
+    private fun syncLibraryIfDue() {
+        val now = SystemClock.elapsedRealtime()
+        if (lastLibrarySyncAt != 0L && now - lastLibrarySyncAt < 5 * 60_000L) return
+        lastLibrarySyncAt = now
+        lifecycleScope.launch { librarySync.syncNow() }
     }
 
     override fun onStop() {
