@@ -148,6 +148,8 @@ fun HomeDiscoverSection(
                             ),
                     )
                     // The scrim is dark in either theme, so the text takes the app's force-dark styles.
+                    // Both colours are named: force-dark typo() paints headlineMedium and bodyMedium in its
+                    // #A8A8A8 body grey, which sinks into the scrim over a bright sleeve.
                     ForceDarkContent {
                         Column(
                             Modifier
@@ -158,6 +160,7 @@ fun HomeDiscoverSection(
                                 text = song.title,
                                 // The size of Home's section titles (HomeSectionHeader).
                                 style = typo().headlineMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -171,6 +174,7 @@ fun HomeDiscoverSection(
                                         song.album?.name?.takeIf { it.isNotBlank() },
                                     ).joinToString(" • "),
                                 style = typo().bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )

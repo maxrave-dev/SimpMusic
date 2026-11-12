@@ -135,6 +135,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.VolumeOff
 import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.screen.player.content.toAudioQualityLabel
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -422,7 +423,7 @@ fun MiniPlayer(
                                     modifier =
                                         Modifier
                                             .size(if (isFlat) 26.dp else 40.dp)
-                                            .clip(if (isFlat) CircleShape else RoundedCornerShape(4.dp)),
+                                            .clip(if (isFlat) CircleShape else ArtworkShape),
                                 )
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -757,7 +758,7 @@ fun MiniPlayer(
                             modifier =
                                 Modifier
                                     .size(32.dp)
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(ArtworkShape)
                                     .hoverable(artworkInteraction),
                             contentAlignment = Alignment.Center,
                         ) {

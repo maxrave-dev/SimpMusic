@@ -59,6 +59,8 @@ import com.maxrave.domain.data.model.taste.TasteProfile
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
@@ -332,6 +334,10 @@ fun LibraryScreen(
                             EndOfPage()
                         }
                     }
+                    VerticalScrollBar(
+                        scrollState = state,
+                        modifier = Modifier.padding(top = topAppBarHeight, bottom = DesktopMiniPlayerClearance),
+                    )
                 }
             }
 

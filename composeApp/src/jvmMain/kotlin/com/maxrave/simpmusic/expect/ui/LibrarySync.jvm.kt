@@ -33,11 +33,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maxrave.domain.data.model.librarysync.LibrarySyncPairingState
 import com.maxrave.domain.data.model.librarysync.LibrarySyncProblem
 import com.maxrave.domain.data.model.librarysync.SyncPeer
+import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.LibrarySyncHostRepository
 import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.parseThemeColorHex
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibrarySyncHostViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -248,12 +251,19 @@ private fun WindowsPublicBox(problem: LibrarySyncProblem?) {
  * whole window, since the phone sends them whenever its user asks.
  */
 @Composable
-fun LibrarySyncLoginPrompt() {
+fun LibrarySyncLoginPrompt(sharedViewModel: SharedViewModel) {
     val repository: LibrarySyncHostRepository = koinInject()
     val pending by repository.pendingLogins.collectAsStateWithLifecycle()
     val logins = pending ?: return
-    // Outside App(), so it brings a theme of its own: the app's default dark one.
-    AppTheme {
+    // Outside App(), so it applies the user's theme itself, read the way App() reads it.
+    val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
+    val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
+    val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
+    AppTheme(
+        themeMode = themeMode,
+        themeColorSource = themeColorSource,
+        customThemeColor = parseThemeColorHex(customThemeColorHex),
+    ) {
         AlertDialog(
             onDismissRequest = {},
             title = { Text(text = stringResource(Res.string.library_sync_logins_title, logins.fromName), style = typo().titleSmall) },

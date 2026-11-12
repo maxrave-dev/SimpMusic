@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +47,8 @@ import com.maxrave.domain.repository.BrowserProfile
 import com.maxrave.domain.repository.BrowserProfileStatus
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.expect.ui.PlatformWebView
@@ -308,96 +311,104 @@ internal fun BrowserLoginPanel(
 ) {
     val busy = state.loading || state.importingId != null
     val serviceName = stringResource(if (target == BrowserLoginTarget.YOUTUBE) Res.string.browser_login_youtube else Res.string.spotify)
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding + 24.dp),
-    ) {
-        item(key = "description") {
-            Text(
-                stringResource(Res.string.browser_login_description, serviceName),
-                style = typo().bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (busy) {
-            item(key = "progress") {
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(Modifier.size(24.dp))
-                    Text(
-                        stringResource(if (state.loading) Res.string.loading else Res.string.browser_login_importing),
-                        style = typo().bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+    val listState = rememberLazyListState()
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding + 24.dp),
+        ) {
+            item(key = "description") {
+                Text(
+                    stringResource(Res.string.browser_login_description, serviceName),
+                    style = typo().bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-        }
-        state.profiles.groupBy { it.browser }.forEach { (browser, profiles) ->
-            item(key = "browser:$browser") {
-                SettingGroup(title = browser) {
-                    profiles.forEach { profile ->
-                        val needsFileAccess = state.requiresFileAccess(profile, isMacOS)
-                        val subtitle = when (profile.status) {
-                            BrowserProfileStatus.COOKIES_FOUND -> Res.string.browser_login_found
-                            BrowserProfileStatus.NO_COOKIES -> Res.string.browser_login_missing
-                            BrowserProfileStatus.PERMISSION_REQUIRED -> if (isMacOS) Res.string.browser_login_full_disk_access else Res.string.browser_login_permission
-                            BrowserProfileStatus.UNREADABLE -> Res.string.browser_login_unreadable
-                            BrowserProfileStatus.UNSUPPORTED -> Res.string.browser_login_unsupported
-                        }
-                        SettingItem(
-                            title = profile.name,
-                            subtitle = if (profile.status == BrowserProfileStatus.COOKIES_FOUND || profile.status == BrowserProfileStatus.NO_COOKIES) {
-                                stringResource(subtitle, serviceName)
-                            } else {
-                                stringResource(subtitle)
-                            },
-                            isEnable = !busy && profile.status != BrowserProfileStatus.UNSUPPORTED,
-                            onClick = { if (needsFileAccess) onOpenFileAccess() else onSelect(profile) },
-                            otherView = if (needsFileAccess) {
-                                {
-                                    TextButton(onClick = onOpenFileAccess, enabled = !busy) {
-                                        Text(stringResource(Res.string.browser_login_open_settings), color = LocalContentColor.current)
-                                    }
-                                }
-                            } else {
-                                null
-                            },
+            if (busy) {
+                item(key = "progress") {
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(Modifier.size(24.dp))
+                        Text(
+                            stringResource(if (state.loading) Res.string.loading else Res.string.browser_login_importing),
+                            style = typo().bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
             }
-        }
-        val error = state.error
-        if (error != null || state.rejectedSession) {
-            item(key = "error") {
-                val message = when {
-                    state.rejectedSession -> Res.string.browser_login_rejected
-                    error == BrowserLoginFailure.FILE_ACCESS_DENIED -> if (isMacOS) Res.string.browser_login_full_disk_access else Res.string.browser_login_permission
-                    error == BrowserLoginFailure.ACCESS_DENIED -> Res.string.browser_login_permission
-                    error == BrowserLoginFailure.KEY_UNAVAILABLE -> Res.string.browser_login_key_unavailable
-                    error == BrowserLoginFailure.UNSUPPORTED_ENCRYPTION -> Res.string.browser_login_unsupported
-                    error == BrowserLoginFailure.DATABASE_BUSY -> Res.string.browser_login_busy
-                    error == BrowserLoginFailure.NO_COOKIES -> Res.string.browser_login_missing
-                    else -> Res.string.browser_login_unreadable
+            state.profiles.groupBy { it.browser }.forEach { (browser, profiles) ->
+                item(key = "browser:$browser") {
+                    SettingGroup(title = browser) {
+                        profiles.forEach { profile ->
+                            val needsFileAccess = state.requiresFileAccess(profile, isMacOS)
+                            val subtitle = when (profile.status) {
+                                BrowserProfileStatus.COOKIES_FOUND -> Res.string.browser_login_found
+                                BrowserProfileStatus.NO_COOKIES -> Res.string.browser_login_missing
+                                BrowserProfileStatus.PERMISSION_REQUIRED -> if (isMacOS) Res.string.browser_login_full_disk_access else Res.string.browser_login_permission
+                                BrowserProfileStatus.UNREADABLE -> Res.string.browser_login_unreadable
+                                BrowserProfileStatus.UNSUPPORTED -> Res.string.browser_login_unsupported
+                            }
+                            SettingItem(
+                                title = profile.name,
+                                subtitle = if (profile.status == BrowserProfileStatus.COOKIES_FOUND || profile.status == BrowserProfileStatus.NO_COOKIES) {
+                                    stringResource(subtitle, serviceName)
+                                } else {
+                                    stringResource(subtitle)
+                                },
+                                isEnable = !busy && profile.status != BrowserProfileStatus.UNSUPPORTED,
+                                onClick = { if (needsFileAccess) onOpenFileAccess() else onSelect(profile) },
+                                otherView = if (needsFileAccess) {
+                                    {
+                                        TextButton(onClick = onOpenFileAccess, enabled = !busy) {
+                                            Text(stringResource(Res.string.browser_login_open_settings), color = LocalContentColor.current)
+                                        }
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+                    }
                 }
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    if (error == BrowserLoginFailure.NO_COOKIES) stringResource(message, serviceName) else stringResource(message),
-                    style = typo().bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+            }
+            val error = state.error
+            if (error != null || state.rejectedSession) {
+                item(key = "error") {
+                    val message = when {
+                        state.rejectedSession -> Res.string.browser_login_rejected
+                        error == BrowserLoginFailure.FILE_ACCESS_DENIED -> if (isMacOS) Res.string.browser_login_full_disk_access else Res.string.browser_login_permission
+                        error == BrowserLoginFailure.ACCESS_DENIED -> Res.string.browser_login_permission
+                        error == BrowserLoginFailure.KEY_UNAVAILABLE -> Res.string.browser_login_key_unavailable
+                        error == BrowserLoginFailure.UNSUPPORTED_ENCRYPTION -> Res.string.browser_login_unsupported
+                        error == BrowserLoginFailure.DATABASE_BUSY -> Res.string.browser_login_busy
+                        error == BrowserLoginFailure.NO_COOKIES -> Res.string.browser_login_missing
+                        else -> Res.string.browser_login_unreadable
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        if (error == BrowserLoginFailure.NO_COOKIES) stringResource(message, serviceName) else stringResource(message),
+                        style = typo().bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            item(key = "refresh") {
+                TextButton(onClick = onRefresh, enabled = !busy) {
+                    Text(stringResource(Res.string.browser_login_refresh), color = LocalContentColor.current)
+                }
+            }
+            item(key = "end_of_list") {
+                EndOfPage()
             }
         }
-        item(key = "refresh") {
-            TextButton(onClick = onRefresh, enabled = !busy) {
-                Text(stringResource(Res.string.browser_login_refresh), color = LocalContentColor.current)
-            }
-        }
-        item(key = "end_of_list") {
-            EndOfPage()
-        }
+        VerticalScrollBar(
+            scrollState = listState,
+            modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+        )
     }
 }

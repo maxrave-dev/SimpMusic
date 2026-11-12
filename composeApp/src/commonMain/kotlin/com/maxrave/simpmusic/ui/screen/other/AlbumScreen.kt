@@ -68,6 +68,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kmpalette.rememberPaletteState
 import com.kyant.backdrop.highlight.Highlight
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.domain.data.entities.DownloadState
@@ -106,6 +108,7 @@ import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
@@ -437,7 +440,7 @@ fun AlbumScreen(
                                                         modifier =
                                                             Modifier
                                                                 .size(280.dp)
-                                                                .clip(RoundedCornerShape(8.dp)),
+                                                                .clip(ArtworkShape),
                                                     )
                                                     Column(
                                                         modifier = Modifier.weight(1f),
@@ -932,6 +935,10 @@ fun AlbumScreen(
                         EndOfPage()
                     }
                 }
+                VerticalScrollBar(
+                    scrollState = lazyState,
+                    modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+                )
                 AnimatedVisibility(
                     visible = shouldHideTopBar && !selectionState.isActive,
                     enter = fadeIn() + slideInVertically(),

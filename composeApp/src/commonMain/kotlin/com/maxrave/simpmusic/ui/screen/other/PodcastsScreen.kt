@@ -51,6 +51,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -86,6 +88,7 @@ import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.Shuffle
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.PodcastUIEvent
 import com.maxrave.simpmusic.viewModel.PodcastUIState
@@ -227,7 +230,7 @@ fun PodcastScreen(
                                                 .height(250.dp)
                                                 .wrapContentWidth()
                                                 .align(Alignment.CenterHorizontally)
-                                                .clip(RoundedCornerShape(8.dp)),
+                                                .clip(ArtworkShape),
                                     )
                                     Box(
                                         modifier =
@@ -410,6 +413,10 @@ fun PodcastScreen(
                         EndOfPage()
                     }
                 }
+                VerticalScrollBar(
+                    scrollState = lazyState,
+                    modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+                )
                 // Animated TopAppBar when scrolling
                 AnimatedVisibility(
                     visible = shouldHideTopBar,

@@ -2,12 +2,18 @@ package com.maxrave.simpmusic.expect.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -22,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -165,3 +172,38 @@ actual fun HorizontalScrollBar(
         interactionSource = interactionSource,
     )
 }
+
+/** One placement for every vertical overload: the bar on the right edge, 2dp in, over the whole height. */
+@Composable
+private fun RightEdgeScrollbar(
+    adapter: ScrollbarAdapter,
+    modifier: Modifier,
+) {
+    if (getPlatform() != Platform.Desktop) return
+    // A full-size Box with no pointer input of its own: presses and the wheel outside the bar fall through to the list.
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+        VerticalScrollbar(
+            adapter = adapter,
+            modifier = Modifier.fillMaxHeight().padding(end = 2.dp),
+            style = scrollBarStyle,
+        )
+    }
+}
+
+@Composable
+actual fun VerticalScrollBar(
+    scrollState: LazyListState,
+    modifier: Modifier,
+) = RightEdgeScrollbar(rememberScrollbarAdapter(scrollState = scrollState), modifier)
+
+@Composable
+actual fun VerticalScrollBar(
+    scrollState: LazyGridState,
+    modifier: Modifier,
+) = RightEdgeScrollbar(rememberScrollbarAdapter(scrollState = scrollState), modifier)
+
+@Composable
+actual fun VerticalScrollBar(
+    scrollState: ScrollState,
+    modifier: Modifier,
+) = RightEdgeScrollbar(rememberScrollbarAdapter(scrollState = scrollState), modifier)

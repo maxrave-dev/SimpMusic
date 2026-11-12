@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.painterResource
 import simpmusic.composeapp.generated.resources.Res
@@ -93,7 +94,7 @@ fun MoodCategoryCard(
                         .offset(x = 8.dp, y = 12.dp)
                         .size(64.dp)
                         .rotate(25f)
-                        .clip(RoundedCornerShape(2.dp)),
+                        .clip(ArtworkShape),
             )
         }
         Text(

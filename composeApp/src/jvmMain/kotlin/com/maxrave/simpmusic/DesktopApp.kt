@@ -514,7 +514,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     onOpenDesktopNotificationSettings =
                         desktopNotificationManager::openNotificationSettings,
                 )
-                LibrarySyncLoginPrompt()
+                LibrarySyncLoginPrompt(sharedViewModel)
                 ToastHost()
             }
         }

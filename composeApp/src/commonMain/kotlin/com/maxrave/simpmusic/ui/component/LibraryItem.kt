@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,6 +62,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -290,7 +290,7 @@ fun LibraryItem(
                                             Modifier
                                                 .fillMaxSize()
                                                 .clip(
-                                                    RoundedCornerShape(8.dp),
+                                                    ArtworkShape,
                                                 ),
                                     )
                                     Column(

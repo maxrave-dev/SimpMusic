@@ -79,7 +79,9 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.kyant.backdrop.highlight.Highlight
 import com.maxrave.domain.data.model.library.LibraryCollectionPreview
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.barBlurStyle
@@ -97,6 +99,7 @@ import com.maxrave.simpmusic.ui.icon.VolumeUp
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.home.chipStripEdgeFades
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibrarySidebarItem
@@ -276,7 +279,7 @@ fun DesktopSidebar(
                             Box(
                                 Modifier
                                     .size(48.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(ArtworkShape)
                                     .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                                 contentAlignment = Alignment.Center,
                             ) { collection.icon() }
@@ -298,6 +301,10 @@ fun DesktopSidebar(
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
+        VerticalScrollBar(
+            scrollState = listState,
+            modifier = Modifier.padding(top = with(LocalDensity.current) { headerHeightPx.toDp() }, bottom = DesktopMiniPlayerClearance),
+        )
         Box(
             Modifier
                 .fillMaxWidth()
@@ -701,7 +708,7 @@ private fun SidebarLibraryRow(
 
 @Composable
 private fun SidebarCover(item: LibrarySidebarItem) {
-    val shape = if (item.kind == LibrarySidebarKind.ARTIST) CircleShape else RoundedCornerShape(8.dp)
+    val shape = if (item.kind == LibrarySidebarKind.ARTIST) CircleShape else ArtworkShape
     if (item.thumbnail.isNullOrEmpty()) {
         // A local playlist with no artwork: the gradient its title tile has in the Library grid,
         // without the title and badge, which that tile sizes for 150dp and which cannot be read at 48.

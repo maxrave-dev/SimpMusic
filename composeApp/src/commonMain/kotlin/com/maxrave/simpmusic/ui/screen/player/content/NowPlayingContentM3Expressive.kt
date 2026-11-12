@@ -117,6 +117,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.AudioOutputSheetHost
 import com.maxrave.simpmusic.ui.screen.player.content.expressive.ExpressiveTransportRow
 import com.maxrave.simpmusic.ui.screen.player.content.expressive.WavySeekBar
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -720,7 +721,7 @@ internal fun ExpressiveTrackInfoRow(
                         .width(55.dp)
                         .padding(end = 10.dp)
                         .clip(
-                            RoundedCornerShape(4.dp),
+                            ArtworkShape,
                         ).align(Alignment.CenterVertically),
             )
         }

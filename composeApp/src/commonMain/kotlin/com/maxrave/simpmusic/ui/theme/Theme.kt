@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
@@ -15,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
 import com.maxrave.domain.manager.DataStoreManager
@@ -53,6 +55,9 @@ private val LightAppColors =
     )
 
 val LocalAppColors = staticCompositionLocalOf { DarkAppColors }
+
+/** The one corner every rounded artwork takes — covers, thumbnails, sleeves — as Spotify's 4dp. */
+val ArtworkShape = RoundedCornerShape(4.dp)
 
 /** True in dark theme. Provided by [AppTheme] so platform glass (blur/tint) can adapt reliably. */
 val LocalIsDarkTheme = staticCompositionLocalOf { true }

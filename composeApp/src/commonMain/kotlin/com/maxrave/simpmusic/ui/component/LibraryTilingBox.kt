@@ -42,6 +42,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.taste.libraryCardColor
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -257,7 +258,7 @@ private fun SleeveFan(
 ) {
     Box(modifier, contentAlignment = Alignment.Center) {
         if (thumbnails == null) return@Box
-        val shape = if (round) CircleShape else RoundedCornerShape(8.dp)
+        val shape = if (round) CircleShape else ArtworkShape
         val covers = thumbnails.take(slots)
         val count = if (covers.isEmpty()) slots else covers.size
         for (i in 0 until count) {
