@@ -84,6 +84,8 @@ class MainActivity : AppCompatActivity() {
         startMusicService()
         // Every return to the screen asks; the pass itself runs at most once a day.
         viewModel.runSmartDownloadsIfDue()
+        // Backfills covers for downloads made before artwork pinning existed.
+        viewModel.ensureDownloadedArtwork()
     }
 
     override fun onStop() {

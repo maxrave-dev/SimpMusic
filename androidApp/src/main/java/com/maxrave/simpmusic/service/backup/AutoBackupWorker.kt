@@ -121,6 +121,12 @@ class AutoBackupWorker(
                     if (downloadFolder.exists() && downloadFolder.isDirectory) {
                         backupFolder(downloadFolder, DOWNLOAD_EXOPLAYER_FOLDER, zipOutputStream)
                     }
+
+                    // Backup artwork folder (pinned covers for downloaded songs)
+                    val artworkFolder = File(context.filesDir, "artwork")
+                    if (artworkFolder.exists() && artworkFolder.isDirectory) {
+                        backupFolder(artworkFolder, "artwork", zipOutputStream)
+                    }
                 }
             }
         }
