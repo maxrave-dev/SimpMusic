@@ -1,6 +1,17 @@
 package com.maxrave.simpmusic
 
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import kotlinx.coroutines.flow.first
+import org.koin.mp.KoinPlatform.getKoin
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
@@ -43,6 +54,17 @@ fun MainViewController(): platform.UIKit.UIViewController {
             .components { add(KtorNetworkFetcherFactory(HttpClient(Darwin))) }
             .build()
     }
-        App()
+        var preferencesReady by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            // Music is unavailable in some system regions. Apply the app's supported region
+            // and language before Home launches requests, without blocking the main thread.
+            val settings = getKoin().get<DataStoreManager>()
+            getKoin().get<YouTube>().locale = YouTubeLocale(
+                settings.location.first(), settings.language.first().take(2),
+            )
+            preferencesReady = true
+        }
+        if (preferencesReady) App()
+        else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     }
 }
