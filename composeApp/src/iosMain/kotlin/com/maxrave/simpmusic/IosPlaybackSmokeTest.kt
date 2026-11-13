@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic
 
 import platform.AVFoundation.*
+import platform.MediaPlayer.*
 
 import com.maxrave.data.mediaservice.SharedMediaPlayerHandler
 import com.maxrave.domain.mediaservice.player.MediaPlayerListener
@@ -45,6 +46,9 @@ fun startIosPlaybackSmokeTest(url: String) {
             player.play()
             await("AVPlayer ready") { player.playbackState == PlayerConstants.STATE_READY }
             await("playback clock advances") { player.isPlaying && player.currentPosition > 1_000 }
+            await("Now Playing metadata published") {
+                MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo?.get(MPMediaItemPropertyTitle) == first.metadata.title
+            }
             player.pause()
             delay(400)
             val pausedAt = player.currentPosition
