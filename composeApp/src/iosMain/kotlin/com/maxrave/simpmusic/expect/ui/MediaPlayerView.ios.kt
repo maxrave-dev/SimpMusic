@@ -3,6 +3,9 @@ package com.maxrave.simpmusic.expect.ui
 
 import kotlinx.cinterop.useContents
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -66,8 +69,12 @@ actual fun MediaPlayerViewWithSubtitle(modifier: Modifier, playerName: String, s
         showsPlaybackControls = false
         allowsPictureInPicturePlayback = shouldPip
     } }
+    val ratio = rememberVideoAspectRatio(playerName)
+    val nowPlaying by koinInject<MediaPlayerHandler>().nowPlayingState.collectAsState()
     Box(modifier) {
-        UIKitViewController(factory = { controller }, modifier = Modifier.fillMaxSize())
+        if (ratio != null) UIKitViewController(factory = { controller }, modifier = Modifier.fillMaxSize())
+        else AsyncImage(model = nowPlaying.songEntity?.thumbnails, contentDescription = null,
+            contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
         if (shouldShowSubtitle) {
             val time = timelineState.current - offset
             val line = lyricsData?.lines?.lastOrNull { (it.startTimeMs.toLongOrNull() ?: Long.MAX_VALUE) <= time }
