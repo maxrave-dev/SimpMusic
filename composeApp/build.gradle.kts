@@ -69,6 +69,7 @@ kotlin {
     }
 
     jvm()
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         dependencies {
@@ -125,7 +126,6 @@ kotlin {
             implementation(libs.compose.material3.adaptive)
             implementation(libs.compose.material.ripple)
 
-            implementation(libs.ui.tooling.preview)
 
             // Other module
             api(projects.common)
@@ -187,6 +187,10 @@ kotlin {
             // Liquid glass
             implementation(libs.liquid.glass)
             implementation(libs.liquid.glass.shape)
+        }
+        findByName("iosMain")?.dependencies {
+            implementation("io.coil-kt.coil3:coil-network-ktor3:${libs.versions.coil3.get()}")
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
