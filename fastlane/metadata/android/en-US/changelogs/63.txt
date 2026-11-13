@@ -1,0 +1,11 @@
+New:
+- Library sync between your phone and your computer
+- SoundCloud Now Playing style, 8D audio
+- Word-by-word lyrics from LRCLIB, music app colours
+- Desktop: import sign-ins from a browser
+Improved:
+- AutoMix follows each song's structure, Remove download in the song menu
+- Discord login on Discord's own page (Full), Desktop scrollbars
+Fixed:
+- Playback stopping after a network drop, FOSS player stopping after 10 minutes
+- macOS window across displays, keyboard after a search suggestion
