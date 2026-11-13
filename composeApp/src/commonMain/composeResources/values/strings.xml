@@ -475,6 +475,10 @@
     <string name="romanization_belarusian" translatable="false">Belarusian</string>
     <string name="romanization_kyrgyz" translatable="false">Kyrgyz</string>
     <string name="romanization_macedonian" translatable="false">Macedonian</string>
+    <string name="romanization_kazakh" translatable="false">Kazakh</string>
+    <string name="romanization_mongolian" translatable="false">Mongolian</string>
+    <string name="romanization_greek" translatable="false">Greek</string>
+    <string name="romanization_georgian" translatable="false">Georgian</string>
     <string name="romanization_japanese_dict_downloading">Downloading the Japanese dictionary…</string>
     <string name="romanization_japanese_dict_ready">Japanese dictionary downloaded</string>
     <string name="romanization_japanese_dict_failed">Couldn't download the Japanese dictionary. Check your connection and select Japanese again to retry.</string>
@@ -1151,4 +1155,22 @@
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
     <string name="soundcloud_play_count_info">%1$s - song info</string>
+    <string name="generate_subtitles">Generate subtitles</string>
+    <string name="generating_subtitles">Generating subtitles…</string>
+    <string name="translate_lyrics">Translate lyrics</string>
+    <string name="translating_lyrics">Translating lyrics…</string>
+    <string name="translation_failed">Translation failed</string>
+    <string name="subtitles_not_found">No subtitles found</string>
+    <string name="search_settings">Search settings…</string>
+    <string name="no_settings_found">No settings found</string>
+    <string name="system_default">System default</string>
+    <string name="assistant_and_ai">Assistant &amp; Gemini Actions</string>
+    <string name="assistant_and_ai_description">Voice assistant commands and AppFunctions integration</string>
+    <string name="play_recommendations_action">Play recommendations</string>
+    <string name="play_recommendations_description">Start playing your recommended mix</string>
+    <string name="play_downloaded_action">Play downloaded music</string>
+    <string name="play_downloaded_description">Play music saved offline</string>
+    <string name="play_favorites_action">Play favorites</string>
+    <string name="play_favorites_description">Play your liked tracks</string>
+    <string name="voice_commands_info">Supported voice intents: \"Play music on SimpMusic\", \"Play [song/artist]\", AppFunctions, and custom scheme simpmusic://action/...</string>
 </resources>

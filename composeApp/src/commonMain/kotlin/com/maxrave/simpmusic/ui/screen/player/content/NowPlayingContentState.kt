@@ -179,6 +179,7 @@ class NowPlayingContentActions(
     val onWriteComment: (draft: String) -> Unit,
     val onShowFullscreenLyrics: () -> Unit,
     val onShowVoteDialog: () -> Unit,
+    val onTranslateLyrics: () -> Unit = {},
     /** Writes the lyrics timing offset — the same value Settings › Lyrics edits. */
     val onLyricsOffsetChange: (Int) -> Unit,
     val onEnterFullscreenVideo: () -> Unit,

@@ -38,6 +38,7 @@ import com.maxrave.domain.extension.isSong
 import com.maxrave.domain.extension.isVideo
 import com.maxrave.domain.extension.toGenericMediaItem
 import com.maxrave.domain.manager.DataStoreManager
+import com.maxrave.domain.data.model.ai.AiMusicAction
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
 import com.maxrave.domain.manager.DataStoreManager.Values.FALSE
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
@@ -54,15 +55,18 @@ import com.maxrave.domain.mediaservice.handler.addToQueueBlock
 import com.maxrave.domain.repository.AlbumRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.DiscordRepository
+import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.PlaylistRepository
+import com.maxrave.domain.repository.SearchRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.StreamRepository
 import com.maxrave.domain.repository.UpdateRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.YouTubeLikeStatus
 import com.maxrave.domain.utils.isEndlessQueueId
+import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toListName
 import com.maxrave.domain.utils.toLyrics
 import com.maxrave.domain.utils.toLyricsEntity
@@ -117,6 +121,7 @@ import simpmusic.composeapp.generated.resources.added_local_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_liked
 import simpmusic.composeapp.generated.resources.disliked
+import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.error
 import simpmusic.composeapp.generated.resources.discord_login_failed
 import simpmusic.composeapp.generated.resources.lastfm_login_failed
@@ -126,6 +131,10 @@ import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
 import simpmusic.composeapp.generated.resources.vote_submitted
+import simpmusic.composeapp.generated.resources.generating_subtitles
+import simpmusic.composeapp.generated.resources.translating_lyrics
+import simpmusic.composeapp.generated.resources.translation_failed
+import androidx.compose.ui.text.intl.Locale
 import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
@@ -155,6 +164,8 @@ class SharedViewModel(
     var showedUpdateDialog: Boolean = false
 
     private val appIdentity: AppIdentity by inject()
+    private val homeRepository: HomeRepository by inject()
+    private val searchRepository: SearchRepository by inject()
 
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
@@ -1877,73 +1888,163 @@ class SharedViewModel(
         }
     }
 
-    private suspend fun getAITranslationLyrics(
+    suspend fun getAITranslationLyrics(
         videoId: String,
         lyrics: Lyrics,
+        force: Boolean = false,
     ) {
-        Logger.d(tag, "Get AI Translation Lyrics for $videoId")
-        if (dataStoreManager.useAITranslation.first() == TRUE &&
-            dataStoreManager.aiApiKey.first().isNotEmpty() &&
-            dataStoreManager.enableTranslateLyric.first() == FALSE
-        ) {
-            val savedTranslatedLyrics =
-                lyricsCanvasRepository
-                    .getSavedTranslatedLyrics(
-                        videoId,
-                        dataStoreManager.translationLanguage.first(),
-                    ).firstOrNull()
-            if (savedTranslatedLyrics != null) {
-                Logger.d(tag, "Get Saved Translated Lyrics")
-                updateLyrics(
-                    videoId,
-                    0,
-                    savedTranslatedLyrics.toLyrics(),
-                    true,
-                    LyricsProvider.AI,
-                )
-            } else {
-                // Convert RICH_SYNCED to LINE_SYNCED before sending to AI
-                // AI should only work with line-level or plain lyrics
-                val lyricsForAi =
-                    if (lyrics.syncType == "RICH_SYNCED") {
-                        lyrics.toSyncedLyrics()
-                    } else {
-                        lyrics
-                    }
-                lyricsCanvasRepository
-                    .getAITranslationLyrics(
-                        lyricsForAi,
-                        dataStoreManager.translationLanguage.first(),
-                    ).cancellable()
-                    .collectLatest {
-                        val data = it.data
-                        when (it) {
-                            is Resource.Success if (data != null) -> {
-                                Logger.d(tag, "Get AI Translate Lyrics Success")
-                                lyricsCanvasRepository.insertTranslatedLyrics(
-                                    TranslatedLyricsEntity(
-                                        videoId = videoId,
-                                        language = dataStoreManager.translationLanguage.first(),
-                                        error = false,
-                                        lines = data.lines,
-                                        syncType = data.syncType,
-                                    ),
-                                )
-                                updateLyrics(
-                                    videoId,
-                                    0,
-                                    data,
-                                    true,
-                                    LyricsProvider.AI,
-                                )
-                            }
+        Logger.d(tag, "Get AI Translation Lyrics for $videoId (force=$force)")
+        val targetLang = dataStoreManager.translationLanguage.first().ifEmpty {
+            Locale.current.language
+        }
 
-                            else -> {
-                                Logger.w(tag, "Get AI Translate Lyrics Error: ${it.message}")
-                            }
-                        }
-                    }
+        val savedTranslatedLyrics =
+            lyricsCanvasRepository
+                .getSavedTranslatedLyrics(
+                    videoId,
+                    targetLang,
+                ).firstOrNull()
+        if (savedTranslatedLyrics != null && !force) {
+            Logger.d(tag, "Get Saved Translated Lyrics")
+            updateLyrics(
+                videoId,
+                0,
+                savedTranslatedLyrics.toLyrics(),
+                true,
+                LyricsProvider.AI,
+            )
+            return
+        }
+
+        // Convert RICH_SYNCED to LINE_SYNCED before sending to translation
+        val lyricsForAi =
+            if (lyrics.syncType == "RICH_SYNCED") {
+                lyrics.toSyncedLyrics()
+            } else {
+                lyrics
             }
+
+        // 1. If AI API key is configured and enabled, try AI first
+        val hasAiKey = dataStoreManager.aiApiKey.first().isNotEmpty()
+        if (hasAiKey) {
+            var aiSuccess = false
+            lyricsCanvasRepository
+                .getAITranslationLyrics(
+                    lyricsForAi,
+                    targetLang,
+                ).cancellable()
+                .collectLatest {
+                    val data = it.data
+                    if (it is Resource.Success && data != null) {
+                        Logger.d(tag, "Get AI Translate Lyrics Success")
+                        aiSuccess = true
+                        lyricsCanvasRepository.insertTranslatedLyrics(
+                            TranslatedLyricsEntity(
+                                videoId = videoId,
+                                language = targetLang,
+                                error = false,
+                                lines = data.lines,
+                                syncType = data.syncType,
+                            ),
+                        )
+                        updateLyrics(
+                            videoId,
+                            0,
+                            data,
+                            true,
+                            LyricsProvider.AI,
+                        )
+                    } else {
+                        Logger.w(tag, "Get AI Translate Lyrics Error: ${it.message}")
+                    }
+                }
+            if (aiSuccess) return
+        }
+
+        // 2. Direct online translation fallback (Google Translate / MyMemory)
+        val onlineResult = com.maxrave.simpmusic.utils.LyricsTranslator.translateLyrics(lyricsForAi, targetLang)
+        onlineResult.onSuccess { translatedLyrics ->
+            Logger.d(tag, "Online Lyrics Translation Success")
+            lyricsCanvasRepository.insertTranslatedLyrics(
+                TranslatedLyricsEntity(
+                    videoId = videoId,
+                    language = targetLang,
+                    error = false,
+                    lines = translatedLyrics.lines,
+                    syncType = translatedLyrics.syncType,
+                ),
+            )
+            updateLyrics(
+                videoId,
+                0,
+                translatedLyrics,
+                true,
+                LyricsProvider.AI,
+            )
+        }.onFailure { err ->
+            Logger.e(tag, "Online Lyrics Translation Error: ${err.message}")
+            if (force) {
+                makeToast(getString(Res.string.translation_failed))
+            }
+        }
+    }
+
+    /**
+     * Request on-demand lyrics translation for current song.
+     */
+    fun translateCurrentLyrics() {
+        viewModelScope.launch {
+            val song = nowPlayingState.value?.songEntity ?: return@launch
+            val lyricsData = nowPlayingScreenData.value.lyricsData?.lyrics ?: return@launch
+            makeToast(getString(Res.string.translating_lyrics))
+            getAITranslationLyrics(song.videoId, lyricsData, force = true)
+        }
+    }
+
+    /**
+     * Request on-demand subtitles / captions for current song.
+     */
+    fun fetchOrGenerateSubtitles() {
+        viewModelScope.launch {
+            val song = nowPlayingState.value?.songEntity ?: return@launch
+            val duration = (timeline.value.total / 1000).toInt()
+            val artist = song.artistName?.firstOrNull() ?: ""
+            makeToast(getString(Res.string.generating_subtitles))
+            lyricsCanvasRepository
+                .getYouTubeCaption(dataStoreManager.youtubeSubtitleLanguage.first(), song.videoId)
+                .cancellable()
+                .collect { response ->
+                    val data = response.data
+                    if (response is Resource.Success && data != null) {
+                        val lyrics = data.first
+                        val translatedLyrics = data.second
+                        insertLyrics(lyrics.toLyricsEntity(song.videoId))
+                        updateLyrics(
+                            song.videoId,
+                            duration,
+                            lyrics,
+                            false,
+                            LyricsProvider.YOUTUBE,
+                        )
+                        if (translatedLyrics != null) {
+                            updateLyrics(
+                                song.videoId,
+                                duration,
+                                translatedLyrics,
+                                true,
+                                LyricsProvider.YOUTUBE,
+                            )
+                        } else {
+                            getAITranslationLyrics(
+                                song.videoId,
+                                lyrics,
+                            )
+                        }
+                    } else {
+                        // YouTube captions not available: fallback to full lyrics cascade (SimpMusic, LRCLIB, BetterLyrics, Spotify)
+                        getSimpMusicLyrics(song.videoId, song, artist, duration)
+                    }
+                }
         }
     }
 
@@ -2350,6 +2451,201 @@ class SharedViewModel(
     fun isUserLoggedInFlow(): Flow<Boolean> = dataStoreManager.cookie.map { it.isNotEmpty() }
 
     fun isCombineFavoriteAndYTLiked(): Boolean = runBlocking { dataStoreManager.combineLocalAndYouTubeLiked.first() == TRUE }
+
+    // --- Gemini / Voice Assistant Actions ---
+
+    fun playRecommendations() {
+        viewModelScope.launch {
+            try {
+                showLoadingDialog()
+                val homeData = homeRepository.getHomeData(viewString = "views", songString = "songs").firstOrNull()
+                val shelves = (homeData as? Resource.Success)?.data?.second.orEmpty()
+                val tracks = shelves.firstOrNull { shelf ->
+                    shelf.contents.any { it?.videoId != null }
+                }?.contents?.mapNotNull { it?.toTrack() }
+
+                if (!tracks.isNullOrEmpty()) {
+                    val trackList = ArrayList(tracks)
+                    val first = trackList.first()
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = trackList,
+                            firstPlayedTrack = first,
+                            playlistId = null,
+                            playlistName = "Recommandations",
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItemFromTrack(first, Config.SONG_CLICK, 0)
+                } else {
+                    playFavorites()
+                }
+            } catch (e: Exception) {
+                Logger.e("SharedViewModel", "Error playing recommendations: ${e.message}")
+                playFavorites()
+            } finally {
+                hideLoadingDialog()
+            }
+        }
+    }
+
+    fun playDownloaded() {
+        viewModelScope.launch {
+            try {
+                showLoadingDialog()
+                val downloadedSongs = songRepository.getDownloadedSongs().firstOrNull().orEmpty()
+                if (downloadedSongs.isNotEmpty()) {
+                    val tracks = downloadedSongs.toArrayListTrack()
+                    val first = tracks.first()
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = first,
+                            playlistId = null,
+                            playlistName = getString(Res.string.downloaded),
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItemFromTrack(first, Config.PLAYLIST_CLICK, 0)
+                } else {
+                    makeToast(getString(Res.string.error))
+                }
+            } catch (e: Exception) {
+                Logger.e("SharedViewModel", "Error playing downloaded: ${e.message}")
+            } finally {
+                hideLoadingDialog()
+            }
+        }
+    }
+
+    fun playOffline() = playDownloaded()
+
+    fun playFavorites() {
+        viewModelScope.launch {
+            try {
+                showLoadingDialog()
+                val likedSongs = songRepository.getLikedSongs().firstOrNull().orEmpty()
+                if (likedSongs.isNotEmpty()) {
+                    val tracks = likedSongs.toArrayListTrack()
+                    val first = tracks.first()
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = first,
+                            playlistId = null,
+                            playlistName = "Favoris",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItemFromTrack(first, Config.PLAYLIST_CLICK, 0)
+                } else {
+                    makeToast(getString(Res.string.error))
+                }
+            } catch (e: Exception) {
+                Logger.e("SharedViewModel", "Error playing favorites: ${e.message}")
+            } finally {
+                hideLoadingDialog()
+            }
+        }
+    }
+
+    fun playCached() {
+        viewModelScope.launch {
+            try {
+                showLoadingDialog()
+                val cachedKeys = cacheRepository.getAllCacheKeys(Config.PLAYER_CACHE)
+                val songs = if (cachedKeys.isNotEmpty()) {
+                    songRepository.getSongsByListVideoId(cachedKeys).firstOrNull().orEmpty()
+                } else emptyList()
+
+                if (songs.isNotEmpty()) {
+                    val tracks = songs.toArrayListTrack()
+                    val first = tracks.first()
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = first,
+                            playlistId = null,
+                            playlistName = "Cache",
+                            playlistType = PlaylistType.LOCAL_PLAYLIST,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItemFromTrack(first, Config.PLAYLIST_CLICK, 0)
+                } else {
+                    makeToast(getString(Res.string.error))
+                }
+            } catch (e: Exception) {
+                Logger.e("SharedViewModel", "Error playing cached: ${e.message}")
+            } finally {
+                hideLoadingDialog()
+            }
+        }
+    }
+
+    fun searchAndPlay(query: String) {
+        viewModelScope.launch {
+            try {
+                showLoadingDialog()
+                val result = searchRepository.getSearchDataSong(query).firstOrNull { it is Resource.Success }
+                val songs = (result as? Resource.Success)?.data.orEmpty()
+                if (songs.isNotEmpty()) {
+                    val tracks = songs.map { it.toTrack() }.toCollection(ArrayList())
+                    val first = tracks.first()
+                    setQueueData(
+                        QueueData.Data(
+                            listTracks = tracks,
+                            firstPlayedTrack = first,
+                            playlistId = "RDAMVM${first.videoId}",
+                            playlistName = query,
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null,
+                        ),
+                    )
+                    loadMediaItemFromTrack(first, Config.SONG_CLICK, 0)
+                } else {
+                    makeToast(getString(Res.string.error))
+                }
+            } catch (e: Exception) {
+                Logger.e("SharedViewModel", "Error search and play: ${e.message}")
+            } finally {
+                hideLoadingDialog()
+            }
+        }
+    }
+
+    fun pausePlayback() {
+        mediaPlayerHandler.player.pause()
+    }
+
+    fun resumePlayback() {
+        mediaPlayerHandler.player.play()
+    }
+
+    fun skipNextTrack() {
+        mediaPlayerHandler.player.seekToNext()
+    }
+
+    fun skipPreviousTrack() {
+        mediaPlayerHandler.player.seekToPrevious()
+    }
+
+    fun executeAiAction(action: AiMusicAction) {
+        when (action) {
+            is AiMusicAction.PlayRecommendations -> playRecommendations()
+            is AiMusicAction.PlayDownloaded, is AiMusicAction.PlayOffline -> playDownloaded()
+            is AiMusicAction.PlayFavorites -> playFavorites()
+            is AiMusicAction.PlayCached -> playCached()
+            is AiMusicAction.SearchAndPlay -> searchAndPlay(action.query)
+            is AiMusicAction.Pause -> pausePlayback()
+            is AiMusicAction.Resume -> resumePlayback()
+            is AiMusicAction.Next -> skipNextTrack()
+            is AiMusicAction.Previous -> skipPreviousTrack()
+        }
+    }
 }
 
 sealed class UIEvent {

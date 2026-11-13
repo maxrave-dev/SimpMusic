@@ -992,4 +992,22 @@
     <string name="comments_load_error">Impossible de charger les commentaires</string>
     <string name="comment_post_error">Impossible de publier votre commentaire</string>
     <string name="comments_need_channel">Créez une chaîne YouTube pour laisser un commentaire</string>
+    <string name="generate_subtitles">Générer les sous-titres</string>
+    <string name="generating_subtitles">Génération des sous-titres…</string>
+    <string name="translate_lyrics">Traduire les paroles</string>
+    <string name="translating_lyrics">Traduction des paroles…</string>
+    <string name="translation_failed">Échec de la traduction</string>
+    <string name="subtitles_not_found">Aucun sous-titre trouvé</string>
+    <string name="search_settings">Rechercher dans les paramètres…</string>
+    <string name="no_settings_found">Aucun paramètre trouvé</string>
+    <string name="system_default">Par défaut du système</string>
+    <string name="assistant_and_ai">Assistant &amp; Actions Gemini</string>
+    <string name="assistant_and_ai_description">Commandes vocales de l\'assistant et intégration AppFunctions</string>
+    <string name="play_recommendations_action">Lancer les recommandations</string>
+    <string name="play_recommendations_description">Démarrer la lecture de votre mix recommandé</string>
+    <string name="play_downloaded_action">Lire les musiques téléchargées</string>
+    <string name="play_downloaded_description">Écouter les titres enregistrés hors-ligne</string>
+    <string name="play_favorites_action">Lire les favoris</string>
+    <string name="play_favorites_description">Écouter vos titres aimés</string>
+    <string name="voice_commands_info">Intents vocaux supportés : « Joue de la musique sur SimpMusic », « Joue [titre/artiste] », AppFunctions et liens simpmusic://action/...</string>
 </resources>
