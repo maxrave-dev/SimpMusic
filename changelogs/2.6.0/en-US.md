@@ -19,7 +19,7 @@
 - **Skipping through a queue**: only the songs Next will play are prepared ahead, and the ones you skipped past are released. ([core ab5f1ab](https://github.com/maxrave-dev/core/commit/ab5f1abffbf693a1c12e7b27beb81ed37a3fbad8))
 
 ## Fixed
-- Playback stopping at 00:00 / NA:NA when the next song had failed to load during a brief network drop. A failed preload is now retried with a fresh link, and dropped instead of played. This covers track changes without crossfade. ([#2239](https://github.com/maxrave-dev/SimpMusic/issues/2239), [core#12](https://github.com/maxrave-dev/core/pull/12), [core 029c420](https://github.com/maxrave-dev/core/commit/029c42060bfe7624e7c3c297b3063ff653ae60cc))
+- Playback stopping at 00:00 / NA:NA when the next song had failed to load during a brief network drop. A failed preload is now retried with a fresh link, and dropped instead of played. ([#2239](https://github.com/maxrave-dev/SimpMusic/issues/2239), [core#12](https://github.com/maxrave-dev/core/pull/12), [core 029c420](https://github.com/maxrave-dev/core/commit/029c42060bfe7624e7c3c297b3063ff653ae60cc))
 - FOSS build: Android stopping the player about 10 minutes after a track change. ([#2233](https://github.com/maxrave-dev/SimpMusic/issues/2233))
 - macOS: the window could not be dragged to another display, and the title bar could crash the app. ([#2743](https://github.com/maxrave-dev/SimpMusic/issues/2743))
 - The keyboard staying open after picking a search suggestion. ([#2507](https://github.com/maxrave-dev/SimpMusic/issues/2507), [#2556](https://github.com/maxrave-dev/SimpMusic/pull/2556))

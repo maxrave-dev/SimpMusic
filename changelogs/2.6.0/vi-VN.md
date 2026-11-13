@@ -19,7 +19,7 @@
 - **Bỏ qua nhiều bài trong hàng đợi**: app chỉ chuẩn bị trước những bài mà nút Tiếp sẽ phát, và giải phóng những bài bạn đã bỏ qua. ([core ab5f1ab](https://github.com/maxrave-dev/core/commit/ab5f1abffbf693a1c12e7b27beb81ed37a3fbad8))
 
 ## Sửa lỗi
-- Nhạc dừng ở 00:00 / NA:NA khi bài kế tải hỏng vì mạng rớt trong chốc lát. Bài tải trước bị hỏng giờ được tải lại bằng link mới, và bị bỏ đi thay vì đem ra phát. Bản sửa này áp dụng cho lúc chuyển bài không có chuyển bài mượt mà. ([#2239](https://github.com/maxrave-dev/SimpMusic/issues/2239), [core#12](https://github.com/maxrave-dev/core/pull/12), [core 029c420](https://github.com/maxrave-dev/core/commit/029c42060bfe7624e7c3c297b3063ff653ae60cc))
+- Nhạc dừng ở 00:00 / NA:NA khi bài kế tải hỏng vì mạng rớt trong chốc lát. Bài tải trước bị hỏng giờ được tải lại bằng link mới, và bị bỏ đi thay vì đem ra phát. ([#2239](https://github.com/maxrave-dev/SimpMusic/issues/2239), [core#12](https://github.com/maxrave-dev/core/pull/12), [core 029c420](https://github.com/maxrave-dev/core/commit/029c42060bfe7624e7c3c297b3063ff653ae60cc))
 - Bản FOSS: Android dừng trình phát khoảng 10 phút sau một lần chuyển bài. ([#2233](https://github.com/maxrave-dev/SimpMusic/issues/2233))
 - macOS: không kéo được cửa sổ sang màn hình khác, và thanh tiêu đề có thể làm app crash. ([#2743](https://github.com/maxrave-dev/SimpMusic/issues/2743))
 - Bàn phím vẫn mở sau khi bạn chọn một gợi ý tìm kiếm. ([#2507](https://github.com/maxrave-dev/SimpMusic/issues/2507), [#2556](https://github.com/maxrave-dev/SimpMusic/pull/2556))
