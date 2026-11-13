@@ -19,7 +19,9 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.UUID
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * HTTP(S) images use cache for 24 hours, then try the network with stale-cache fallback.
@@ -29,9 +31,10 @@ import java.util.UUID
  * Stage each response under a temporary key in the SAME disk cache and promote it only after
  * decoding succeeds. This keeps a 404 or an undecodable 200 from replacing the offline fallback.
  */
+@OptIn(ExperimentalUuidApi::class)
 class NetworkFirstInterceptor(
     private val ttlMillis: Long = 24L * 60 * 60 * 1000,
-    private val nowMillis: () -> Long = { System.currentTimeMillis() },
+    private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() },
     private val imageLoader: () -> ImageLoader,
 ) : Interceptor {
     init {
@@ -107,7 +110,7 @@ class NetworkFirstInterceptor(
 
         // Keep a successfully decoded stale image alive while refreshing. A failed refresh can
         // return it even if another request evicts its disk entry in the meantime.
-        val temporaryKey = "coil-network-first:${UUID.randomUUID()}"
+        val temporaryKey = "coil-network-first:${Uuid.random()}"
         val networkRequest = request.newBuilder()
             .memoryCachePolicy(if (request.memoryCachePolicy.writeEnabled) CachePolicy.WRITE_ONLY else CachePolicy.DISABLED)
             .diskCachePolicy(if (request.diskCachePolicy.writeEnabled) CachePolicy.WRITE_ONLY else CachePolicy.DISABLED)
