@@ -405,7 +405,7 @@ private fun NowPlayingSoundCloudLayout(
                     .background(colors.surfaceContainer)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = togglePlayPause),
         ) {
-            if (getPlatform() == Platform.Android) {
+            if (getPlatform() != Platform.Desktop) {
                 LeftToRight {
                     HorizontalPager(
                         state = state.artworkPagerState,

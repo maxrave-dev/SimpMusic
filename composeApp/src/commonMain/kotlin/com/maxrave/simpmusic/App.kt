@@ -634,7 +634,7 @@ fun App(
                             exit = fadeOut(),
                         ) {
                             MiniPlayer(
-                                if (getPlatform() == Platform.Android) {
+                                if (getPlatform() != Platform.Desktop) {
                                     Modifier
                                         // Glass keeps its 52dp card; the flat one is 56dp.
                                         .height(if (isLiquidGlassEnabled == TRUE) 56.dp else 60.dp)

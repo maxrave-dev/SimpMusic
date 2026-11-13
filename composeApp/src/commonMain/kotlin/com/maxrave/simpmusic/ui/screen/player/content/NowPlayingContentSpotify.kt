@@ -1032,7 +1032,7 @@ fun NowPlayingContentSpotify(
                                         state = state,
                                         actions = actions,
                                     )
-                                    if (getPlatform() == Platform.Android) {
+                                    if (getPlatform() != Platform.Desktop) {
                                         SpotifyPlaybackControls(
                                             state = state,
                                             actions = actions,

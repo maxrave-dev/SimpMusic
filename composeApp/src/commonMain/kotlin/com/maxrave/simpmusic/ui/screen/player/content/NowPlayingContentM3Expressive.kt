@@ -527,7 +527,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                     },
                             ) {
                                 ExpressiveTrackInfoRow(state = state, actions = actions)
-                                if (getPlatform() == Platform.Android) {
+                                if (getPlatform() != Platform.Desktop) {
                                     ExpressivePlaybackControls(
                                         state = state,
                                         actions = actions,
