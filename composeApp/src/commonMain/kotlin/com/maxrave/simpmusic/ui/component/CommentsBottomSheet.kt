@@ -72,6 +72,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.maxrave.domain.data.model.comments.CommentLikeState
 import com.maxrave.domain.data.model.comments.YouTubeComment
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.ui.icon.CheckCircle
 import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.Send
@@ -114,6 +115,9 @@ private val LinkColor = Color(0xFF00B0FF)
  * Reading needs no account. Writing (post, reply, like, dislike) needs YouTube: signed out, every
  * one of them asks to log in instead. Comment text is handled the way a description is: a
  * timestamp seeks the track, a link opens normally.
+ *
+ * [initialDraft] starts the comment box with text already in it (the SoundCloud style's emoji), for
+ * the video the sheet opened on only.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,8 +127,10 @@ fun CommentsBottomSheet(
     onTimestamp: (String) -> Unit,
     onLogIn: () -> Unit,
     onDismiss: () -> Unit,
+    initialDraft: String = "",
     viewModel: CommentsViewModel = koinViewModel(),
 ) {
+    val draftVideoId = remember { videoId }
     val colors = rememberSurfaceDarkColors()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
@@ -235,6 +241,7 @@ fun CommentsBottomSheet(
                                 onFocus = { scope.launch { sheetState.expand() } },
                                 onPost = { text, clear -> viewModel.post(text, clear) },
                                 onLogIn = { showLogIn = true },
+                                initialDraft = if (uiState.videoId == draftVideoId) initialDraft else "",
                                 modifier =
                                     Modifier
                                         .align(Alignment.BottomCenter)
@@ -359,6 +366,10 @@ private fun CommentsBody(
                     }
                 }
             }
+            VerticalScrollBar(
+                scrollState = listState,
+                modifier = Modifier.padding(bottom = bottomPadding),
+            )
         }
     }
 }
@@ -526,6 +537,7 @@ private fun CommentInput(
     onFocus: () -> Unit,
     onPost: (text: String, clear: () -> Unit) -> Unit,
     onLogIn: () -> Unit,
+    initialDraft: String,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -564,6 +576,7 @@ private fun CommentInput(
                 onCancelReply = onCancelReply,
                 onFocus = onFocus,
                 onPost = onPost,
+                initialDraft = initialDraft,
             )
         }
     }
@@ -579,8 +592,9 @@ private fun SignedInInput(
     onCancelReply: () -> Unit,
     onFocus: () -> Unit,
     onPost: (text: String, clear: () -> Unit) -> Unit,
+    initialDraft: String,
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialDraft) }
     Column(Modifier.fillMaxWidth()) {
         if (replyingTo != null) {
             Row(

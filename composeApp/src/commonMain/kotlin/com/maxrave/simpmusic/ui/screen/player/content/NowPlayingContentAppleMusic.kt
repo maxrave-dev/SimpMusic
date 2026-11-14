@@ -110,6 +110,7 @@ import com.maxrave.simpmusic.ui.screen.player.content.applemusic.appleMusicVerti
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.displayName
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicMesh
 import com.maxrave.simpmusic.ui.screen.player.content.applemusic.rememberAppleMusicTypography
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
@@ -739,7 +740,7 @@ private fun AppleMusicMainView(
                                     error = rememberHolderPainter(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(55.dp).clip(RoundedCornerShape(4.dp)),
+                                    modifier = Modifier.size(55.dp).clip(ArtworkShape),
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
@@ -1052,7 +1053,7 @@ private fun AppleMusicArtworkPage(
                                     .size(width = frameWidth, height = frameHeight)
                                     // A vertical video stands clear of the screen edges, so it is rounded
                                     // like a card; wide ones run edge to edge and stay square.
-                                    .then(if (ratio < 1f) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier),
+                                    .then(if (ratio < 1f) Modifier.clip(ArtworkShape) else Modifier),
                         ) {
                             MediaPlayerViewWithSubtitle(
                                 playerName = MAIN_PLAYER,

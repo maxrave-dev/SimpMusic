@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.login
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -27,8 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
 import com.maxrave.common.Config
+import com.maxrave.domain.repository.BrowserLoginTarget
+import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.expect.ui.PlatformWebView
 import com.maxrave.simpmusic.expect.ui.createWebViewCookieManager
 import com.maxrave.simpmusic.expect.ui.rememberWebViewState
@@ -45,6 +52,7 @@ import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
+import com.maxrave.simpmusic.viewModel.BrowserLoginViewModel
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
@@ -102,93 +110,118 @@ fun SpotifyLoginScreen(
 
     val state = rememberWebViewState()
     val cookieManager = createWebViewCookieManager()
+    val browserViewModel = if (getPlatform() == Platform.Desktop) koinViewModel<BrowserLoginViewModel>() else null
+    val browserState = browserViewModel?.state?.collectAsStateWithLifecycle()?.value
+    val isMacOS = browserViewModel != null && getPlatform().osName().lowercase().let { "mac" in it || "darwin" in it }
+
+    LaunchedEffect(browserViewModel) {
+        browserViewModel?.refresh(BrowserLoginTarget.SPOTIFY)
+    }
+    if (browserViewModel != null && isMacOS) {
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+            browserViewModel.onResumeAfterFileAccess()
+        }
+    }
+
+    val loginOverlays: @Composable BoxScope.() -> Unit = {
+        FloatingActionButton(
+            onClick = { showCookiesBottomSheet = true },
+            containerColor = Color(0xFF40D96A),
+            modifier = Modifier.align(Alignment.BottomStart).padding(innerPadding).padding(25.dp),
+        ) {
+            Icon(SimpIcons.Cookie, "Cookies")
+        }
+        if (devLoginSheet) {
+            DevLogInBottomSheet(
+                onDismiss = { devLoginSheet = false },
+                onDone = { spdc ->
+                    devLoginSheet = false
+                    val spdcText = "sp_dc=$spdc"
+                    viewModel.saveSpotifySpdc(spdcText)
+                    viewModel.makeToast(getStringBlocking(Res.string.login_success))
+                    navController.navigateUp()
+                },
+                type = DevLogInType.Spotify,
+            )
+        }
+        if (showCookiesBottomSheet) {
+            DevCookieLogInBottomSheet(
+                onDismiss = { showCookiesBottomSheet = false },
+                type = DevLogInType.Spotify,
+                cookies = fullSpotifyCookies,
+            )
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
-        Column {
+        Column(if (browserViewModel != null) Modifier.fillMaxSize() else Modifier) {
             Spacer(
                 Modifier
                     .size(
                         innerPadding.calculateTopPadding() + 64.dp,
                     ),
             )
-            // WebView for Spotify login
-            PlatformWebView(
-                state,
-                Config.SPOTIFY_LOG_IN_URL,
-                aboveContent = {
-                    FloatingActionButton(
-                        onClick = {
-                            showCookiesBottomSheet = true
+            val desktopState = browserState
+            if (browserViewModel != null && desktopState != null) {
+                if (!desktopState.loading && desktopState.profiles.isEmpty() && desktopState.error == null) {
+                    PlatformWebView(state, Config.SPOTIFY_LOG_IN_URL, aboveContent = {}, clearCookies = false, onPageFinished = {})
+                } else {
+                    BrowserLoginPanel(
+                        state = desktopState,
+                        target = BrowserLoginTarget.SPOTIFY,
+                        bottomPadding = innerPadding.calculateBottomPadding(),
+                        isMacOS = isMacOS,
+                        onRefresh = browserViewModel::refresh,
+                        onOpenFileAccess = {
+                            browserViewModel.onFileAccessRequested()
+                            openUrl("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
                         },
-                        containerColor = Color(0xFF40D96A),
-                        modifier =
-                            Modifier
-                                .align(
-                                    Alignment.BottomStart,
-                                ).padding(innerPadding)
-                                .padding(
-                                    25.dp,
-                                ),
-                    ) {
-                        Icon(
-                            SimpIcons.Cookie,
-                            "Cookies",
-                        )
-                    }
-                    if (devLoginSheet) {
-                        DevLogInBottomSheet(
-                            onDismiss = {
-                                devLoginSheet = false
-                            },
-                            onDone = { spdc ->
-                                devLoginSheet = false
-                                val spdcText = "sp_dc=$spdc"
-                                viewModel.saveSpotifySpdc(spdcText)
-                                viewModel.makeToast(getStringBlocking(Res.string.login_success))
-                                navController.navigateUp()
-                            },
-                            type = DevLogInType.Spotify,
-                        )
-                    }
-
-                    if (showCookiesBottomSheet) {
-                        DevCookieLogInBottomSheet(
-                            onDismiss = {
-                                showCookiesBottomSheet = false
-                            },
-                            type = DevLogInType.Spotify,
-                            cookies = fullSpotifyCookies,
-                        )
-                    }
-                },
-            ) { url ->
-                val cookie = cookieManager.getCookie(url)
-                cookie.takeIf {
-                    it.isNotEmpty()
-                }?.let { cookie ->
-                    val cookies =
-                        cookie.split("; ").map {
-                            val (key, value) = it.split("=")
-                            key to value
-                        }
-                    viewModel.setFullSpotifyCookies(cookies)
+                        onSelect = { profile ->
+                            browserViewModel.importProfile(profile, BrowserLoginTarget.SPOTIFY) { cookies ->
+                                val save = viewModel.saveSpotifySpdc(cookies.cookie)
+                                save.join()
+                                !save.isCancelled && viewModel.spotifyStatus.value
+                            }
+                        },
+                    )
                 }
-                // Some login flows land on the status page with a query string appended
-                // (e.g. /en/status?flow_ctx=...). Anchoring right after `status` made those
-                // URLs fail the match silently, so sp_dc was never saved and auto-login
-                // appeared to do nothing.
-                val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status(?:\\?.*)?$")
-                if (statusUrl.matches(url)) {
-                    cookie
-                        .takeIf {
-                            it.isNotEmpty()
-                        }?.let {
-                            viewModel.saveSpotifySpdc(it)
-                        }
-                    cookieManager.removeAllCookies()
+            } else {
+                // Android keeps the original WebView and its sign-in callback.
+                PlatformWebView(
+                    state,
+                    Config.SPOTIFY_LOG_IN_URL,
+                    aboveContent = loginOverlays,
+                ) { url ->
+                    val cookie = cookieManager.getCookie(url)
+                    cookie.takeIf {
+                        it.isNotEmpty()
+                    }?.let { cookie ->
+                        val cookies =
+                            cookie.split("; ").map {
+                                val (key, value) = it.split("=")
+                                key to value
+                            }
+                        viewModel.setFullSpotifyCookies(cookies)
+                    }
+                    // Some login flows land on the status page with a query string appended
+                    // (e.g. /en/status?flow_ctx=...). Anchoring right after `status` made those
+                    // URLs fail the match silently, so sp_dc was never saved and auto-login
+                    // appeared to do nothing.
+                    val statusUrl = Regex("^https://accounts\\.spotify\\.com/(?:[^/]+/)?status(?:\\?.*)?$")
+                    if (statusUrl.matches(url)) {
+                        cookie
+                            .takeIf {
+                                it.isNotEmpty()
+                            }?.let {
+                                viewModel.saveSpotifySpdc(it)
+                            }
+                        cookieManager.removeAllCookies()
+                    }
                 }
             }
         }
+
+        if (browserViewModel != null) loginOverlays()
 
         // Top App Bar with haze effect
         TopAppBar(
@@ -216,6 +249,7 @@ fun SpotifyLoginScreen(
             },
             actions = {
                 IconButton(
+                    enabled = browserState?.importingId == null,
                     onClick = {
                         devLoginSheet = true
                     },

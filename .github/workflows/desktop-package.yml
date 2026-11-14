@@ -77,9 +77,11 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
         run: |
           echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> ./local.properties
           echo "LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}" >> ./local.properties
+          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> ./local.properties
 
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions

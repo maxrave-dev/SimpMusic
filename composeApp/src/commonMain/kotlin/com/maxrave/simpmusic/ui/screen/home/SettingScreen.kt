@@ -104,13 +104,18 @@ import com.maxrave.common.VIDEO_QUALITY
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.data.model.lyrics.RomanizationDictionaryState
 import com.maxrave.domain.data.model.lyrics.RomanizationLanguage
+import com.maxrave.domain.data.model.librarysync.LibrarySyncProblem
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.LibrarySyncDialog
 import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
+import com.maxrave.simpmusic.expect.ui.syncedAgo
 import com.maxrave.simpmusic.expect.ui.filePickerResult
 import com.maxrave.simpmusic.expect.ui.fileSaverResult
 import com.maxrave.simpmusic.expect.ui.isLyricsBlurSupported
@@ -201,6 +206,9 @@ import simpmusic.composeapp.generated.resources.audio_delay
 import simpmusic.composeapp.generated.resources.audio_delay_description
 import simpmusic.composeapp.generated.resources.audio_reverb
 import simpmusic.composeapp.generated.resources.audio_reverb_description
+import simpmusic.composeapp.generated.resources.audio_eight_d
+import simpmusic.composeapp.generated.resources.audio_eight_d_description
+import simpmusic.composeapp.generated.resources.eight_d_unavailable
 import simpmusic.composeapp.generated.resources.author
 import simpmusic.composeapp.generated.resources.auto_backup
 import simpmusic.composeapp.generated.resources.auto_backup_description
@@ -231,6 +239,7 @@ import simpmusic.composeapp.generated.resources.clear_downloaded_cache
 import simpmusic.composeapp.generated.resources.clear_listening_history
 import simpmusic.composeapp.generated.resources.clear_listening_history_confirm
 import simpmusic.composeapp.generated.resources.clear_listening_history_description
+import simpmusic.composeapp.generated.resources.clear_listening_history_unpairs
 import simpmusic.composeapp.generated.resources.clear_player_cache
 import simpmusic.composeapp.generated.resources.clear_thumbnail_cache
 import simpmusic.composeapp.generated.resources.content
@@ -318,6 +327,13 @@ import simpmusic.composeapp.generated.resources.log_out_from_spotify
 import simpmusic.composeapp.generated.resources.log_out_warning
 import simpmusic.composeapp.generated.resources.logged_in
 import simpmusic.composeapp.generated.resources.logged_in_as
+import simpmusic.composeapp.generated.resources.library_sync_not_paired_android
+import simpmusic.composeapp.generated.resources.library_sync_not_paired_desktop
+import simpmusic.composeapp.generated.resources.library_sync_peer_not_synced
+import simpmusic.composeapp.generated.resources.library_sync_peer_synced
+import simpmusic.composeapp.generated.resources.library_sync_send_logins_paired
+import simpmusic.composeapp.generated.resources.library_sync_title
+import simpmusic.composeapp.generated.resources.library_sync_windows_public
 import simpmusic.composeapp.generated.resources.login_sync_android_description
 import simpmusic.composeapp.generated.resources.login_sync_android_title
 import simpmusic.composeapp.generated.resources.login_sync_desktop_description
@@ -358,6 +374,7 @@ import simpmusic.composeapp.generated.resources.normalize_volume
 import simpmusic.composeapp.generated.resources.not_available_while_casting
 import simpmusic.composeapp.generated.resources.now_playing_style
 import simpmusic.composeapp.generated.resources.now_playing_style_apple_music
+import simpmusic.composeapp.generated.resources.now_playing_style_soundcloud
 import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
 import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
@@ -517,6 +534,7 @@ fun SettingScreen(
 
     val language by viewModel.language.collectAsStateWithLifecycle()
     val location by viewModel.location.collectAsStateWithLifecycle()
+    val librarySyncState by viewModel.librarySyncState.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
     val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
@@ -592,6 +610,8 @@ fun SettingScreen(
     val equalizerType by viewModel.equalizerType.collectAsStateWithLifecycle()
     val delayEnabled by viewModel.delayEnabled.collectAsStateWithLifecycle()
     val reverbEnabled by viewModel.reverbEnabled.collectAsStateWithLifecycle()
+    val eightDEnabled by viewModel.eightDEnabled.collectAsStateWithLifecycle()
+    val eightDAvailable by viewModel.eightDAvailable.collectAsStateWithLifecycle()
     val lastfmLoggedIn by viewModel.lastfmLoggedIn.collectAsStateWithLifecycle()
     val lastfmUsername by viewModel.lastfmUsername.collectAsStateWithLifecycle()
     val lastfmScrobbleEnabled by viewModel.lastfmScrobbleEnabled.collectAsStateWithLifecycle()
@@ -630,6 +650,9 @@ fun SettingScreen(
         mutableStateOf(false)
     }
     var showLoginSyncDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLibrarySyncDialog by rememberSaveable {
         mutableStateOf(false)
     }
     var showThirdPartyLibraries by rememberSaveable {
@@ -708,20 +731,45 @@ fun SettingScreen(
                     title = stringResource(Res.string.login_sync_section),
                     modifier = Modifier.onSizeChanged { devicesGroupHeightPx = it.height },
                 ) {
+                    val syncPeer = librarySyncState.peers.firstOrNull()
                     SettingItem(
                         title =
                             stringResource(
                                 if (getPlatform() == Platform.Android) Res.string.login_sync_android_title else Res.string.login_sync_desktop_title,
                             ),
                         subtitle =
-                            stringResource(
-                                if (getPlatform() == Platform.Android) {
-                                    Res.string.login_sync_android_description
-                                } else {
-                                    Res.string.login_sync_desktop_description
-                                },
-                            ),
+                            when {
+                                getPlatform() != Platform.Android -> stringResource(Res.string.login_sync_desktop_description)
+                                syncPeer != null -> stringResource(Res.string.library_sync_send_logins_paired, syncPeer.name)
+                                else -> stringResource(Res.string.login_sync_android_description)
+                            },
                         onClick = { showLoginSyncDialog = true },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.library_sync_title),
+                        subtitle =
+                            when {
+                                librarySyncState.problem == LibrarySyncProblem.WINDOWS_PUBLIC_NETWORK -> {
+                                    stringResource(Res.string.library_sync_windows_public)
+                                }
+
+                                syncPeer == null -> {
+                                    stringResource(
+                                        if (getPlatform() == Platform.Android) {
+                                            Res.string.library_sync_not_paired_android
+                                        } else {
+                                            Res.string.library_sync_not_paired_desktop
+                                        },
+                                    )
+                                }
+
+                                else -> {
+                                    val names = librarySyncState.peers.joinToString { it.name }
+                                    librarySyncState.lastSyncAt?.let { stringResource(Res.string.library_sync_peer_synced, names, syncedAgo(it)) }
+                                        ?: stringResource(Res.string.library_sync_peer_not_synced, names)
+                                }
+                            },
+                        onClick = { showLibrarySyncDialog = true },
                     )
                 }
                 SettingGroup(title = stringResource(Res.string.user_interface)) {
@@ -766,6 +814,7 @@ fun SettingScreen(
                             DataStoreManager.NOW_PLAYING_STYLE_M3_EXPRESSIVE to stringResource(Res.string.now_playing_style_m3_expressive),
                             DataStoreManager.NOW_PLAYING_STYLE_APPLE_MUSIC to
                                 stringResource(Res.string.now_playing_style_apple_music) + requiresAndroid12,
+                            DataStoreManager.NOW_PLAYING_STYLE_SOUNDCLOUD to stringResource(Res.string.now_playing_style_soundcloud),
                         )
                     SettingItem(
                         title = stringResource(Res.string.now_playing_style),
@@ -1524,6 +1573,22 @@ fun SettingScreen(
                     ReverbSection()
                 }
                 SettingItem(
+                    title = stringResource(Res.string.audio_eight_d),
+                    subtitle =
+                        when {
+                            castState.isRemote -> stringResource(Res.string.not_available_while_casting)
+                            !eightDAvailable -> stringResource(Res.string.eight_d_unavailable)
+                            else -> stringResource(Res.string.audio_eight_d_description)
+                        },
+                    smallSubtitle = true,
+                    switch = (eightDEnabled to viewModel::setEightDEnabled),
+                    // A saved on-state may still be switched off when the native filter is absent.
+                    isEnable = !castState.isRemote && (eightDAvailable || eightDEnabled),
+                )
+                AnimatedVisibility(visible = eightDEnabled && eightDAvailable && !castState.isRemote) {
+                    EightDSection()
+                }
+                SettingItem(
                     title = stringResource(Res.string.save_playback_state),
                     subtitle = stringResource(Res.string.save_shuffle_and_repeat_mode),
                     switch = (savePlaybackState to { viewModel.setSavedPlaybackState(it) }),
@@ -1659,7 +1724,11 @@ fun SettingScreen(
                         viewModel.setBasicAlertData(
                             SettingBasicAlertState(
                                 title = runBlocking { getString(Res.string.clear_listening_history) },
-                                message = runBlocking { getString(Res.string.clear_listening_history_confirm) },
+                                message =
+                                    runBlocking {
+                                        val confirm = getString(Res.string.clear_listening_history_confirm)
+                                        if (viewModel.librarySyncPaired) "$confirm\n\n${getString(Res.string.clear_listening_history_unpairs)}" else confirm
+                                    },
                                 confirm =
                                     runBlocking { getString(Res.string.clear) } to {
                                         viewModel.clearListeningHistory()
@@ -2834,6 +2903,10 @@ fun SettingScreen(
             EndOfPage()
         }
     }
+    VerticalScrollBar(
+        scrollState = settingListState,
+        modifier = Modifier.padding(top = innerPadding.calculateTopPadding(), bottom = DesktopMiniPlayerClearance),
+    )
     importState?.let { progress ->
         ImportProgressDialog(
             progress = progress,
@@ -2885,18 +2958,18 @@ fun SettingScreen(
         )
     }
     if (showColorPickerDialog) {
+        // The primary colour of each music app, as its brand publishes it. Names are brand names and
+        // are not translated.
         val presetColors =
             listOf(
-                "FF8ECAE6",
-                "FF4C82EF",
-                "FF9B72CF",
-                "FFEF6C9B",
-                "FFEF5350",
-                "FFF4A340",
-                "FFFFCA28",
-                "FF66BB6A",
-                "FF26A69A",
-                "FFBDBDBD",
+                "FF1ED760" to "Spotify",
+                "FFFF5500" to "SoundCloud",
+                "FFFA243C" to "Apple Music",
+                "FFFF0000" to "YouTube Music",
+                "FFA238FF" to "Deezer",
+                "FF3668FF" to "Pandora",
+                "FFFFA200" to "Audiomack",
+                "FF1DA0C3" to "Bandcamp",
             )
         var pendingHex by rememberSaveable { mutableStateOf(customThemeColorHex.takeLast(6)) }
         val parsedColor = parseThemeColorHex(pendingHex)
@@ -2905,24 +2978,47 @@ fun SettingScreen(
             title = { Text(text = stringResource(Res.string.custom_color), style = typo().titleSmall) },
             text = {
                 Column {
-                    presetColors.chunked(5).forEach { rowColors ->
-                        Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                            rowColors.forEach { hex ->
+                    // Four across: at five, a cell is too narrow for "SoundCloud" under its swatch.
+                    presetColors.chunked(4).forEach { rowColors ->
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            rowColors.forEach { (hex, name) ->
                                 val color = parseThemeColorHex(hex) ?: Color.Gray
                                 val isSelected = pendingHex.equals(hex.takeLast(6), ignoreCase = true)
-                                Box(
+                                Column(
                                     modifier =
                                         Modifier
-                                            .padding(4.dp)
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(color)
-                                            .border(
-                                                width = if (isSelected) 3.dp else 0.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                                                shape = CircleShape,
-                                            ).clickable { pendingHex = hex.takeLast(6) },
-                                )
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable { pendingHex = hex.takeLast(6) }
+                                            .padding(vertical = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(color)
+                                                .border(
+                                                    width = if (isSelected) 3.dp else 0.dp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                                    shape = CircleShape,
+                                                ),
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = name,
+                                        style = typo().bodySmall,
+                                        color =
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.onSurface
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            },
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                    )
+                                }
                             }
                         }
                     }
@@ -2960,6 +3056,9 @@ fun SettingScreen(
     }
     if (showLoginSyncDialog) {
         LoginSyncDialog(onDismiss = { showLoginSyncDialog = false })
+    }
+    if (showLibrarySyncDialog) {
+        LibrarySyncDialog(onDismiss = { showLibrarySyncDialog = false })
     }
     if (showYouTubeAccountDialog) {
         BasicAlertDialog(

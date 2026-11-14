@@ -118,6 +118,10 @@ object DesktopDeepLinkHandler {
                 }
             }
 
+            // simpmusic://discord-auth?code=…&state=… → pass through untouched: it is Discord's OAuth
+            // redirect, which App.kt matches on this exact scheme and host, not a page to open.
+            parsed.scheme == "simpmusic" && parsed.host == "discord-auth" -> parsed
+
             // simpmusic://watch?v=xxx → https://simpmusic.org/app/watch?v=xxx
             // simpmusic://playlist?list=xxx → https://simpmusic.org/app/playlist?list=xxx
             // simpmusic://channel/UCxxx → https://simpmusic.org/app/channel/UCxxx

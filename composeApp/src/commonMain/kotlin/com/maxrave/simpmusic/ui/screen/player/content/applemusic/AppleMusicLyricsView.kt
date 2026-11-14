@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -97,6 +98,11 @@ internal fun AppleMusicLyricsView(
     outputName: String?,
     onOpenOutput: () -> Unit,
     modifier: Modifier = Modifier,
+    // The SoundCloud style borrows this page without the bottom cluster (owner's call): it has its
+    // own transport on its card, so it returns there through a back button in the header instead of
+    // the Lyrics pill.
+    showBottomCluster: Boolean = true,
+    onBack: (() -> Unit)? = null,
     dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val localDensity = LocalDensity.current
@@ -156,7 +162,7 @@ internal fun AppleMusicLyricsView(
                     with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() } + 20.dp,
                 ),
         )
-        AppleMusicCompactHeader(state = state, actions = actions, typography = typography)
+        AppleMusicCompactHeader(state = state, actions = actions, typography = typography, onBack = onBack)
 
         Box(
             modifier =
@@ -312,11 +318,15 @@ internal fun AppleMusicLyricsView(
             )
         }
 
+        // Without the cluster, only the gesture bar's room is kept under the lyrics.
+        if (!showBottomCluster) {
+            Spacer(modifier = Modifier.height(with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() }))
+        }
         // expand/shrink, not just fade: the Box above holds weight(1f), so removing the cluster
         // from the layout is what lets the lyrics grow into the freed space — a fade alone would
         // leave an empty band where the transport used to be.
         androidx.compose.animation.AnimatedVisibility(
-            visible = showCluster,
+            visible = showCluster && showBottomCluster,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut(),
         ) {
@@ -341,7 +351,7 @@ internal fun AppleMusicLyricsView(
 private const val CLUSTER_AUTO_HIDE_MS = 8_000L
 
 @Composable
-private fun AppleMusicFloatingCircleButton(
+internal fun AppleMusicFloatingCircleButton(
     icon: ImageVector,
     onClick: () -> Unit,
 ) {

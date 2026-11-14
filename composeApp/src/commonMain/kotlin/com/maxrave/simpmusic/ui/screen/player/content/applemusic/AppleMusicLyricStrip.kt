@@ -265,7 +265,7 @@ private fun sweepX(
  * goes straight there. While [running] is false it simply follows the reports.
  */
 @Composable
-private fun rememberSweepPlayhead(
+internal fun rememberSweepPlayhead(
     rawMs: Long,
     running: Boolean,
 ): State<Long> {

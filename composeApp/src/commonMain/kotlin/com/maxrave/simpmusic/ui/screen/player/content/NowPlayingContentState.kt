@@ -146,6 +146,12 @@ class NowPlayingContentState(
      * its video frame from this one value, so a frame and the spacer that measures it cannot drift.
      */
     val videoAspectRatio: Float = 16f / 9,
+    /**
+     * The YouTube id of the track playing, "Video" prefix stripped, or null before anything plays.
+     * Read off the media item rather than the queue's track, which is null while the queue restored
+     * at startup is still being rebuilt: the same id the comments sheet uses.
+     */
+    val videoId: String? = null,
 )
 
 /**
@@ -169,6 +175,8 @@ class NowPlayingContentActions(
     val onShowAddToPlaylist: () -> Unit,
     /** Opens the comments sheet for the track playing. */
     val onShowComments: () -> Unit,
+    /** Opens the comments sheet with [draft] already in its box (the SoundCloud style's emoji). */
+    val onWriteComment: (draft: String) -> Unit,
     val onShowFullscreenLyrics: () -> Unit,
     val onShowVoteDialog: () -> Unit,
     /** Writes the lyrics timing offset — the same value Settings › Lyrics edits. */

@@ -78,7 +78,9 @@ import com.maxrave.domain.data.model.listentogether.RoomJoinRequest
 import com.maxrave.domain.data.model.listentogether.RoomMember
 import com.maxrave.domain.data.model.listentogether.RoomSuggestion
 import com.maxrave.simpmusic.expect.shareUrl
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.angledGradientBackground
@@ -247,44 +249,57 @@ fun ListenTogetherScreen(
             Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                 // The identity side scrolls separately and normally does not move at all: the room
                 // code is what people read aloud, so it stays on screen while the list scrolls.
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(0.42f)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState())
-                            .padding(start = 24.dp, end = 28.dp, top = 14.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                ) {
-                    // Reserves the strip the floating back button is drawn over — it is a sibling of
-                    // this column and takes part in no measurement, so nothing else pushes down for it.
-                    Spacer(Modifier.height(BACK_BUTTON_STRIP))
-                    TitleBlock(inRoom = state.inRoom)
-                    ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
-                    AnimatedVisibility(visible = state.inRoom) {
-                        RoomCodePoster(state, copyCode, shareCode)
+                val identityScroll = rememberScrollState()
+                Box(Modifier.weight(0.42f).fillMaxHeight()) {
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(identityScroll)
+                                .padding(start = 24.dp, end = 28.dp, top = 14.dp, bottom = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                    ) {
+                        // Reserves the strip the floating back button is drawn over — it is a sibling of
+                        // this column and takes part in no measurement, so nothing else pushes down for it.
+                        Spacer(Modifier.height(BACK_BUTTON_STRIP))
+                        TitleBlock(inRoom = state.inRoom)
+                        ConnectionLine(state.connection, viewModel::connect, viewModel::disconnect)
+                        AnimatedVisibility(visible = state.inRoom) {
+                            RoomCodePoster(state, copyCode, shareCode)
+                        }
                     }
+                    VerticalScrollBar(
+                        scrollState = identityScroll,
+                        modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+                    )
                 }
 
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(0.58f)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState())
-                            .padding(start = 4.dp, end = 40.dp, top = 30.dp)
-                            .animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    WorkArea(state, displayName, codeInput, viewModel, { managing = it }, openSettings)
+                val workScroll = rememberScrollState()
+                Box(Modifier.weight(0.58f).fillMaxHeight()) {
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(workScroll)
+                                .padding(start = 4.dp, end = 40.dp, top = 30.dp)
+                                .animateContentSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        WorkArea(state, displayName, codeInput, viewModel, { managing = it }, openSettings)
+                    }
+                    VerticalScrollBar(
+                        scrollState = workScroll,
+                        modifier = Modifier.padding(bottom = DesktopMiniPlayerClearance),
+                    )
                 }
             }
         } else {
+            val pageScroll = rememberScrollState()
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(pageScroll)
                         .padding(innerPadding)
                         .padding(horizontal = 24.dp, vertical = 14.dp)
                         .animateContentSize(),
@@ -298,6 +313,10 @@ fun ListenTogetherScreen(
                 }
                 WorkArea(state, displayName, codeInput, viewModel, { managing = it }, openSettings)
             }
+            VerticalScrollBar(
+                scrollState = pageScroll,
+                modifier = Modifier.padding(top = innerPadding.calculateTopPadding(), bottom = DesktopMiniPlayerClearance),
+            )
         }
 
         BackButton(backdrop) { navController.navigateUp() }

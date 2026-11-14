@@ -1,0 +1,11 @@
+Mới:
+- Đồng bộ thư viện giữa điện thoại và máy tính
+- Kiểu Đang phát SoundCloud, âm thanh 8D
+- Lời chạy theo từng chữ từ LRCLIB, màu theo các app nhạc
+- Máy tính: lấy đăng nhập từ trình duyệt
+Cải thiện:
+- AutoMix bám theo cấu trúc bài hát, Remove download trong menu bài hát
+- Đăng nhập Discord trên trang của Discord (bản Full), thanh cuộn trên máy tính
+Sửa lỗi:
+- Nhạc dừng sau khi rớt mạng, bản FOSS dừng phát sau 10 phút
+- Kéo cửa sổ macOS sang màn hình khác, bàn phím sau khi chọn gợi ý tìm kiếm

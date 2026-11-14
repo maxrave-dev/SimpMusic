@@ -139,6 +139,7 @@ import com.maxrave.domain.utils.toListName
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
@@ -180,6 +181,7 @@ import com.maxrave.simpmusic.ui.icon.Tune
 import com.maxrave.simpmusic.ui.icon.Update
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
+import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
@@ -212,6 +214,7 @@ import simpmusic.composeapp.generated.resources.bitrate
 import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
+import simpmusic.composeapp.generated.resources.cancel_download
 import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
@@ -267,6 +270,7 @@ import simpmusic.composeapp.generated.resources.plays
 import simpmusic.composeapp.generated.resources.processing
 import simpmusic.composeapp.generated.resources.queue
 import simpmusic.composeapp.generated.resources.radio
+import simpmusic.composeapp.generated.resources.remove_download
 import simpmusic.composeapp.generated.resources.remove_from_cache
 import simpmusic.composeapp.generated.resources.save
 import simpmusic.composeapp.generated.resources.save_to_local_playlist
@@ -1176,104 +1180,111 @@ fun QueueBottomSheet(
                             "${track.videoId}#$occurrence"
                         }
                     }
-                LazyColumn(
-                    horizontalAlignment = Alignment.Start,
-                    state = lazyListState,
-                    modifier =
-                        Modifier
-                            .pointerInput(Unit) {
-                                detectDragGesturesAfterLongPress(
-                                    onDrag = { change, offset ->
-                                        Logger.d("QueueBottomSheet", "onDrag $offset")
-                                        change.consume()
-                                        dragDropState.onDrag(offset = offset)
+                // Wraps the list so the Desktop scrollbar can lie over its right edge; sized by the list alone.
+                Box {
+                    LazyColumn(
+                        horizontalAlignment = Alignment.Start,
+                        state = lazyListState,
+                        modifier =
+                            Modifier
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDrag = { change, offset ->
+                                            Logger.d("QueueBottomSheet", "onDrag $offset")
+                                            change.consume()
+                                            dragDropState.onDrag(offset = offset)
 
-                                        if (overscrollJob?.isActive == true) {
-                                            return@detectDragGesturesAfterLongPress
-                                        }
-
-                                        dragDropState
-                                            .checkForOverScroll()
-                                            .takeIf { it != 0f }
-                                            ?.let {
-                                                overscrollJob =
-                                                    coroutineScope.launch {
-                                                        dragDropState.state.animateScrollBy(
-                                                            it * 1.3f,
-                                                            tween(easing = FastOutLinearInEasing),
-                                                        )
-                                                    }
+                                            if (overscrollJob?.isActive == true) {
+                                                return@detectDragGesturesAfterLongPress
                                             }
-                                            ?: run { overscrollJob?.cancel() }
-                                    },
-                                    onDragStart = { offset ->
-                                        Logger.d("QueueBottomSheet", "onDragStart $offset")
-                                        dragDropState.onDragStart(offset)
-                                    },
-                                    onDragEnd = {
-                                        Logger.d("QueueBottomSheet", "onDragEnd")
-                                        dragDropState.onDragInterrupted(true)
-                                        overscrollJob?.cancel()
-                                    },
-                                    onDragCancel = {
-                                        Logger.d("QueueBottomSheet", "onDragCancel")
-                                        dragDropState.onDragInterrupted()
-                                        overscrollJob?.cancel()
-                                    },
-                                )
-                            },
-                ) {
-                    itemsIndexed(
-                        queue,
-                        // Keyed by the track, NOT by its position: a radio queue drops played
-                        // tracks off the front, and a position-based key changes for every row
-                        // when that happens, so the list loses its scroll anchor and jumps under
-                        // the user. The occurrence number keeps the key unique when a radio
-                        // repeats a song.
-                        key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
-                    ) { index, track ->
-                        if (index != -1) {
-                            DraggableItem(
-                                dragDropState = dragDropState,
-                                index = index,
-                                modifier = Modifier,
-                            ) { _ ->
-                                SongFullWidthItems(
-                                    track = track,
-                                    isPlaying = track.videoId == songEntity?.videoId,
+
+                                            dragDropState
+                                                .checkForOverScroll()
+                                                .takeIf { it != 0f }
+                                                ?.let {
+                                                    overscrollJob =
+                                                        coroutineScope.launch {
+                                                            dragDropState.state.animateScrollBy(
+                                                                it * 1.3f,
+                                                                tween(easing = FastOutLinearInEasing),
+                                                            )
+                                                        }
+                                                }
+                                                ?: run { overscrollJob?.cancel() }
+                                        },
+                                        onDragStart = { offset ->
+                                            Logger.d("QueueBottomSheet", "onDragStart $offset")
+                                            dragDropState.onDragStart(offset)
+                                        },
+                                        onDragEnd = {
+                                            Logger.d("QueueBottomSheet", "onDragEnd")
+                                            dragDropState.onDragInterrupted(true)
+                                            overscrollJob?.cancel()
+                                        },
+                                        onDragCancel = {
+                                            Logger.d("QueueBottomSheet", "onDragCancel")
+                                            dragDropState.onDragInterrupted()
+                                            overscrollJob?.cancel()
+                                        },
+                                    )
+                                },
+                    ) {
+                        itemsIndexed(
+                            queue,
+                            // Keyed by the track, NOT by its position: a radio queue drops played
+                            // tracks off the front, and a position-based key changes for every row
+                            // when that happens, so the list loses its scroll anchor and jumps under
+                            // the user. The occurrence number keeps the key unique when a radio
+                            // repeats a song.
+                            key = { i, t -> queueRowKeys.getOrElse(i) { t.videoId } },
+                        ) { index, track ->
+                            if (index != -1) {
+                                DraggableItem(
+                                    dragDropState = dragDropState,
+                                    index = index,
+                                    modifier = Modifier,
+                                ) { _ ->
+                                    SongFullWidthItems(
+                                        track = track,
+                                        isPlaying = track.videoId == songEntity?.videoId,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth(),
+                                        onClickListener = { videoId ->
+                                            if (videoId == track.videoId) {
+                                                musicServiceHandler.playMediaItemInMediaSource(index)
+                                            }
+                                        },
+                                        onMoreClickListener = {
+                                            showQueueItemBottomSheet(index)
+                                        },
+                                        onAddToQueue = {
+                                            sharedViewModel.addListToQueue(
+                                                arrayListOf(track),
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        item {
+                            if (loadMoreState == QueueData.StateSource.STATE_INITIALIZING) {
+                                CenterLoadingBox(
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth(),
-                                    onClickListener = { videoId ->
-                                        if (videoId == track.videoId) {
-                                            musicServiceHandler.playMediaItemInMediaSource(index)
-                                        }
-                                    },
-                                    onMoreClickListener = {
-                                        showQueueItemBottomSheet(index)
-                                    },
-                                    onAddToQueue = {
-                                        sharedViewModel.addListToQueue(
-                                            arrayListOf(track),
-                                        )
-                                    },
+                                            .fillMaxWidth()
+                                            .height(80.dp),
                                 )
                             }
                         }
-                    }
-                    item {
-                        if (loadMoreState == QueueData.StateSource.STATE_INITIALIZING) {
-                            CenterLoadingBox(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(80.dp),
-                            )
+                        item {
+                            EndOfPage()
                         }
                     }
-                    item {
-                        EndOfPage()
-                    }
+                    VerticalScrollBar(
+                        scrollState = lazyListState,
+                        modifier = Modifier.matchParentSize(),
+                    )
                 }
             }
         }
@@ -1652,7 +1663,7 @@ fun NowPlayingBottomSheet(
                                 Modifier
                                     .align(Alignment.CenterVertically)
                                     .size(44.dp)
-                                    .clip(RoundedCornerShape(6.dp)),
+                                    .clip(ArtworkShape),
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -1768,15 +1779,18 @@ fun NowPlayingBottomSheet(
                             } else {
                                 Color.Unspecified
                             },
+                        // The row names what a tap does rather than the state: the icon already
+                        // shows the state, and a label that only repeated it hid the one place a
+                        // single download could be removed (#2176).
                         text =
                             if (downloadBlockedAsLive) {
                                 Res.string.download_disabled_live
                             } else {
                                 when (uiState.songUIState.downloadState) {
                                     DownloadState.STATE_NOT_DOWNLOADED -> Res.string.download
-                                    DownloadState.STATE_DOWNLOADING -> Res.string.downloading
-                                    DownloadState.STATE_DOWNLOADED -> Res.string.downloaded
-                                    DownloadState.STATE_PREPARING -> Res.string.downloading
+                                    DownloadState.STATE_DOWNLOADING -> Res.string.cancel_download
+                                    DownloadState.STATE_DOWNLOADED -> Res.string.remove_download
+                                    DownloadState.STATE_PREPARING -> Res.string.cancel_download
                                     else -> Res.string.download
                                 }
                             },

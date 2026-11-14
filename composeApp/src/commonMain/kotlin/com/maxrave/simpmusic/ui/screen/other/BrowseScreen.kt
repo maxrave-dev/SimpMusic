@@ -58,6 +58,8 @@ import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.artworkScrimBrush
 import com.maxrave.simpmusic.extension.barBlurStyle
@@ -267,6 +269,10 @@ fun BrowseScreen(
                                     EndOfPage()
                                 }
                             }
+                            VerticalScrollBar(
+                                scrollState = listState,
+                                modifier = Modifier.padding(top = innerPadding.calculateTopPadding() + 64.dp, bottom = DesktopMiniPlayerClearance),
+                            )
                         }
                     }
 

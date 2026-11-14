@@ -1,7 +1,7 @@
 [versions]
 # App version
-version-name = "2.5.0"
-version-code = "62"
+version-name = "2.6.0"
+version-code = "63"
 
 android = "9.5.0"
 kotlin = "2.4.21"
@@ -54,16 +54,17 @@ haze = "2.0.1"
 onetimepassword = "3.0.0"
 common = "1.23.0"
 json = "1.12.0"
+kotaml = "0.113.0"
 gemini-kotlin = "4.0.2"
 slf4j = "1.7.36"
 sentry-android = "8.61.1"
 sentry-gradle-android = "6.24.0"
 sentry-jvm = "8.61.1"
 newpipe = "v0.26.1"
-brave-newpipe = "105aad96c7"
+brave-newpipe = "991b158fee"
 # org.json ships with the Android SDK but is absent on JVM desktop; PipePipeExtractor references it.
 org-json = "20231013" # pin version
-pipepipe = "27aac1e14e"
+pipepipe = "bba8d84453"
 # QuickJS binding for KMP — runs YouTube's player JS to solve sig/n challenges locally.
 quickjs = "1.0.15"
 webkit = "1.18.0"
@@ -184,6 +185,7 @@ ktor-serialization-kotlinx-xml = { group = "io.ktor", name = "ktor-serialization
 ktor-serialization-kotlinx-protobuf = { group = "io.ktor", name = "ktor-serialization-kotlinx-protobuf", version.ref = "ktor" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "json" }
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "json" }
+kotaml = { module = "io.heapy.kotaml:kotaml", version.ref = "kotaml" }
 brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }

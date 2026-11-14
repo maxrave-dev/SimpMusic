@@ -46,6 +46,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
+import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.angledGradientBackground
@@ -134,11 +136,12 @@ fun ListenTogetherSettingsScreen(
             }
         }
 
+        val scrollState = rememberScrollState()
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -282,6 +285,10 @@ fun ListenTogetherSettingsScreen(
                 EndOfPage()
             }
         }
+        VerticalScrollBar(
+            scrollState = scrollState,
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding(), bottom = DesktopMiniPlayerClearance),
+        )
 
         // Floats over the strip the header row reserves — a sibling of both the scroll column and
         // the backdrop source, exactly the arrangement the main Listen Together page uses.

@@ -51,6 +51,17 @@ subprojects {
     configurations.all {
         resolutionStrategy {
             force("com.github.TeamNewPipe:nanojson:c7a6c1c08d16b6d5ecded34758e6415e07be2166")
+
+            // Kotaml retains Kaml's com.charleskorn.kaml package. Different Maven coordinates
+            // otherwise let both copies reach DEX. Align root and platform-specific modules.
+            eachDependency {
+                if (requested.group == "com.charleskorn.kaml" &&
+                    (requested.name == "kaml" || requested.name.startsWith("kaml-"))
+                ) {
+                    useTarget("io.heapy.kotaml:${requested.name.replaceFirst("kaml", "kotaml")}:${libs.versions.kotaml.get()}")
+                    because("Kotaml and Kaml provide the same classes; use one YAML implementation")
+                }
+            }
         }
     }
 }
