@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -73,6 +73,7 @@ import com.maxrave.simpmusic.expect.openUrl
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
+import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
 import com.maxrave.simpmusic.ui.component.AppNavigationRail
 import com.maxrave.simpmusic.ui.component.DesktopSidebar
@@ -82,6 +83,7 @@ import com.maxrave.simpmusic.ui.component.LocalNowPlayingOpen
 import com.maxrave.simpmusic.ui.component.LocalUserStarted
 import com.maxrave.simpmusic.ui.icon.ArrowForwardIos
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.screen.DesktopCapsuleMaxWidth
 import com.maxrave.simpmusic.ui.navigation.destination.home.AnalyticsDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.HomeDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.NotificationDestination
@@ -142,6 +144,18 @@ import simpmusic.composeapp.generated.resources.update_available
 import simpmusic.composeapp.generated.resources.update_message
 import simpmusic.composeapp.generated.resources.yes
 import kotlin.time.ExperimentalTime
+
+/** Below this width the Desktop sidebar folds so Home / Library keep a usable column. */
+private const val DESKTOP_SIDEBAR_AUTO_COLLAPSE_WIDTH_DP = 1100
+
+/**
+ * Below this width the side Now Playing panel yields to the fullscreen player overlay — a 13"
+ * MacBook in split view cannot host sidebar + content + 35% player at once.
+ */
+private const val DESKTOP_SIDE_NOW_PLAYING_MIN_WIDTH_DP = 960
+
+/** Floor left for the content panel beside an open Desktop Now Playing card. */
+private val DESKTOP_MIN_CONTENT_BESIDE_NP = 360.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class, ExperimentalFoundationApi::class)
 @Composable
@@ -508,6 +522,19 @@ fun App(
     }
     val isTablet = windowSize.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isTabletLandscape = isTablet && currentOrientation() == Orientation.LANDSCAPE
+    // Desktop shell on a MacBook (split view, zoomed, or a half-screen window) needs its own
+    // breakpoints: the Material tablet ones alone still leave an expanded 280dp sidebar and a
+    // 35% Now Playing panel fighting over the leftover strip.
+    val desktopWindowWidthDp = if (isDesktopShell) getScreenSizeInfo().wDP else Int.MAX_VALUE
+    val forceSidebarCollapsed = isDesktopShell && desktopWindowWidthDp < DESKTOP_SIDEBAR_AUTO_COLLAPSE_WIDTH_DP
+    // Whether this window *can* host the side Now Playing card (width + orientation). Fullscreen
+    // gates the card separately so a landscape fullscreen session does not fall through to the
+    // overlay the way a too-narrow Desktop window should.
+    val canHostSideNowPlaying =
+        isTablet &&
+            isTabletLandscape &&
+            (!isDesktopShell || desktopWindowWidthDp >= DESKTOP_SIDE_NOW_PLAYING_MIN_WIDTH_DP)
+    val useSideNowPlaying = canHostSideNowPlaying && !isInFullscreen
 
     AppTheme(
         themeMode = themeMode,
@@ -645,20 +672,20 @@ fun App(
                                             bottom = 4.dp,
                                         )
                                 } else {
-                                    // Floating capsule, Apple Music style: a fixed size so it never
-                                    // stretches to the window width, and no haze at all — the capsule
-                                    // paints its own liquid glass. Layering haze underneath blurs the
-                                    // same pixels twice and reads as a dark smear, not glass.
-                                    // padding BEFORE height: the other way round the bottom margin
-                                    // eats into the 72dp and the capsule ends up 52dp tall.
-                                    // 60dp is the floor for this layout: the content row is centred
-                                    // on the capsule's axis and the 16dp progress box hangs off the
-                                    // bottom, so the height has to cover the taller of the artwork
-                                    // (32dp) and the two text lines (~33dp), plus that 16dp, plus a
-                                    // gap. Going lower means shrinking the artwork again.
+                                    // Floating capsule, Apple Music style. Cap at the full three-cluster
+                                    // width and fill what the content strip has left, so a resized
+                                    // MacBook window shrinks the pill instead of letting it spill past
+                                    // the sidebar / Now Playing edge. No haze — the capsule paints its
+                                    // own liquid glass; layering haze underneath blurs the same pixels
+                                    // twice and reads as a dark smear. padding BEFORE height: the other
+                                    // way round the bottom margin eats into the 60dp. That height is the
+                                    // floor: artwork 32dp / two text lines ~33dp, plus the 16dp progress
+                                    // box hung off the bottom.
                                     Modifier
-                                        .wrapContentWidth()
+                                        .padding(horizontal = 20.dp)
                                         .padding(bottom = 20.dp)
+                                        .widthIn(max = DesktopCapsuleMaxWidth)
+                                        .fillMaxWidth()
                                         .height(60.dp)
                                 },
                                 backdrop = backdrop,
@@ -710,6 +737,7 @@ fun App(
                                             containerColor = desktopPanel,
                                             showAnalyticsTab = showAnalyticsTab,
                                             showMixForYouTab = showMixForYouTab,
+                                            forceCollapsed = forceSidebarCollapsed,
                                             // No end padding: the content panel's own 8dp is the gap between the two.
                                             modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
                                         ) { klass ->
@@ -789,7 +817,7 @@ fun App(
                                 tabletMiniPlayer(Modifier.padding(innerPadding).align(Alignment.BottomCenter))
                             }
                         }
-                        if (isTablet && isTabletLandscape && !isInFullscreen) {
+                        if (useSideNowPlaying) {
                             AnimatedVisibility(
                                 isShowNowPlaylistScreen,
                                 enter = expandHorizontally() + fadeIn(),
@@ -798,17 +826,30 @@ fun App(
                                 Row(
                                     Modifier
                                         .fillMaxHeight()
-                                        // The width Now Playing has always had: `fillMaxWidth(0.35f)` of what the
-                                        // 80dp NavigationRail left in this Row. The rail and the sidebar now sit
-                                        // inside the weighted Box, so that share is taken by hand from the Row's
-                                        // own width; otherwise it would follow the sidebar. On Desktop it is 8dp
-                                        // less, the spacer it no longer has, so the card keeps its exact size.
+                                        // Preferred width is still `fillMaxWidth(0.35f)` of what the
+                                        // 80dp NavigationRail left in this Row. On a narrow Desktop
+                                        // window that share is clamped so the content panel keeps at
+                                        // least [DESKTOP_MIN_CONTENT_BESIDE_NP], otherwise the Home
+                                        // cards and the capsule crush into a strip.
                                         .layout { measurable, constraints ->
-                                            val width =
+                                            val full = constraints.maxWidth
+                                            val preferred =
                                                 (
-                                                    ((constraints.maxWidth - 80.dp.roundToPx()) * 0.35f).roundToInt() -
+                                                    ((full - 80.dp.roundToPx()) * 0.35f).roundToInt() -
                                                         if (isDesktopShell) 8.dp.roundToPx() else 0
-                                                ).coerceIn(0, constraints.maxWidth)
+                                                )
+                                            val width =
+                                                if (isDesktopShell) {
+                                                    val sidebarDp = if (forceSidebarCollapsed) 72 else 280
+                                                    val reservedLeft =
+                                                        (sidebarDp + 8).dp.roundToPx() +
+                                                            DESKTOP_MIN_CONTENT_BESIDE_NP.roundToPx() +
+                                                            16.dp.roundToPx()
+                                                    val maxNp = (full - reservedLeft).coerceAtLeast(280.dp.roundToPx())
+                                                    preferred.coerceIn(280.dp.roundToPx(), maxNp)
+                                                } else {
+                                                    preferred
+                                                }.coerceIn(0, full)
                                             val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
                                             layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
                                         },
@@ -860,7 +901,7 @@ fun App(
                     }
                 }
 
-                if (isShowNowPlaylistScreen && !isTabletLandscape) {
+                if (isShowNowPlaylistScreen && !canHostSideNowPlaying) {
                     ForceDarkContent {
                         NowPlayingScreen(
                             navController = navController,
