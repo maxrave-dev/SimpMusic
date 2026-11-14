@@ -1,96 +1,118 @@
-# iOS port — initial groundwork
+# iOS port
 
-This branch is a work in progress, not a runnable iOS release. The existing
-Android/Desktop app remains the reference implementation. No IPA or Xcode host
-application is provided yet.
+The `ios-support` branches in this repository and `core` contain the Apple Silicon
+simulator port. Android and Desktop retain their existing playback engines. iOS
+uses AVFoundation with the shared queue and playback handler.
 
-## Compile the shared module for iOS
+## Build and run
 
-Initialize the pinned core submodule, then opt in to the Native targets on macOS:
-
-```sh
-git submodule update --init --recursive
-./gradlew -PenableIos=true :composeApp:compileKotlinIosSimulatorArm64
-```
-
-The opt-in registers `iosArm64` (device) and `iosSimulatorArm64` (Apple Silicon
-simulator). Both declare a static `ComposeApp` framework. Ordinary builds leave
-these new composeApp targets disabled while the port is incomplete; existing
-iOS targets in core are unchanged.
-
-Once the dependency and source blockers below are resolved, link with:
+Requirements: macOS, Xcode with an iOS simulator runtime, Python 3, and JDK 21.
+Initialize `core` with `git submodule update --init --recursive` on a fresh clone.
 
 ```sh
-./gradlew -PenableIos=true :composeApp:linkDebugFrameworkIosSimulatorArm64
-./gradlew -PenableIos=true :composeApp:linkDebugFrameworkIosArm64
+python3 scripts/build-ios-framework.py
+xcodebuild -project iosApp/SimpMusic.xcodeproj -scheme SimpMusic \
+  -configuration Debug -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/SimpMusicIosBuild \
+  SKIP_KOTLIN_BUILD=YES CODE_SIGNING_ALLOWED=NO build
+xcrun simctl install booted /tmp/SimpMusicIosBuild/Build/Products/Debug-iphonesimulator/SimpMusic.app
+xcrun simctl launch booted com.maxrave.simpmusic
 ```
 
-These are development commands, **not currently verified successful builds**.
-The future Xcode host can use `:composeApp:embedAndSignAppleFrameworkForXcode`
-with the same property from an Xcode build phase, following
-[Kotlin's direct integration guide](https://kotlinlang.org/docs/multiplatform-direct-integration.html).
-That task requires Xcode's build environment and is not a standalone CLI build.
+Alternatively open `iosApp/SimpMusic.xcodeproj` and run the shared `SimpMusic`
+scheme. Its build phase builds the appropriate Kotlin framework and copies the
+Compose resources. `SKIP_KOTLIN_BUILD=YES` is for a framework already built for
+the matching configuration and platform. Device builds need a signing team;
+device signing and App Store distribution have not been validated.
 
-## Implemented groundwork
+`build-ios-framework.py` uses `JAVA_HOME`, or Android Studio's bundled JDK when
+none is set. It temporarily removes the repository's daemon vendor restriction
+and restores the original criteria in `finally`. Its lock serializes builds
+started through that script. Do not run a separate wrapper script that changes
+the same criteria concurrently.
 
-- Shared clocks and UUID generation use Kotlin APIs instead of Java APIs.
-- Desktop OS name lookup is behind `expect`/`actual`; common code no longer
-  references `System.getProperty`.
-- Playback time labels use common Kotlin arithmetic, preserving total minutes,
-  zero padding, and truncation of milliseconds. The UI still localizes negative
-  (unknown) durations. Boundary tests live in `commonTest`.
-- iOS clipboard writes are dispatched to the main thread when necessary.
-- iOS download paths use `Documents/Downloads` in the application sandbox and
-  report directory creation failures instead of returning an unusable path.
-- Commons IO and Coil's OkHttp backend are scoped to Android/JVM. Shared image
-  cache code depends explicitly on Coil's cross-platform network core.
+The application Native targets remain opt-in with `-PenableIos=true`. Useful
+standalone checks, passed as arguments to `build-ios-framework.py`, include:
 
-## Remaining blockers, in implementation order
+```text
+:data:compileKotlinIosSimulatorArm64
+:composeApp:compileKotlinIosSimulatorArm64
+:composeApp:linkDebugFrameworkIosSimulatorArm64
+:data:compileKotlinJvm
+:composeApp:jvmTest
+:data:compileAndroidMain
+:composeApp:compileAndroidMain
+:ktorExt:iosSimulatorArm64Test
+:spotify:iosSimulatorArm64Test
+:kotlinYtmusicScraper:iosSimulatorArm64Test
+```
 
-1. **Resolve and compile the full dependency graph.** Registering a Native
-   target does not make every dependency Native-compatible. In particular,
-   `core/service/loginSync` declares Android/JVM only and uses Java sockets and
-   Java cryptography. Audit transitive dependencies before adding iOS targets.
-2. **Finish common-code portability.** Remaining examples include Java ZIP and
-   file APIs in `AllExt` and `SharedViewModel`, Java bidirectional text handling
-   in lyrics, Java random-access files in app logs, and Java date formatting in
-   settings. The scraper also imports Java hashing/time APIs in common code.
-   This list is not an exhaustive compiler diagnostic.
-3. **Complete iOS platform implementations.** Most composeApp `expect` APIs
-   still lack iOS `actual`s: login/cookies, file and photo pickers, sharing,
-   player view, permissions, settings, and others. Network image loading needs
-   an iOS backend and ImageLoader setup; network-core alone does not fetch images.
-4. **Implement the player.** `core/data/.../ExpectMediaHandler.ios.kt` still
-   throws `TODO("Not yet implemented")`. Implement the media handler using
-   AVFoundation and verify stream resolution: the existing iOS extractor
-   returns an empty NewPipe result and no live HLS URL. Then add audio-session
-   handling, background playback, interruption handling, and lock-screen controls.
-5. **Add the application host.** Once dependencies initialize successfully,
-   add a Kotlin `ComposeUIViewController` entry, an Xcode application, and
-   startup dependency injection. Verify browsing and playback on a simulator
-   before configuring device signing. Avoid a host that starts directly into
-   the current unimplemented media handler.
+## Platform implementation
 
-Core is a separate Git submodule. Changes there need their own feature commits
-and a corresponding parent-repository gitlink commit. This initial groundwork
-does not change the pinned core revision. Keep both repositories local until
-publishing is explicitly requested.
+- Startup initializes Koin, Room, DataStore, logging, view models, Coil's Darwin
+  image loader, and Compose resources before rendering the shared application.
+- AVPlayer handles AAC/HLS, seek, queue edits, shuffle/repeat, audio sessions,
+  interruptions, and route changes. Now Playing metadata and remote commands use
+  MediaPlayer. Startup reads settings without blocking the main thread, and a
+  queue selected during startup takes precedence over the saved queue.
+- The iOS stream request uses an Apple client returning direct AAC and HLS. Its
+  parameters are documented in [yt-dlp's client definitions](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube/_base.py).
+  Android/Desktop retain their NewPipe extraction path. Service-side changes,
+  region restrictions, private tracks, and account requirements can still affect
+  which tracks are playable; the Native playback request is anonymous.
+- Foreground NSURLSession downloads save AAC atomically in the application
+  sandbox. Playback prefers a completed offline file. Clearing transient player
+  cache does not remove downloaded tracks.
+- WebKit provides login pages and cookie reads; platform file/photo pickers,
+  artwork persistence, Photos export, sharing, clipboard, and external links use
+  native APIs. Deep links are forwarded into shared navigation.
+- Backup exports a standard ZIP containing the database and preferences, with
+  optional downloaded AAC files. Restore stages an archive and applies it on the
+  next full app launch before Room/DataStore open. It does not overwrite an open
+  database. Close the app through the app switcher and reopen after staging.
+- Shared file/log access uses Okio. Date, number, and bidirectional lyric layout
+  no longer depend on JVM APIs. iOS HMAC and Spotify TOTP use CommonCrypto, with
+  known-vector simulator tests.
 
-## Validation
+## Deliberate limits
 
-- An isolated JVM check compiled the actual `PlaybackDuration.kt` source with
-  the locally cached Kotlin 2.2.20 compiler. All 10,008 boundary/random cases
-  matched the previous Java formatting; negative input was rejected. This is
-  a focused compatibility check, not a full project or Native build.
-- An isolated JVM check compiled the common `Platform.kt` with its desktop
-  actual, checked all OS labels and platform selection, and checked the Kotlin
-  clock and UUID APIs. The older 2.2.20 test compiler required an ExperimentalTime
-  opt-in in the temporary harness; the project's pinned Kotlin version is unchanged.
-- On 2026-11-13, the simulator compile attempt timed out after four minutes
-  during Gradle dependency resolution, before Kotlin source compilation. An
-  offline diagnostic then failed in root-project configuration because
-  `io.sentry:sentry-android-gradle-plugin:6.24.0` was not cached. This is not a
-  Native compiler result. The check used the locally installed JetBrains JDK 21
-  temporarily; the repository's Microsoft JDK selection was restored afterward.
-- Full Gradle/Native validation and device testing are still required. The
-  clipboard and sandbox adapters have not been executed on an iOS device.
+Device pairing/library sync, Cast, microphone song recognition, system EQ,
+wallpaper colors, and the Android/Desktop audio effects are unavailable on iOS;
+their normal settings entry points are hidden. The player supports normal speed,
+volume, sleep fade, queue, and repeat controls, without the two-player crossfade
+or DSP chain of the other engines. Downloads are foreground tasks, without a
+background NSURLSession implementation. iOS cannot merge or tag separate video
+and audio downloads with the JVM FFmpeg path.
+
+Account sign-in completion, physical-device interruptions/AirPlay, App Store
+packaging, and long-running background downloads require separate validation.
+
+## Verified on 2026-11-14
+
+- `data` Native and JVM compilation, Compose Native framework linking, Android
+  compilation of data/Compose, and all 70 Compose JVM tests passed.
+- Simulator tests passed: HMAC (2), Spotify TOTP (1), and scraper/locale (14).
+- Xcode built and installed the app on iOS 26 simulators (iPhone 17 Pro and
+  iPhone 16e). Home browsing, artwork, Settings, and the Google login page loaded.
+  No account credentials were entered or sign-in completion claimed.
+- The Debug host's real AVPlayer smoke test passed 13 checks: readiness,
+  advancing playback clock, system Now Playing metadata, pause, seek, next and
+  previous, duplicate-track identity, empty queues, and track metadata events.
+- An online YouTube track played for over a minute. Its position also advanced
+  from 07:56 to 12:10 while the app was backgrounded and the simulator locked.
+  The simulator did not display the lock-screen media panel, so interactive
+  lock-screen controls remain unverified despite successful metadata publication.
+
+To repeat the player check with a booted simulator and the Debug app installed:
+
+```sh
+python3 scripts/verify-ios-playback.py --device SIMULATOR_UDID
+```
+
+It generates a quiet local WAV in the app's sandbox, drives the actual AVPlayer,
+prints a PASS/FAIL report, and leaves normal launches unaffected. `--url` accepts
+an optional remote audio URL. The report lives at
+`Documents/SimpMusic/ios-playback-smoke.txt` inside that simulator app container.
+The backup/restore round trip, Photos permission flow, video-mode visuals, and
+physical-device audio interruptions have not received end-to-end validation.
