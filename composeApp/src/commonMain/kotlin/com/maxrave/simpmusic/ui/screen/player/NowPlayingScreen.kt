@@ -68,6 +68,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.isFullscreenPlayerOpen
 import com.maxrave.simpmusic.expect.ui.rememberVideoAspectRatio
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
@@ -798,15 +799,19 @@ fun NowPlayingScreenContent(
                                     if (windowIsRounded) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier,
                                 ),
                     ) {
-                        FullscreenLyricsContent(
-                            sharedViewModel = sharedViewModel,
-                            navController = navController,
-                            color = startColor.value,
-                            state = state,
-                            actions = actions,
-                            nowPlayingStyle = nowPlayingStyle,
-                            onDismiss = closePage,
-                        )
+                        // While FullscreenPlayerWindow is open on Desktop, stop rendering the heavy
+                        // lyrics content in this popup to prevent dual ticker/blur/animation workloads.
+                        if (!isFullscreenPlayerOpen()) {
+                            FullscreenLyricsContent(
+                                sharedViewModel = sharedViewModel,
+                                navController = navController,
+                                color = startColor.value,
+                                state = state,
+                                actions = actions,
+                                nowPlayingStyle = nowPlayingStyle,
+                                onDismiss = closePage,
+                            )
+                        }
                     }
                 }
             }

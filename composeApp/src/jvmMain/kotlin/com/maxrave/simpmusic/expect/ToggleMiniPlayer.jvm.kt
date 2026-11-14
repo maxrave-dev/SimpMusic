@@ -8,3 +8,9 @@ actual fun toggleMiniPlayer() {
     MiniPlayerManager.isOpen = !MiniPlayerManager.isOpen
     Logger.d("MiniPlayer", "New state: ${MiniPlayerManager.isOpen}")
 }
+
+actual fun setMiniPlayerOpen(open: Boolean) {
+    Logger.d("MiniPlayer", "Set open called: $open")
+    MiniPlayerManager.isOpen = open
+}
+

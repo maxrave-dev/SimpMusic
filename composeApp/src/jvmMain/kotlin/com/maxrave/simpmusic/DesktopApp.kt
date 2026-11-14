@@ -40,8 +40,11 @@ import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.expect.ui.LibrarySyncLoginPrompt
 import com.maxrave.simpmusic.extension.DesktopWindowChrome
 import com.maxrave.simpmusic.ui.component.CustomTitleBar
+import com.maxrave.simpmusic.ui.component.WindowsTitleBar
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
+import com.maxrave.simpmusic.ui.screen.player.FullscreenPlayerManager
+import com.maxrave.simpmusic.ui.screen.player.FullscreenPlayerWindow
 import com.maxrave.simpmusic.ui.theme.isDarkTheme
 import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
@@ -293,6 +296,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 size = DpSize(1500.dp, 860.dp),
             )
         var isVisible by remember { mutableStateOf(true) }
+        var mainAwtWindow by remember { mutableStateOf<java.awt.Window?>(null) }
         val showNotificationPermissionDialog by
             desktopNotificationManager.shouldShowPermissionDialog.collectAsState()
         // The single-instance guard now runs before startKoin (top of
@@ -352,8 +356,19 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     MiniPlayerManager.isOpen = true
                 }
             }
+            if (FullscreenPlayerManager.isOpen) {
+                Item("Close Fullscreen Player") {
+                    FullscreenPlayerManager.isOpen = false
+                }
+            } else {
+                Item("Open Fullscreen Player") {
+                    FullscreenPlayerManager.isOpen = true
+                }
+            }
             Divider()
             Item(quitAppString) {
+                FullscreenPlayerManager.isOpen = false
+                MiniPlayerManager.isOpen = false
                 mediaPlayerHandler.release()
                 Sentry.endSession()
                 exitApplication()
@@ -378,9 +393,18 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             state = windowState,
             visible = isVisible,
         ) {
+            val themeMode by sharedViewModel
+                .getThemeMode()
+                .collectAsState(DataStoreManager.THEME_MODE_DARK)
+            val isDark = isDarkTheme(themeMode)
+
+            LaunchedEffect(window, isDark) {
+                WindowsTitleBar.applyTheme(window, isDark)
+            }
             // Returning from macOS System Settings is the only reliable time to learn whether the
             // user enabled notifications after denying the one-shot system prompt.
             DisposableEffect(window) {
+                mainAwtWindow = window
                 val listener =
                     object : WindowAdapter() {
                         override fun windowGainedFocus(event: WindowEvent) {
@@ -390,6 +414,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 window.addWindowFocusListener(listener)
                 onDispose {
                     window.removeWindowFocusListener(listener)
+                    mainAwtWindow = null
                 }
             }
             // AWT on GNOME/XWayland (CMP-9528): moving the window to another monitor puts the
@@ -461,10 +486,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     // The bar sits outside AppTheme, so the colours are resolved here from the
                     // same stored setting AppTheme uses and handed down. Pure black / pure white
                     // to match the window colour the shell paints behind the panels.
-                    val themeMode by sharedViewModel
-                        .getThemeMode()
-                        .collectAsState(DataStoreManager.THEME_MODE_DARK)
-                    val isDark = isDarkTheme(themeMode)
                     CustomTitleBar(
                         title = stringResource(Res.string.app_name),
                         windowState = windowState,
@@ -525,6 +546,17 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 sharedViewModel = sharedViewModel,
                 onCloseRequest = {
                     MiniPlayerManager.isOpen = false
+                },
+            )
+        }
+
+        // Fullscreen Player Window (separate window)
+        if (FullscreenPlayerManager.isOpen) {
+            FullscreenPlayerWindow(
+                sharedViewModel = sharedViewModel,
+                mainAwtWindow = mainAwtWindow,
+                onCloseRequest = {
+                    FullscreenPlayerManager.isOpen = false
                 },
             )
         }

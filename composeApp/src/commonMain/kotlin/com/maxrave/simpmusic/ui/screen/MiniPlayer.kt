@@ -112,6 +112,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.toggleFullscreenPlayer
 import com.maxrave.simpmusic.expect.toggleMiniPlayer
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.extension.LeftToRight
@@ -127,6 +128,7 @@ import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberGlassLuminance
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Close
+import com.maxrave.simpmusic.ui.icon.Fullscreen
 import com.maxrave.simpmusic.ui.icon.Headphones
 import com.maxrave.simpmusic.ui.icon.OpenInFull
 import com.maxrave.simpmusic.ui.icon.PictureInPictureAlt
@@ -989,13 +991,20 @@ fun MiniPlayer(
                             contentDescription = "",
                         )
                     }
-                    // Desktop mini player button (JVM only)
+                    // Desktop mini player & fullscreen buttons (JVM only)
                     if (getPlatform() == Platform.Desktop) {
                         IconButton(onClick = { toggleMiniPlayer() }) {
                             Icon(
                                 imageVector = SimpIcons.PictureInPictureAlt,
                                 tint = textColor,
                                 contentDescription = "Mini Player",
+                            )
+                        }
+                        IconButton(onClick = { toggleFullscreenPlayer() }) {
+                            Icon(
+                                imageVector = SimpIcons.Fullscreen,
+                                tint = textColor,
+                                contentDescription = "Fullscreen Player",
                             )
                         }
                     }

@@ -4,3 +4,8 @@ package com.maxrave.simpmusic.expect
 actual fun toggleMiniPlayer() {
     // Do nothing on Android
 }
+
+actual fun setMiniPlayerOpen(open: Boolean) {
+    // Do nothing on Android
+}
+
