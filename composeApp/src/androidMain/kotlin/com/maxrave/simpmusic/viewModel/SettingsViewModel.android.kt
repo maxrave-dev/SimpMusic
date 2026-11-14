@@ -20,6 +20,7 @@ import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.CommonRepository
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.stopService
+import com.maxrave.simpmusic.canvas.CANVAS_DIRECTORY
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.getSizeOfFile
 import com.maxrave.simpmusic.extension.zipInputStream
@@ -115,6 +116,8 @@ actual suspend fun restoreNative(
                 }
 
             var downloadFolderCleared = false
+            var artworkFolderCleared = false
+            var canvasFolderCleared = false
 
             while (entry != null) {
                 Logger.d("BackupRestore", "Processing entry: ${entry.name}")
@@ -159,6 +162,34 @@ actual suspend fun restoreNative(
                         restoreFolder(entry.name, inputStream, "download")
                     }
 
+                    entry.name.startsWith("artwork/") -> {
+                        Logger.d("BackupRestore", "Found artwork entry: ${entry.name}")
+                        // Clear artwork folder on first encounter
+                        if (!artworkFolderCleared) {
+                            val artworkFolder = application.filesDir / "artwork"
+                            Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents BEFORE clearing ===")
+                            debugFolderContents(artworkFolder)
+                            Logger.d("BackupRestore", "Clearing artwork folder: ${artworkFolder.absolutePath}")
+                            clearFolder(artworkFolder)
+                            Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents AFTER clearing ===")
+                            debugFolderContents(artworkFolder)
+                            artworkFolderCleared = true
+                        }
+                        restoreFolder(entry.name, inputStream, "artwork")
+                    }
+
+                    entry.name.startsWith("$CANVAS_DIRECTORY/") -> {
+                        Logger.d("BackupRestore", "Found canvas entry: ${entry.name}")
+                        // Clear canvas folder on first encounter
+                        if (!canvasFolderCleared) {
+                            val canvasFolder = application.filesDir / CANVAS_DIRECTORY
+                            Logger.d("BackupRestore", "Clearing canvas folder: ${canvasFolder.absolutePath}")
+                            clearFolder(canvasFolder)
+                            canvasFolderCleared = true
+                        }
+                        restoreFolder(entry.name, inputStream, CANVAS_DIRECTORY)
+                    }
+
                     else -> {
                         Logger.d("BackupRestore", "Unhandled entry: ${entry.name}")
                     }
@@ -171,6 +202,14 @@ actual suspend fun restoreNative(
     val downloadFolder = application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER
     Logger.d("BackupRestore", "=== RESTORE: Download folder contents AFTER RESTORE ===")
     debugFolderContents(downloadFolder)
+
+    val artworkFolder = application.filesDir / "artwork"
+    Logger.d("BackupRestore", "=== RESTORE: Artwork folder contents AFTER RESTORE ===")
+    debugFolderContents(artworkFolder)
+
+    val canvasFolder = application.filesDir / CANVAS_DIRECTORY
+    Logger.d("BackupRestore", "=== RESTORE: Canvas folder contents AFTER RESTORE ===")
+    debugFolderContents(canvasFolder)
 
     withContext(Dispatchers.Main) {
         showToast(getString(Res.string.restore_success), ToastGravity.Bottom)
@@ -319,6 +358,18 @@ actual suspend fun backupNative(
                 Logger.d("BackupRestore", "=== BACKUP: Download folder contents BEFORE backup ===")
                 debugFolderContents(downloadFolder)
                 backupFolder(downloadFolder, DOWNLOAD_EXOPLAYER_FOLDER, outputStream)
+
+                // Backup artwork folder (pinned covers for downloaded songs)
+                val artworkFolder = application.filesDir / "artwork"
+                Logger.d("BackupRestore", "=== BACKUP: Artwork folder contents BEFORE backup ===")
+                debugFolderContents(artworkFolder)
+                backupFolder(artworkFolder, "artwork", outputStream)
+
+                // Backup canvas folder (animated artwork and Spotify canvas for downloads)
+                val canvasFolder = application.filesDir / CANVAS_DIRECTORY
+                Logger.d("BackupRestore", "=== BACKUP: Canvas folder contents BEFORE backup ===")
+                debugFolderContents(canvasFolder)
+                backupFolder(canvasFolder, CANVAS_DIRECTORY, outputStream)
             }
         }
     }
