@@ -127,6 +127,12 @@ class AutoBackupWorker(
                     if (artworkFolder.exists() && artworkFolder.isDirectory) {
                         backupFolder(artworkFolder, "artwork", zipOutputStream)
                     }
+
+                    // Backup canvas folder (animated artwork and Spotify canvas for downloads)
+                    val canvasFolder = File(context.filesDir, "canvas")
+                    if (canvasFolder.exists() && canvasFolder.isDirectory) {
+                        backupFolder(canvasFolder, "canvas", zipOutputStream)
+                    }
                 }
             }
         }
