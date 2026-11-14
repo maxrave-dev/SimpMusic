@@ -288,9 +288,25 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
 
     governedApplication {
         // Main Window
+        // 1500dp is wider than most MacBook screens (1440-1512dp), and the default position is
+        // the platform's own, so the window opened off-centre with an edge past the screen.
+        // Size it from the usable area (minus menu bar and Dock), then centre it there.
+        val initialWindowSize =
+            remember {
+                val usable =
+                    runCatching {
+                        java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds
+                    }.getOrNull()
+                // 85% of the usable area leaves a margin on every side; never below the
+                // window's own minimum (900x560), never above the design size.
+                val width = usable?.let { (it.width * 0.85f).toInt().coerceIn(900, 1500) } ?: 1500
+                val height = usable?.let { (it.height * 0.85f).toInt().coerceIn(560, 860) } ?: 860
+                DpSize(width.dp, height.dp)
+            }
         val windowState =
             rememberWindowState(
-                size = DpSize(1500.dp, 860.dp),
+                position = androidx.compose.ui.window.WindowPosition.Aligned(androidx.compose.ui.Alignment.Center),
+                size = initialWindowSize,
             )
         var isVisible by remember { mutableStateOf(true) }
         val showNotificationPermissionDialog by
@@ -378,6 +394,18 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             state = windowState,
             visible = isVisible,
         ) {
+            // Floor for a usable Desktop shell on a MacBook: below this the sidebar + content +
+            // capsule fight for space even after auto-collapse. AWT sizes are already in logical
+            // units (points), so the display scale must NOT be applied: multiplied by Retina's 2x
+            // this floor became 1800x1120, larger than a MacBook screen (1470x956), and AWT grew
+            // the window to it — past every edge of the screen.
+            LaunchedEffect(Unit) {
+                window.minimumSize = java.awt.Dimension(900, 560)
+            }
+            // Hiding to the tray while filling the screen must give the menu bar and Dock back.
+            LaunchedEffect(isVisible) {
+                if (!isVisible && isMacOS) com.maxrave.simpmusic.ui.component.MacFillScreen.release(window)
+            }
             // Returning from macOS System Settings is the only reliable time to learn whether the
             // user enabled notifications after denying the one-shot system prompt.
             DisposableEffect(window) {
@@ -450,7 +478,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     Modifier
                         .fillMaxSize()
                         .then(
-                            if (!nativeTitleBar) {
+                            // Square corners once the window reaches the screen edges: a rounded
+                            // clip there only shows the wallpaper in the four corners.
+                            if (!nativeTitleBar &&
+                                !com.maxrave.simpmusic.ui.component.MacFillScreen.isFilled &&
+                                windowState.placement == androidx.compose.ui.window.WindowPlacement.Floating
+                            ) {
                                 Modifier.clip(RoundedCornerShape(12.dp))
                             } else {
                                 Modifier

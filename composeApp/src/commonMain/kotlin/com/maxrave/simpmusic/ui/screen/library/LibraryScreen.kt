@@ -67,6 +67,7 @@ import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.screen.DesktopCapsuleMaxWidth
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.CreateLocalPlaylistSheet
@@ -597,10 +598,8 @@ fun LibraryScreen(
 }
 
 /**
- * How wide the Your Library tab may get on Desktop: the floating capsule player's own width plus
- * the 10dp gutter every row of this list already carries, so the cards' edges land on the
- * capsule's. The capsule has no width constant of its own — `MiniPlayer`'s Desktop row sums to
- * 16 + 200 (controls) + 29 (divider) + 300 (track) + 29 (divider) + 232 (heart cell 40 + four
- * 48dp icon buttons) + 16 = 822dp — so this must follow if that row changes.
+ * How wide the Your Library tab may get on Desktop: the floating capsule player's own max width
+ * plus the 10dp gutter every row of this list already carries, so the cards' edges land on the
+ * capsule's. See [DesktopCapsuleMaxWidth].
  */
-private val YOUR_LIBRARY_MAX_WIDTH = 842.dp
+private val YOUR_LIBRARY_MAX_WIDTH = DesktopCapsuleMaxWidth + 20.dp

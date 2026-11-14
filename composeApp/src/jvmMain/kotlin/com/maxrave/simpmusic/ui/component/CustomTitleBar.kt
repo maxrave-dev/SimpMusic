@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +68,9 @@ fun CustomTitleBar(
     containerColor: Color = Color.Black,
     titleColor: Color = Color.White,
 ) {
-    var isMaximized by remember { mutableStateOf(windowState.placement == WindowPlacement.Maximized) }
+    // "Enlarged" covers both zoom (Maximized) and the fill-screen mode (MacFillScreen): either
+    // way the green button's next action is to restore.
+    var isMaximized by remember { mutableStateOf(windowState.placement != WindowPlacement.Floating) }
 
     // Track drag start position
     var dragStartX by remember { mutableStateOf(0) }
@@ -75,8 +78,11 @@ fun CustomTitleBar(
 
     // Update isMaximized when window state changes
     LaunchedEffect(windowState.placement) {
-        isMaximized = windowState.placement == WindowPlacement.Maximized
+        isMaximized = windowState.placement != WindowPlacement.Floating
     }
+
+    // Leaving through the tray or a close request must not leave the menu bar hidden.
+    DisposableEffect(window) { onDispose { MacFillScreen.release(window) } }
 
     Box(
         modifier =
@@ -88,10 +94,12 @@ fun CustomTitleBar(
                     detectTapGestures(
                         onDoubleTap = {
                             // Double-click to maximize/restore
-                            if (windowState.placement == WindowPlacement.Maximized) {
-                                windowState.placement = WindowPlacement.Floating
-                            } else {
-                                windowState.placement = WindowPlacement.Maximized
+                            when {
+                                // Fill-screen is left with the green button, as in other apps.
+                                MacFillScreen.isFilled -> Unit
+                                windowState.placement == WindowPlacement.Floating ->
+                                    windowState.placement = WindowPlacement.Maximized
+                                else -> windowState.placement = WindowPlacement.Floating
                             }
                         },
                     )
@@ -111,6 +119,8 @@ fun CustomTitleBar(
                         onDrag = { change, _ ->
                             change.consume()
                             if (nativeDrag) return@detectDragGestures
+                            // A window filling the screen has nowhere to be dragged to.
+                            if (MacFillScreen.isFilled) return@detectDragGestures
                             val mouseLocation = MouseInfo.getPointerInfo()?.location ?: return@detectDragGestures
                             // If maximized, restore before moving
                             if (windowState.placement == WindowPlacement.Maximized) {
@@ -164,10 +174,14 @@ fun CustomTitleBar(
                 // Maximize/Restore button
                 WindowControlButton(
                     onClick = {
+                        // macOS convention: the green button fills the whole screen (menu bar and
+                        // Dock hidden), while double-clicking the title bar only zooms. Maximized
+                        // stops at the usable area, so it never covered the whole screen.
                         if (windowState.placement == WindowPlacement.Maximized) {
                             windowState.placement = WindowPlacement.Floating
                         } else {
-                            windowState.placement = WindowPlacement.Maximized
+                            MacFillScreen.toggle(window)
+                            isMaximized = MacFillScreen.isFilled
                         }
                     },
                     backgroundColor = windowMaximiseButton,
