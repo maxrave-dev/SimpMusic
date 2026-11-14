@@ -116,3 +116,33 @@ an optional remote audio URL. The report lives at
 `Documents/SimpMusic/ios-playback-smoke.txt` inside that simulator app container.
 The backup/restore round trip, Photos permission flow, video-mode visuals, and
 physical-device audio interruptions have not received end-to-end validation.
+
+## Unsigned device archive (2026-11-14)
+
+An arm64 Release archive passed Xcode archiving and was packaged as
+`output/SimpMusic-ios-arm64-unsigned-4e36a279.ipa` (31,010,209 bytes).
+The package was checked for the iOS device Mach-O platform, arm64 architecture,
+ZIP integrity, and bundled Compose resources. Its adjacent JSON records source
+commits and SHA-256. The minimum deployment target is iOS 16.
+
+No signing identity or provisioning profile was available. This IPA requires
+signing before installation on a standard iPhone; physical-device installation
+and playback remain unverified.
+
+The initial Release link exhausted the default 5 GB JVM heap. This command
+successfully linked with a temporary 12 GB heap (about 13 minutes):
+
+```sh
+JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' \
+  python3 scripts/build-ios-framework.py :composeApp:linkReleaseFrameworkIosArm64 \
+  '-Dorg.gradle.jvmargs=-Xmx12g -XX:+UseG1GC' --max-workers=2
+xcodebuild -project iosApp/SimpMusic.xcodeproj -scheme SimpMusic \
+  -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+  -archivePath /tmp/SimpMusicDevice.xcarchive \
+  -derivedDataPath /tmp/SimpMusicDeviceBuild \
+  SKIP_KOTLIN_BUILD=YES CODE_SIGNING_ALLOWED=NO archive
+```
+
+The repository's default heap configuration is unchanged. Package the archived
+application under `Payload/SimpMusic.app` in a ZIP with an `.ipa` extension;
+do not use the simulator application for device packaging.
