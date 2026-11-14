@@ -40,6 +40,8 @@ import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.artwork.ArtworkStore
 import com.maxrave.simpmusic.artwork.NoOpArtworkStore
+import com.maxrave.simpmusic.canvas.CanvasStore
+import com.maxrave.simpmusic.canvas.NoOpCanvasStore
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.expect.DesktopFullscreen
 import com.maxrave.simpmusic.expect.ui.LibrarySyncLoginPrompt
@@ -229,6 +231,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 viewModelModule,
                 module {
                     single<ArtworkStore> { NoOpArtworkStore }
+                    single<CanvasStore> { NoOpCanvasStore }
                 },
             )
         )

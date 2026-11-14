@@ -24,6 +24,8 @@ import com.maxrave.domain.repository.LibrarySyncPhoneRepository
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.artwork.AndroidArtworkStore
 import com.maxrave.simpmusic.artwork.ArtworkStore
+import com.maxrave.simpmusic.canvas.AndroidCanvasStore
+import com.maxrave.simpmusic.canvas.CanvasStore
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.service.backup.AutoBackupScheduler
 import com.maxrave.simpmusic.service.sync.LibrarySyncScheduler
@@ -85,6 +87,7 @@ class SimpMusicApplication :
                     viewModelModule,
                     module {
                         single<ArtworkStore> { AndroidArtworkStore(this@SimpMusicApplication) }
+                        single<CanvasStore> { AndroidCanvasStore(this@SimpMusicApplication) }
                     },
                 )
             )
