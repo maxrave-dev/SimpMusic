@@ -1030,7 +1030,7 @@ fun PlaylistScreen(
                                                             stringResource(
                                                                 Res.string.album_length,
                                                                 (data.trackCount).toString(),
-                                                                "",
+                                                                data.length,
                                                             )
                                                         },
                                                     color = Color.White,
