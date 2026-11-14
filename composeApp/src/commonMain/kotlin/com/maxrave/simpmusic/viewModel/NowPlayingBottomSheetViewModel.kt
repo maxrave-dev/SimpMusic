@@ -28,6 +28,7 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.simpmusic.artwork.ArtworkStore
 import com.maxrave.simpmusic.artwork.artworkFileName
+import com.maxrave.simpmusic.canvas.CanvasStore
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -60,6 +61,7 @@ class NowPlayingBottomSheetViewModel(
 ) : BaseViewModel() {
     private val downloadUtils: DownloadHandler by inject()
     private val artworkStore: ArtworkStore by inject()
+    private val canvasStore: CanvasStore by inject()
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
         MutableStateFlow(
             NowPlayingBottomSheetUIState(
@@ -270,6 +272,7 @@ class NowPlayingBottomSheetViewModel(
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
                             deleteArtworkIfUnused(songUIState.videoId, songUIState.thumbnails)
+                            canvasStore.delete(songUIState.videoId)
                             makeToast(getString(Res.string.removed_download))
                         }
 
@@ -280,6 +283,7 @@ class NowPlayingBottomSheetViewModel(
                                 DownloadState.STATE_NOT_DOWNLOADED,
                             )
                             deleteArtworkIfUnused(songUIState.videoId, songUIState.thumbnails)
+                            canvasStore.delete(songUIState.videoId)
                             makeToast(getString(Res.string.removed_download))
                         }
                     }
