@@ -14,8 +14,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
@@ -47,6 +50,7 @@ import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import dev.nucleusframework.core.runtime.SingleInstanceManager
@@ -401,6 +405,49 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             // the window to it — past every edge of the screen.
             LaunchedEffect(Unit) {
                 window.minimumSize = java.awt.Dimension(900, 560)
+            }
+            // macOS menu bar with the usual Cmd shortcuts. Space/arrow keys are not bound here,
+            // because a menu accelerator would steal them from text fields.
+            if (isMacOS) {
+                MenuBar {
+                    Menu("Playback") {
+                        Item(
+                            "Play/Pause",
+                            shortcut = KeyShortcut(Key.P, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.PlayPause) }
+                        Item(
+                            "Next",
+                            shortcut = KeyShortcut(Key.DirectionRight, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Next) }
+                        Item(
+                            "Previous",
+                            shortcut = KeyShortcut(Key.DirectionLeft, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Previous) }
+                        Separator()
+                        Item(
+                            "Shuffle",
+                            shortcut = KeyShortcut(Key.S, meta = true, alt = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Shuffle) }
+                        Item(
+                            "Repeat",
+                            shortcut = KeyShortcut(Key.R, meta = true, alt = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Repeat) }
+                        Item(
+                            "Like",
+                            shortcut = KeyShortcut(Key.L, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.ToggleLike) }
+                    }
+                    Menu("Window") {
+                        Item(
+                            "Mini Player",
+                            shortcut = KeyShortcut(Key.M, meta = true, alt = true),
+                        ) { MiniPlayerManager.isOpen = !MiniPlayerManager.isOpen }
+                        Item(
+                            "Hide Window",
+                            shortcut = KeyShortcut(Key.W, meta = true),
+                        ) { isVisible = false }
+                    }
+                }
             }
             // Hiding to the tray while filling the screen must give the menu bar and Dock back.
             LaunchedEffect(isVisible) {
