@@ -537,11 +537,21 @@ fun HomeScreen(
                     }
                     LazyColumn(
                         state = scrollState,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        itemsIndexed(homeShelves, key = { _, item ->
-                            item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
-                        }) { index, item ->
+                        itemsIndexed(
+                            homeShelves,
+                            key = { _, item ->
+                                // Keep shelf identity independent of artwork/state updates. Including
+                                // mainHomeThumbnail here invalidated every visible LazyColumn key
+                                // whenever the palette image changed, causing avoidable item resets.
+                                val firstContentId =
+                                    item.contents.firstNotNullOfOrNull { content ->
+                                        content?.videoId ?: content?.browseId ?: content?.playlistId
+                                    }.orEmpty()
+                                "${item.title}:${item.moreEndpoint?.browseId.orEmpty()}:${item.channelId.orEmpty()}:$firstContentId"
+                            },
+                        ) { index, item ->
                             Box {
                                 if (index == 0) {
                                     Box(
