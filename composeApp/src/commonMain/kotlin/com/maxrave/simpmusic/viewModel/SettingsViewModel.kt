@@ -189,7 +189,7 @@ class SettingsViewModel(
     private var _backupDownloaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val backupDownloaded: StateFlow<Boolean> = _backupDownloaded
 
-    private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
 
     private val _explicitContentEnabled = MutableStateFlow(false)
