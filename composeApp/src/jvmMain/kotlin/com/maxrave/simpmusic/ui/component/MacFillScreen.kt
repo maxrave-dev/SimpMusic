@@ -44,7 +44,20 @@ internal object MacFillScreen {
         }
     }
 
-    /** Called when the window is hidden or closed while filled, so the menu bar does not stay hidden. */
+    /**
+     * Gives the menu bar and Dock back while the window is minimized or hidden, WITHOUT leaving the
+     * fill: the window keeps its size, so it comes back as it was.
+     */
+    fun giveBackScreenEdges() {
+        if (isFilled) setPresentationOptions(0L)
+    }
+
+    /** Hides the menu bar and Dock again when a filled window comes back. */
+    fun takeScreenEdges() {
+        if (isFilled) setPresentationOptions(HIDE_DOCK_AND_MENU_BAR)
+    }
+
+    /** Called when the window is disposed while filled, so the menu bar does not stay hidden. */
     fun release(window: Window) {
         if (restoreBounds != null) toggle(window)
     }

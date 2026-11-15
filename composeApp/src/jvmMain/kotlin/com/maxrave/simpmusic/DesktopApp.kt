@@ -14,10 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
@@ -449,9 +449,52 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     }
                 }
             }
-            // Hiding to the tray while filling the screen must give the menu bar and Dock back.
+            // The window the user arranged (size, position, zoom) is remembered and put back after a
+            // minimise or a hide to the tray, which on macOS can bring an undecorated window back
+            // at another size. While minimized or hidden the menu bar and Dock are given back, but
+            // the fill itself is kept.
+            val arrangement = remember { com.maxrave.simpmusic.ui.component.WindowArrangement() }
+            DisposableEffect(window) {
+                if (!isMacOS) return@DisposableEffect onDispose { }
+                val fill = com.maxrave.simpmusic.ui.component.MacFillScreen
+                val tracker =
+                    object : ComponentAdapter() {
+                        override fun componentResized(event: ComponentEvent) {
+                            arrangement.log("resized", window, throttle = true)
+                            arrangement.note(window)
+                        }
+
+                        override fun componentMoved(event: ComponentEvent) = arrangement.note(window)
+                    }
+                val states =
+                    object : WindowAdapter() {
+                        override fun windowIconified(event: WindowEvent) {
+                            arrangement.log("iconified", window)
+                            fill.giveBackScreenEdges()
+                        }
+
+                        override fun windowDeiconified(event: WindowEvent) {
+                            arrangement.log("deiconified", window)
+                            arrangement.putBack(window)
+                            fill.takeScreenEdges()
+                        }
+                    }
+                window.addComponentListener(tracker)
+                window.addWindowListener(states)
+                onDispose {
+                    window.removeComponentListener(tracker)
+                    window.removeWindowListener(states)
+                }
+            }
             LaunchedEffect(isVisible) {
-                if (!isVisible && isMacOS) com.maxrave.simpmusic.ui.component.MacFillScreen.release(window)
+                if (!isMacOS) return@LaunchedEffect
+                arrangement.log(if (isVisible) "shown" else "hidden", window)
+                if (isVisible) {
+                    arrangement.putBack(window)
+                    com.maxrave.simpmusic.ui.component.MacFillScreen.takeScreenEdges()
+                } else {
+                    com.maxrave.simpmusic.ui.component.MacFillScreen.giveBackScreenEdges()
+                }
             }
             // Returning from macOS System Settings is the only reliable time to learn whether the
             // user enabled notifications after denying the one-shot system prompt.

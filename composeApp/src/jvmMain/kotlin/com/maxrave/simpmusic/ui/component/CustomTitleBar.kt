@@ -162,7 +162,8 @@ fun CustomTitleBar(
                 // Minimize button
                 WindowControlButton(
                     onClick = {
-                        windowState.isMinimized = true
+                        // Native miniaturize keeps a zoomed window zoomed; AWT's un-zooms it first.
+                        if (!MacMiniaturize.minimize(window)) windowState.isMinimized = true
                     },
                     backgroundColor = windowMinimiseButton,
                     hoverColor = windowMinimiseButtonHover,
