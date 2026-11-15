@@ -120,10 +120,9 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.data.io.readLocalImageBytes
 import com.maxrave.domain.data.entities.DownloadState
-import com.maxrave.domain.data.model.browse.album.Track
-import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.data.entities.LocalPlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.download.DownloadProgress
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.model.searchResult.songs.Artist
@@ -136,6 +135,7 @@ import com.maxrave.domain.repository.LocalPlaylistRepository
 import com.maxrave.domain.utils.FilterState
 import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.toListName
+import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.copyToClipboard
 import com.maxrave.simpmusic.expect.shareUrl
@@ -162,7 +162,6 @@ import com.maxrave.simpmusic.ui.icon.FavoriteBorder
 import com.maxrave.simpmusic.ui.icon.KeyboardArrowDown
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowDown
 import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowUp
-import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.Lyrics
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.PlayCircle
@@ -173,6 +172,7 @@ import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.SkipNext
 import com.maxrave.simpmusic.ui.icon.Speed
 import com.maxrave.simpmusic.ui.icon.Sync
 import com.maxrave.simpmusic.ui.icon.SyncDisabled
@@ -215,11 +215,12 @@ import simpmusic.composeapp.generated.resources.bpm
 import simpmusic.composeapp.generated.resources.can_not_be_empty
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.cancel_download
-import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.codec
 import simpmusic.composeapp.generated.resources.copied_to_clipboard
 import simpmusic.composeapp.generated.resources.create_new_queue_and_play
+import simpmusic.composeapp.generated.resources.crop_cover
 import simpmusic.composeapp.generated.resources.delete
+import simpmusic.composeapp.generated.resources.delete_from_queue
 import simpmusic.composeapp.generated.resources.delete_playlist
 import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.description
@@ -249,10 +250,10 @@ import simpmusic.composeapp.generated.resources.lrclib
 import simpmusic.composeapp.generated.resources.main_lyrics_provider
 import simpmusic.composeapp.generated.resources.merging_audio_and_video
 import simpmusic.composeapp.generated.resources.mime_type
+import simpmusic.composeapp.generated.resources.minute_unit
 import simpmusic.composeapp.generated.resources.move_down
-import simpmusic.composeapp.generated.resources.move_up
 import simpmusic.composeapp.generated.resources.move_to_play_next
-import simpmusic.composeapp.generated.resources.delete_from_queue
+import simpmusic.composeapp.generated.resources.move_up
 import simpmusic.composeapp.generated.resources.no_album
 import simpmusic.composeapp.generated.resources.no_description
 import simpmusic.composeapp.generated.resources.no_playlist_found
@@ -283,8 +284,12 @@ import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.simpmusic_lyrics
 import simpmusic.composeapp.generated.resources.sleep_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer
+import simpmusic.composeapp.generated.resources.sleep_timer_custom_option
+import simpmusic.composeapp.generated.resources.sleep_timer_duration_minutes
 import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song
+import simpmusic.composeapp.generated.resources.sleep_timer_end_of_song_option
 import simpmusic.composeapp.generated.resources.sleep_timer_off
+import simpmusic.composeapp.generated.resources.sleep_timer_one_hour
 import simpmusic.composeapp.generated.resources.sleep_timer_set_error
 import simpmusic.composeapp.generated.resources.sleep_timer_warning
 import simpmusic.composeapp.generated.resources.sort_by
@@ -2300,12 +2305,12 @@ fun SleepTimerBottomSheet(
 
     val presets =
         listOf(
-            Preset("5 min", 5),
-            Preset("10 min", 10),
-            Preset("15 min", 15),
-            Preset("30 min", 30),
-            Preset("45 min", 45),
-            Preset("1 hour", 60),
+            Preset(stringResource(Res.string.sleep_timer_duration_minutes, 5), 5),
+            Preset(stringResource(Res.string.sleep_timer_duration_minutes, 10), 10),
+            Preset(stringResource(Res.string.sleep_timer_duration_minutes, 15), 15),
+            Preset(stringResource(Res.string.sleep_timer_duration_minutes, 30), 30),
+            Preset(stringResource(Res.string.sleep_timer_duration_minutes, 45), 45),
+            Preset(stringResource(Res.string.sleep_timer_one_hour), 60),
         )
 
     // Whether the Set button should be enabled
@@ -2434,7 +2439,7 @@ fun SleepTimerBottomSheet(
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
-                            text = "End of song",
+                            text = stringResource(Res.string.sleep_timer_end_of_song_option),
                             style = typo().bodySmall,
                             color = if (isEndSelected) seed else rememberSurfaceDarkColors().subtitle,
                             fontWeight = if (isEndSelected) FontWeight.SemiBold else FontWeight.Normal,
@@ -2462,7 +2467,7 @@ fun SleepTimerBottomSheet(
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
                     ) {
                         Text(
-                            text = "Custom",
+                            text = stringResource(Res.string.sleep_timer_custom_option),
                             style = typo().bodySmall,
                             color = if (isCustomSelected) seed else rememberSurfaceDarkColors().subtitle,
                             fontWeight = if (isCustomSelected) FontWeight.SemiBold else FontWeight.Normal,
@@ -2489,7 +2494,7 @@ fun SleepTimerBottomSheet(
                             },
                             suffix = {
                                 Text(
-                                    text = "min",
+                                    text = stringResource(Res.string.minute_unit),
                                     style = typo().bodySmall,
                                     color = rememberSurfaceDarkColors().disabled,
                                 )

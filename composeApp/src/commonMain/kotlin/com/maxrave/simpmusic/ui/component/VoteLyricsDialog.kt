@@ -26,6 +26,8 @@ import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.cancel
 import simpmusic.composeapp.generated.resources.downvote
+import simpmusic.composeapp.generated.resources.lyrics_vote_count
+import simpmusic.composeapp.generated.resources.lyrics_vote_id
 import simpmusic.composeapp.generated.resources.rate_lyrics
 import simpmusic.composeapp.generated.resources.rate_translated_lyrics
 import simpmusic.composeapp.generated.resources.upvote
@@ -105,7 +107,7 @@ private fun VoteRow(
                 style = typo().bodySmall,
             )
             Text(
-                text = "ID: ${voteState.id}",
+                text = stringResource(Res.string.lyrics_vote_id, voteState.id.toString()),
                 style = typo().bodySmall,
             )
         }
@@ -115,7 +117,7 @@ private fun VoteRow(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Vote: ${voteState.vote}",
+                text = stringResource(Res.string.lyrics_vote_count, voteState.vote.toString()),
                 style = typo().bodySmall,
             )
             when (voteState.state) {
