@@ -33,6 +33,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -153,6 +155,13 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 private const val TAG = "MiniPlayer"
+
+/**
+ * Widest the Desktop floating capsule grows to: transport 200 + dividers + track 300 + action
+ * cluster. Callers cap with [widthIn] so a narrower MacBook window / split view shrinks it instead
+ * of letting it spill past the content panel.
+ */
+internal val DesktopCapsuleMaxWidth = 822.dp
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -644,13 +653,14 @@ fun MiniPlayer(
             )
         }
         // Apple Music-style floating capsule: transport on the left, the track and its slim
-        // progress slider in the middle, the action cluster on the right. Size and placement come
-        // from the caller (App.kt), so the capsule keeps a fixed width and floats over content.
-        // Without glass it is an opaque theme surface, the Android flat card's colour; a haze blur
-        // instead gives a dark smear rather than a floating pill.
+        // progress slider in the middle, the action cluster on the right. The caller (App.kt) caps
+        // width at [DesktopCapsuleMaxWidth] and fills what is left of the content strip, so a
+        // resized MacBook window shrinks the capsule instead of letting it overflow. Without glass
+        // it is an opaque theme surface; a haze blur instead gives a dark smear rather than a
+        // floating pill.
         val capsuleShape = RoundedCornerShape(50)
         val density = LocalDensity.current
-        Box(
+        BoxWithConstraints(
             modifier
                 .then(
                     if (useGlassSurface) {
@@ -664,8 +674,15 @@ fun MiniPlayer(
                 },
             contentAlignment = Alignment.Center,
         ) {
+            // Drop secondary chrome before the track title: PiP first, then queue. Controls and
+            // mute/close stay — a capsule that cannot pause is useless.
+            val showPipButton = maxWidth >= 700.dp
+            val showQueueButton = maxWidth >= 560.dp
+            val controlsWidth = if (maxWidth < 520.dp) 160.dp else 200.dp
+            val dividerPad = if (maxWidth < 600.dp) 8.dp else 14.dp
             Row(
                 Modifier
+                    .fillMaxWidth()
                     .fillMaxHeight()
                     // No vertical padding: the progress line is bottom-aligned inside its own 16dp
                     // touch box, so the line already floats 8dp above whatever the bottom edge is.
@@ -678,7 +695,7 @@ fun MiniPlayer(
                 // button, so it consumes whatever width it is handed. The old layout kept it in check
                 // with Column(width = 600.dp); inside a capsule it must be boxed to a fixed width or
                 // it spreads across the whole bar and pushes the other two clusters out of view.
-                Box(Modifier.width(200.dp)) {
+                Box(Modifier.width(controlsWidth)) {
                     PlayerControlLayout(
                         controllerState,
                         isSmallSize = true,
@@ -693,7 +710,7 @@ fun MiniPlayer(
                     }
                 }
                 VerticalDivider(
-                    modifier = Modifier.height(28.dp).padding(horizontal = 14.dp),
+                    modifier = Modifier.height(28.dp).padding(horizontal = dividerPad),
                     color = textColor.copy(alpha = 0.2f),
                 )
                 // The whole track cluster is the hover target, not the progress line itself:
@@ -717,7 +734,8 @@ fun MiniPlayer(
                 Box(
                     modifier =
                         Modifier
-                            .width(300.dp)
+                            .weight(1f)
+                            .widthIn(min = 100.dp)
                             .fillMaxHeight()
                             .hoverable(trackInteraction),
                 ) {
@@ -965,7 +983,7 @@ fun MiniPlayer(
                     )
                 }
                 VerticalDivider(
-                    modifier = Modifier.height(28.dp).padding(horizontal = 14.dp),
+                    modifier = Modifier.height(28.dp).padding(horizontal = dividerPad),
                     color = textColor.copy(alpha = 0.2f),
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -978,19 +996,21 @@ fun MiniPlayer(
                             sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                         }
                     }
-                    IconButton(
-                        onClick = {
-                            showQueueBottomSheet = true
-                        },
-                    ) {
-                        Icon(
-                            imageVector = SimpIcons.QueueMusic,
-                            tint = textColor,
-                            contentDescription = "",
-                        )
+                    if (showQueueButton) {
+                        IconButton(
+                            onClick = {
+                                showQueueBottomSheet = true
+                            },
+                        ) {
+                            Icon(
+                                imageVector = SimpIcons.QueueMusic,
+                                tint = textColor,
+                                contentDescription = "",
+                            )
+                        }
                     }
                     // Desktop mini player button (JVM only)
-                    if (getPlatform() == Platform.Desktop) {
+                    if (getPlatform() == Platform.Desktop && showPipButton) {
                         IconButton(onClick = { toggleMiniPlayer() }) {
                             Icon(
                                 imageVector = SimpIcons.PictureInPictureAlt,

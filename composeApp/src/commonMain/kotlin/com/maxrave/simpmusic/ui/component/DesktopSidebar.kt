@@ -153,6 +153,12 @@ fun DesktopSidebar(
     showAnalyticsTab: Boolean,
     showMixForYouTab: Boolean,
     modifier: Modifier = Modifier,
+    /**
+     * When the window is too narrow for a 280dp library column (MacBook split view / resized),
+     * fold visually without rewriting the stored preference — widening the window restores it.
+     * The user can still expand while forced; that override clears once the window is wide again.
+     */
+    forceCollapsed: Boolean = false,
     viewModel: LibrarySidebarViewModel = koinViewModel(),
     reloadDestinationIfNeeded: (KClass<*>) -> Unit = { _ -> },
 ) {
@@ -197,7 +203,12 @@ fun DesktopSidebar(
     // The library sources are one-shot reads, not observed queries, so the list is read again whenever
     // the user moves between screens, which is where a like, follow or new playlist happens.
     LaunchedEffect(currentBackStackEntry?.id) { viewModel.refresh() }
-    val collapsed by viewModel.collapsed.collectAsStateWithLifecycle()
+    val collapsedPref by viewModel.collapsed.collectAsStateWithLifecycle()
+    var expandWhileForced by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(forceCollapsed) {
+        if (!forceCollapsed) expandWhileForced = false
+    }
+    val collapsed = (collapsedPref || forceCollapsed) && !(forceCollapsed && expandWhileForced)
     val overview by viewModel.overview.collectAsStateWithLifecycle()
     val libraryItems by viewModel.items.collectAsStateWithLifecycle()
     val playingQueueId by viewModel.playingQueueId.collectAsStateWithLifecycle()
@@ -349,7 +360,11 @@ fun DesktopSidebar(
                     onToggle = {
                         searching = false
                         query = ""
-                        viewModel.setCollapsed(!collapsed)
+                        if (forceCollapsed) {
+                            expandWhileForced = !expandWhileForced
+                        } else {
+                            viewModel.setCollapsed(!collapsedPref)
+                        }
                     },
                     onStartSearch = { searching = true },
                     onQueryChange = { query = it },

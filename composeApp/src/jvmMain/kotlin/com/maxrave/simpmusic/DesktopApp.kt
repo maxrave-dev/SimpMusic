@@ -16,6 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
+import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
@@ -47,6 +50,7 @@ import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import com.maxrave.simpmusic.viewModel.changeLanguageNative
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import dev.nucleusframework.core.runtime.SingleInstanceManager
@@ -288,9 +292,25 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
 
     governedApplication {
         // Main Window
+        // 1500dp is wider than most MacBook screens (1440-1512dp), and the default position is
+        // the platform's own, so the window opened off-centre with an edge past the screen.
+        // Size it from the usable area (minus menu bar and Dock), then centre it there.
+        val initialWindowSize =
+            remember {
+                val usable =
+                    runCatching {
+                        java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds
+                    }.getOrNull()
+                // 85% of the usable area leaves a margin on every side; never below the
+                // window's own minimum (900x560), never above the design size.
+                val width = usable?.let { (it.width * 0.85f).toInt().coerceIn(900, 1500) } ?: 1500
+                val height = usable?.let { (it.height * 0.85f).toInt().coerceIn(560, 860) } ?: 860
+                DpSize(width.dp, height.dp)
+            }
         val windowState =
             rememberWindowState(
-                size = DpSize(1500.dp, 860.dp),
+                position = androidx.compose.ui.window.WindowPosition.Aligned(androidx.compose.ui.Alignment.Center),
+                size = initialWindowSize,
             )
         var isVisible by remember { mutableStateOf(true) }
         val showNotificationPermissionDialog by
@@ -378,6 +398,104 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             state = windowState,
             visible = isVisible,
         ) {
+            // Floor for a usable Desktop shell on a MacBook: below this the sidebar + content +
+            // capsule fight for space even after auto-collapse. AWT sizes are already in logical
+            // units (points), so the display scale must NOT be applied: multiplied by Retina's 2x
+            // this floor became 1800x1120, larger than a MacBook screen (1470x956), and AWT grew
+            // the window to it — past every edge of the screen.
+            LaunchedEffect(Unit) {
+                window.minimumSize = java.awt.Dimension(900, 560)
+            }
+            // macOS menu bar with the usual Cmd shortcuts. Space/arrow keys are not bound here,
+            // because a menu accelerator would steal them from text fields.
+            if (isMacOS) {
+                MenuBar {
+                    Menu("Playback") {
+                        Item(
+                            "Play/Pause",
+                            shortcut = KeyShortcut(Key.P, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.PlayPause) }
+                        Item(
+                            "Next",
+                            shortcut = KeyShortcut(Key.DirectionRight, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Next) }
+                        Item(
+                            "Previous",
+                            shortcut = KeyShortcut(Key.DirectionLeft, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Previous) }
+                        Separator()
+                        Item(
+                            "Shuffle",
+                            shortcut = KeyShortcut(Key.S, meta = true, alt = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Shuffle) }
+                        Item(
+                            "Repeat",
+                            shortcut = KeyShortcut(Key.R, meta = true, alt = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.Repeat) }
+                        Item(
+                            "Like",
+                            shortcut = KeyShortcut(Key.L, meta = true),
+                        ) { sharedViewModel.onUIEvent(UIEvent.ToggleLike) }
+                    }
+                    Menu("Window") {
+                        Item(
+                            "Mini Player",
+                            shortcut = KeyShortcut(Key.M, meta = true, alt = true),
+                        ) { MiniPlayerManager.isOpen = !MiniPlayerManager.isOpen }
+                        Item(
+                            "Hide Window",
+                            shortcut = KeyShortcut(Key.W, meta = true),
+                        ) { isVisible = false }
+                    }
+                }
+            }
+            // The window the user arranged (size, position, zoom) is remembered and put back after a
+            // minimise or a hide to the tray, which on macOS can bring an undecorated window back
+            // at another size. While minimized or hidden the menu bar and Dock are given back, but
+            // the fill itself is kept.
+            val arrangement = remember { com.maxrave.simpmusic.ui.component.WindowArrangement() }
+            DisposableEffect(window) {
+                if (!isMacOS) return@DisposableEffect onDispose { }
+                val fill = com.maxrave.simpmusic.ui.component.MacFillScreen
+                val tracker =
+                    object : ComponentAdapter() {
+                        override fun componentResized(event: ComponentEvent) {
+                            arrangement.log("resized", window, throttle = true)
+                            arrangement.note(window)
+                        }
+
+                        override fun componentMoved(event: ComponentEvent) = arrangement.note(window)
+                    }
+                val states =
+                    object : WindowAdapter() {
+                        override fun windowIconified(event: WindowEvent) {
+                            arrangement.log("iconified", window)
+                            fill.giveBackScreenEdges()
+                        }
+
+                        override fun windowDeiconified(event: WindowEvent) {
+                            arrangement.log("deiconified", window)
+                            arrangement.putBack(window)
+                            fill.takeScreenEdges()
+                        }
+                    }
+                window.addComponentListener(tracker)
+                window.addWindowListener(states)
+                onDispose {
+                    window.removeComponentListener(tracker)
+                    window.removeWindowListener(states)
+                }
+            }
+            LaunchedEffect(isVisible) {
+                if (!isMacOS) return@LaunchedEffect
+                arrangement.log(if (isVisible) "shown" else "hidden", window)
+                if (isVisible) {
+                    arrangement.putBack(window)
+                    com.maxrave.simpmusic.ui.component.MacFillScreen.takeScreenEdges()
+                } else {
+                    com.maxrave.simpmusic.ui.component.MacFillScreen.giveBackScreenEdges()
+                }
+            }
             // Returning from macOS System Settings is the only reliable time to learn whether the
             // user enabled notifications after denying the one-shot system prompt.
             DisposableEffect(window) {
@@ -450,7 +568,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     Modifier
                         .fillMaxSize()
                         .then(
-                            if (!nativeTitleBar) {
+                            // Square corners once the window reaches the screen edges: a rounded
+                            // clip there only shows the wallpaper in the four corners.
+                            if (!nativeTitleBar &&
+                                !com.maxrave.simpmusic.ui.component.MacFillScreen.isFilled &&
+                                windowState.placement == androidx.compose.ui.window.WindowPlacement.Floating
+                            ) {
                                 Modifier.clip(RoundedCornerShape(12.dp))
                             } else {
                                 Modifier
