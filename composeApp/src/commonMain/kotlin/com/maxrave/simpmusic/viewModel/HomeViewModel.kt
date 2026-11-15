@@ -1,8 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
 import androidx.lifecycle.viewModelScope
-import com.maxrave.common.SELECTED_LANGUAGE
-import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.home.HomeDataCombine
 import com.maxrave.domain.data.model.home.HomeItem
@@ -27,7 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.music_video
 import simpmusic.composeapp.generated.resources.new_release
@@ -65,8 +62,6 @@ class HomeViewModel(
 
     val loading = MutableStateFlow<Boolean>(true)
     val loadingChart = MutableStateFlow<Boolean>(true)
-    private var regionCode: String = ""
-    private var language: String = ""
 
     private val _songEntity: MutableStateFlow<SongEntity?> = MutableStateFlow(null)
     val songEntity: StateFlow<SongEntity?> = _songEntity
@@ -91,45 +86,43 @@ class HomeViewModel(
     val homeBackground: StateFlow<String?> = _homeBackground
 
     init {
-        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
-            runBlocking {
-                dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
-            }
-        ) {
-            _showLogInAlert.update { true }
-        }
-        homeJob = Job()
         viewModelScope.launch {
+            // DataStore reads are suspending; never block the UI thread during ViewModel creation.
+            if (dataStoreManager.cookie.first().isEmpty() &&
+                dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
+            ) {
+                _showLogInAlert.update { true }
+            }
+
             regionCodeChart.value = dataStoreManager.chartKey.first()
             exploreChart(regionCodeChart.value ?: "ZZ")
-            language = dataStoreManager.getString(SELECTED_LANGUAGE).first()
-                ?: SUPPORTED_LANGUAGE.codes.first()
-            //  refresh when region change
+
+            // Refresh when region changes.
             val job1 =
                 launch {
                     dataStoreManager.location.distinctUntilChanged().collect {
-                        regionCode = it
                         getHomeItemList(params.value)
                     }
                 }
-            //  refresh when language change
+            // Refresh when language changes.
             val job2 =
                 launch {
                     dataStoreManager.language.distinctUntilChanged().collect {
-                        language = it
                         getHomeItemList(params.value)
                     }
                 }
+            // Keep account state in sync. A logged-out transition refreshes immediately; sign-in
+            // refresh is handled by job5 after the cookie has finished persisting.
             val job3 =
                 launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
-                        getHomeItemList(params.value)
+                    dataStoreManager.cookie.distinctUntilChanged().collect { cookie ->
                         _accountInfo.emit(
                             Pair(
                                 dataStoreManager.getString("AccountName").first(),
                                 dataStoreManager.getString("AccountThumbUrl").first(),
                             ),
                         )
+                        if (cookie.isEmpty()) getHomeItemList(params.value)
                     }
                 }
             val job4 =
@@ -140,17 +133,14 @@ class HomeViewModel(
                 }
             val job5 =
                 launch {
-                    dataStoreManager
-                        .cookie
-                        .distinctUntilChanged()
-                        .collectLatest {
-                            if (it.isNotEmpty()) {
-                                Logger.w(tag, "Cookie changed, refreshing home")
-                                loading.value = true
-                                delay(1000) // To wait for the cookie to be saved properly
-                                getHomeItemList(params.value)
-                            }
+                    dataStoreManager.cookie.distinctUntilChanged().collectLatest { cookie ->
+                        if (cookie.isNotEmpty()) {
+                            Logger.w(tag, "Cookie changed, refreshing home")
+                            loading.value = true
+                            delay(1000) // Wait for the cookie to finish persisting.
+                            getHomeItemList(params.value)
                         }
+                    }
                 }
             val job6 =
                 launch {
@@ -184,17 +174,12 @@ class HomeViewModel(
     }
 
     fun getHomeItemList(params: String? = null) {
-        loading.value = true
-        _homeListState.value = ListState.LOADING
-        language =
-            runBlocking {
-                dataStoreManager.getString(SELECTED_LANGUAGE).first()
-                    ?: SUPPORTED_LANGUAGE.codes.first()
-            }
-        regionCode = runBlocking { dataStoreManager.location.first() }
+        // Cancel the previous request before starting another, without synchronous DataStore I/O.
         homeJob?.cancel()
         homeJob =
             viewModelScope.launch {
+                loading.value = true
+                _homeListState.value = ListState.LOADING
                 combine(
                     homeRepository.getHomeData(
                         params,
