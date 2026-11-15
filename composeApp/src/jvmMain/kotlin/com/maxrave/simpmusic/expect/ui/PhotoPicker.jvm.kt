@@ -30,7 +30,7 @@ actual fun photoPickerResult(onResultUri: (String?) -> Unit): PhotoPickerLaunche
 
 // FileDialog's javadoc says filters do nothing on Windows, but OpenJDK's dialog hook there asks
 // WFileDialogPeer.checkFilenameFilter about every item (CDN_INCLUDEITEM); macOS and GTK ask too.
-private val imageFileFilter =
+internal val imageFileFilter =
     FilenameFilter { dir, name ->
         File(dir, name).isDirectory ||
             name.substringAfterLast('.', "").lowercase() in setOf("jpg", "jpeg", "png", "webp", "gif", "bmp")
