@@ -26,7 +26,7 @@
     <string name="hide">隱藏</string>
     <string name="show">顯示</string>
     <string name="na_na">00:00</string>
-    <string name="live_badge">LIVE</string>
+    <string name="live_badge">直播</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">我的最愛</string>
     <string name="followed">訂閱內容</string>
@@ -422,7 +422,7 @@
     <string name="lyrics_style_classic">經典</string>
     <string name="lyrics_offset">歌詞延遲</string>
     <string name="lyrics_offset_message">將每行歌詞的顯示時間偏移這麼多毫秒。如果音訊先於畫面顯示出現（例如藍牙耳機），則使用正數；反之，如果歌詞提前出現，則使用負數。</string>
-    <string name="lyrics_offset_value">%1$s ms</string>
+    <string name="lyrics_offset_value">%1$s 毫秒</string>
     <string name="lyrics_offset_invalid">輸入一個整數，代表多少毫秒</string>
     <string name="lyrics_romanization">羅馬化歌詞</string>
     <string name="lyrics_romanization_description">將您所選擇語言的歌詞以拉丁字母轉寫</string>
@@ -731,7 +731,7 @@
     <string name="exit_selection">退出選取模式</string>
     <string name="remove_from_playlist">從播放清單移除</string>
     <!-- Listen Together -->
-    <string name="listen_together">Listen Together</string>
+    <string name="listen_together">一起聽</string>
     <string name="lt_tagline">無論心之所向，共同聆聽你所愛。創建一個房間並分享房間代碼，與朋友一同聆聽吧。</string>
     <string name="lt_not_connected">未連線</string>
     <string name="lt_connected">已連線</string>
@@ -844,8 +844,8 @@
     <string name="wrapped_not_enough_days">%1$s 天</string>
     <string name="wrapped_not_enough_progress">已累積 %1$s / %2$s 天</string>
     <string name="wrapped_open_analytics">立即開啟分析</string>
-    <string name="wrapped_recap_month">Recap %1$s</string>
-    <string name="wrapped_recap_month_year">Recap %1$s %2$s</string>
+    <string name="wrapped_recap_month">%1$s音樂回顧</string>
+    <string name="wrapped_recap_month_year">%2$s 年 %1$s音樂回顧</string>
     <string name="wrapped_recap_subtitle">這個月最愛的歌</string>
     <string name="wrapped_recap_empty">目前尚無任何月份累積足夠的聆聽紀錄</string>
     <string name="month_full_jan">一月</string>
@@ -933,4 +933,229 @@
     <string name="weekday_friday">週五</string>
     <string name="weekday_saturday">週六</string>
     <string name="weekday_sunday">星期天</string>
+
+    <!-- Chinese translations for newly added features. -->
+    <string name="library_favorite_empty_hint">點一下歌曲旁的愛心，就能在這裡找到它。</string>
+    <string name="play_all">全部播放</string>
+    <string name="mood">心情</string>
+    <string name="cached">已快取</string>
+    <string name="remove_from_cache">移除快取</string>
+    <string name="remove_download">刪除已下載內容</string>
+    <string name="cancel_download">取消下載</string>
+    <string name="blog_promo_message">SimpMusic 部落格已在 simpmusic.org 上線，分享應用背後的故事、音樂技術和開發心得。感興趣的話，來看看吧 ✨</string>
+    <string name="radio_mix_upper">電臺／混合播放</string>
+    <string name="radio_mix">電臺／混合播放</string>
+    <string name="version_format" translatable="false">v%1$s</string>
+    <string name="notification_channel_name" translatable="false">SimpMusic 播放通知</string>
+    <string name="copyright" translatable="false">©2023-%1$s Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="podcasts" translatable="false">播客</string>
+    <string name="add_to_queue_disabled_radio">新增到播放佇列（播放電臺或混合歌單時不可用）</string>
+    <string name="add_to_queue_disabled_endless">新增到播放佇列（開啟無限佇列時不可用）</string>
+    <string name="download_disabled_live">下載（直播不可用）</string>
+    <string name="equalizer_autoeq" translatable="false">AutoEq</string>
+    <string name="audio_eight_d">8D 環繞音效</string>
+    <string name="audio_eight_d_description">讓立體聲音場環繞旋轉，建議佩戴耳機體驗。</string>
+    <string name="eight_d_direction">旋轉方向</string>
+    <string name="eight_d_left_to_right">左 → 右</string>
+    <string name="eight_d_right_to_left">右 → 左</string>
+    <string name="eight_d_period">旋轉一週的時間</string>
+    <string name="eight_d_seconds_unit">秒</string>
+    <string name="eight_d_unavailable">當前音訊引擎不支援 8D 音效</string>
+    <string name="dislike_on_youtube">不喜歡（YouTube Music 將減少推薦這首歌）</string>
+    <string name="disliked">已標記不喜歡</string>
+    <string name="disliking">正在標記…</string>
+    <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
+    <string name="now_playing_style_apple_music" translatable="false">Apple Music</string>
+    <string name="now_playing_style_soundcloud" translatable="false">SoundCloud</string>
+    <string name="lyrics_style_apple_music" translatable="false">Apple Music</string>
+    <string name="requires_android_12" translatable="false">需要 Android 12 或更高版本</string>
+    <string name="romanization_japanese" translatable="false">日語</string>
+    <string name="romanization_korean" translatable="false">韓語</string>
+    <string name="romanization_chinese" translatable="false">中文</string>
+    <string name="romanization_hindi" translatable="false">印地語</string>
+    <string name="romanization_punjabi" translatable="false">旁遮普語</string>
+    <string name="romanization_russian" translatable="false">俄語</string>
+    <string name="romanization_ukrainian" translatable="false">烏克蘭語</string>
+    <string name="romanization_serbian" translatable="false">塞爾維亞語</string>
+    <string name="romanization_bulgarian" translatable="false">保加利亞語</string>
+    <string name="romanization_belarusian" translatable="false">白俄羅斯語</string>
+    <string name="romanization_kyrgyz" translatable="false">吉爾吉斯語</string>
+    <string name="romanization_macedonian" translatable="false">馬其頓語</string>
+    <string name="clear_listening_history_unpairs">此裝置已配對並開啟音樂庫同步。清除記錄也會解除配對，其他裝置的收聽記錄會保留。</string>
+    <string name="lrclib" translatable="false">LRCLIB</string>
+    <string name="better_lyrics" translatable="false">BetterLyrics</string>
+    <string name="lyrics_sync_provider_footer" translatable="false">%1$s • %2$s</string>
+    <string name="smart_downloads">智慧下載</string>
+    <string name="smart_downloads_description">自動下載你最常播放的歌曲，每天在透過 Wi-Fi 開啟應用時更新一次</string>
+    <string name="smart_downloads_needs_local_tracking">請先開啟「在本地儲存播放歷史記錄」</string>
+    <string name="smart_downloads_size">保留的歌曲數量</string>
+    <string name="smart_downloads_size_value">%1$d 首歌曲</string>
+    <string name="smart_downloads_downloading">智慧下載：正在下載 %1$d 首歌曲</string>
+    <string name="smart_downloads_waiting_for_wifi">下次透過 Wi-Fi 開啟應用時，將開始智慧下載</string>
+    <string name="discord_login_step_1">開啟 Discord，授權 SimpMusic 顯示你正在收聽的內容。</string>
+    <string name="discord_login_step_2">授權後，SimpMusic 會自動重新開啟。</string>
+    <string name="discord_open_authorize_page">開啟 Discord</string>
+    <string name="discord_login_failed">無法登入 Discord，請重試。</string>
+    <string name="analytics_hour_span" translatable="false">%1$s – %2$s</string>
+    <string name="lt_default_server_name" translatable="false">The Meowery</string>
+    <string name="lt_default_server_location" translatable="false">波蘭 · 由 Nyx 運營</string>
+    <string name="wrapped" translatable="false">年度音樂回顧</string>
+    <string name="wrapped_year" translatable="false">%1$s 年音樂回顧</string>
+    <string name="library_sync_title">音樂庫同步</string>
+    <string name="library_sync_not_paired_desktop">未配對 · 與手機同步收藏、藝人、專輯、播客、歌單和收聽記錄</string>
+    <string name="library_sync_not_paired_android">未配對 · 與電腦同步收藏、藝人、專輯、播客、歌單和收聽記錄</string>
+    <string name="library_sync_peer_synced">%1$s · %2$s已同步</string>
+    <string name="library_sync_peer_not_synced">%1$s · 尚未同步</string>
+    <string name="library_sync_just_now">剛剛</string>
+    <string name="library_sync_minutes_ago">%1$d 分鐘前</string>
+    <string name="library_sync_desktop_instructions">在手機上開啟 SimpMusic → 設定 → 音樂庫同步，然後掃描此二維碼。</string>
+    <string name="library_sync_windows_public">Windows 正在阻止手機連線。當前網路設為「公用」，不允許其他裝置連線，請將其設為「專用」。</string>
+    <string name="library_sync_open_network_settings">開啟網路設定</string>
+    <string name="library_sync_port_in_use">另一個應用正在使用埠 48517，請關閉它後重試。</string>
+    <string name="library_sync_failed">發生錯誤：%1$s</string>
+    <string name="library_sync_paired_with">已與 %1$s 配對。</string>
+    <string name="library_sync_first_sync_desktop">手機正在進行首次同步，請保持兩臺裝置上的 SimpMusic 開啟，直到同步完成。</string>
+    <string name="library_sync_remove">移除</string>
+    <string name="library_sync_remove_title">移除 %1$s？</string>
+    <string name="library_sync_remove_message">%1$s 將停止與這臺電腦同步。上次同步後在該手機上進行的更改只會保留在手機上，兩臺裝置上的內容都不會被刪除。</string>
+    <string name="library_sync_settings_from">來自 %1$s 的設定</string>
+    <string name="library_sync_settings_differ_desktop">以下設定與這臺電腦不同：</string>
+    <string name="library_sync_settings_differ_android">以下設定與這部手機不同：</string>
+    <string name="library_sync_apply_question">是否應用這些設定？SimpMusic 將重新啟動。</string>
+    <string name="library_sync_not_now">暫不應用</string>
+    <string name="library_sync_apply_restart">應用並重啟</string>
+    <string name="library_sync_desktop_footer">當這臺電腦上的 SimpMusic 保持開啟時，手機會在開啟應用時及每隔 15 分鐘自動同步。下載內容和裝置設定分別保留在各裝置上。</string>
+    <string name="library_sync_pair_another">配對另一部手機</string>
+    <string name="library_sync_pair_phone">配對手機</string>
+    <string name="library_sync_logins_title">使用來自 %1$s 的登入資訊？</string>
+    <string name="library_sync_logins_message">手機傳送了 %1$s 的登入資訊，使用後將在這臺電腦上登入相應賬號。</string>
+    <string name="library_sync_ignore">忽略</string>
+    <string name="library_sync_use">使用</string>
+    <string name="library_sync_scan_hint">將相機對準電腦上「設定 → 音樂庫同步」中的二維碼。</string>
+    <string name="library_sync_pair_title">與這臺電腦配對？</string>
+    <string name="library_sync_pair_message">這部手機與 %1$s（%2$s）將相互同步收藏、關注的藝人、儲存的專輯和播客、歌單，以及過去一年的收聽記錄，不會刪除任何內容。請確認這就是你面前的電腦後再繼續。</string>
+    <string name="library_sync_pair">配對</string>
+    <string name="library_sync_pairing">正在配對…</string>
+    <string name="library_sync_computer">電腦</string>
+    <string name="library_sync_syncs">同步內容</string>
+    <string name="library_sync_syncs_value">收藏、藝人、專輯、播客、歌單、收聽記錄</string>
+    <string name="library_sync_first_sync_phone">正在進行首次同步，請保持兩臺裝置上的 SimpMusic 開啟。</string>
+    <string name="library_sync_syncing">正在同步…</string>
+    <string name="library_sync_last_synced">上次同步：%1$s · 開啟應用時及每隔 15 分鐘自動同步</string>
+    <string name="library_sync_sync_now">立即同步</string>
+    <string name="library_sync_unpair">解除配對</string>
+    <string name="library_sync_unpair_title">與 %1$s 解除配對？</string>
+    <string name="library_sync_unpair_message">這部手機將停止與 %1$s 同步。上次同步後在此處進行的更改只會保留在手機上，兩臺裝置上的內容都不會被刪除。</string>
+    <string name="library_sync_unreachable">找不到 %1$s。請確保該裝置上的 SimpMusic 已開啟，且兩臺裝置連線到同一 Wi-Fi 或 Tailscale 網路。</string>
+    <string name="library_sync_needs_nearby">「附近的裝置」許可權未開啟，手機無法連線到電腦。</string>
+    <string name="library_sync_allow">允許</string>
+    <string name="library_sync_revoked">電腦已移除此手機。</string>
+    <string name="library_sync_pair_again">重新配對</string>
+    <string name="library_sync_send_logins_paired">透過已配對的連線傳送到 %1$s</string>
+    <string name="library_sync_logins_waiting">等待 %1$s 接受，請在電腦上確認。</string>
+    <string name="library_sync_logins_declined">%1$s 未接受登入資訊。</string>
+    <string name="move_to_play_next">移到下一首播放</string>
+    <string name="custom_base_url">自定義 API 基礎地址</string>
+    <string name="base_url">API 基礎地址</string>
+    <string name="invalid_url_format">地址格式無效</string>
+    <string name="custom_base_url_message">輸入相容 OpenAI 的 API 基礎地址（例如 %1$s）</string>
+    <string name="custom_headers">自定義請求頭</string>
+    <string name="configured">已配置</string>
+    <string name="not_set">未設定</string>
+    <string name="custom_headers_json">自定義請求頭（JSON）</string>
+    <string name="headers_json">請求頭 JSON</string>
+    <string name="invalid_json_format">JSON 格式無效</string>
+    <string name="custom_headers_message">以 JSON 格式輸入自定義請求頭：</string>
+    <string name="developer_option">開發者選項</string>
+    <string name="app_log">應用日誌</string>
+    <string name="app_log_description">檢視、篩選和匯出應用日誌</string>
+    <string name="log_errors">錯誤</string>
+    <string name="log_search_hint">搜尋標籤或訊息</string>
+    <string name="log_level_info">資訊</string>
+    <string name="log_level_warn">警告</string>
+    <string name="log_live">實時 · %1$s 行</string>
+    <string name="log_paused">已暫停 · %1$s 行</string>
+    <string name="log_empty">暫無日誌</string>
+    <string name="log_no_stack_trace">無堆疊資訊</string>
+    <string name="log_stack_trace_lines">堆疊資訊 · %1$s 行</string>
+    <string name="log_hide_stack_trace">隱藏堆疊資訊</string>
+    <string name="log_export_failed">無法匯出日誌</string>
+    <string name="comments">評論</string>
+    <string name="reply">回覆</string>
+    <string name="replying_to">回覆 %1$s</string>
+    <string name="comments_log_in_hint">登入後即可評論、回覆和點贊</string>
+    <string name="comments_log_in_message">登入 YouTube 後即可發表評論、回覆和點贊。</string>
+    <string name="comments_turned_off">評論已關閉</string>
+    <string name="comments_load_error">無法載入評論</string>
+    <string name="comment_post_error">無法發表評論</string>
+    <string name="comments_need_channel">請先建立 YouTube 頻道再發表評論</string>
+    <string name="comment_placeholder">發表評論…</string>
+    <string name="local_playlist">本地歌單</string>
+    <string name="create_playlist_description">在此裝置上建立歌單</string>
+    <string name="create_room_description">建立或加入房間</string>
+    <string name="create_room_live">你的房間已開啟</string>
+    <string name="create_new_queue_and_play">建立新佇列並開始播放</string>
+    <string name="artist">藝人</string>
+    <string name="podcast">播客</string>
+    <string name="recents">最近使用</string>
+    <string name="alphabetical">按字母排序</string>
+    <string name="search_in_your_library">搜尋音樂庫</string>
+    <string name="collapse_your_library">收起音樂庫</string>
+    <string name="expand_your_library">展開音樂庫</string>
+    <string name="add_lyrics">新增歌詞</string>
+    <string name="add_lyrics_placeholder">[00:12.30] 第一行歌詞</string>
+    <string name="add_lyrics_hint">每行以 [01:23.45] 這樣的時間標籤開頭。在每個字詞前新增 &lt;01:23.45&gt;，可實現逐字同步。</string>
+    <plurals name="add_lyrics_lines">
+        <item quantity="other">%1$d 行</item>
+    </plurals>
+    <plurals name="add_lyrics_problems">
+        <item quantity="other">%1$d 個問題</item>
+    </plurals>
+    <string name="add_lyrics_line">第 %1$d 行</string>
+    <string name="add_lyrics_no_time">請在行首新增 [01:23.45] 這樣的時間標籤</string>
+    <string name="add_lyrics_bad_time">%1$s 不是有效的時間</string>
+    <string name="add_lyrics_bad_word_time">%1$s 不是有效的逐字時間</string>
+    <string name="add_lyrics_word_time_backwards">%1$s 處的逐字時間早於前一個字詞</string>
+    <string name="add_lyrics_repeated_word_line">包含逐字時間的歌詞行只能有一個行時間標籤</string>
+    <string name="add_lyrics_bad_offset">偏移量必須為整數毫秒，例如 [offset:+250]</string>
+    <string name="add_lyrics_no_timed_lines">請至少新增一行帶時間標籤的歌詞</string>
+    <string name="recognize_song">識別歌曲</string>
+    <string name="recognize_listening">正在聆聽…</string>
+    <string name="recognize_listening_hint">請將手機靠近音樂聲源</string>
+    <string name="recognize_identifying">正在識別…</string>
+    <string name="recognize_find">在 SimpMusic 中查詢</string>
+    <string name="recognize_listen_again">重新聆聽</string>
+    <string name="recognize_no_match">未找到匹配歌曲</string>
+    <string name="recognize_no_match_hint">請靠近音樂聲源後重試</string>
+    <string name="recognize_failed">無法識別歌曲</string>
+    <string name="recognize_failed_hint">請檢查網路連線後重試</string>
+    <string name="recognize_try_again">重試</string>
+    <string name="recognize_mic_needed">需要麥克風許可權</string>
+    <string name="recognize_mic_hint">SimpMusic 會聆聽幾秒鐘，以識別你附近正在播放的歌曲</string>
+    <string name="recognize_allow_mic">允許使用麥克風</string>
+    <string name="browser_login_youtube">YouTube</string>
+    <string name="browser_login_description">選擇瀏覽器使用者配置以匯入其中的 %1$s 登入資訊。只會匯入 %1$s 的 Cookie，不會修改瀏覽器。</string>
+    <string name="browser_login_found">已找到 %1$s 的登入 Cookie</string>
+    <string name="browser_login_missing">未找到 %1$s 的登入 Cookie。請在此瀏覽器使用者配置中登入，然後重新整理。</string>
+    <string name="browser_login_permission">讀取此使用者配置需要許可權，請允許訪問後重試。</string>
+    <string name="browser_login_full_disk_access">請在「隱私與安全性 → 完全磁碟訪問許可權」中允許 SimpMusic。如果列表中沒有此應用，請點 + 新增，然後返回這裡。</string>
+    <string name="browser_login_open_settings">開啟系統設定</string>
+    <string name="browser_login_unreadable">無法讀取此使用者配置，請重試，或關閉瀏覽器後重新整理。</string>
+    <string name="browser_login_unsupported">此使用者配置使用了不支援的 Cookie 加密方式。請手動登入，或從手機傳送登入資訊。</string>
+    <string name="browser_login_importing">正在匯入登入資訊… 如果系統詢問，請允許訪問瀏覽器儲存。</string>
+    <string name="browser_login_key_unavailable">無法獲取瀏覽器儲存金鑰。請解鎖金鑰環後重試，或手動登入。</string>
+    <string name="browser_login_busy">讀取期間瀏覽器資料發生變化，請關閉瀏覽器後重試。</string>
+    <string name="browser_login_rejected">無法驗證登入資訊。請檢查網路連線，或在此瀏覽器使用者配置中重新登入後重新整理。</string>
+    <string name="browser_login_refresh">重新整理瀏覽器使用者配置</string>
+    <string name="soundcloud_play_count_info">%1$s - 歌曲資訊</string>
+
+    <string name="sleep_timer_duration_minutes">%1$d 分鐘</string>
+    <string name="sleep_timer_one_hour">1 小時</string>
+    <string name="sleep_timer_end_of_song_option">當前歌曲結束時</string>
+    <string name="sleep_timer_custom_option">自定義</string>
+    <string name="minute_unit">分鐘</string>
+    <string name="new_blog_post">新部落格文章</string>
+    <string name="introducing_simpmusic_chart">探索 SimpMusic 排行榜</string>
+    <string name="lyrics_vote_id">編號：%1$s</string>
+    <string name="lyrics_vote_count">票數：%1$s</string>
 </resources>

@@ -87,6 +87,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.album
+import simpmusic.composeapp.generated.resources.new_blog_post
 import simpmusic.composeapp.generated.resources.new_release
 import simpmusic.composeapp.generated.resources.no_notification
 import simpmusic.composeapp.generated.resources.notification
@@ -348,7 +349,7 @@ fun BlogNotificationItem(notification: NotificationEntity) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(Modifier.padding(end = 56.dp)) {
-                Text(text = "New blog post", style = typo().titleSmall)
+                Text(text = stringResource(Res.string.new_blog_post), style = typo().titleSmall)
                 Spacer(modifier = Modifier.height(3.dp))
                 Text(text = notification.name, style = typo().titleMedium)
                 notification.description?.takeIf { it.isNotBlank() }?.let { desc ->

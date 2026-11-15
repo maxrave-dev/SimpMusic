@@ -1151,4 +1151,14 @@
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
     <string name="soundcloud_play_count_info">%1$s - song info</string>
+
+    <string name="sleep_timer_duration_minutes">%1$d min</string>
+    <string name="sleep_timer_one_hour">1 hour</string>
+    <string name="sleep_timer_end_of_song_option">End of song</string>
+    <string name="sleep_timer_custom_option">Custom</string>
+    <string name="minute_unit">min</string>
+    <string name="new_blog_post">New blog post</string>
+    <string name="introducing_simpmusic_chart">Introducing SimpMusic Chart</string>
+    <string name="lyrics_vote_id">ID: %1$s</string>
+    <string name="lyrics_vote_count">Vote: %1$s</string>
 </resources>
