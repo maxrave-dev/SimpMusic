@@ -47,3 +47,6 @@ sentry.properties
 /desktopApp/generated.conveyor.conf
 # Conveyor output directory
 /output/
+
+# Local workspace files
+MEMORY.md
