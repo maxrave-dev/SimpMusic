@@ -11,13 +11,20 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.LayoutDirection
-import java.text.Bidi
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.ResolvedTextDirection
 
 @Composable
-internal fun rememberLyricLayoutDirection(text: String): LayoutDirection =
-    remember(text) {
-        if (Bidi(text, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT).baseIsLeftToRight()) LayoutDirection.Ltr else LayoutDirection.Rtl
+internal fun rememberLyricLayoutDirection(text: String): LayoutDirection {
+    val measurer = rememberTextMeasurer()
+    return remember(text, measurer) {
+        if (text.isEmpty()) LayoutDirection.Ltr
+        else {
+            val layout = measurer.measure(text, style = TextStyle(textDirection = TextDirection.ContentOrLtr))
+            if (layout.getParagraphDirection(0) == ResolvedTextDirection.Rtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+        }
     }
+}
 
 /**
  * A lyric and its subtitles share an edge, while each text keeps its own reading direction.

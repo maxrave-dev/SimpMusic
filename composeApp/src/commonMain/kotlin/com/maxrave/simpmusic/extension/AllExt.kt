@@ -38,13 +38,6 @@ import simpmusic.composeapp.generated.resources.recently
 import simpmusic.composeapp.generated.resources.self_promotion
 import simpmusic.composeapp.generated.resources.sponsor
 import simpmusic.composeapp.generated.resources.title
-import java.io.File
-import java.io.InputStream
-import java.io.OutputStream
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 import kotlin.time.ExperimentalTime
 
 fun String?.removeDuplicateWords(): String {
@@ -120,12 +113,7 @@ fun TimeLine.lengthLabel(): String = if (isLive) stringResource(Res.string.live_
 @Composable
 fun formatDuration(duration: Long): String {
     if (duration < 0L) return stringResource(Res.string.na_na)
-    val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
-    val seconds: Long = (
-        TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
-            minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
-    )
-    return String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
+    return formatPlaybackDuration(duration)
 }
 
 fun parseTimestampToMilliseconds(timestamp: String): Double {
@@ -165,26 +153,9 @@ fun parseTimestampToMilliseconds(timestamp: String): Double {
     return totalSeconds * 1000
 }
 
-fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
-
-fun OutputStream.zipOutputStream(): ZipOutputStream = ZipOutputStream(this)
-
 fun Long?.bytesToMB(): Long {
     val mbInBytes = 1024 * 1024
     return this?.div(mbInBytes) ?: 0L
-}
-
-fun getSizeOfFile(dir: File): Long {
-    var dirSize: Long = 0
-    if (!dir.listFiles().isNullOrEmpty()) {
-        for (f in dir.listFiles()!!) {
-            dirSize += f.length()
-            if (f.isDirectory) {
-                dirSize += getSizeOfFile(f)
-            }
-        }
-    }
-    return dirSize
 }
 
 fun ArtistBrowse.toArtistScreenData(): ArtistScreenData =

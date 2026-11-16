@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
+import kotlin.time.Clock
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.entities.EpisodeEntity
@@ -256,7 +257,7 @@ class PodcastViewModel(
         viewModelScope.launch {
             podcastRepository.updatePodcastInLibraryNow(id).collectLatest {
                 // Podcast đã được cập nhật trong thư viện
-                log("Podcast $id updated in library at ${System.currentTimeMillis()}")
+                log("Podcast $id updated in library at ${Clock.System.now().toEpochMilliseconds()}")
             }
         }
     }

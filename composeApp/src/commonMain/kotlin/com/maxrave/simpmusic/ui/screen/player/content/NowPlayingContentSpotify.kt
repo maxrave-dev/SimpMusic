@@ -1032,7 +1032,7 @@ fun NowPlayingContentSpotify(
                                         state = state,
                                         actions = actions,
                                     )
-                                    if (getPlatform() == Platform.Android) {
+                                    if (getPlatform() != Platform.Desktop) {
                                         SpotifyPlaybackControls(
                                             state = state,
                                             actions = actions,
@@ -1591,7 +1591,7 @@ fun NowPlayingContentSpotify(
                                         text =
                                             stringResource(
                                                 Res.string.view_count,
-                                                "%,d".format(state.screenData.songInfoData?.viewCount),
+                                                com.maxrave.simpmusic.extension.formatGroupedNumber(state.screenData.songInfoData?.viewCount),
                                             ),
                                         style = typo().labelMedium,
                                         color = Color.White,

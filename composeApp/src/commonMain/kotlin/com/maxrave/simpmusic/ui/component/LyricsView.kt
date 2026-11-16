@@ -90,7 +90,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-import java.text.Bidi
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.ResolvedTextDirection
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.sqrt
@@ -1078,13 +1079,20 @@ private fun AnimatedWord(
     // Null keeps Classic's DimRichPendingColor untouched.
     pendingColorOverride: Color? = null,
 ) {
-    val wordBidi =
-        remember(word, lineDirection) {
-            val fallback =
-                if (lineDirection == LayoutDirection.Rtl) Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT else Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT
-            Bidi(word, fallback)
-        }
-    val wordDirection = if (wordBidi.baseIsLeftToRight()) TextDirection.Ltr else TextDirection.Rtl
+    val bidiMeasurer = rememberTextMeasurer()
+    val wordBidi = remember(word, lineDirection, bidiMeasurer) {
+        bidiMeasurer.measure(
+            word,
+            style = androidx.compose.ui.text.TextStyle(
+                textDirection = if (lineDirection == LayoutDirection.Rtl) TextDirection.ContentOrRtl else TextDirection.ContentOrLtr,
+            ),
+        )
+    }
+    val wordDirection = if (word.isEmpty()) {
+        if (lineDirection == LayoutDirection.Rtl) TextDirection.Rtl else TextDirection.Ltr
+    } else if (wordBidi.getParagraphDirection(0) == ResolvedTextDirection.Rtl) TextDirection.Rtl else TextDirection.Ltr
+    val isEntirelyLeftToRight = wordDirection == TextDirection.Ltr &&
+        word.indices.all { wordBidi.getBidiRunDirection(it) == ResolvedTextDirection.Ltr }
     val style =
         typo().headlineLarge.copy(
             fontSize = customFontSize ?: typo().headlineLarge.fontSize,
@@ -1215,7 +1223,7 @@ private fun AnimatedWord(
                 translationY = -eased * EMP_RISE_EM * amount * fontPx
             },
     ) {
-        if (!wordBidi.isLeftToRight) {
+        if (!isEntirelyLeftToRight) {
             // Keep Arabic shaping and combining marks intact, including RTL words in an LTR line.
             ShapedLyricsWord(
                 word = word,

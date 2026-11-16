@@ -166,6 +166,7 @@ car-app-projected = { group = "androidx.car.app", name = "app-projected", versio
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidx-media" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
+coil-network-core = { group = "io.coil-kt.coil3", name = "coil-network-core", version.ref = "coil3" }
 kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
 kmpalette-network = { module = "com.kmpalette:extensions-network", version.ref = "kmpalette" }
 materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialkolor" }
