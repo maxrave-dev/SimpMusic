@@ -338,6 +338,35 @@ fun SearchScreen(
             }
     }
 
+    // Rotation recreates the activity (MainActivity does not handle orientation changes), and
+    // when the search state does not survive that recreation this screen comes back restored —
+    // submitted query, results branch — but with the ViewModel UI state back at Empty and no
+    // results, which the results branch can only render as "No Result Found". Nothing re-ran the
+    // search, so the results stayed lost until the user searched again by hand. Re-run the
+    // submitted search once in exactly that situation. A search that finished — even one with
+    // zero results — leaves the UI state at Success, and submitting a search sets Loading first,
+    // so this can neither loop nor double-fire a search that is already on its way.
+    LaunchedEffect(searchUIType, uiState, isSearchSubmitted, searchText) {
+        if (searchUIType == SearchUIType.SEARCH_RESULTS &&
+            isSearchSubmitted &&
+            uiState is SearchScreenUIState.Empty
+        ) {
+            val query = searchText.trim()
+            if (query.isNotEmpty()) {
+                when (searchScreenState.searchType) {
+                    SearchType.ALL -> searchViewModel.searchAll(query)
+                    SearchType.SONGS -> searchViewModel.searchSongs(query)
+                    SearchType.VIDEOS -> searchViewModel.searchVideos(query)
+                    SearchType.ALBUMS -> searchViewModel.searchAlbums(query)
+                    SearchType.ARTISTS -> searchViewModel.searchArtists(query)
+                    SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(query)
+                    SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(query)
+                    SearchType.PODCASTS -> searchViewModel.searchPodcast(query)
+                }
+            }
+        }
+    }
+
     //On search icon click while on search screen, open keyboard. Android only feature
     if (getPlatform() == Platform.Android) {
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
