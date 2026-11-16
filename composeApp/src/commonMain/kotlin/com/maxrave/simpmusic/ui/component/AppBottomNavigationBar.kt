@@ -100,6 +100,21 @@ fun AppBottomNavigationBar(
             selectedIndex = BottomNavScreen.Home.ordinal
         }
     }
+    // Navigation that does not go through selectTab — above all the system Back button — changes
+    // the destination without touching selectedIndex, so Back from Library, Mix or Search landed
+    // on Home with the previous tab still highlighted (#2714). Sync the highlight from the
+    // destination whenever it changes. A destination outside the tab list matches nothing and
+    // keeps the current tab.
+    LaunchedEffect(currentBackStackEntry) {
+        val current = currentBackStackEntry?.destination ?: return@LaunchedEffect
+        val matched =
+            bottomNavScreens.firstOrNull { screen ->
+                current.hierarchy.any { it.hasRoute(screen.destination::class) }
+            }
+        if (matched != null && matched.ordinal != selectedIndex) {
+            selectedIndex = matched.ordinal
+        }
+    }
     val selectTab: (BottomNavScreen) -> Unit = { screen ->
         if (selectedIndex == screen.ordinal) {
             if (currentBackStackEntry?.destination?.hierarchy?.any {
