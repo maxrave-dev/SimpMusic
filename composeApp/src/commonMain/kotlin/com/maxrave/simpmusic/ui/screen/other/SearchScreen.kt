@@ -367,6 +367,38 @@ fun SearchScreen(
         }
     }
 
+    // Same recreation, suggestions branch: the query comes back restored and the UI type is
+    // SEARCH_SUGGESTIONS again, but suggestQuery is only ever called from the text-change effect
+    // above, which requires the field to be focused — and focus is not restored across
+    // recreation. The branch then renders its two lists (suggested items and queries) empty
+    // until the user types again. Re-run the suggestion fetch once when the screen comes back
+    // unfocused with a restored query and no suggestions. While the user is actually typing the
+    // field is focused, so this stays silent; once the fetch lands, the lists are non-empty and
+    // the condition no longer holds. The remembered query keeps a query whose fetch legitimately
+    // returns nothing from being refetched on every recomposition.
+    var suggestionRestoreQuery by remember { mutableStateOf("") }
+    LaunchedEffect(
+        searchUIType,
+        isFocused,
+        isSearchSubmitted,
+        searchText,
+        searchScreenState.suggestYTItems,
+        searchScreenState.suggestQueries,
+    ) {
+        if (searchUIType == SearchUIType.SEARCH_SUGGESTIONS &&
+            !isFocused &&
+            !isSearchSubmitted &&
+            searchScreenState.suggestYTItems.isEmpty() &&
+            searchScreenState.suggestQueries.isEmpty()
+        ) {
+            val query = searchText.trim()
+            if (query.isNotEmpty() && query != suggestionRestoreQuery) {
+                suggestionRestoreQuery = query
+                searchViewModel.suggestQuery(query)
+            }
+        }
+    }
+
     //On search icon click while on search screen, open keyboard. Android only feature
     if (getPlatform() == Platform.Android) {
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
