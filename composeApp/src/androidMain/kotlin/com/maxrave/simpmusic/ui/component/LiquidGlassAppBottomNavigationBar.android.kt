@@ -156,6 +156,19 @@ actual fun LiquidGlassAppBottomNavigationBar(
         currentBackStackEntry?.destination?.let { current ->
             Logger.d(TAG, "LiquidGlassAppBottomNavigationBar: current route: ${current.route}")
             isInSearchDestination = current.hasRoute(SearchDestination::class)
+            // Navigation that does not go through selectTab — above all the system Back
+            // button — changes the destination without touching selectedIndex, so Back from
+            // Library, Mix or Search landed on Home with the previous tab still highlighted
+            // (#2714). Sync the highlight from the destination here, where its changes are
+            // already observed. A destination outside the tab list matches nothing and keeps
+            // the current tab.
+            val matched =
+                bottomNavScreens.firstOrNull { screen ->
+                    current.hierarchy.any { it.hasRoute(screen.destination::class) }
+                }
+            if (matched != null && matched.ordinal != selectedIndex) {
+                selectedIndex = matched.ordinal
+            }
         }
     }
 
