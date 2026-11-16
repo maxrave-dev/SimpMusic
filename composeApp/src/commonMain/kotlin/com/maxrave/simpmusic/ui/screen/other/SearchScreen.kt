@@ -338,6 +338,67 @@ fun SearchScreen(
             }
     }
 
+    // Rotation recreates the activity (MainActivity does not handle orientation changes), and
+    // when the search state does not survive that recreation this screen comes back restored —
+    // submitted query, results branch — but with the ViewModel UI state back at Empty and no
+    // results, which the results branch can only render as "No Result Found". Nothing re-ran the
+    // search, so the results stayed lost until the user searched again by hand. Re-run the
+    // submitted search once in exactly that situation. A search that finished — even one with
+    // zero results — leaves the UI state at Success, and submitting a search sets Loading first,
+    // so this can neither loop nor double-fire a search that is already on its way.
+    LaunchedEffect(searchUIType, uiState, isSearchSubmitted, searchText) {
+        if (searchUIType == SearchUIType.SEARCH_RESULTS &&
+            isSearchSubmitted &&
+            uiState is SearchScreenUIState.Empty
+        ) {
+            val query = searchText.trim()
+            if (query.isNotEmpty()) {
+                when (searchScreenState.searchType) {
+                    SearchType.ALL -> searchViewModel.searchAll(query)
+                    SearchType.SONGS -> searchViewModel.searchSongs(query)
+                    SearchType.VIDEOS -> searchViewModel.searchVideos(query)
+                    SearchType.ALBUMS -> searchViewModel.searchAlbums(query)
+                    SearchType.ARTISTS -> searchViewModel.searchArtists(query)
+                    SearchType.PLAYLISTS -> searchViewModel.searchPlaylists(query)
+                    SearchType.FEATURED_PLAYLISTS -> searchViewModel.searchFeaturedPlaylist(query)
+                    SearchType.PODCASTS -> searchViewModel.searchPodcast(query)
+                }
+            }
+        }
+    }
+
+    // Same recreation, suggestions branch: the query comes back restored and the UI type is
+    // SEARCH_SUGGESTIONS again, but suggestQuery is only ever called from the text-change effect
+    // above, which requires the field to be focused — and focus is not restored across
+    // recreation. The branch then renders its two lists (suggested items and queries) empty
+    // until the user types again. Re-run the suggestion fetch once when the screen comes back
+    // unfocused with a restored query and no suggestions. While the user is actually typing the
+    // field is focused, so this stays silent; once the fetch lands, the lists are non-empty and
+    // the condition no longer holds. The remembered query keeps a query whose fetch legitimately
+    // returns nothing from being refetched on every recomposition.
+    var suggestionRestoreQuery by remember { mutableStateOf("") }
+    LaunchedEffect(
+        searchUIType,
+        isFocused,
+        isSearchSubmitted,
+        searchText,
+        searchScreenState.suggestYTItems,
+        searchScreenState.suggestQueries,
+    ) {
+        if (searchUIType == SearchUIType.SEARCH_SUGGESTIONS &&
+            !isFocused &&
+            !isSearchSubmitted &&
+            searchScreenState.suggestYTItems.isEmpty() &&
+            searchScreenState.suggestQueries.isEmpty()
+        ) {
+            val query = searchText.trim()
+            if (query.isNotEmpty() && query != suggestionRestoreQuery) {
+                suggestionRestoreQuery = query
+                searchViewModel.suggestQuery(query)
+            }
+        }
+    }
+
     //On search icon click while on search screen, open keyboard. Android only feature
     if (getPlatform() == Platform.Android) {
         val reloadDestination by sharedViewModel.reloadDestination.collectAsStateWithLifecycle()
