@@ -624,4 +624,19 @@
     <string name="month_full_oct">Ekim</string>
     <string name="month_full_nov">Kasım</string>
     <string name="month_full_dec">Aralık</string>
+    <!-- Song Recognition -->
+    <string name="recognize_song">Şarkıyı tanı</string>
+    <string name="recognize_listening">Dinleniyor...</string>
+    <string name="recognize_listening_hint">Telefonunuzu müziğe yaklaştırın</string>
+    <string name="recognize_identifying">Kimlik tanımlanıyor…</string>
+    <string name="recognize_find">SimpMusic'te bul</string>
+    <string name="recognize_listen_again">Tekrar dinle</string>
+    <string name="recognize_no_match">Eşleşme bulunamadı</string>
+    <string name="recognize_no_match_hint">Müziğe daha yakın bir şekilde tekrar deneyin</string>
+    <string name="recognize_failed">Şarkı tanınamadı</string>
+    <string name="recognize_failed_hint">Bağlantınızı kontrol edip tekrar deneyin</string>
+    <string name="recognize_try_again">Tekrar dene</string>
+    <string name="recognize_mic_needed">Mikrofon erişimi gerekiyor</string>
+    <string name="recognize_mic_hint">SimpMusic çevrenizde çalan şarkıyı bulmak için dinliyor</string>
+    <string name="recognize_allow_mic">Mikrofona izin ver</string>
 </resources>
