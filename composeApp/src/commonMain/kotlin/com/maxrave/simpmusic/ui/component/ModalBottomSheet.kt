@@ -142,6 +142,7 @@ import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.persistPickedImage
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
+import com.maxrave.simpmusic.expect.ui.rememberSaveImagePermission
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.ui.icon.AccessAlarm
@@ -933,12 +934,18 @@ fun InfoPlayerBottomSheet(
                     style = typo().bodyMedium,
                     textAlign = TextAlign.Center,
                 )
+                val saveDeviceFilePermission =
+                    rememberSaveImagePermission { granted ->
+                        if (granted) {
+                            sharedViewModel.downloadFile(
+                                bitmap = screenDataState.bitmap ?: return@rememberSaveImagePermission,
+                            )
+                        }
+                    }
                 OutlinedButton(
                     enabled = screenDataState.bitmap != null,
                     onClick = {
-                        sharedViewModel.downloadFile(
-                            bitmap = screenDataState.bitmap ?: return@OutlinedButton,
-                        )
+                        saveDeviceFilePermission.requestIfNeeded()
                     },
                     modifier =
                         Modifier
