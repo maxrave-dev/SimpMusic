@@ -428,20 +428,69 @@ tasks.register("packageConveyorAppImage") {
             |SELF=${'$'}(readlink -f "${'$'}0")
             |HERE=${'$'}{SELF%/*}
             |
-            |# Install icon into XDG dirs so GNOME/KDE pick it up the first time.
-            |ICON_DIR="${'$'}HOME/.local/share/icons/hicolor/256x256/apps"
-            |if [ ! -f "${'$'}ICON_DIR/simpmusic.png" ] || [ "${'$'}HERE/simpmusic.png" -nt "${'$'}ICON_DIR/simpmusic.png" ]; then
-            |    mkdir -p "${'$'}ICON_DIR"
-            |    cp "${'$'}HERE/simpmusic.png" "${'$'}ICON_DIR/simpmusic.png"
-            |    gtk-update-icon-cache -f -t "${'$'}HOME/.local/share/icons/hicolor" 2>/dev/null || true
+            |# Respect AppImage managers (GearLever, AppImageLauncher) and opt-out env vars (#2488).
+            |# Standalone AppImage runs still register com-maxrave-simpmusic-MainKt.desktop so
+            |# xdg-open can route simpmusic:// and wordbyword:// OAuth callbacks back to the app,
+            |# while externally managed AppImages skip self-registration and remove any duplicate.
+            |DATA_HOME="${'$'}{XDG_DATA_HOME:-${'$'}HOME/.local/share}"
+            |DESKTOP_DIR="${'$'}DATA_HOME/applications"
+            |SELF_DESKTOP="${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
+            |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
+            |
+            |SKIP_DESKTOP=0
+            |case "${'$'}{DESKTOPINTEGRATION:-}" in
+            |    0|false|FALSE|no|NO) SKIP_DESKTOP=1 ;;
+            |esac
+            |case "${'$'}{SIMPMUSIC_NO_DESKTOP_FILE:-}" in
+            |    1|true|TRUE|yes|YES) SKIP_DESKTOP=1 ;;
+            |esac
+            |
+            |EXTERNAL_MANAGED=0
+            |if [ -d "${'$'}DESKTOP_DIR" ] && [ -n "${'$'}APPIMAGE_PATH" ]; then
+            |    for entry in "${'$'}DESKTOP_DIR"/*.desktop; do
+            |        [ -f "${'$'}entry" ] || continue
+            |        [ "${'$'}entry" = "${'$'}SELF_DESKTOP" ] && continue
+            |        if grep -Fq -- "${'$'}APPIMAGE_PATH" "${'$'}entry" 2>/dev/null; then
+            |            EXTERNAL_MANAGED=1
+            |            break
+            |        fi
+            |    done
             |fi
             |
-            |# Install .desktop file with absolute Exec path to the AppImage.
-            |DESKTOP_DIR="${'$'}HOME/.local/share/applications"
-            |mkdir -p "${'$'}DESKTOP_DIR"
-            |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
-            |sed "s|Exec=bin/simpmusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
-            |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |if [ "${'$'}EXTERNAL_MANAGED" -eq 1 ]; then
+            |    if [ -f "${'$'}SELF_DESKTOP" ]; then
+            |        rm -f "${'$'}SELF_DESKTOP"
+            |        update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |    fi
+            |elif [ "${'$'}SKIP_DESKTOP" -eq 0 ]; then
+            |    ICON_DIR="${'$'}DATA_HOME/icons/hicolor/256x256/apps"
+            |    if [ ! -f "${'$'}ICON_DIR/simpmusic.png" ] || [ "${'$'}HERE/simpmusic.png" -nt "${'$'}ICON_DIR/simpmusic.png" ]; then
+            |        mkdir -p "${'$'}ICON_DIR"
+            |        cp "${'$'}HERE/simpmusic.png" "${'$'}ICON_DIR/simpmusic.png"
+            |        gtk-update-icon-cache -f -t "${'$'}DATA_HOME/icons/hicolor" 2>/dev/null || true
+            |    fi
+            |
+            |    mkdir -p "${'$'}DESKTOP_DIR"
+            |    ESCAPED_EXEC=${'$'}(printf '%s' "${'$'}APPIMAGE_PATH" | sed 's/\\/\\\\/g; s/"/\\"/g')
+            |    TMP_DESKTOP="${'$'}SELF_DESKTOP.tmp.${'$'}${'$'}"
+            |    if (
+            |        while IFS= read -r line || [ -n "${'$'}line" ]; do
+            |            case "${'$'}line" in
+            |                Exec=bin/simpmusic*) printf 'Exec="%s"%s\n' "${'$'}ESCAPED_EXEC" "${'$'}{line#Exec=bin/simpmusic}" ;;
+            |                *) printf '%s\n' "${'$'}line" ;;
+            |            esac
+            |        done < "${'$'}HERE/simpmusic.desktop" > "${'$'}TMP_DESKTOP"
+            |    ) 2>/dev/null; then
+            |        if [ ! -f "${'$'}SELF_DESKTOP" ] || ! cmp -s "${'$'}TMP_DESKTOP" "${'$'}SELF_DESKTOP"; then
+            |            mv -f "${'$'}TMP_DESKTOP" "${'$'}SELF_DESKTOP"
+            |            update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |        else
+            |            rm -f "${'$'}TMP_DESKTOP"
+            |        fi
+            |    else
+            |        rm -f "${'$'}TMP_DESKTOP"
+            |    fi
+            |fi
             |
             |# Cap glibc's per-thread malloc arenas.
             |#
