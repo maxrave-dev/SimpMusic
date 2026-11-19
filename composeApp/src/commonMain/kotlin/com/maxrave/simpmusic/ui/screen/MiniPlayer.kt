@@ -20,14 +20,18 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -73,28 +77,29 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
@@ -1102,74 +1107,23 @@ fun MiniPlayer(
                                         modifier = Modifier.weight(1f).fillMaxWidth(),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        LeftToRight {
-                                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                                // A vertical Slider is a horizontal one rotated a quarter
-                                                // turn: graphicsLayer rotates the drawing AND the pointer
-                                                // input, so drag direction follows the visual.
-                                                Slider(
-                                                    value = volumeValue,
-                                                    onValueChangeFinished = {
-                                                        isVolumeSliding = false
-                                                        sharedViewModel.onUIEvent(
-                                                            UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
-                                                        )
-                                                    },
-                                                    onValueChange = {
-                                                        isVolumeSliding = true
-                                                        volumeValue = it
-                                                    },
-                                                    valueRange = 0f..1f,
-                                                    modifier =
-                                                        Modifier
-                                                            .graphicsLayer {
-                                                                // transformOrigin(0, 0) and place(-width, 0) below are
-                                                                // a pair — they only work together. Dropping the origin
-                                                                // and centring the rotation leaves the slider drawn
-                                                                // outside its own node, where the popup's clip() eats
-                                                                // it and nothing shows at all.
-                                                                rotationZ = 270f
-                                                                transformOrigin = TransformOrigin(0f, 0f)
-                                                            }.layout { measurable, constraints ->
-                                                                val placeable =
-                                                                    measurable.measure(
-                                                                        Constraints(
-                                                                            minWidth = constraints.minHeight,
-                                                                            maxWidth = constraints.maxHeight,
-                                                                            minHeight = constraints.minWidth,
-                                                                            maxHeight = constraints.maxWidth,
-                                                                        ),
-                                                                    )
-                                                                layout(placeable.height, placeable.width) {
-                                                                    placeable.place(-placeable.width, 0)
-                                                                }
-                                                            }.width(VOLUME_SLIDER_LENGTH),
-                                                    track = { sliderState ->
-                                                        SliderDefaults.Track(
-                                                            modifier =
-                                                                Modifier
-                                                                    .height(4.dp),
-                                                            enabled = true,
-                                                            sliderState = sliderState,
-                                                            colors =
-                                                                SliderDefaults.colors().copy(
-                                                                    thumbColor = textColor,
-                                                                    activeTrackColor = textColor,
-                                                                    inactiveTrackColor = textColor.copy(alpha = 0.3f),
-                                                                ),
-                                                            thumbTrackGapSize = 0.dp,
-                                                            drawTick = { _, _ -> },
-                                                            drawStopIndicator = null,
-                                                        )
-                                                    },
-                                                    thumb = {
-                                                        // No thumb: it never sat visually centred on the rotated track, and the
-                                                        // slider drags the same without one — the active/inactive split marks the level.
-                                                        Spacer(Modifier.size(0.dp))
-                                                    },
-                                                )
-                                            }
-                                        }
+                                        VerticalVolumeSlider(
+                                            value = volumeValue,
+                                            activeTrackColor = textColor,
+                                            inactiveTrackColor = textColor.copy(alpha = 0.3f),
+                                            onValueChange = {
+                                                val clamped = it.coerceIn(0f, 1f)
+                                                isVolumeSliding = true
+                                                volumeValue = clamped
+                                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(clamped, persist = false))
+                                            },
+                                            onValueChangeFinished = {
+                                                val finalVolume = volumeValue.coerceIn(0f, 1f)
+                                                sharedViewModel.onUIEvent(UIEvent.UpdateVolume(finalVolume, persist = true))
+                                                isVolumeSliding = false
+                                            },
+                                            modifier = Modifier.fillMaxWidth().height(VOLUME_SLIDER_LENGTH),
+                                        )
                                     }
                                     Icon(
                                         imageVector =
@@ -1197,6 +1151,81 @@ fun MiniPlayer(
 
 private val VOLUME_POPUP_HEIGHT = 180.dp
 private val VOLUME_SLIDER_LENGTH = 96.dp
+
+internal fun verticalSliderFraction(
+    pointerY: Float,
+    trackHeightPx: Float,
+): Float {
+    if (!pointerY.isFinite() || !trackHeightPx.isFinite() || trackHeightPx <= 0f) return 0f
+    return ((trackHeightPx - pointerY) / trackHeightPx).coerceIn(0f, 1f)
+}
+
+internal fun activeTrackTopOffset(
+    fraction: Float,
+    trackHeightPx: Float,
+): Float {
+    if (!trackHeightPx.isFinite() || trackHeightPx <= 0f) return 0f
+    val clamped = if (fraction.isFinite()) fraction.coerceIn(0f, 1f) else 0f
+    return ((1f - clamped) * trackHeightPx).coerceIn(0f, trackHeightPx)
+}
+
+@Composable
+private fun VerticalVolumeSlider(
+    value: Float,
+    activeTrackColor: Color,
+    inactiveTrackColor: Color,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+    trackWidth: Dp = 4.dp,
+) {
+    val currentOnValueChange by rememberUpdatedState(onValueChange)
+    val currentOnValueChangeFinished by rememberUpdatedState(onValueChangeFinished)
+
+    Canvas(
+        modifier =
+            modifier.pointerInput(Unit) {
+                // Direct vertical pointer math avoids rotated Slider bounds clipping hit tests
+                // while expanding the hit target to the full popup column width.
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    down.consume()
+                    currentOnValueChange(verticalSliderFraction(down.position.y, size.height.toFloat()))
+                    try {
+                        drag(down.id) { change ->
+                            change.consume()
+                            currentOnValueChange(verticalSliderFraction(change.position.y, size.height.toFloat()))
+                        }
+                    } finally {
+                        currentOnValueChangeFinished()
+                    }
+                }
+            },
+    ) {
+        val trackWidthPx = trackWidth.toPx().coerceAtMost(size.width)
+        if (trackWidthPx <= 0f || size.height <= 0f) return@Canvas
+        val trackLeft = (size.width - trackWidthPx) / 2f
+        val cornerRadius = CornerRadius(trackWidthPx / 2f, trackWidthPx / 2f)
+
+        drawRoundRect(
+            color = inactiveTrackColor,
+            topLeft = Offset(trackLeft, 0f),
+            size = Size(trackWidthPx, size.height),
+            cornerRadius = cornerRadius,
+        )
+
+        val activeTop = activeTrackTopOffset(value, size.height)
+        val activeHeight = size.height - activeTop
+        if (activeHeight > 0f) {
+            drawRoundRect(
+                color = activeTrackColor,
+                topLeft = Offset(trackLeft, activeTop),
+                size = Size(trackWidthPx, activeHeight),
+                cornerRadius = cornerRadius,
+            )
+        }
+    }
+}
 
 /**
  * The capsule player's progress bar: a real [Slider] so it can be dragged, drawn over a
