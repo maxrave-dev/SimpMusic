@@ -63,36 +63,41 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_shortcut_tile" />
 
         <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_shortcut_tile" />
 
         <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_shortcut_tile" />
 
         <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_shortcut_tile" />
 
         <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_shortcut_tile" />
     </LinearLayout>
@@ -111,36 +116,41 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_preview_circle" />
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_preview_circle" />
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_preview_circle" />
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_preview_circle" />
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
             android:layout_marginStart="5dp"
+            android:layout_weight="1"
             android:contentDescription="@null"
             android:background="@drawable/widget_preview_circle" />
     </LinearLayout>

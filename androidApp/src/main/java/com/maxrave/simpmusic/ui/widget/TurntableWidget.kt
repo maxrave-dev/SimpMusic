@@ -23,6 +23,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -54,6 +55,7 @@ import com.maxrave.common.Config
 import com.maxrave.simpmusic.MainActivity
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.utils.computeTurntableWidgetMetrics
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import kotlinx.coroutines.CoroutineScope
@@ -106,6 +108,8 @@ class TurntableWidget :
 
         provideContent {
             GlanceTheme {
+                val size = LocalSize.current
+                val metrics = computeTurntableWidgetMetrics(size.width.value, size.height.value)
                 val controllerState by sharedViewModel.controllerState.collectAsState()
                 val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
 
@@ -159,25 +163,29 @@ class TurntableWidget :
                         GlanceModifier
                             .fillMaxSize()
                             .background(ColorProvider(bgColor))
-                            .padding(8.dp)
+                            .padding(metrics.outerPaddingDp.dp)
                             .clickable(actionStartActivity<MainActivity>(), rippleOverride = R.drawable.no_ripple),
                     contentAlignment = Alignment.BottomCenter,
                 ) {
-                    artwork?.let {
-                        Image(
-                            provider = ImageProvider(it),
-                            contentDescription = screenDataState.nowPlayingTitle,
-                            contentScale = ContentScale.Crop,
-                            modifier =
-                                GlanceModifier
-                                    .fillMaxSize()
-                                    // The launcher rounds the widget itself by this system dimen,
-                                    // so the artwork uses the same one instead of a number picked
-                                    // by eye — the two curves then match on every launcher, which
-                                    // a fixed dp cannot do since each one rounds differently.
-                                    .cornerRadius(android.R.dimen.system_app_widget_background_radius),
-                        )
-                    }
+                    val currentArtwork = artwork
+                    Image(
+                        provider =
+                            if (currentArtwork != null) {
+                                ImageProvider(currentArtwork)
+                            } else {
+                                ImageProvider(R.drawable.holder)
+                            },
+                        contentDescription = screenDataState.nowPlayingTitle,
+                        contentScale = ContentScale.Crop,
+                        modifier =
+                            GlanceModifier
+                                .fillMaxSize()
+                                // The launcher rounds the widget itself by this system dimen,
+                                // so the artwork uses the same one instead of a number picked
+                                // by eye — the two curves then match on every launcher, which
+                                // a fixed dp cannot do since each one rounds differently.
+                                .cornerRadius(android.R.dimen.system_app_widget_background_radius),
+                    )
                     // The pill is a drawable background rather than a shape drawn into the
                     // bitmap. A drawable keeps its alpha through RemoteViews, and because it
                     // lives in the layout it stretches with the row — the painted version was
@@ -197,8 +205,8 @@ class TurntableWidget :
                             colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
                             modifier =
                                 GlanceModifier
-                                    .size(34.dp)
-                                    .padding(5.dp)
+                                    .size(metrics.sideButtonSizeDp.dp)
+                                    .padding(metrics.sideIconPaddingDp.dp)
                                     .clickable(rippleOverride = R.drawable.no_ripple) {
                                         sharedViewModel.onUIEvent(UIEvent.Previous)
                                     },
@@ -211,28 +219,31 @@ class TurntableWidget :
                             colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
                             modifier =
                                 GlanceModifier
-                                    .size(34.dp)
-                                    .padding(5.dp)
+                                    .size(metrics.sideButtonSizeDp.dp)
+                                    .padding(metrics.sideIconPaddingDp.dp)
                                     .clickable(rippleOverride = R.drawable.no_ripple) {
                                         sharedViewModel.onUIEvent(UIEvent.Next)
                                     },
                         )
                     }
-                    Box(modifier = GlanceModifier.padding(bottom = 16.dp)) {
+                    Box(modifier = GlanceModifier.padding(bottom = metrics.bottomMarginDp.dp)) {
                         Row(
                             modifier =
                                 GlanceModifier
                                     .background(ImageProvider(R.drawable.widget_control_pill))
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    .padding(
+                                        horizontal = metrics.pillHorizontalPaddingDp.dp,
+                                        vertical = metrics.pillVerticalPaddingDp.dp,
+                                    ),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (systemRtl) next() else previous()
-                            Spacer(GlanceModifier.width(8.dp))
+                            Spacer(GlanceModifier.width(metrics.buttonSpacingDp.dp))
                             Box(
                                 modifier =
                                     GlanceModifier
-                                        .size(42.dp)
+                                        .size(metrics.playDiscSizeDp.dp)
                                         .background(ImageProvider(R.drawable.widget_play_disc)),
                                 contentAlignment = Alignment.Center,
                             ) {
@@ -247,13 +258,13 @@ class TurntableWidget :
                                     colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
                                     modifier =
                                         GlanceModifier
-                                            .size(24.dp)
+                                            .size(metrics.playIconSizeDp.dp)
                                             .clickable(rippleOverride = R.drawable.no_ripple) {
                                                 sharedViewModel.onUIEvent(UIEvent.PlayPause)
                                             },
                                 )
                             }
-                            Spacer(GlanceModifier.width(8.dp))
+                            Spacer(GlanceModifier.width(metrics.buttonSpacingDp.dp))
                             if (systemRtl) previous() else next()
                         }
                     }

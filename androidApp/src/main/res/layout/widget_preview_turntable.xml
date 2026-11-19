@@ -1,45 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="140dp"
-    android:layout_height="140dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@drawable/widget_preview_surface"
     android:padding="8dp">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/widget_preview_art"
+        android:contentDescription="@null" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:contentDescription="@null"
-        android:background="@drawable/widget_preview_art" />
+        android:padding="32dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/widget_preview_library_music_24" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="14dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/widget_control_pill"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="6dp">
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:contentDescription="@null"
             android:src="@drawable/rounded_fast_rewind_24" />
 
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginHorizontal="8dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginHorizontal="6dp"
             android:background="@drawable/widget_play_disc"
             android:contentDescription="@null"
-            android:padding="6dp"
+            android:padding="5dp"
             android:src="@drawable/rounded_play_arrow_24" />
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:contentDescription="@null"
             android:src="@drawable/rounded_fast_forward_24" />
     </LinearLayout>
