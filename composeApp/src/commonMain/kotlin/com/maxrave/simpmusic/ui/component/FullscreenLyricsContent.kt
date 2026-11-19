@@ -1072,14 +1072,19 @@ private fun FullscreenLyricsDesktopChrome(
                 Slider(
                     value = volumeValue,
                     onValueChangeFinished = {
-                        isVolumeSliding = false
+                        val finalVolume = volumeValue.coerceIn(0f, 1f)
                         sharedViewModel.onUIEvent(
-                            UIEvent.UpdateVolume(volumeValue.coerceIn(0f, 1f)),
+                            UIEvent.UpdateVolume(finalVolume, persist = true),
                         )
+                        isVolumeSliding = false
                     },
                     onValueChange = {
+                        val clamped = it.coerceIn(0f, 1f)
                         isVolumeSliding = true
-                        volumeValue = it
+                        volumeValue = clamped
+                        sharedViewModel.onUIEvent(
+                            UIEvent.UpdateVolume(clamped, persist = false),
+                        )
                     },
                     valueRange = 0f..1f,
                     modifier = Modifier.width(CHROME_VOLUME_SLIDER_WIDTH),

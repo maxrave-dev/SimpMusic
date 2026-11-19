@@ -1103,11 +1103,13 @@ class SharedViewModel(
                 }
 
                 is UIEvent.UpdateVolume -> {
-                    val newVolume = uiEvent.newVolume
+                    val newVolume = uiEvent.newVolume.coerceIn(0f, 1f)
                     // Apply to the player first: persisting to DataStore is a suspending disk write
                     // and must not sit between the user's gesture and the audible change.
                     mediaPlayerHandler.onPlayerEvent(PlayerEvent.UpdateVolume(newVolume))
-                    dataStoreManager.setPlayerVolume(newVolume)
+                    if (uiEvent.persist) {
+                        dataStoreManager.setPlayerVolume(newVolume)
+                    }
                 }
             }
         }
@@ -2382,6 +2384,7 @@ sealed class UIEvent {
 
     data class UpdateVolume(
         val newVolume: Float,
+        val persist: Boolean = true,
     ) : UIEvent()
 
     data object ToggleLike : UIEvent()
