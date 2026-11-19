@@ -219,7 +219,6 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 .get<DataStoreManager>()
                 .language
                 .first()
-                .substring(0..1)
         }
     changeLanguageNative(language)
 
