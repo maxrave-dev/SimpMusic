@@ -39,6 +39,9 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.pagination.PagingActions
+import com.maxrave.simpmusic.pagination.applyReorderMove
+import com.maxrave.simpmusic.pagination.removeBackingIndicesFromPermutation
+import com.maxrave.simpmusic.pagination.reorderSnapshot
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -46,6 +49,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
@@ -58,9 +62,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.inject
 import simpmusic.composeapp.generated.resources.Res
@@ -244,28 +251,37 @@ class LocalPlaylistViewModel(
     }
 
     private val modifications = MutableStateFlow<List<PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>>>(emptyList())
+    private val _reorderedIndices = MutableStateFlow<List<Int>>(emptyList())
+    val reorderedIndices: StateFlow<List<Int>> = _reorderedIndices.asStateFlow()
+    private val reorderMutex = Mutex()
+    private var tracksPagingJob: Job? = null
 
     private fun getTracksPagingState(
         id: Long,
         filterState: FilterState,
     ) {
-        viewModelScope.launch {
-            Logger.w("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
-            modifications.value = listOf()
-            localPlaylistRepository
-                .getTracksPaging(
-                    id,
-                    filterState,
-                ).distinctUntilChanged()
-                .cachedIn(viewModelScope)
-                .combine(modifications) { pagingData, modifications ->
-                    modifications.fold(pagingData) { data, actions ->
-                        applyActions(data, actions)
+        tracksPagingJob?.cancel()
+        tracksPagingJob =
+            viewModelScope.launch {
+                Logger.w("LocalPlaylistViewModel", "getTracksPagingState: ${uiState.value}")
+                modifications.value = listOf()
+                _reorderedIndices.value = emptyList()
+                localPlaylistRepository
+                    .getTracksPaging(
+                        id,
+                        filterState,
+                    ).distinctUntilChanged()
+                    .cachedIn(viewModelScope)
+                    .onEach {
+                        _reorderedIndices.value = emptyList()
+                    }.combine(modifications) { pagingData, modifications ->
+                        modifications.fold(pagingData) { data, actions ->
+                            applyActions(data, actions)
+                        }
+                    }.collect {
+                        _tracksPagingState.value = it
                     }
-                }.collect {
-                    _tracksPagingState.value = it
-                }
-        }
+            }
     }
 
     private fun applyActions(
@@ -302,6 +318,18 @@ class LocalPlaylistViewModel(
         }
 
     private fun onApplyActions(actions: PagingActions<Pair<SongEntity, PairSongLocalPlaylist>>) {
+        if (actions is PagingActions.Remove && _reorderedIndices.value.isNotEmpty()) {
+            val snapshot = lazyTrackPagingItems.value?.itemSnapshotList?.toList().orEmpty()
+            val removedIndices =
+                snapshot.indices
+                    .filter { idx -> snapshot[idx]?.first?.videoId == actions.item.first.videoId }
+                    .toSet()
+            if (removedIndices.isNotEmpty()) {
+                _reorderedIndices.update { current ->
+                    removeBackingIndicesFromPermutation(current, snapshot.size, removedIndices)
+                }
+            }
+        }
         modifications.value += actions
     }
 
@@ -785,7 +813,8 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.ItemClick -> {
-                val loadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
+                val rawLoadedList = lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: return
+                val loadedList = reorderSnapshot(rawLoadedList, _reorderedIndices.value)
                 val clickedSong = loadedList.find { it?.first?.videoId == ev.videoId }?.first ?: return
 
                 setQueueData(
@@ -858,11 +887,12 @@ class LocalPlaylistViewModel(
             }
 
             is LocalPlaylistUIEvent.PlayClick -> {
-                val loadedList =
+                val rawLoadedList =
                     lazyTrackPagingItems.value?.itemSnapshotList?.toList() ?: run {
                         makeToast(getString(Res.string.playlist_is_empty))
                         return
                     }
+                val loadedList = reorderSnapshot(rawLoadedList, _reorderedIndices.value)
 
                 val firstPlayTrack = loadedList.firstOrNull()?.first?.toTrack()
                 setQueueData(
@@ -881,11 +911,11 @@ class LocalPlaylistViewModel(
                                 if (offset.value > 0) {
                                     when (uiState.value.filterState) {
                                         FilterState.OlderFirst -> {
-                                            ASC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                            ASC + converter.dateToTimestamp(rawLoadedList.lastOrNull()?.second?.inPlaylist)
                                         }
 
                                         FilterState.NewerFirst -> {
-                                            DESC + converter.dateToTimestamp(loadedList.lastOrNull()?.second?.inPlaylist)
+                                            DESC + converter.dateToTimestamp(rawLoadedList.lastOrNull()?.second?.inPlaylist)
                                         }
 
                                         FilterState.CustomOrder -> {
@@ -1017,50 +1047,62 @@ class LocalPlaylistViewModel(
     suspend fun changeLocalPlaylistItemPosition(
         from: Int,
         to: Int,
+        currentItemCount: Int = lazyTrackPagingItems.value?.itemCount ?: 0,
     ) {
-        val isSynced =
-            uiState.value.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
-        if (isSynced) {
-            // Synced playlist: show loading dialog to block user interaction during API call
-            showLoadingDialog(message = getString(Res.string.updating))
-            localPlaylistRepository
-                .moveItemInSyncedPlaylist(
-                    playlistId = uiState.value.id,
-                    fromIndex = from,
-                    toIndex = to,
-                ).collectResource(
-                    onLoading = {
-                        log("changeLocalPlaylistItemPosition (synced): loading")
-                    },
-                    onSuccess = {
-                        log("changeLocalPlaylistItemPosition (synced): success $it")
-                        hideLoadingDialog()
-                    },
-                    onError = { message ->
-                        log("changeLocalPlaylistItemPosition (synced): error $message", LogLevel.WARN)
-                        makeToast(message ?: getString(Res.string.error))
-                        hideLoadingDialog()
-                    },
-                )
-        } else {
-            // Unsynced playlist: local only, no loading dialog needed
-            localPlaylistRepository
-                .moveItemInLocalPlaylist(
-                    playlistId = uiState.value.id,
-                    fromIndex = from,
-                    toIndex = to,
-                ).collectResource(
-                    onLoading = {
-                        log("changeLocalPlaylistItemPosition (local): loading")
-                    },
-                    onSuccess = {
-                        log("changeLocalPlaylistItemPosition (local): success $it")
-                    },
-                    onError = { message ->
-                        log("changeLocalPlaylistItemPosition (local): error $message", LogLevel.WARN)
-                        makeToast(message)
-                    },
-                )
+        if (currentItemCount <= 1 || from == to || from !in 0 until currentItemCount || to !in 0 until currentItemCount) return
+        reorderMutex.withLock {
+            val previousPermutation = _reorderedIndices.value
+            _reorderedIndices.value = applyReorderMove(previousPermutation, currentItemCount, from, to)
+            var moveFailed = false
+            val isSynced =
+                uiState.value.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced
+            if (isSynced) {
+                // Synced playlist: show loading dialog to block user interaction during API call
+                showLoadingDialog(message = getString(Res.string.updating))
+                localPlaylistRepository
+                    .moveItemInSyncedPlaylist(
+                        playlistId = uiState.value.id,
+                        fromIndex = from,
+                        toIndex = to,
+                    ).collectResource(
+                        onLoading = {
+                            log("changeLocalPlaylistItemPosition (synced): loading")
+                        },
+                        onSuccess = {
+                            log("changeLocalPlaylistItemPosition (synced): success $it")
+                            hideLoadingDialog()
+                        },
+                        onError = { message ->
+                            moveFailed = true
+                            log("changeLocalPlaylistItemPosition (synced): error $message", LogLevel.WARN)
+                            makeToast(message ?: getString(Res.string.error))
+                            hideLoadingDialog()
+                        },
+                    )
+            } else {
+                // Unsynced playlist: local only, no loading dialog needed
+                localPlaylistRepository
+                    .moveItemInLocalPlaylist(
+                        playlistId = uiState.value.id,
+                        fromIndex = from,
+                        toIndex = to,
+                    ).collectResource(
+                        onLoading = {
+                            log("changeLocalPlaylistItemPosition (local): loading")
+                        },
+                        onSuccess = {
+                            log("changeLocalPlaylistItemPosition (local): success $it")
+                        },
+                        onError = { message ->
+                            moveFailed = true
+                            log("changeLocalPlaylistItemPosition (local): error $message", LogLevel.WARN)
+                            makeToast(message)
+                        },
+                    )
+            }
+            if (moveFailed) {
+                _reorderedIndices.value = previousPermutation
+            }
         }
     }
 }
