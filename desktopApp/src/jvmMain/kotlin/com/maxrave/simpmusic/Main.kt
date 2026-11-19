@@ -45,6 +45,11 @@ private fun forceLinuxWmClass(appName: String = "SimpMusic") {
 }
 
 fun main(args: Array<String>) {
+    DesktopTempEnvironment.configure()
     forceLinuxWmClass()
-    runDesktopApp(args)
+    try {
+        runDesktopApp(args)
+    } catch (t: Throwable) {
+        CrashDialog.reportAndExit(throwable = t)
+    }
 }
