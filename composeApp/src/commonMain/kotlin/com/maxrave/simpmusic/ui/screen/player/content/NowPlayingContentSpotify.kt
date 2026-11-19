@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -220,11 +221,17 @@ fun NowPlayingContentSpotify(
     var showLyricsOffsetBar by rememberSaveable { mutableStateOf(false) }
     var showOutputSheet by rememberSaveable { mutableStateOf(false) }
 
-    // Height
-    var topAppBarHeightDp by rememberSaveable {
+    // Height & container viewport
+    var containerWidthDp by remember {
         mutableIntStateOf(0)
     }
-    var middleLayoutHeightDp by rememberSaveable {
+    var containerHeightDp by remember {
+        mutableIntStateOf(0)
+    }
+    var containerHeightPx by remember {
+        mutableIntStateOf(0)
+    }
+    var topAppBarHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
     var infoLayoutHeightDp by rememberSaveable {
@@ -238,20 +245,41 @@ fun NowPlayingContentSpotify(
             30,
         )
     }
+    val effectiveWidthDp = if (containerWidthDp > 0) containerWidthDp else screenInfo.wDP
+    val effectiveHeightDp = if (containerHeightDp > 0) containerHeightDp else screenInfo.hDP
+    val effectiveHeightPx = if (containerHeightPx > 0) containerHeightPx else screenInfo.hPX
+    val bottomSystemBarDp =
+        with(localDensity) {
+            WindowInsets.systemBars.getBottom(localDensity).toDp().value.toInt()
+        }
+    val preFoldLayout =
+        remember(
+            effectiveHeightDp,
+            effectiveWidthDp,
+            topAppBarHeightDp,
+            infoLayoutHeightDp,
+            bottomSystemBarDp,
+            minimumPaddingDp,
+        ) {
+            computePreFoldPlayerLayout(
+                viewportHeightDp = effectiveHeightDp,
+                viewportWidthDp = effectiveWidthDp,
+                topAppBarHeightDp = topAppBarHeightDp,
+                infoLayoutHeightDp = infoLayoutHeightDp,
+                bottomInsetDp = bottomSystemBarDp,
+                preferredMinGapDp = minimumPaddingDp,
+            )
+        }
+    val maxArtworkHeightDp = preFoldLayout.maxArtworkHeightDp
     LaunchedEffect(
+        preFoldLayout,
         topAppBarHeightDp,
-        screenInfo,
         infoLayoutHeightDp,
-        minimumPaddingDp,
+        effectiveHeightDp,
+        effectiveWidthDp,
     ) {
-        if (topAppBarHeightDp > 0 && middleLayoutHeightDp > 0 && infoLayoutHeightDp > 0 && screenInfo.hDP > 0) {
-            val result = (screenInfo.hDP - topAppBarHeightDp - middleLayoutHeightDp - infoLayoutHeightDp - minimumPaddingDp) / 2
-            middleLayoutPaddingDp =
-                if (result > minimumPaddingDp) {
-                    result
-                } else {
-                    minimumPaddingDp
-                }
+        if (topAppBarHeightDp > 0 && infoLayoutHeightDp > 0 && effectiveHeightDp > 0 && effectiveWidthDp > 0) {
+            middleLayoutPaddingDp = preFoldLayout.verticalGapDp
         }
     }
 
@@ -267,7 +295,18 @@ fun NowPlayingContentSpotify(
         }
     }
 
-    Box {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coords ->
+                    containerHeightPx = coords.size.height
+                    with(localDensity) {
+                        containerWidthDp = coords.size.width.toDp().value.toInt()
+                        containerHeightDp = coords.size.height.toDp().value.toInt()
+                    }
+                },
+    ) {
         Column(
             Modifier
                 .verticalScroll(
@@ -286,7 +325,7 @@ fun NowPlayingContentSpotify(
                             // which is what made it run on forever while scrolling.
                             .background(PlayerBackdropColor)
                             .drawBehind {
-                                val gradientHeight = screenInfo.hPX.toFloat()
+                                val gradientHeight = effectiveHeightPx.toFloat()
                                 val area = Size(size.width, gradientHeight)
                                 // Palette gradient, keeping its diagonal angle.
                                 drawRect(
@@ -336,7 +375,7 @@ fun NowPlayingContentSpotify(
                         state = state.artworkPagerState,
                         modifier =
                             Modifier
-                                .height(screenInfo.hDP.dp)
+                                .height(effectiveHeightDp.dp)
                                 .fillMaxWidth(),
                         beyondViewportPageCount = 1,
                         userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
@@ -529,8 +568,15 @@ fun NowPlayingContentSpotify(
                                 Box(
                                     modifier =
                                         Modifier
-                                            .fillMaxWidth()
+                                            .align(Alignment.CenterHorizontally)
                                             .padding(horizontal = 20.dp)
+                                            .then(
+                                                if (maxArtworkHeightDp != null) {
+                                                    Modifier.widthIn(max = maxArtworkHeightDp.dp)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ).fillMaxWidth()
                                             .alpha(if (pageHasCanvas) 0f else 1f)
                                             .aspectRatio(1f),
                                 ) {
@@ -944,17 +990,16 @@ fun NowPlayingContentSpotify(
                             Spacer(
                                 modifier =
                                     Modifier
-                                        .fillMaxWidth()
+                                        .align(Alignment.CenterHorizontally)
                                         .padding(horizontal = 20.dp)
-                                        .onGloballyPositioned { coords ->
-                                            middleLayoutHeightDp =
-                                                with(localDensity) {
-                                                    coords.size.height
-                                                        .toDp()
-                                                        .value
-                                                        .toInt()
-                                                }
-                                        }.aspectRatio(1f),
+                                        .then(
+                                            if (maxArtworkHeightDp != null) {
+                                                Modifier.widthIn(max = maxArtworkHeightDp.dp)
+                                            } else {
+                                                Modifier
+                                            },
+                                        ).fillMaxWidth()
+                                        .aspectRatio(1f),
                             )
 
                             // Spotify-style current lyric line — vertically centered in the gap
