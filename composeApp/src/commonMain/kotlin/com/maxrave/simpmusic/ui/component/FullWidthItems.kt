@@ -78,6 +78,7 @@ import com.maxrave.domain.utils.connectArtists
 import com.maxrave.domain.utils.isLive
 import com.maxrave.domain.utils.toListName
 import com.maxrave.simpmusic.ui.icon.Add
+import com.maxrave.simpmusic.utils.normalizeReleaseYear
 import com.maxrave.simpmusic.ui.icon.Check
 import com.maxrave.simpmusic.ui.icon.DownloadForOffline
 import com.maxrave.simpmusic.ui.icon.DragHandle
@@ -554,7 +555,7 @@ fun PlaylistFullWidthItems(
                 title = data.title
                 thumb = data.thumbnails ?: ""
                 secondSubtitle = data.artistName?.connectArtists() ?: ""
-                thirdRowSubtitle = data.year
+                thirdRowSubtitle = normalizeReleaseYear(data.year)
             }
 
             is PlaylistEntity -> {
@@ -582,7 +583,7 @@ fun PlaylistFullWidthItems(
                 title = data.title
                 thumb = data.thumbnails.lastOrNull()?.url ?: ""
                 secondSubtitle = data.artists.toListName().connectArtists()
-                thirdRowSubtitle = data.year
+                thirdRowSubtitle = normalizeReleaseYear(data.year)
             }
 
             is PodcastsEntity -> {
