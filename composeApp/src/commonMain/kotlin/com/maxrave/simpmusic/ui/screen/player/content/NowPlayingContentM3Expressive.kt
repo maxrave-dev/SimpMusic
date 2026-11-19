@@ -40,7 +40,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.CircleShape
@@ -241,12 +243,16 @@ private fun NowPlayingM3ExpressiveLayout(
     )
 
     // === 2. Vertical rhythm — identical mechanism to NowPlayingContentSpotify ===
-    // The pre-fold section fills exactly one screen: measured header/artwork/info heights,
-    // and the artwork sits between two equal gaps of `middleLayoutPaddingDp`.
-    var topAppBarHeightDp by rememberSaveable {
+    // The pre-fold section fills one container viewport: measured header/info heights and
+    // container dimensions, with the artwork sitting between two equal gaps (and capped in height
+    // on foldable / square viewports so playback controls never clip below the fold).
+    var containerWidthDp by remember {
         mutableIntStateOf(0)
     }
-    var middleLayoutHeightDp by rememberSaveable {
+    var containerHeightDp by remember {
+        mutableIntStateOf(0)
+    }
+    var topAppBarHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
     var infoLayoutHeightDp by rememberSaveable {
@@ -260,24 +266,43 @@ private fun NowPlayingM3ExpressiveLayout(
             30,
         )
     }
+    val effectiveWidthDp = if (containerWidthDp > 0) containerWidthDp else screenInfo.wDP
+    val effectiveHeightDp = if (containerHeightDp > 0) containerHeightDp else screenInfo.hDP
+    val bottomSystemBarDp =
+        with(localDensity) {
+            WindowInsets.systemBars.getBottom(localDensity).toDp().value.toInt()
+        }
+    val slotRatio = state.expressiveCardSlotRatio()
+    val preFoldLayout =
+        remember(
+            effectiveHeightDp,
+            effectiveWidthDp,
+            topAppBarHeightDp,
+            infoLayoutHeightDp,
+            bottomSystemBarDp,
+            minimumPaddingDp,
+            slotRatio,
+        ) {
+            computePreFoldPlayerLayout(
+                viewportHeightDp = effectiveHeightDp,
+                viewportWidthDp = effectiveWidthDp,
+                topAppBarHeightDp = topAppBarHeightDp,
+                infoLayoutHeightDp = infoLayoutHeightDp,
+                bottomInsetDp = bottomSystemBarDp,
+                preferredMinGapDp = minimumPaddingDp,
+                slotAspectRatio = slotRatio,
+            )
+        }
+    val maxArtworkHeightDp = preFoldLayout.maxArtworkHeightDp
     LaunchedEffect(
+        preFoldLayout,
         topAppBarHeightDp,
-        // Unlike Classic, the M3E artwork frame CHANGES height (square ↔ the video's shape while
-        // a video plays), so the fold math must re-run when the measured middle height moves too —
-        // without this key the gap keeps the previous track's numbers and the layout drifts.
-        middleLayoutHeightDp,
-        screenInfo,
         infoLayoutHeightDp,
-        minimumPaddingDp,
+        effectiveHeightDp,
+        effectiveWidthDp,
     ) {
-        if (topAppBarHeightDp > 0 && middleLayoutHeightDp > 0 && infoLayoutHeightDp > 0 && screenInfo.hDP > 0) {
-            val result = (screenInfo.hDP - topAppBarHeightDp - middleLayoutHeightDp - infoLayoutHeightDp - minimumPaddingDp) / 2
-            middleLayoutPaddingDp =
-                if (result > minimumPaddingDp) {
-                    result
-                } else {
-                    minimumPaddingDp
-                }
+        if (topAppBarHeightDp > 0 && infoLayoutHeightDp > 0 && effectiveHeightDp > 0 && effectiveWidthDp > 0) {
+            middleLayoutPaddingDp = preFoldLayout.verticalGapDp
         }
     }
 
@@ -292,7 +317,17 @@ private fun NowPlayingM3ExpressiveLayout(
         }
     }
 
-    Box {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coords ->
+                    with(localDensity) {
+                        containerWidthDp = coords.size.width.toDp().value.toInt()
+                        containerHeightDp = coords.size.height.toDp().value.toInt()
+                    }
+                },
+    ) {
         Column(
             Modifier
                 .verticalScroll(
@@ -311,7 +346,7 @@ private fun NowPlayingM3ExpressiveLayout(
                         state = state.artworkPagerState,
                         modifier =
                             Modifier
-                                .height(screenInfo.hDP.dp)
+                                .height(effectiveHeightDp.dp)
                                 .fillMaxWidth(),
                         beyondViewportPageCount = 1,
                         userScrollEnabled = !isRepeatOne && state.artworkQueue.isNotEmpty(),
@@ -326,6 +361,7 @@ private fun NowPlayingM3ExpressiveLayout(
                             page = page,
                             topAppBarHeightDp = topAppBarHeightDp,
                             middleLayoutPaddingDp = middleLayoutPaddingDp,
+                            maxArtworkHeightDp = maxArtworkHeightDp,
                             showHideFullscreenOverlay = showHideFullscreenOverlay,
                             onToggleFullscreenOverlay = {
                                 showHideFullscreenOverlay = !showHideFullscreenOverlay
@@ -446,17 +482,16 @@ private fun NowPlayingM3ExpressiveLayout(
                         Spacer(
                             modifier =
                                 Modifier
-                                    .fillMaxWidth()
+                                    .align(Alignment.CenterHorizontally)
                                     .padding(horizontal = 20.dp)
-                                    .onGloballyPositioned { coords ->
-                                        middleLayoutHeightDp =
-                                            with(localDensity) {
-                                                coords.size.height
-                                                    .toDp()
-                                                    .value
-                                                    .toInt()
-                                            }
-                                    }.aspectRatio(state.expressiveCardSlotRatio()),
+                                    .then(
+                                        if (maxArtworkHeightDp != null) {
+                                            Modifier.widthIn(max = (maxArtworkHeightDp * slotRatio).dp)
+                                        } else {
+                                            Modifier
+                                        },
+                                    ).fillMaxWidth()
+                                    .aspectRatio(slotRatio),
                         )
 
                         // === 5. Inline current-lyric line, centered in the lower gap ===
