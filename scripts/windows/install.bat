@@ -17,7 +17,8 @@ REM --- 1. Self-elevate to admin -----------------------------------------------
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo Requesting admin elevation...
-    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    set "SIMPMUSIC_INSTALL_BAT=%~f0"
+    powershell -NoProfile -Command "Start-Process -FilePath $env:SIMPMUSIC_INSTALL_BAT -Verb RunAs"
     exit /b
 )
 
@@ -41,13 +42,19 @@ if %errorlevel% neq 0 (
 )
 
 REM --- 3. Find the bundled MSIX ----------------------------------------------
+set "SIMPMUSIC_DIR=%~dp0"
 set "MSIX="
-for %%f in ("%~dp0simpmusic-*.msix") do set "MSIX=%%f"
+set /a MSIX_COUNT=0
+for %%f in ("%~dp0simpmusic-*.msix") do set /a MSIX_COUNT+=1
+for /f "usebackq delims=" %%f in (`powershell -NoProfile -Command "Get-ChildItem -LiteralPath $env:SIMPMUSIC_DIR -Filter 'simpmusic-*.msix' -File | Sort-Object -Property @{Expression={ [regex]::Replace($_.Name, '\d+', { $args[0].Value.PadLeft(10, '0') }) }; Descending=$true}, @{Expression='LastWriteTimeUtc'; Descending=$true} | Select-Object -First 1 -ExpandProperty FullName"`) do set "MSIX=%%f"
 
 if not defined MSIX (
     echo [ERROR] No simpmusic-*.msix found in this folder.
     pause
     exit /b 1
+)
+if %MSIX_COUNT% gtr 1 (
+    echo [WARN] Multiple simpmusic-*.msix files found; using "%MSIX%"
 )
 
 echo.
@@ -56,8 +63,9 @@ REM -ForceUpdateFromAnyVersion overwrites an existing install in place (keeps ap
 REM data) even when the version is identical, so no manual uninstall is needed.
 REM If that still fails (e.g. signing publisher changed), fall back to removing
 REM the old package and doing a clean install.
+set "SIMPMUSIC_MSIX=%MSIX%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "try { Add-AppxPackage -Path '%MSIX%' -ForceApplicationShutdown -ForceUpdateFromAnyVersion -ErrorAction Stop; exit 0 } catch { Write-Host 'In-place update failed; removing existing SimpMusic and reinstalling...'; Get-AppxPackage -Name 'Simpmusic' | Remove-AppxPackage -ErrorAction SilentlyContinue; try { Add-AppxPackage -Path '%MSIX%' -ForceApplicationShutdown -ErrorAction Stop; exit 0 } catch { Write-Host $_; exit 1 } }"
+    "try { Add-AppxPackage -Path $env:SIMPMUSIC_MSIX -ForceApplicationShutdown -ForceUpdateFromAnyVersion -ErrorAction Stop; exit 0 } catch { Write-Host 'In-place update failed; removing existing SimpMusic and reinstalling...'; Get-AppxPackage -Name 'Simpmusic' | Remove-AppxPackage -ErrorAction SilentlyContinue; try { Add-AppxPackage -Path $env:SIMPMUSIC_MSIX -ForceApplicationShutdown -ErrorAction Stop; exit 0 } catch { Write-Host $_; exit 1 } }"
 
 if %errorlevel% neq 0 (
     echo.
@@ -72,7 +80,8 @@ if %errorlevel% neq 0 (
 REM --- 4. Launch app ---------------------------------------------------------
 echo.
 echo [3/3] Launching SimpMusic ...
-start "" "shell:appsFolder\Simpmusic_ejp2bhxmz1qq6!Simpmusic"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$aumid = 'Simpmusic_ejp2bhxmz1qq6!Simpmusic'; try { $pkg = Get-AppxPackage -Name 'Simpmusic' | Sort-Object Version -Descending | Select-Object -First 1; if ($pkg -and $pkg.PackageFamilyName) { $manifest = Get-AppxPackageManifest -Package $pkg.PackageFullName; $appId = $manifest.Package.Applications.Application | Select-Object -First 1 -ExpandProperty Id; if ($appId) { $aumid = ('{0}!{1}' -f $pkg.PackageFamilyName, $appId) } } } catch {}; Start-Process -FilePath 'explorer.exe' -ArgumentList ('shell:appsFolder\' + $aumid)"
 
 echo.
 echo SimpMusic installed successfully.
