@@ -104,14 +104,38 @@ actual fun getPackageName(): String = ""
 
 actual fun getFileDir(): String = ""
 
+private val INITIAL_SYSTEM_LOCALE: Locale = Locale.getDefault()
+private val ANDROID_REGION_SUBTAG_REGEX = Regex("-r([A-Za-z]{2})(?=-|$)")
+
+internal fun resolveDesktopLocale(
+    storedLanguage: String?,
+    systemDefault: Locale = INITIAL_SYSTEM_LOCALE,
+): Locale {
+    val primaryTag =
+        storedLanguage
+            ?.substringBefore(',')
+            ?.trim()
+            .orEmpty()
+    if (primaryTag.isEmpty()) {
+        return systemDefault
+    }
+    val normalized =
+        primaryTag
+            .replace('_', '-')
+            .replace(ANDROID_REGION_SUBTAG_REGEX, "-$1")
+    val mapped =
+        if (normalized.equals("id-ID", ignoreCase = true)) {
+            "in-ID"
+        } else {
+            normalized
+        }
+    val parsed = Locale.forLanguageTag(mapped)
+    if (parsed.language.isBlank() || parsed.language.equals("und", ignoreCase = true)) {
+        return systemDefault
+    }
+    return parsed
+}
+
 actual fun changeLanguageNative(code: String) {
-    Locale.setDefault(
-        Locale.forLanguageTag(
-            if (code == "id-ID") {
-                "in-ID"
-            } else {
-                code
-            },
-        ),
-    )
+    Locale.setDefault(resolveDesktopLocale(code))
 }
