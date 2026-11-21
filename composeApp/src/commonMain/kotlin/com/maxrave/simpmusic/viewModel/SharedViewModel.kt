@@ -721,6 +721,9 @@ class SharedViewModel(
                 return@launch
             }
 
+            // Offline: pinned canvas was already shown; no source fetch can succeed.
+            if (!isNetworkAvailable()) return@launch
+
             val sources =
                 buildList {
                     if (amEnabled) {
@@ -2053,6 +2056,13 @@ class SharedViewModel(
                 }
             resetLyricsVoteState()
             showSavedLyricsFirst(song, duration)
+            // Offline: saved lyrics are already shown; the provider fetch can only time out.
+            if (!isNetworkAvailable()) {
+                if (_nowPlayingScreenData.value.lyricsData == null) {
+                    _nowPlayingScreenData.update { it.copy(lyricsNotFound = true) }
+                }
+                return
+            }
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
             when (lyricsProvider) {
                 DataStoreManager.SIMPMUSIC -> {

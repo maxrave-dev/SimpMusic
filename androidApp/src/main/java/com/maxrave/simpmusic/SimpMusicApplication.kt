@@ -151,7 +151,7 @@ class SimpMusicApplication :
                 .Builder(context)
                 .components {
                     add(LocalArtworkInterceptor(artworkStore))
-                    add(NetworkFirstInterceptor { imageLoader })
+                    add(NetworkFirstInterceptor(isOnline = { isNetworkAvailable() }) { imageLoader })
                     add(
                         OkHttpNetworkFetcherFactory(
                             callFactory = {
