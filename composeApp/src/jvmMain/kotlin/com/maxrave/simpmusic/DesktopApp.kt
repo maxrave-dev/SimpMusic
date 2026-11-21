@@ -49,6 +49,7 @@ import com.maxrave.simpmusic.ui.component.MacAppearance
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.ui.theme.isDarkTheme
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
 import com.maxrave.simpmusic.utils.VersionManager
@@ -510,7 +511,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         ImageLoader
                             .Builder(context)
                             .components {
-                                add(NetworkFirstInterceptor { imageLoader })
+                                add(NetworkFirstInterceptor(isOnline = { isNetworkAvailable() }) { imageLoader })
                                 add(
                                     OkHttpNetworkFetcherFactory(
                                         callFactory = {

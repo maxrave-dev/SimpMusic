@@ -17,6 +17,7 @@ import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.TasteRepository
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -158,6 +159,10 @@ class TasteViewModel(
 
     /** Asks for a reading, or a new one. A failed new one leaves the stored reading on the card. */
     fun generate() {
+        if (!isNetworkAvailable()) {
+            makeToast(getString(Res.string.taste_error_generic))
+            return
+        }
         if (request.value is Request.Running) return
         // Set before the coroutine starts, so a second tap in the same frame finds it and does not
         // send a second request.

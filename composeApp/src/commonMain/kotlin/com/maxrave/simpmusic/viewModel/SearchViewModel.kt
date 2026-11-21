@@ -17,6 +17,7 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toQueryList
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,6 +130,7 @@ class SearchViewModel(
      */
     private fun getMoodAndGenres() {
         if (_moodAndGenres.value != null) return
+        if (!isNetworkAvailable()) return
         viewModelScope.launch {
             homeRepository.getMoodAndMomentsData().collect { resource ->
                 if (resource is Resource.Success) {
@@ -145,6 +147,7 @@ class SearchViewModel(
      */
     fun loadMoodArtwork(params: String) {
         if (!requestedArtwork.add(params)) return
+        if (!isNetworkAvailable()) return
         viewModelScope.launch {
             homeRepository.getMoodCategoryArtwork(params).collect { url ->
                 if (url != null) {
@@ -188,6 +191,10 @@ class SearchViewModel(
     }
 
     fun searchSongs(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataSong(query).collect { values ->
@@ -210,6 +217,10 @@ class SearchViewModel(
     }
 
     fun searchAll(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             var song = ArrayList<SongsResult>()
@@ -361,6 +372,10 @@ class SearchViewModel(
     }
 
     fun searchAlbums(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataAlbum(query).collect { values ->
@@ -386,6 +401,10 @@ class SearchViewModel(
     }
 
     fun searchFeaturedPlaylist(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
@@ -411,6 +430,10 @@ class SearchViewModel(
     }
 
     fun searchPodcast(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataPodcast(query).collect { values ->
@@ -436,6 +459,10 @@ class SearchViewModel(
     }
 
     fun searchArtists(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataArtist(query).collect { values ->
@@ -461,6 +488,10 @@ class SearchViewModel(
     }
 
     fun searchPlaylists(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataPlaylist(query).collect { values ->
@@ -486,6 +517,10 @@ class SearchViewModel(
     }
 
     fun searchVideos(query: String) {
+        if (!isNetworkAvailable()) {
+            _searchScreenUIState.value = SearchScreenUIState.Error
+            return
+        }
         _searchScreenUIState.value = SearchScreenUIState.Loading
         viewModelScope.launch {
             searchRepository.getSearchDataVideo(query).collect { values ->

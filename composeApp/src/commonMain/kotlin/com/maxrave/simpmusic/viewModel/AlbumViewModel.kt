@@ -18,6 +18,7 @@ import com.maxrave.domain.utils.toAlbumEntity
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.logger.LogLevel
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,7 @@ class AlbumViewModel(
     private var collectDownloadStateJob: Job? = null
 
     fun updateBrowseId(browseId: String) {
+        if (!isNetworkAvailable()) return
         viewModelScope.launch {
             _uiState.update { it.copy(browseId = browseId) }
             albumRepository.getAlbumData(browseId).collectLatest { res ->

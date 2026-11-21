@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.domain.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.domain.repository.AlbumRepository
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,10 @@ class MoreAlbumsViewModel(
     val uiState: StateFlow<MoreAlbumsUIState> get() = _uiState
 
     fun getAlbumMore(id: String) {
+        if (!isNetworkAvailable()) {
+            _uiState.value = MoreAlbumsUIState.Error(getString(Res.string.error))
+            return
+        }
         viewModelScope.launch {
             _uiState.value = MoreAlbumsUIState.Loading
             albumRepository.getAlbumMore(id, ALBUM_PARAM).collect { data ->
@@ -37,6 +42,10 @@ class MoreAlbumsViewModel(
     }
 
     fun getSingleMore(id: String) {
+        if (!isNetworkAvailable()) {
+            _uiState.value = MoreAlbumsUIState.Error(getString(Res.string.error))
+            return
+        }
         viewModelScope.launch {
             _uiState.value = MoreAlbumsUIState.Loading
             albumRepository.getAlbumMore(id, SINGLE_PARAM).collect { data ->
