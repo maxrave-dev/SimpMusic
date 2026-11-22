@@ -154,6 +154,10 @@ fun LibraryScreen(
     if (getPlatform() == Platform.Android) {
         LaunchedEffect(Unit) { viewModel.refreshCachedPreview() }
     }
+    val replayMixPreview by viewModel.replayMixPreview.collectAsStateWithLifecycle()
+    LaunchedEffect(localTrackingEnabled) {
+        if (localTrackingEnabled) viewModel.refreshReplayMixPreview()
+    }
 
     val selectionState = rememberSongSelectionState()
     val selectionViewModel: SongSelectionViewModel = koinViewModel()
@@ -281,7 +285,14 @@ fun LibraryScreen(
                         state = state,
                     ) {
                         item {
-                            LibraryTilingBox(navController, libraryOverview, cachedPreview)
+                            // Replay Mix is ranked from playback_event, which local tracking fills.
+                            LibraryTilingBox(
+                                navController,
+                                libraryOverview,
+                                cachedPreview,
+                                replayMix = replayMixPreview,
+                                showReplayMix = localTrackingEnabled,
+                            )
                         }
 
                         // The reading is drawn from playback_event, so the card follows the same

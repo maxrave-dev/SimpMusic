@@ -137,6 +137,10 @@ class LibraryViewModel(
     private val _cachedPreview: MutableStateFlow<LibraryCollectionPreview?> = MutableStateFlow(null)
     val cachedPreview: StateFlow<LibraryCollectionPreview?> get() = _cachedPreview.asStateFlow()
 
+    /** The Replay Mix card's count and top artwork, read each time the screen is shown: it changes daily. */
+    private val _replayMixPreview: MutableStateFlow<LibraryCollectionPreview?> = MutableStateFlow(null)
+    val replayMixPreview: StateFlow<LibraryCollectionPreview?> get() = _replayMixPreview.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
 
@@ -179,6 +183,13 @@ class LibraryViewModel(
             val songs = loadCachedSongs(cacheRepository, songRepository)
             // The same three the other cards fan out.
             _cachedPreview.value = LibraryCollectionPreview(songs.size, songs.mapNotNull { it.thumbnails }.take(3))
+        }
+    }
+
+    fun refreshReplayMixPreview() {
+        viewModelScope.launch {
+            val songs = loadReplayMixSongs(analyticsRepository, songRepository)
+            _replayMixPreview.value = LibraryCollectionPreview(songs.size, songs.mapNotNull { it.thumbnails }.take(3))
         }
     }
 

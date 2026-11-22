@@ -1160,4 +1160,6 @@
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
     <string name="soundcloud_play_count_info">%1$s - song info</string>
+    <string name="replay_mix">Replay Mix</string>
+    <string name="replay_mix_subtitle">Your most played lately · updated daily</string>
 </resources>

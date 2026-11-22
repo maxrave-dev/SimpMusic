@@ -14,6 +14,7 @@ import com.maxrave.domain.repository.AnalyticsRepository
 import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.CacheRepository
 import com.maxrave.domain.repository.SongRepository
+import com.maxrave.domain.utils.REPLAY_MIX_PLAYLIST_ID
 import com.maxrave.domain.utils.toArrayListTrack
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullNameResource
@@ -101,6 +102,10 @@ class LibraryDynamicPlaylistViewModel(
     private val _listCachedSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
     val listCachedSong: StateFlow<List<SongEntity>> get() = _listCachedSong
     private var cachedSongJob: Job? = null
+
+    /** The local Replay Mix, loaded on demand like the recap: see [loadReplayMixSongs]. */
+    private val _listReplayMixSong: MutableStateFlow<List<SongEntity>> = MutableStateFlow(emptyList())
+    val listReplayMixSong: StateFlow<List<SongEntity>> get() = _listReplayMixSong
 
     init {
         getFavoriteSong()
@@ -210,6 +215,12 @@ class LibraryDynamicPlaylistViewModel(
             }
     }
 
+    fun getReplayMixSong() {
+        viewModelScope.launch {
+            _listReplayMixSong.value = loadReplayMixSongs(analyticsRepository, songRepository)
+        }
+    }
+
     /**
      * Removes the downloads behind the Downloaded list's multi-select action, the same way the
      * song menu's Download toggle does.
@@ -269,8 +280,14 @@ class LibraryDynamicPlaylistViewModel(
                     listOfNotNull(getString(type.name()), _artistLikedName.value).joinToString(" · ")
                 else -> getString(type.name())
             }
+        // A mix is named on its own, as YouTube's mixes are: "Replay Mix", not "Playlist Replay Mix".
+        if (type == LibraryDynamicPlaylistType.ReplayMix) return name
         return "${getString(Res.string.playlist)} $name"
     }
+
+    /** Replay Mix plays as a radio and is extended once it runs out; every other list just ends. */
+    private fun queueId(type: LibraryDynamicPlaylistType): String? =
+        if (type == LibraryDynamicPlaylistType.ReplayMix) REPLAY_MIX_PLAYLIST_ID else null
 
     fun playSong(
         videoId: String,
@@ -281,6 +298,7 @@ class LibraryDynamicPlaylistViewModel(
                 LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value to listFavoriteSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value to listDownloadedSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Cached -> listCachedSong.value to listCachedSong.value.find { it.videoId == videoId }
+                LibraryDynamicPlaylistType.ReplayMix -> listReplayMixSong.value to listReplayMixSong.value.find { it.videoId == videoId }
                 LibraryDynamicPlaylistType.Followed -> return
                 LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
                 is LibraryDynamicPlaylistType.MonthlyRecap ->
@@ -294,7 +312,7 @@ class LibraryDynamicPlaylistViewModel(
             QueueData.Data(
                 listTracks = targetList.toArrayListTrack(),
                 firstPlayedTrack = playTrack.toTrack(),
-                playlistId = null,
+                playlistId = queueId(type),
                 playlistName = playlistName(type),
                 playlistType = PlaylistType.RADIO,
                 continuation = null,
@@ -312,6 +330,7 @@ class LibraryDynamicPlaylistViewModel(
             LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value
             LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value
             LibraryDynamicPlaylistType.Cached -> listCachedSong.value
+            LibraryDynamicPlaylistType.ReplayMix -> listReplayMixSong.value
             LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value
             is LibraryDynamicPlaylistType.MonthlyRecap -> listMonthlyRecapSong.value
             is LibraryDynamicPlaylistType.ArtistLiked -> listArtistLikedSong.value
@@ -325,7 +344,7 @@ class LibraryDynamicPlaylistViewModel(
             QueueData.Data(
                 listTracks = targetList.toArrayListTrack(),
                 firstPlayedTrack = firstTrack.toTrack(),
-                playlistId = null,
+                playlistId = queueId(type),
                 playlistName = playlistName(type),
                 playlistType = PlaylistType.RADIO,
                 continuation = null,
@@ -347,7 +366,7 @@ class LibraryDynamicPlaylistViewModel(
             QueueData.Data(
                 listTracks = shuffledList.toArrayListTrack(),
                 firstPlayedTrack = firstTrack.toTrack(),
-                playlistId = null,
+                playlistId = queueId(type),
                 playlistName = playlistName(type),
                 playlistType = PlaylistType.RADIO,
                 continuation = null,
@@ -365,6 +384,34 @@ class LibraryDynamicPlaylistViewModel(
         private const val MONTHLY_RECAP_LIMIT = 50
     }
 }
+
+/**
+ * The local Replay Mix: the songs played most in the last [REPLAY_MIX_WEEK_DAYS] days, then the
+ * songs of the last [REPLAY_MIX_MONTH_DAYS] days not already in it, up to [REPLAY_MIX_LIMIT]. Both
+ * windows end at midnight today, so the list stays the same all day and changes once a day. Used by
+ * the Replay Mix list and by the card in Library that previews it, so the two always agree.
+ */
+internal suspend fun loadReplayMixSongs(
+    analyticsRepository: AnalyticsRepository,
+    songRepository: SongRepository,
+): List<SongEntity> {
+    val today = now().date
+    val end = today.atTime(0, 0)
+    val ranked =
+        listOf(REPLAY_MIX_WEEK_DAYS, REPLAY_MIX_MONTH_DAYS).flatMap { days ->
+            analyticsRepository
+                .queryTopPlayedSongsInRange(today.minus(days, DateTimeUnit.DAY).atTime(0, 0), end)
+                .first()
+        }
+    val ids = ranked.map { it.videoId }.distinct()
+    if (ids.isEmpty()) return emptyList()
+    // Keeps the ranking order and drops songs whose row is gone.
+    return songRepository.getSongsByListVideoId(ids).first().take(REPLAY_MIX_LIMIT)
+}
+
+private const val REPLAY_MIX_WEEK_DAYS = 7
+private const val REPLAY_MIX_MONTH_DAYS = 30
+private const val REPLAY_MIX_LIMIT = 100
 
 /**
  * Songs the player cache holds in full and that are not downloaded, last played first — the
