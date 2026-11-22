@@ -195,6 +195,15 @@ import simpmusic.composeapp.generated.resources.about_us
 import simpmusic.composeapp.generated.resources.add_an_account
 import simpmusic.composeapp.generated.resources.ai
 import simpmusic.composeapp.generated.resources.ai_api_key
+import simpmusic.composeapp.generated.resources.back_to_list
+import simpmusic.composeapp.generated.resources.other_ai_model
+import simpmusic.composeapp.generated.resources.search_ai_models
+import simpmusic.composeapp.generated.resources.ai_model_list_unavailable
+import simpmusic.composeapp.generated.resources.ai_model_id
+import com.maxrave.simpmusic.viewModel.AiModelsState
+import com.maxrave.simpmusic.ui.icon.Search
+import androidx.compose.ui.text.style.TextOverflow
+import simpmusic.composeapp.generated.resources.ai_model_id_required
 import simpmusic.composeapp.generated.resources.ai_provider
 import simpmusic.composeapp.generated.resources.anonymous
 import simpmusic.composeapp.generated.resources.app_log
@@ -581,6 +590,15 @@ fun SettingScreen(
     val proxyPassword by viewModel.proxyPassword.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val aiProvider by viewModel.aiProvider.collectAsStateWithLifecycle()
+    // Stored provider → its name, in the order the picker lists them: OpenAI and Gemini, the presets,
+    // then the compatible endpoint the user configures.
+    val aiProviderNames =
+        buildMap {
+            put(DataStoreManager.AI_PROVIDER_OPENAI, stringResource(Res.string.openai))
+            put(DataStoreManager.AI_PROVIDER_GEMINI, stringResource(Res.string.gemini))
+            putAll(DataStoreManager.AI_PROVIDER_PRESETS)
+            put(DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI, stringResource(Res.string.openai_api_compatible))
+        }
     val isHasApiKey by viewModel.isHasApiKey.collectAsStateWithLifecycle()
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val translationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
@@ -649,6 +667,7 @@ fun SettingScreen(
             }
         }
     }
+    var showAiModelPicker by rememberSaveable { mutableStateOf(false) }
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -1953,44 +1972,21 @@ fun SettingScreen(
             SettingGroup(title = stringResource(Res.string.ai)) {
                 SettingItem(
                     title = stringResource(Res.string.ai_provider),
-                    subtitle =
-                        when (aiProvider) {
-                            DataStoreManager.AI_PROVIDER_OPENAI -> stringResource(Res.string.openai)
-                            DataStoreManager.AI_PROVIDER_GEMINI -> stringResource(Res.string.gemini)
-                            DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI -> stringResource(Res.string.openai_api_compatible)
-                            else -> stringResource(Res.string.unknown)
-                        },
+                    subtitle = aiProviderNames[aiProvider] ?: stringResource(Res.string.unknown),
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = runBlocking { getString(Res.string.ai_provider) },
                                 selectOne =
                                     SettingAlertState.SelectData(
-                                        listSelect =
-                                            listOf(
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_OPENAI) to
-                                                    runBlocking { getString(Res.string.openai) },
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_GEMINI) to
-                                                    runBlocking { getString(Res.string.gemini) },
-                                                (mainLyricsProvider == DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI) to
-                                                    runBlocking { getString(Res.string.openai_api_compatible) },
-                                            ),
+                                        listSelect = aiProviderNames.map { (provider, name) -> (provider == aiProvider) to name },
                                     ),
                                 confirm =
                                     runBlocking { getString(Res.string.change) } to { state ->
+                                        val selected = state.selectOne?.getSelected()
                                         viewModel.setAIProvider(
-                                            when (state.selectOne?.getSelected()) {
-                                                runBlocking { getString(Res.string.openai) } -> DataStoreManager.AI_PROVIDER_OPENAI
-                                                runBlocking { getString(Res.string.gemini) } -> DataStoreManager.AI_PROVIDER_GEMINI
-                                                runBlocking {
-                                                    getString(
-                                                        Res.string.openai_api_compatible,
-                                                    )
-                                                },
-                                                -> DataStoreManager.AI_PROVIDER_CUSTOM_OPENAI
-
-                                                else -> DataStoreManager.AI_PROVIDER_OPENAI
-                                            },
+                                            aiProviderNames.entries.firstOrNull { it.value == selected }?.key
+                                                ?: DataStoreManager.AI_PROVIDER_OPENAI,
                                         )
                                     },
                                 dismiss = runBlocking { getString(Res.string.cancel) },
@@ -2025,27 +2021,18 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(Res.string.custom_ai_model_id),
-                    subtitle = customModelId.ifEmpty { stringResource(Res.string.default_models) },
+                    subtitle =
+                        customModelId.ifEmpty {
+                            // Presets have no default model.
+                            if (aiProvider in DataStoreManager.AI_PROVIDER_PRESETS) {
+                                stringResource(Res.string.ai_model_id_required)
+                            } else {
+                                stringResource(Res.string.default_models)
+                            }
+                        },
                     onClick = {
-                        viewModel.setAlertData(
-                            SettingAlertState(
-                                title = runBlocking { getString(Res.string.custom_ai_model_id) },
-                                textField =
-                                    SettingAlertState.TextFieldData(
-                                        label = runBlocking { getString(Res.string.custom_ai_model_id) },
-                                        value = "",
-                                        verifyCodeBlock = {
-                                            (it.isNotEmpty() && !it.contains(" ")) to runBlocking { getString(Res.string.invalid) }
-                                        },
-                                    ),
-                                message = runBlocking { getString(Res.string.custom_model_id_messages) },
-                                confirm =
-                                    runBlocking { getString(Res.string.set) } to { state ->
-                                        viewModel.setCustomModelId(state.textField?.value ?: "")
-                                    },
-                                dismiss = runBlocking { getString(Res.string.cancel) },
-                            ),
-                        )
+                        viewModel.loadAiModels()
+                        showAiModelPicker = true
                     },
                 )
                 // Custom OpenAI Base URL - only show when Custom OpenAI is selected
@@ -3234,6 +3221,19 @@ fun SettingScreen(
             }
         }
     }
+    if (showAiModelPicker) {
+        val aiModels by viewModel.aiModels.collectAsStateWithLifecycle()
+        AiModelPickerDialog(
+            state = aiModels,
+            providerName = aiProviderNames[aiProvider].orEmpty(),
+            currentModelId = customModelId,
+            onSet = {
+                viewModel.setCustomModelId(it)
+                showAiModelPicker = false
+            },
+            onDismiss = { showAiModelPicker = false },
+        )
+    }
     val alertData by viewModel.alertData.collectAsStateWithLifecycle()
     if (alertData != null) {
         val alertState = alertData ?: return
@@ -3664,4 +3664,127 @@ private fun ImportProgressDialog(
             }
         },
     )
+}
+
+/**
+ * Picks the AI model from the provider's own `GET /models` list, searchable since OpenRouter lists
+ * hundreds. "Other…" types an ID by hand, and so does a provider with no list to give.
+ */
+@Composable
+private fun AiModelPickerDialog(
+    state: AiModelsState,
+    providerName: String,
+    currentModelId: String,
+    onSet: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var typing by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var selected by rememberSaveable { mutableStateOf(currentModelId) }
+    var typed by rememberSaveable { mutableStateOf(currentModelId) }
+    val models = (state as? AiModelsState.Loaded)?.models
+    val manual = typing || state is AiModelsState.Unavailable
+    val value = if (manual) typed else selected
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(Res.string.custom_ai_model_id),
+                style = typo().titleSmall,
+            )
+        },
+        text = {
+            when {
+                state is AiModelsState.Loading -> {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp))
+                }
+
+                manual -> {
+                    Column {
+                        if (state is AiModelsState.Unavailable) {
+                            Text(
+                                text = stringResource(Res.string.ai_model_list_unavailable, providerName),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                        }
+                        Text(text = stringResource(Res.string.custom_model_id_messages))
+                        TextField(
+                            value = typed,
+                            onValueChange = { typed = it.trim() },
+                            label = { Text(text = stringResource(Res.string.ai_model_id)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        )
+                    }
+                }
+
+                models != null -> {
+                    val shown = remember(models, query) { models.filter { it.contains(query.trim(), ignoreCase = true) } }
+                    Column {
+                        TextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            placeholder = { Text(text = stringResource(Res.string.search_ai_models)) },
+                            leadingIcon = { Icon(SimpIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        LazyColumn(
+                            Modifier
+                                .padding(vertical = 6.dp)
+                                .heightIn(0.dp, 400.dp),
+                        ) {
+                            items(shown, key = { it }) { model ->
+                                AiModelRow(text = model, selected = model == selected) { selected = model }
+                            }
+                            item(key = "other") {
+                                AiModelRow(text = stringResource(Res.string.other_ai_model), selected = false) {
+                                    typed = selected
+                                    typing = true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSet(value) },
+                enabled = state !is AiModelsState.Loading && value.isNotEmpty() && ' ' !in value,
+            ) {
+                Text(text = stringResource(Res.string.set))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { if (typing) typing = false else onDismiss() }) {
+                Text(text = stringResource(if (typing) Res.string.back_to_list else Res.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun AiModelRow(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .padding(vertical = 4.dp)
+            .clickable(onClick = onClick)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = typo().bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }

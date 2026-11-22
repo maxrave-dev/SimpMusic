@@ -9,6 +9,7 @@ import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.BrowseViewModel
 import com.maxrave.simpmusic.viewModel.BrowserLoginViewModel
 import com.maxrave.simpmusic.viewModel.CommentsViewModel
+import com.maxrave.simpmusic.viewModel.RadioBuilderViewModel
 import com.maxrave.simpmusic.viewModel.SoundCloudPlayerViewModel
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.ImportViewModel
@@ -172,6 +173,13 @@ val viewModelModule =
         }
         viewModel {
             BrowseViewModel(
+                get(),
+            )
+        }
+        viewModel {
+            RadioBuilderViewModel(
+                get(),
+                get(),
                 get(),
             )
         }

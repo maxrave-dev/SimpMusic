@@ -53,6 +53,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -150,6 +151,10 @@ fun App(
     showDesktopNotificationPermissionDialog: Boolean = false,
     onDismissDesktopNotificationPermissionDialog: (doNotShowAgain: Boolean) -> Unit = {},
     onOpenDesktopNotificationSettings: (doNotShowAgain: Boolean) -> Unit = {},
+    // The gap above the Desktop panels. macOS passes 0 while its system title bar shows: the bar
+    // already leaves room above the panels, and 8dp more under it put twice the space below the
+    // title as above it.
+    desktopPanelTop: Dp = 8.dp,
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
@@ -713,7 +718,7 @@ fun App(
                                             showAnalyticsTab = showAnalyticsTab,
                                             showMixForYouTab = showMixForYouTab,
                                             // No end padding: the content panel's own 8dp is the gap between the two.
-                                            modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
+                                            modifier = Modifier.padding(start = 8.dp, top = desktopPanelTop, bottom = 8.dp),
                                         ) { klass ->
                                             viewModel.reloadDestination(klass)
                                         }
@@ -738,7 +743,7 @@ fun App(
                                         .then(
                                             if (isDesktopShell) {
                                                 Modifier
-                                                    .padding(8.dp)
+                                                    .padding(start = 8.dp, top = desktopPanelTop, end = 8.dp, bottom = 8.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                                     .background(desktopPanel)
                                             } else {
@@ -831,7 +836,7 @@ fun App(
                                                 // read as a pair of floating cards, not one panel
                                                 // with a seam down the middle.
                                                 if (isDesktopShell) {
-                                                    Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp)
+                                                    Modifier.padding(top = desktopPanelTop, end = 8.dp, bottom = 8.dp)
                                                 } else {
                                                     Modifier
                                                 },

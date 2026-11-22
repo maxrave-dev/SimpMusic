@@ -169,6 +169,10 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+
+    private val _aiModels = MutableStateFlow<AiModelsState>(AiModelsState.Loading)
+    val aiModels: StateFlow<AiModelsState> = _aiModels
+    private var aiModelsJob: Job? = null
     private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
     val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
     private val _customOpenAIHeaders = MutableStateFlow<String>("")
@@ -813,6 +817,23 @@ class SettingsViewModel(
                 _customModelId.value = customModelId
             }
         }
+    }
+
+    /** Asks the configured AI provider for its models, for the picker; fresh on every open. */
+    fun loadAiModels() {
+        aiModelsJob?.cancel()
+        _aiModels.value = AiModelsState.Loading
+        aiModelsJob =
+            viewModelScope.launch {
+                _aiModels.value =
+                    commonRepository.getAiModels().fold(
+                        onSuccess = { if (it.isEmpty()) AiModelsState.Unavailable else AiModelsState.Loaded(it) },
+                        onFailure = {
+                            log("AI model list unavailable: ${it.message}")
+                            AiModelsState.Unavailable
+                        },
+                    )
+            }
     }
 
     fun setCustomModelId(modelId: String) {
@@ -2274,3 +2295,14 @@ const val DEFAULT_DELAY_MIX = 0.3f
 
 /** See `DataStoreManagerImpl.reverbMix`. */
 const val DEFAULT_REVERB_MIX = 0.35f
+
+/** The AI model picker's list: loading, the provider's model IDs, or none to offer (type the ID). */
+sealed interface AiModelsState {
+    data object Loading : AiModelsState
+
+    data class Loaded(
+        val models: List<String>,
+    ) : AiModelsState
+
+    data object Unavailable : AiModelsState
+}

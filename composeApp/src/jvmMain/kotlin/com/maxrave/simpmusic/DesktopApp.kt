@@ -514,6 +514,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         desktopNotificationManager::dismissPermissionDialog,
                     onOpenDesktopNotificationSettings =
                         desktopNotificationManager::openNotificationSettings,
+                    // macOS only; full screen hides the title bar, so the panels get their gap back.
+                    desktopPanelTop = if (isMacOS && !DesktopFullscreen.isFullscreen) 0.dp else 8.dp,
                 )
                 LibrarySyncLoginPrompt(sharedViewModel)
                 ToastHost()

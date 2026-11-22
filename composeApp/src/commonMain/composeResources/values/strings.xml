@@ -579,6 +579,12 @@
     <string name="custom_ai_model_id">Custom AI model ID</string>
     <string name="default_models">Default models are "gemini-2.0-flash" and "gpt-4o"</string>
     <string name="invalid">Invalid</string>
+    <string name="ai_model_id_required">Required for this provider</string>
+    <string name="ai_model_id">Model ID</string>
+    <string name="search_ai_models">Search models</string>
+    <string name="other_ai_model">Other…</string>
+    <string name="ai_model_list_unavailable">Couldn't load the model list from %1$s.</string>
+    <string name="back_to_list">Back to list</string>
     <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
     <string name="favorite_podcasts">Favorite Podcasts</string>
     <string name="no_favorite_podcasts">No favorite podcasts</string>
@@ -1095,6 +1101,7 @@
     <string name="comment_placeholder">Comment…</string>
     <string name="local_playlist">Local playlist</string>
     <string name="create_playlist_description">Build a playlist on this device</string>
+    <string name="create_radio_description">Pick artists and a radio is built from them</string>
     <string name="create_room_description">Start or join a room</string>
     <string name="create_room_live">Your room is live</string>
     <string name="create_new_queue_and_play">Create a new queue and add to play</string>
