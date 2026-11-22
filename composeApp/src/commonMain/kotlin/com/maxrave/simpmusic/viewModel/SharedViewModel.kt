@@ -2088,6 +2088,9 @@ class SharedViewModel(
 
     fun getEnableLiquidGlass() = dataStoreManager.enableLiquidGlass
 
+    /** "Scroll long text": on unless the user turned it off, so a fresh install keeps scrolling. */
+    fun getTitleMarquee(): Flow<Boolean> = dataStoreManager.getString(TITLE_MARQUEE_KEY).map { it != DataStoreManager.FALSE }
+
     fun getLocalTrackingEnabled() = dataStoreManager.localTrackingEnabled
 
     // Drives the Mix for you tab: YouTube hands an anonymous session no mixes at all.

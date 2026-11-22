@@ -18,7 +18,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -95,6 +94,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
@@ -381,7 +381,7 @@ fun FullscreenLyricsContent(
                                 maxLines = 1,
                                 modifier =
                                     Modifier
-                                        .basicMarquee(
+                                        .titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable(),
@@ -427,7 +427,7 @@ fun FullscreenLyricsContent(
                                     maxLines = 1,
                                     modifier =
                                         Modifier
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),

@@ -13,7 +13,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -97,6 +96,7 @@ import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.MediaPlayerView
@@ -741,7 +741,7 @@ fun ArtistScreen(
                                         Modifier
                                             .fillMaxWidth()
                                             .wrapContentHeight(align = Alignment.CenterVertically)
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),

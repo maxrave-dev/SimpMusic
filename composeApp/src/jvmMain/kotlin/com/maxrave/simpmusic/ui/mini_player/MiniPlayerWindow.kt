@@ -1,7 +1,9 @@
 package com.maxrave.simpmusic.ui.mini_player
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +20,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.ui.theme.LocalTitleMarquee
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import org.jetbrains.compose.resources.painterResource
@@ -124,11 +127,15 @@ fun MiniPlayerWindow(
                 )
         }
 
-        MiniPlayerRoot(
-            sharedViewModel = sharedViewModel,
-            onClose = onCloseRequest,
-            windowState = windowState,
-            window = window,
-        )
+        // A window of its own, outside AppTheme, so it reads the "Scroll long text" setting itself.
+        val titleMarquee by sharedViewModel.getTitleMarquee().collectAsState(true)
+        CompositionLocalProvider(LocalTitleMarquee provides titleMarquee) {
+            MiniPlayerRoot(
+                sharedViewModel = sharedViewModel,
+                onClose = onCloseRequest,
+                windowState = windowState,
+                window = window,
+            )
+        }
     }
 }

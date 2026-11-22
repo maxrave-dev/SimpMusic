@@ -72,6 +72,13 @@ val LocalIsDarkTheme = staticCompositionLocalOf { true }
 val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
 
 /**
+ * Whether long text may scroll ([com.maxrave.simpmusic.extension.titleMarquee]). Provided by
+ * [AppTheme] from the "Scroll long text" setting, and by the Desktop mini player window, which sits
+ * outside it; true elsewhere, which is today's behaviour.
+ */
+val LocalTitleMarquee = staticCompositionLocalOf { true }
+
+/**
  * The dark scheme to use for immersive screens while the app itself is on the light theme.
  * Provided by [AppTheme], consumed by [ForceDarkContent]; null only outside of [AppTheme].
  */
@@ -127,6 +134,7 @@ fun AppTheme(
     themeColorSource: String = DataStoreManager.THEME_COLOR_DEFAULT,
     customThemeColor: Color? = null,
     liquidGlassEnabled: Boolean = true,
+    titleMarquee: Boolean = true,
     content:
         @Composable()
         () -> Unit,
@@ -177,6 +185,7 @@ fun AppTheme(
                 LocalIsDarkTheme provides isDark,
                 LocalForcedDarkColorScheme provides forcedDarkScheme,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
+                LocalTitleMarquee provides titleMarquee,
                 content = content,
             )
         },
@@ -253,9 +262,9 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
 /**
  * Resolves the stored theme mode to a plain boolean.
  *
- * Pulled out of [AppTheme] so chrome living *outside* it can ask the same question — the desktop
- * title bar is drawn before AppTheme is entered, so it has no MaterialTheme to read and would
- * otherwise need its own copy of this `when`.
+ * Pulled out of [AppTheme] so chrome living *outside* it can ask the same question — DesktopApp
+ * themes the macOS system title bar before AppTheme is entered, so it has no MaterialTheme to read
+ * and would otherwise need its own copy of this `when`.
  */
 @Composable
 fun isDarkTheme(themeMode: String): Boolean =

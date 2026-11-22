@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.screen.other
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +34,7 @@ import androidx.navigation.NavController
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -149,7 +149,7 @@ fun MoreAlbumsScreen(
                                     .fillMaxWidth()
                                     .wrapContentHeight(
                                         align = Alignment.CenterVertically,
-                                    ).basicMarquee(
+                                    ).titleMarquee(
                                         iterations = Int.MAX_VALUE,
                                         animationMode = MarqueeAnimationMode.Immediately,
                                     ).focusable(),

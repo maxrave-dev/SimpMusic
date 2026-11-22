@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.player
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -70,6 +69,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.AddLyricsSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -349,7 +349,7 @@ fun FullscreenPlayer(
                                         Modifier
                                             .fillMaxWidth()
                                             .wrapContentHeight(align = Alignment.CenterVertically)
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),

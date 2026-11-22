@@ -162,6 +162,7 @@ fun App(
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val titleMarquee by viewModel.getTitleMarquee().collectAsStateWithLifecycle(true)
     // Analytics only makes sense with local tracking on, so its tab follows that setting.
     val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val showAnalyticsTab = isLocalTrackingEnabled == TRUE
@@ -515,6 +516,7 @@ fun App(
         customThemeColor = parseThemeColorHex(customThemeColorHex),
         // The setting governs Desktop too, the same as Android: off, every glass surface draws flat.
         liquidGlassEnabled = isLiquidGlassEnabled == TRUE,
+        titleMarquee = titleMarquee,
     ) {
         if (!isOfficialBuild) {
             UnofficialBuildScreen()

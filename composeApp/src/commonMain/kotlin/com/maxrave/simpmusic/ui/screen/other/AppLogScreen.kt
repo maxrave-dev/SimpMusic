@@ -118,7 +118,7 @@ private val POLL_INTERVAL = 1.seconds
 // The live view never holds more than this; the export always takes the whole files.
 private const val MAX_SHOWN_LINES = 5_000
 
-// Warn has no Material role. Amber by convention, the way the traffic lights in Color.kt are.
+// Warn has no Material role. Amber by convention.
 private val WarnDark = Color(0xFFFFCF6B)
 private val WarnLight = Color(0xFF8C5E00)
 

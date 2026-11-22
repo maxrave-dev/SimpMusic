@@ -18,7 +18,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -94,6 +93,7 @@ import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
@@ -394,7 +394,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                 Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(
+                                    .titleMarquee(
                                         iterations = Int.MAX_VALUE,
                                         animationMode = MarqueeAnimationMode.Immediately,
                                     ).focusable(),
@@ -503,7 +503,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                         Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 20.dp)
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),
@@ -619,7 +619,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                                 .fillMaxWidth()
                                                                 .padding(horizontal = 20.dp)
                                                                 .padding(bottom = 4.dp)
-                                                                .basicMarquee(
+                                                                .titleMarquee(
                                                                     iterations = Int.MAX_VALUE,
                                                                     animationMode = MarqueeAnimationMode.Immediately,
                                                                 ).focusable(),
@@ -643,7 +643,7 @@ private fun NowPlayingM3ExpressiveLayout(
                                                                     .fillMaxWidth()
                                                                     .padding(horizontal = 20.dp)
                                                                     .padding(bottom = 8.dp)
-                                                                    .basicMarquee(
+                                                                    .titleMarquee(
                                                                         iterations = Int.MAX_VALUE,
                                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                                     ).focusable(),
@@ -736,7 +736,7 @@ internal fun ExpressiveTrackInfoRow(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
+                        .titleMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
@@ -763,7 +763,7 @@ internal fun ExpressiveTrackInfoRow(
                         Modifier
                             .weight(1f)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
+                            .titleMarquee(
                                 iterations = Int.MAX_VALUE,
                                 animationMode = MarqueeAnimationMode.Immediately,
                             ).focusable()

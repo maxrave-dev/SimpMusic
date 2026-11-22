@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -44,7 +43,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,7 +52,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
@@ -73,7 +70,6 @@ import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getColorFromPalette
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.rememberIsInPipMode
@@ -743,16 +739,9 @@ fun NowPlayingScreenContent(
     if (showFullscreenLyrics) {
         if (getPlatform() == Platform.Desktop) {
             // Desktop's Now Playing is a side panel, not a sheet, so the page opens as a Popup over
-            // the whole window — the custom title bar included. A Popup that stops below the bar
-            // leaves the bar outside it, and a focusable Popup dismisses on any press outside
-            // itself, so a click on the bar used to close the page.
+            // the whole window content.
             val windowSize = LocalWindowInfo.current.containerSize
             val density = LocalDensity.current
-            // DesktopApp makes the window transparent and clips its content to 12dp corners exactly
-            // when it draws the custom title bar (both macOS-only). A Popup is a layer of its own
-            // that clip never reaches, so the page rounds itself. getScreenSizeInfo() subtracts that
-            // same bar, which makes the height difference the one signal commonMain can read.
-            val windowIsRounded = windowSize.height > getScreenSizeInfo().hPX
             val popupPositionProvider =
                 remember {
                     object : PopupPositionProvider {
@@ -794,8 +783,6 @@ fun NowPlayingScreenContent(
                                 .size(
                                     with(density) { windowSize.width.toDp() },
                                     with(density) { windowSize.height.toDp() },
-                                ).then(
-                                    if (windowIsRounded) Modifier.clip(RoundedCornerShape(12.dp)) else Modifier,
                                 ),
                     ) {
                         FullscreenLyricsContent(

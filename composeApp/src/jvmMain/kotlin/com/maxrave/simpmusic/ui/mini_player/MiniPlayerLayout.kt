@@ -10,7 +10,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -63,6 +62,7 @@ import com.maxrave.domain.data.model.streams.TimeLine
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.mediaservice.handler.ControlState
 import com.maxrave.simpmusic.extension.LeftToRight
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.extension.parseRichSyncWords
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
@@ -442,7 +442,7 @@ fun MediumMiniLayout(
                                             .fillMaxWidth()
                                             .wrapContentHeight(
                                                 align = Alignment.CenterVertically,
-                                            ).basicMarquee(
+                                            ).titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),
@@ -590,7 +590,7 @@ fun SquareMiniLayout(
                                     .padding(horizontal = 8.dp)
                                     .wrapContentHeight(
                                         align = Alignment.CenterVertically,
-                                    ).basicMarquee(
+                                    ).titleMarquee(
                                         iterations = Int.MAX_VALUE,
                                         animationMode = MarqueeAnimationMode.Immediately,
                                     ).focusable(),
@@ -948,7 +948,7 @@ fun ExpandedMiniLayout(
                                         .fillMaxWidth()
                                         .wrapContentHeight(
                                             align = Alignment.CenterVertically,
-                                        ).basicMarquee(
+                                        ).titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable()

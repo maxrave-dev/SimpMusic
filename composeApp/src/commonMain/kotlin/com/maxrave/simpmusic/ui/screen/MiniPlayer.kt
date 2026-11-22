@@ -23,7 +23,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -117,6 +116,7 @@ import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.elapsedLabel
 import com.maxrave.simpmusic.extension.formatDuration
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -476,7 +476,7 @@ fun MiniPlayer(
                                                     .fillMaxWidth()
                                                     .wrapContentHeight(
                                                         align = Alignment.CenterVertically,
-                                                    ).basicMarquee(
+                                                    ).titleMarquee(
                                                         iterations = Int.MAX_VALUE,
                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                     ).focusable(),
@@ -501,7 +501,7 @@ fun MiniPlayer(
                                                         .weight(1f)
                                                         .wrapContentHeight(
                                                             align = Alignment.CenterVertically,
-                                                        ).basicMarquee(
+                                                        ).titleMarquee(
                                                             iterations = Int.MAX_VALUE,
                                                             animationMode = MarqueeAnimationMode.Immediately,
                                                         ).focusable(),
@@ -821,7 +821,7 @@ fun MiniPlayer(
                                         .fillMaxWidth()
                                         .wrapContentHeight(
                                             align = Alignment.CenterVertically,
-                                        ).basicMarquee(
+                                        ).titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable(),

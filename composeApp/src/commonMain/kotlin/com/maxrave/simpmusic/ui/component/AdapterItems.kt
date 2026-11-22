@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -111,6 +110,7 @@ import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.expect.ui.HorizontalScrollBar
 import com.maxrave.simpmusic.extension.getStringBlocking
 import com.maxrave.simpmusic.extension.mouseDragScroll
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
@@ -826,7 +826,7 @@ fun HomeItemContentPlaylist(
                 modifier =
                     textWidth
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
+                        .titleMarquee(
                             initialDelayMillis = 2000,
                             repeatDelayMillis = 2000,
                             velocity = 25.dp,
@@ -906,7 +906,7 @@ fun QuickPicksItem(
                             .wrapContentHeight(align = Alignment.CenterVertically)
                             .padding(
                                 bottom = 3.dp,
-                            ).basicMarquee(
+                            ).titleMarquee(
                                 iterations = Int.MAX_VALUE,
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
@@ -944,7 +944,7 @@ fun QuickPicksItem(
                                 Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(
+                                    .titleMarquee(
                                         initialDelayMillis = 2000,
                                         repeatDelayMillis = 2000,
                                         velocity = 25.dp,
@@ -1056,7 +1056,7 @@ fun HomeItemSong(
                     modifier =
                         textWidth
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
+                            .titleMarquee(
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
                                 velocity = 25.dp,
@@ -1158,7 +1158,7 @@ fun HomeItemVideo(
                         Modifier
                             .weight(1f)
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
+                            .titleMarquee(
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
                                 velocity = 25.dp,
@@ -1261,7 +1261,7 @@ fun HomeItemArtist(
                 modifier =
                     textWidth
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
+                        .titleMarquee(
                             initialDelayMillis = 2000,
                             repeatDelayMillis = 2000,
                             velocity = 25.dp,
@@ -1400,7 +1400,7 @@ fun ItemVideoChart(
                             Modifier
                                 .width(210.dp)
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(
+                                .titleMarquee(
                                     initialDelayMillis = 2000,
                                     repeatDelayMillis = 2000,
                                     velocity = 25.dp,
@@ -1503,7 +1503,7 @@ fun ItemArtistChart(
                     modifier =
                         Modifier
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
+                            .titleMarquee(
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
                                 velocity = 25.dp,
@@ -1610,7 +1610,7 @@ fun ItemTrackChart(
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
+                            .titleMarquee(
                                 initialDelayMillis = 2000,
                                 repeatDelayMillis = 2000,
                                 velocity = 25.dp,

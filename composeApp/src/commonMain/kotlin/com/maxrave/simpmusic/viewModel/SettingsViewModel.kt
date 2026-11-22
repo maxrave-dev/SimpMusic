@@ -76,6 +76,9 @@ import simpmusic.composeapp.generated.resources.warning
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 
+/** DataStore key of the "Scroll long text" setting, read by [SharedViewModel.getTitleMarquee] too. */
+const val TITLE_MARQUEE_KEY = "title_marquee"
+
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
@@ -201,6 +204,9 @@ class SettingsViewModel(
 
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
+
+    private val _titleMarquee = MutableStateFlow(true)
+    val titleMarquee: StateFlow<Boolean> = _titleMarquee
 
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
@@ -333,6 +339,9 @@ class SettingsViewModel(
         getBackupDownloaded()
         getUpdateChannel()
         getEnableLiquidGlass()
+        viewModelScope.launch {
+            dataStoreManager.getString(TITLE_MARQUEE_KEY).collect { _titleMarquee.value = it != DataStoreManager.FALSE }
+        }
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
@@ -673,6 +682,13 @@ class SettingsViewModel(
             dataStoreManager.enableLiquidGlass.collect { enableLiquidGlass ->
                 _enableLiquidGlass.value = enableLiquidGlass == DataStoreManager.TRUE
             }
+        }
+    }
+
+    // The collector started in init picks the new value up; re-collecting here would leak one per write.
+    fun setTitleMarquee(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(TITLE_MARQUEE_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
         }
     }
 

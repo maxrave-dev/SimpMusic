@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -127,6 +126,7 @@ import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.displayString
 import com.maxrave.simpmusic.extension.isTwoLetterCode
 import com.maxrave.simpmusic.extension.isValidProxyHost
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
@@ -271,6 +271,8 @@ import simpmusic.composeapp.generated.resources.enable_animated_artwork
 import simpmusic.composeapp.generated.resources.enable_canvas
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect
 import simpmusic.composeapp.generated.resources.enable_liquid_glass_effect_description
+import simpmusic.composeapp.generated.resources.scroll_long_text
+import simpmusic.composeapp.generated.resources.scroll_long_text_description
 import simpmusic.composeapp.generated.resources.enable_rich_presence
 import simpmusic.composeapp.generated.resources.enable_scrobbling
 import simpmusic.composeapp.generated.resources.enable_sponsor_block
@@ -595,6 +597,7 @@ fun SettingScreen(
     val autoBackupLastTime by viewModel.autoBackupLastTime.collectAsStateWithLifecycle()
     val updateChannel by viewModel.updateChannel.collectAsStateWithLifecycle()
     val enableLiquidGlass by viewModel.enableLiquidGlass.collectAsStateWithLifecycle()
+    val scrollLongText by viewModel.titleMarquee.collectAsStateWithLifecycle()
     val themeMode by sharedViewModel.getThemeMode().collectAsStateWithLifecycle(DataStoreManager.THEME_MODE_DARK)
     val themeColorSource by sharedViewModel.getThemeColorSource().collectAsStateWithLifecycle(DataStoreManager.THEME_COLOR_DEFAULT)
     val customThemeColorHex by sharedViewModel.getCustomThemeColor().collectAsStateWithLifecycle(DataStoreManager.DEFAULT_THEME_COLOR_HEX)
@@ -999,6 +1002,12 @@ fun SettingScreen(
                         subtitle = stringResource(Res.string.enable_liquid_glass_effect_description),
                         smallSubtitle = true,
                         switch = (enableLiquidGlass to { viewModel.setEnableLiquidGlass(it) }),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.scroll_long_text),
+                        subtitle = stringResource(Res.string.scroll_long_text_description),
+                        smallSubtitle = true,
+                        switch = (scrollLongText to { viewModel.setTitleMarquee(it) }),
                     )
                 }
             }
@@ -3330,7 +3339,7 @@ fun SettingScreen(
                                         Modifier
                                             .fillMaxWidth()
                                             .wrapContentHeight(align = Alignment.CenterVertically)
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),
