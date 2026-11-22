@@ -57,17 +57,19 @@ kotlin {
         }
     }
 
-//    listOf(
-//        iosArm64(),
-//        iosSimulatorArm64()
-//    ).forEach { iosTarget ->
-//        iosTarget.binaries.framework {
-//            baseName = "ComposeApp"
-//            isStatic = true
-//        }
-//    }
+    // The iOS port is in progress. Opt in to compile/link diagnostics without
+    // making the unfinished Native source sets part of normal Android/Desktop builds.
+    if (providers.gradleProperty("enableIos").map(String::toBoolean).getOrElse(false)) {
+        listOf(iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
+            iosTarget.binaries.framework {
+                baseName = "ComposeApp"
+                isStatic = true
+            }
+        }
+    }
 
     jvm()
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         dependencies {
@@ -75,9 +77,10 @@ kotlin {
             val koinBom = project.dependencies.platform(libs.koin.bom)
             implementation(composeBom)
             implementation(koinBom)
-            implementation(libs.commons.io)
         }
         androidMain.dependencies {
+            implementation(libs.commons.io)
+            api(libs.coil.network.okhttp)
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.android)
             implementation(libs.koin.androidx.compose)
@@ -123,7 +126,6 @@ kotlin {
             implementation(libs.compose.material3.adaptive)
             implementation(libs.compose.material.ripple)
 
-            implementation(libs.ui.tooling.preview)
 
             // Other module
             api(projects.common)
@@ -149,7 +151,7 @@ kotlin {
 
             // Coil
             api(libs.coil.compose)
-            api(libs.coil.network.okhttp)
+            api(libs.coil.network.core)
             api(libs.kmpalette.core)
             api(libs.kmpalette.network)
             implementation(libs.materialkolor)
@@ -186,10 +188,16 @@ kotlin {
             implementation(libs.liquid.glass)
             implementation(libs.liquid.glass.shape)
         }
+        findByName("iosMain")?.dependencies {
+            implementation("io.coil-kt.coil3:coil-network-ktor3:${libs.versions.coil3.get()}")
+            implementation(libs.ktor.client.darwin)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
+            implementation(libs.commons.io)
+            api(libs.coil.network.okhttp)
             // Desktop app entry (main.kt), jpackage/Conveyor
             // packaging, and tray icon live in :desktopApp per the
             // JetBrains 2026 KMP default structure. This module keeps the

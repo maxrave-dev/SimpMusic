@@ -1044,7 +1044,7 @@ internal fun AppleMusicBottomCluster(
 ) {
     val localDensity = LocalDensity.current
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = topPadding)) {
-        if (getPlatform() == Platform.Android) {
+        if (getPlatform() != Platform.Desktop) {
             AppleMusicPlaybackControls(state = state, actions = actions, typography = typography)
             Spacer(modifier = Modifier.height(18.dp))
             deviceVolumeController?.let { controller ->

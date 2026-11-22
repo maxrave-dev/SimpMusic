@@ -426,7 +426,7 @@ private fun AppleMusicMainView(
         // top band held above it, over a stretch as long as the status bar is tall: the bottom edge's
         // treatment, mirrored. Desktop has no status bar, so there the artwork keeps the panel's top.
         val statusBarHeight = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() }
-        val topInset = if (meshPage && getPlatform() == Platform.Android) statusBarHeight else 0.dp
+        val topInset = if (meshPage && getPlatform() != Platform.Desktop) statusBarHeight else 0.dp
         val topFade = topInset
         val shownHeight = if (showsClip) clipFrameHeight else artworkHeight
         val meshSeam = topInset + shownHeight

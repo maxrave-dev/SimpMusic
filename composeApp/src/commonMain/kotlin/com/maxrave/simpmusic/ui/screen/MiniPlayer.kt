@@ -267,7 +267,7 @@ fun MiniPlayer(
         job4.join()
     }
 
-    if (getPlatform() == Platform.Android) {
+    if (getPlatform() != Platform.Desktop) {
         // One shape for both the Card and the clip below. They must not diverge: the clip wraps
         // the Card's own background draw, so the larger radius wins and silently becomes the
         // visible one.
