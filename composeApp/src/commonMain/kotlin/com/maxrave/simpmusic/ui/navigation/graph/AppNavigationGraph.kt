@@ -43,16 +43,18 @@ fun AppNavigationGraph(
         navController,
         startDestination = startDestination,
         enterTransition = {
-            fadeIn() + slideInHorizontally { -it }
+            fadeIn(animationSpec = androidx.compose.animation.core.tween(220)) +
+                slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(220)) { it / 12 }
         },
         exitTransition = {
-            fadeOut() + slideOutHorizontally { it }
+            fadeOut(animationSpec = androidx.compose.animation.core.tween(180))
         },
         popEnterTransition = {
-            fadeIn() + slideInHorizontally { -it }
+            fadeIn(animationSpec = androidx.compose.animation.core.tween(180))
         },
         popExitTransition = {
-            fadeOut() + slideOutHorizontally { it }
+            fadeOut(animationSpec = androidx.compose.animation.core.tween(220)) +
+                slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(220)) { it / 12 }
         },
     ) {
         // Bottom bar destinations
