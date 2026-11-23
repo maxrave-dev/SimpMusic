@@ -211,6 +211,9 @@ class SettingsViewModel(
     private var _backupDownloaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val backupDownloaded: StateFlow<Boolean> = _backupDownloaded
 
+    private val _restoreLoginSession: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    val restoreLoginSession: StateFlow<Boolean> = _restoreLoginSession
+
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
 
@@ -760,6 +763,10 @@ class SettingsViewModel(
             dataStoreManager.setBackupDownloaded(backupDownloaded)
             getBackupDownloaded()
         }
+    }
+
+    fun setRestoreLoginSession(enabled: Boolean) {
+        _restoreLoginSession.value = enabled
     }
 
     // Auto Backup functions
@@ -1467,6 +1474,9 @@ class SettingsViewModel(
                     runCatching { librarySyncRepository.unpairAll() }
                         .onFailure { Logger.e(tag, "library sync: unpair before restore failed", it) }
                     restoreNative(commonRepository, uri) {
+                        if (!restoreLoginSession.value) {
+                            logOutAllYouTube()
+                        }
                         getData()
                     }
                 }.onFailure {
@@ -1769,6 +1779,7 @@ class SettingsViewModel(
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("", null)
+                com.maxrave.simpmusic.expect.ui.createWebViewCookieManager().removeAllCookies()
                 Logger.i("Auth", "YouTube: signed out")
                 // Mirroring follows needs a session to write to, so signing out clears the flag
                 // here rather than from the Settings row — same teardown as setSpotifyLogIn and
@@ -1790,6 +1801,7 @@ class SettingsViewModel(
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("", null)
+            com.maxrave.simpmusic.expect.ui.createWebViewCookieManager().removeAllCookies()
             Logger.i("Auth", "YouTube: signed out of all accounts")
             dataStoreManager.setSyncFollowToYouTube(false)
             delay(500)

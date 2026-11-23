@@ -1178,4 +1178,6 @@
     <string name="app_icon_minimalism_dark">Minimalism Dark</string>
     <string name="app_icon_pixel">Pixel</string>
     <string name="app_icon_close_warning">Changing the app icon will close your app. Open it again from the new icon. Are you sure?</string>
+    <string name="restore_login_session">Restore login session</string>
+    <string name="restore_login_session_description">Keep Google/YouTube login cookies when restoring a backup. Turn off to restore only library and settings.</string>
 </resources>

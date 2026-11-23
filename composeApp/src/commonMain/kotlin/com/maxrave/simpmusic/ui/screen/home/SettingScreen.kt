@@ -254,6 +254,8 @@ import simpmusic.composeapp.generated.resources.auto_download_liked_songs_descri
 import simpmusic.composeapp.generated.resources.backup
 import simpmusic.composeapp.generated.resources.backup_downloaded
 import simpmusic.composeapp.generated.resources.backup_downloaded_description
+import simpmusic.composeapp.generated.resources.restore_login_session
+import simpmusic.composeapp.generated.resources.restore_login_session_description
 import simpmusic.composeapp.generated.resources.backup_frequency
 import simpmusic.composeapp.generated.resources.balance_media_loudness
 import simpmusic.composeapp.generated.resources.better_lyrics
@@ -641,6 +643,7 @@ fun SettingScreen(
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
     val contributor by viewModel.contributor.collectAsStateWithLifecycle()
     val backupDownloaded by viewModel.backupDownloaded.collectAsStateWithLifecycle()
+    val restoreLoginSession by viewModel.restoreLoginSession.collectAsStateWithLifecycle()
     val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsStateWithLifecycle()
     val autoBackupFrequency by viewModel.autoBackupFrequency.collectAsStateWithLifecycle()
     val autoBackupMaxFiles by viewModel.autoBackupMaxFiles.collectAsStateWithLifecycle()
@@ -2785,6 +2788,11 @@ fun SettingScreen(
                         title = stringResource(Res.string.backup_downloaded),
                         subtitle = stringResource(Res.string.backup_downloaded_description),
                         switch = (backupDownloaded to { viewModel.setBackupDownloaded(it) }),
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.restore_login_session),
+                        subtitle = stringResource(Res.string.restore_login_session_description),
+                        switch = (restoreLoginSession to { viewModel.setRestoreLoginSession(it) }),
                     )
                     // Auto Backup (Android only)
                     if (getPlatform() == Platform.Android) {
