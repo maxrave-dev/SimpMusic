@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.other
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -189,6 +190,7 @@ fun RadioBuilderScreen(
                 tuneLabel = page.tuneLabel,
                 doneLabel = page.doneLabel.orEmpty(),
                 doneEnabled = selectedSeeds.isNotEmpty(),
+                tuning = tuning,
                 onTune = { tuning = !tuning },
                 // Done opens the radio in the Playlist page's radio mode, replacing this page.
                 onDone = {
@@ -212,22 +214,61 @@ private fun SeedGrid(
 ) {
     val gridState = rememberLazyGridState()
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        // Three across on a phone, as in the official app; a wide window gets as many as fit.
-        val columns = if (maxWidth < 600.dp) GridCells.Fixed(3) else GridCells.Adaptive(150.dp)
+        // Three across on a phone, as in the official app; a wide window gets as many 150dp tiles as
+        // fit, counted here so the last row can be filled. The gaps are the items' own padding, so a
+        // tile's ripple has room around its picture.
+        val columns =
+            if (maxWidth < 600.dp) {
+                3
+            } else {
+                ((maxWidth - GRID_EDGE * 2) / (150.dp + ITEM_PADDING_X * 2)).toInt().coerceAtLeast(1)
+            }
+        val shown = remember(seeds, columns, selected) { seeds.endingOnFullRow(columns, selected) }
         LazyVerticalGrid(
-            columns = columns,
+            columns = GridCells.Fixed(columns),
             state = gridState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(horizontal = GRID_EDGE),
         ) {
-            items(seeds, key = { it.token }) { seed ->
-                SeedItem(seed = seed, selected = seed.token in selected, onClick = { onToggle(seed.token) })
+            items(shown, key = { it.token }) { seed ->
+                // Related artists fade in and the tiles after them slide along, instead of jumping.
+                SeedItem(
+                    seed = seed,
+                    selected = seed.token in selected,
+                    onClick = { onToggle(seed.token) },
+                    modifier = Modifier.animateItem(),
+                )
             }
         }
         VerticalScrollBar(scrollState = gridState)
     }
+}
+
+// Half the old 14dp/20dp gaps on each side of a tile, and the 16dp page edge less a tile's own padding,
+// so the pictures sit where they did.
+private val ITEM_PADDING_X = 7.dp
+private val ITEM_PADDING_Y = 10.dp
+private val GRID_EDGE = 16.dp - ITEM_PADDING_X
+
+/**
+ * The grid ending on a full row: a short last row reads as cut off, so the extra tiles are taken from
+ * the artists, which there are hundreds of, starting from the end and never one that is [picked].
+ * Left as it is when there are not enough such artists.
+ */
+private fun List<RadioSeed>.endingOnFullRow(
+    columns: Int,
+    picked: List<String>,
+): List<RadioSeed> {
+    val extra = size % columns
+    if (extra == 0) return this
+    val dropped =
+        asReversed()
+            .asSequence()
+            .filter { it.kind == RadioSeedKind.ARTIST && it.token !in picked }
+            .take(extra)
+            .map { it.token }
+            .toSet()
+    return if (dropped.size < extra) this else filterNot { it.token in dropped }
 }
 
 @Composable
@@ -235,11 +276,15 @@ private fun SeedItem(
     seed: RadioSeed,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val isArtist = seed.kind == RadioSeedKind.ARTIST
     val shape: Shape = if (isArtist) CircleShape else ArtworkShape
     Column(
-        Modifier.clip(ArtworkShape).clickable(onClick = onClick),
+        modifier
+            .clip(ArtworkShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = ITEM_PADDING_X, vertical = ITEM_PADDING_Y),
         horizontalAlignment = if (isArtist) Alignment.CenterHorizontally else Alignment.Start,
     ) {
         Box(
@@ -479,10 +524,19 @@ private fun BottomBar(
     tuneLabel: String?,
     doneLabel: String,
     doneEnabled: Boolean,
+    tuning: Boolean,
     onTune: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Lit while the tuning page is open, in the colours of a picked choice on it, so it reads as the
+    // way back to the grid.
+    val tuneContainer by animateColorAsState(
+        if (tuning) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+    )
+    val tuneContent by animateColorAsState(
+        if (tuning) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+    )
     Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Row(
             Modifier
@@ -496,11 +550,11 @@ private fun BottomBar(
                 Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .background(tuneContainer)
                     .clickable(onClick = onTune),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(SimpIcons.Tune, contentDescription = tuneLabel, tint = MaterialTheme.colorScheme.onSurface)
+                Icon(SimpIcons.Tune, contentDescription = tuneLabel, tint = tuneContent)
             }
             Box(
                 Modifier

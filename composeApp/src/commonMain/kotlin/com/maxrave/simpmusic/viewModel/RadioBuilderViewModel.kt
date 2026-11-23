@@ -12,7 +12,6 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.error
@@ -20,7 +19,7 @@ import simpmusic.composeapp.generated.resources.error
 /**
  * YouTube Music's radio builder, filled in with this device's listening: pick artists, songs and
  * genres, optionally tune, and Done opens the ONE tuned radio they make in the Playlist page's radio
- * mode. A web sign-in gets only artists from YouTube, so the grid adds the songs played most lately
+ * mode. A web sign-in gets only artists from YouTube, so the grid adds the top of the local Replay Mix
  * (`RDATv<videoId>`) and the genres YouTube puts on their radios (`RDATG<id>E`), as the iOS app shows.
  */
 class RadioBuilderViewModel(
@@ -64,18 +63,14 @@ class RadioBuilderViewModel(
     }
 
     /**
-     * The grid: YouTube's artists, the songs played most in the last [LOCAL_DAYS] days and the genres
-     * of the top [GENRE_SOURCES] of them, shuffled together. A source that fails to read is left out.
+     * The grid: YouTube's artists, the top [LOCAL_SONGS] of the local Replay Mix (this week's most
+     * played, then this month's) and the genres of its top [GENRE_SOURCES], shuffled together. A source
+     * that fails to read is left out.
      */
     private suspend fun withLocalSeeds(youTube: List<RadioSeed>): List<RadioSeed> {
-        val top =
-            runCatching { analyticsRepository.queryTopPlayedSongsLastXDays(LOCAL_DAYS).first() }
+        val songs =
+            runCatching { loadReplayMixSongs(analyticsRepository, songRepository) }
                 .getOrDefault(emptyList())
-        val songsById =
-            runCatching { songRepository.getSongsByListVideoId(top.map { it.videoId }).first() }
-                .getOrDefault(emptyList())
-                .associateBy { it.videoId }
-        val songs = top.mapNotNull { songsById[it.videoId] }
         val songSeeds =
             songs.take(LOCAL_SONGS).map { song ->
                 RadioSeed(
@@ -95,8 +90,24 @@ class RadioBuilderViewModel(
     }
 
     fun toggleSeed(token: String) {
+        val picking = token !in _selectedSeeds.value
         _selectedSeeds.value =
-            _selectedSeeds.value.let { if (token in it) it - token else it + token }
+            _selectedSeeds.value.let { if (picking) it + token else it - token }
+        if (picking) revealRelated(token)
+    }
+
+    /**
+     * Picking an artist brings its related artists into the grid right after it, as the web page does.
+     * They stay when it is unpicked, since some of them may be picked by then.
+     */
+    private fun revealRelated(token: String) {
+        val page = (_uiState.value as? RadioBuilderUIState.Success)?.page ?: return
+        val shown = page.seeds.mapTo(HashSet()) { it.token }
+        val related = page.related[token].orEmpty().filterNot { it.token in shown }.distinctBy { it.token }
+        val at = page.seeds.indexOfFirst { it.token == token }
+        if (related.isEmpty() || at < 0) return
+        _uiState.value =
+            RadioBuilderUIState.Success(page.copy(seeds = page.seeds.toMutableList().apply { addAll(at + 1, related) }))
     }
 
     /** A required group always keeps one chip; tapping the picked chip of another clears it. */
@@ -124,8 +135,7 @@ class RadioBuilderViewModel(
     }
 
     private companion object {
-        const val LOCAL_DAYS = 30
-        const val LOCAL_SONGS = 12
+        const val LOCAL_SONGS = 24
         const val GENRE_SOURCES = 5
     }
 }

@@ -441,6 +441,10 @@ class PlaylistViewModel(
         }
     }
 
+    /** A radio goes by its own name, as YouTube's mixes do; a playlist is `Playlist "<title>"`. */
+    private fun queueName(data: PlaylistState): String =
+        if (data.isRadio) data.title else "${getString(Res.string.playlist)} \"${data.title}\""
+
     fun onUIEvent(event: PlaylistUIEvent) {
         val data = uiState.value.data ?: return
         when (event) {
@@ -454,11 +458,7 @@ class PlaylistViewModel(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${data.title}\"",
+                        playlistName = queueName(data),
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = continuation.value,
                     ),
@@ -484,11 +484,7 @@ class PlaylistViewModel(
                         listTracks = loadedList.toCollection(arrayListOf<Track>()),
                         firstPlayedTrack = clickedSong,
                         playlistId = data.id,
-                        playlistName = "${
-                            getString(
-                                Res.string.playlist,
-                            )
-                        } \"${data.title}\"",
+                        playlistName = queueName(data),
                         playlistType = PlaylistType.PLAYLIST,
                         continuation = continuation.value,
                     ),

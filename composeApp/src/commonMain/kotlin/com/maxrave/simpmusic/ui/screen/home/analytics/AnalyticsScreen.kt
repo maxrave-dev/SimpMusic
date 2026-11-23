@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -163,6 +164,9 @@ private val CONTENT_INSET = 24.dp
 /** The wider window follows the Apple Music headers, which sit at 32dp. */
 private val LANDSCAPE_GUTTER = 32.dp
 
+/** Below this the two-column body squeezes its charts and mosaics; Material's expanded width starts here. */
+private val TWO_COLUMN_MIN_WIDTH = 840.dp
+
 /** Status-bar inset + `top = 16.dp` + the 48.dp glass buttons + 16.dp of air below them. */
 private val TOP_STRIP = 80.dp
 
@@ -192,11 +196,6 @@ fun AnalyticsScreen(
     // and the banner must be absent, not empty, when the year is too thin to fill a reel.
     val wrappedState by wrappedViewModel.uiState.collectAsStateWithLifecycle()
     val playingTrack by sharedViewModel.nowPlayingState.map { it?.track?.videoId }.collectAsState(null)
-
-    // Which header is used depends on the window's aspect ratio alone, exactly as on Album and
-    // Playlist: a portrait window gets the edge-to-edge artwork header, a landscape one gets the
-    // side-by-side header and a two-column body.
-    val isPortrait = screenSizeInfo.wDP < screenSizeInfo.hDP
 
     var currentItem by remember { mutableStateOf<SongEntity?>(null) }
     var itemBottomSheetShow by remember { mutableStateOf(false) }
@@ -297,12 +296,16 @@ fun AnalyticsScreen(
     // loop that kills the RuntimeShader — see the note in AlbumScreen.
     val headerBackdrop = rememberBackdrop(Color.Black)
 
-    Box(
+    BoxWithConstraints(
         modifier =
             Modifier
                 .fillMaxSize()
                 .background(pageBackground),
     ) {
+        // A portrait window gets the edge-to-edge artwork header and one column, as on Album and
+        // Playlist. So does a landscape window whose panel is too narrow for two columns, such as
+        // Desktop with the sidebar and Now Playing open beside it.
+        val isPortrait = screenSizeInfo.wDP < screenSizeInfo.hDP || maxWidth < TWO_COLUMN_MIN_WIDTH
         val listState = rememberLazyListState()
         LazyColumn(
             state = listState,

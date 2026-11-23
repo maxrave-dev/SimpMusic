@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -109,7 +110,6 @@ import com.maxrave.simpmusic.expect.ui.SongRecognitionSheet
 import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
-import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -215,13 +215,6 @@ fun SearchScreen(
     // The bar floats OVER the content (a Box, not a Column) so there is something behind it to
     // blur — same arrangement HomeScreen uses. Each branch owns a scroll state, hoisted here so
     // the bar can tell whether the branch currently on screen is scrolled away from the top.
-    // Two columns only on a phone held upright. Anywhere wider — tablet, landscape, desktop — two
-    // columns stretch each tile to half the window, and since the tile keeps a 2:1 ratio it grows
-    // absurdly tall with it.
-    val screenInfo = getScreenSizeInfo()
-    val isMobilePortrait = getPlatform() == Platform.Android && screenInfo.wDP < screenInfo.hDP
-    val moodGridColumns = if (isMobilePortrait) 2 else 4
-
     val hazeState = rememberHazeState()
     // The floating chip row refracts the page scrolling under it, so the page is the glass source and
     // the row its sibling (nesting the row inside the source is the RuntimeShader feedback loop).
@@ -652,10 +645,15 @@ fun SearchScreen(
                         // Capped and centred: on a wide desktop window the grid would otherwise
                         // span the whole width, stretching four tiles into long bars. 1100.dp
                         // keeps a tile near 250.dp, which is its natural size.
-                        Box(
+                        BoxWithConstraints(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.TopCenter,
                         ) {
+                        // As many tiles as fit at 160dp or wider, from two to four, counted on the page's
+                        // own width: two on a phone held upright or in a narrow Desktop panel, four once
+                        // there is room. More than four stretches nothing but adds columns of bars.
+                        val moodGridColumns =
+                            ((minOf(maxWidth, 1100.dp) - 32.dp + 12.dp) / (160.dp + 12.dp)).toInt().coerceIn(2, 4)
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(moodGridColumns),
                             modifier =

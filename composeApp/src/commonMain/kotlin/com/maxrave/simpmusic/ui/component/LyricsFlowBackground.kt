@@ -181,10 +181,10 @@ private fun DrawScope.drawCopy(
     }
 }
 
-// Radians a second for the 125%, 80%, 50% and 25% copies: Apple Music web's per-frame steps
-// (+0.003, -0.008, -0.006, +0.004 at 30 fps). The iPhone app measured at a tenth of this, and both a tenth
-// and 0.3 read as standing still under this blur.
-private val SPIN = floatArrayOf(0.09f, -0.24f, -0.18f, 0.12f)
+// Radians a second for the 125%, 80%, 50% and 25% copies: 60% of Apple Music web's per-frame steps
+// (+0.003, -0.008, -0.006, +0.004 at 30 fps); full speed and then 75% both read too fast. The iPhone app
+// measured at a tenth of web, and both a tenth and 0.3 read as standing still under this blur.
+private val SPIN = floatArrayOf(0.054f, -0.144f, -0.108f, 0.072f)
 private val BLUR_RADIUS = 80.dp
 private const val SATURATION = 2.75f
 private const val FRAME_INTERVAL_NS = 33_333_333L
