@@ -114,6 +114,9 @@ fun LoginScreen(
     var devLoginSheet by rememberSaveable {
         mutableStateOf(false)
     }
+    var isLoggingIn by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     val state = rememberWebViewState()
     // Resolve the Desktop-only dependency only on Desktop. Android keeps its existing WebView.
@@ -227,24 +230,26 @@ fun LoginScreen(
                     clearCookies = true,
                 ) { url ->
                     Logger.d("LogInScreen", "Current URL: $url")
-                    if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
-                        coroutineScope.launch {
-                            val success =
-                                createWebViewCookieManager()
-                                    .getCookie(url)
-                                    .takeIf {
-                                        it.isNotEmpty()
-                                    }?.let {
-                                        settingsViewModel.addAccount(it)
-                                    } ?: false
-
-                            createWebViewCookieManager().removeAllCookies()
-
-                            if (success) {
-                                viewModel.makeToast(getString(Res.string.login_success))
-                                navController.navigateUp()
-                            } else {
-                                viewModel.makeToast(getString(Res.string.login_failed))
+                    if (!isLoggingIn && (url.startsWith("https://music.youtube.com") || url.contains("music.youtube.com"))) {
+                        val cookieManager = createWebViewCookieManager()
+                        val cookie = cookieManager.getCookie(url).takeIf { it.isNotEmpty() }
+                            ?: cookieManager.getCookie(Config.YOUTUBE_MUSIC_MAIN_URL)
+                        val hasAuthTokens = cookie.contains("SAPISID") ||
+                            cookie.contains("__Secure-1PAPISID") ||
+                            cookie.contains("__Secure-3PAPISID") ||
+                            cookie.contains("LOGIN_INFO")
+                        if (hasAuthTokens) {
+                            isLoggingIn = true
+                            coroutineScope.launch {
+                                viewModel.makeToast(getString(Res.string.log_in))
+                                val success = settingsViewModel.addAccount(cookie)
+                                if (success) {
+                                    viewModel.makeToast(getString(Res.string.login_success))
+                                    navController.navigateUp()
+                                } else {
+                                    isLoggingIn = false
+                                    viewModel.makeToast(getString(Res.string.login_failed))
+                                }
                             }
                         }
                     }
