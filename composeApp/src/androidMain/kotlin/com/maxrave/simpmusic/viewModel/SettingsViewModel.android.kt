@@ -115,11 +115,13 @@ actual suspend fun restoreNative(
                 }
 
             var downloadFolderCleared = false
+            var restoredBackupEntry = false
 
             while (entry != null) {
                 Logger.d("BackupRestore", "Processing entry: ${entry.name}")
                 when {
                     entry.name == "$SETTINGS_FILENAME.preferences_pb" -> {
+                        restoredBackupEntry = true
                         (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb")
                             .outputStream()
                             .use { outputStream ->
@@ -128,17 +130,23 @@ actual suspend fun restoreNative(
                     }
 
                     entry.name == DB_NAME -> {
+                        restoredBackupEntry = true
                         runBlocking(Dispatchers.IO) {
                             commonRepository.databaseDaoCheckpoint()
                             commonRepository.closeDatabase()
                         }
-                        FileOutputStream(commonRepository.getDatabasePath()).use { outputStream ->
+                        val dbPath = commonRepository.getDatabasePath()
+                        deleteSqliteSidecars(File(dbPath))
+                        FileOutputStream(dbPath).use { outputStream ->
                             inputStream.copyTo(outputStream)
                         }
                     }
 
                     entry.name == EXOPLAYER_DB_NAME -> {
-                        FileOutputStream(application.getDatabasePath(EXOPLAYER_DB_NAME)).use { outputStream ->
+                        restoredBackupEntry = true
+                        val exoDbFile = application.getDatabasePath(EXOPLAYER_DB_NAME)
+                        deleteSqliteSidecars(exoDbFile)
+                        FileOutputStream(exoDbFile).use { outputStream ->
                             inputStream.copyTo(outputStream)
                         }
                     }
@@ -165,6 +173,9 @@ actual suspend fun restoreNative(
                 }
                 entry = inputStream.nextEntry
             }
+            if (restoredBackupEntry && !downloadFolderCleared) {
+                clearFolder(application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER)
+            }
         }
     }
     // Final debug check
@@ -183,6 +194,12 @@ actual suspend fun restoreNative(
         val mainIntent = Intent.makeRestartActivityTask(intent?.component)
         ctx.startActivity(mainIntent)
         Runtime.getRuntime().exit(0)
+    }
+}
+
+private fun deleteSqliteSidecars(dbFile: File) {
+    listOf("-wal", "-shm", "-journal").forEach { suffix ->
+        File("${dbFile.path}$suffix").delete()
     }
 }
 
