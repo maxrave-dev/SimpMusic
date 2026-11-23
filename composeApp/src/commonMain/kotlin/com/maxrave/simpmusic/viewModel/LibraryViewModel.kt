@@ -29,9 +29,11 @@ import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioPlaylistId
 import com.maxrave.simpmusic.ui.screen.home.analytics.monthFullNameResource
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
+import com.maxrave.simpmusic.utils.collectPlaylistResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -153,6 +155,9 @@ class LibraryViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val localTrackingEnabled = dataStoreManager.localTrackingEnabled.mapLatest { it == DataStoreManager.TRUE }
 
+    private var youTubePlaylistJob: Job? = null
+    private var youTubeMixForYouJob: Job? = null
+
     init {
         viewModelScope.launch {
             val currentScreenJob =
@@ -166,8 +171,34 @@ class LibraryViewModel(
                 }
             val cookieJob =
                 launch {
-                    dataStoreManager.cookie.distinctUntilChanged().collect {
+                    var hasSeenInitialCookie = false
+                    dataStoreManager.cookie.distinctUntilChanged().collect { cookieValue ->
                         _accountThumbnail.value = dataStoreManager.getString("AccountThumbUrl").first().takeIf { !it.isNullOrEmpty() }
+                        if (hasSeenInitialCookie) {
+                            val hadPlaylistRequest = youTubePlaylistJob != null
+                            val hadMixRequest = youTubeMixForYouJob != null
+                            youTubePlaylistJob?.cancel()
+                            youTubeMixForYouJob?.cancel()
+                            if (cookieValue.isNotBlank()) {
+                                if (hadPlaylistRequest) {
+                                    getYouTubePlaylist()
+                                } else {
+                                    _youTubePlaylist.value = LocalResource.Loading()
+                                }
+                                if (hadMixRequest) {
+                                    getYouTubeMixedForYou()
+                                } else {
+                                    _youTubeMixForYou.value = LocalResource.Loading()
+                                }
+                            } else {
+                                youTubePlaylistJob = null
+                                youTubeMixForYouJob = null
+                                _youTubePlaylist.value = LocalResource.Success(emptyList())
+                                _youTubeMixForYou.value = LocalResource.Success(emptyList())
+                            }
+                        } else {
+                            hasSeenInitialCookie = true
+                        }
                     }
                 }
             currentScreenJob.join()
@@ -232,21 +263,25 @@ class LibraryViewModel(
     }
 
     fun getYouTubePlaylist() {
+        youTubePlaylistJob?.cancel()
         _youTubePlaylist.value = LocalResource.Loading()
-        viewModelScope.launch {
-            playlistRepository.getLibraryPlaylist().collect { data ->
-                _youTubePlaylist.value = LocalResource.Success(data ?: emptyList())
+        youTubePlaylistJob =
+            viewModelScope.launch {
+                collectPlaylistResource(playlistRepository.getLibraryPlaylist()) { resource ->
+                    _youTubePlaylist.value = resource
+                }
             }
-        }
     }
 
     fun getYouTubeMixedForYou() {
+        youTubeMixForYouJob?.cancel()
         _youTubeMixForYou.value = LocalResource.Loading()
-        viewModelScope.launch {
-            playlistRepository.getMixedForYou().collect { data ->
-                _youTubeMixForYou.value = LocalResource.Success(data ?: emptyList())
+        youTubeMixForYouJob =
+            viewModelScope.launch {
+                collectPlaylistResource(playlistRepository.getMixedForYou()) { resource ->
+                    _youTubeMixForYou.value = resource
+                }
             }
-        }
     }
 
     fun getYouTubeLoggedIn(): Boolean = runBlocking { dataStoreManager.loggedIn.first() } == DataStoreManager.TRUE
