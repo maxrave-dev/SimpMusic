@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +27,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
@@ -35,6 +38,7 @@ import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.typo
+import java.text.Normalizer
 
 @Composable
 fun SettingItem(
@@ -46,6 +50,9 @@ fun SettingItem(
     switch: Pair<Boolean, ((Boolean) -> Unit)>? = null,
     otherView: @Composable (() -> Unit)? = null,
 ) {
+    // While Settings is searched, a row that answers nothing typed is not drawn at all; a group left
+    // with no rows then folds itself away (SettingGroup).
+    if (!settingShown(title, subtitle)) return
     // isEnable only greys the row out; it deliberately writes nothing.
     //
     // There used to be an onDisable callback fired from a LaunchedEffect(isEnable) here, to clear a
@@ -154,33 +161,86 @@ fun SettingGroup(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val cardColor = settingGroupColor()
-    Column(modifier.fillMaxWidth().padding(top = 24.dp)) {
-        Text(
-            text = title.toUpperCase(Locale.current),
-            // The headers' size from before the groups; only the weight drops, so they step back.
-            style = typo().labelMedium.copy(fontWeight = FontWeight.Normal),
-            modifier = Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, bottom = 8.dp),
-        )
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(SettingGroupShape)
-                    .background(cardColor.copy(alpha = 0.5f))
-                    .drawWithContent {
-                        // The first row's hairline would sit on the card's own edge, so that strip is
-                        // left undrawn. Clipped rather than painted over: the card is translucent.
-                        clipRect(top = SettingDividerThickness.toPx()) { this@drawWithContent.drawContent() }
+    val query = LocalSettingSearch.current
+    // A group whose own name is searched shows whole, as if nothing were typed.
+    val titleMatches = query.isNotEmpty() && searchKey(title).contains(query)
+    val filtering = query.isNotEmpty() && !titleMatches
+    CompositionLocalProvider(LocalSettingSearch provides if (titleMatches) "" else query) {
+        Layout(
+            contents =
+                listOf(
+                    {
+                        Text(
+                            text = title.toUpperCase(Locale.current),
+                            // The headers' size from before the groups; only the weight drops, so they step back.
+                            style = typo().labelMedium.copy(fontWeight = FontWeight.Normal),
+                            modifier = Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, bottom = 8.dp),
+                        )
                     },
-            content = content,
-        )
-        if (footer != null) {
-            Box(Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, top = 8.dp)) {
-                footer()
+                    {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(SettingGroupShape)
+                                    .background(cardColor.copy(alpha = 0.5f))
+                                    .drawWithContent {
+                                        // The first row's hairline would sit on the card's own edge, so that strip is
+                                        // left undrawn. Clipped rather than painted over: the card is translucent.
+                                        clipRect(top = SettingDividerThickness.toPx()) { this@drawWithContent.drawContent() }
+                                    },
+                            content = content,
+                        )
+                    },
+                    {
+                        // A note about the whole group says nothing about the few rows a search leaves.
+                        if (footer != null && !filtering) {
+                            Box(Modifier.padding(start = SettingRowPaddingHorizontal, end = SettingRowPaddingHorizontal, top = 8.dp)) {
+                                footer()
+                            }
+                        }
+                    },
+                ),
+            modifier = modifier.fillMaxWidth(),
+        ) { (headers, cards, footers), constraints ->
+            val loose = constraints.copy(minWidth = 0, minHeight = 0)
+            val card = cards.map { it.measure(loose) }
+            // Decided while measuring, not from state: rows that do not match draw nothing, so a card
+            // with none left is 0 tall, and the header and the 24dp above it go with it in the same
+            // frame. A 0-tall item also lets the lazy list go on composing the groups below.
+            if (filtering && card.all { it.height == 0 }) return@Layout layout(constraints.maxWidth, 0) {}
+            val header = headers.map { it.measure(loose) }
+            val note = footers.map { it.measure(loose) }
+            val top = SettingGroupTopPadding.roundToPx()
+            val headerHeight = header.sumOf { it.height }
+            val cardHeight = card.sumOf { it.height }
+            layout(constraints.maxWidth, top + headerHeight + cardHeight + note.sumOf { it.height }) {
+                header.forEach { it.placeRelative(0, top) }
+                card.forEach { it.placeRelative(0, top + headerHeight) }
+                note.forEach { it.placeRelative(0, top + headerHeight + cardHeight) }
             }
         }
     }
 }
+
+/** What the Settings search field holds, already put through [searchKey]; empty while nothing is typed. */
+val LocalSettingSearch = compositionLocalOf { "" }
+
+/** Lower case, accents dropped and đ read as d, so typing "loi bai hat" finds "Lời bài hát". */
+fun searchKey(text: String): String =
+    Normalizer
+        .normalize(text.lowercase(), Normalizer.Form.NFD)
+        .replace(CombiningMarks, "")
+        .replace('đ', 'd')
+
+/** Whether a row with these texts stays on screen for what is typed in the Settings search. */
+@Composable
+fun settingShown(vararg texts: String): Boolean {
+    val query = LocalSettingSearch.current
+    return query.isEmpty() || texts.any { searchKey(it).contains(query) }
+}
+
+private val CombiningMarks = Regex("\\p{Mn}+")
 
 // One step off the page the card sits on. Android's page is the theme background (black, or
 // #FAFAFA); Desktop's is a panel, and its light panel is already surfaceContainer — the card's
@@ -193,6 +253,7 @@ private fun settingGroupColor(): Color =
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-private val SettingGroupShape = RoundedCornerShape(20.dp)
+internal val SettingGroupShape = RoundedCornerShape(20.dp)
 private val SettingRowPaddingHorizontal = 16.dp
 private val SettingDividerThickness = 0.5.dp
+private val SettingGroupTopPadding = 24.dp

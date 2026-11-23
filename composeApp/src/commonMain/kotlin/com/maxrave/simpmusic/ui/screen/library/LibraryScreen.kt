@@ -65,6 +65,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -525,6 +526,8 @@ fun LibraryScreen(
         Row(
             modifier =
                 Modifier
+                    // A mouse drags the row on Desktop, as Home's chip row does.
+                    .mouseDragScroll(chipRowState)
                     .horizontalScroll(chipRowState)
                     .padding(horizontal = 15.dp)
                     .padding(bottom = 8.dp)

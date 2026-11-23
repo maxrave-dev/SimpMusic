@@ -49,6 +49,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +72,9 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
 import com.maxrave.simpmusic.expect.openUrl
+import com.maxrave.simpmusic.expect.ui.LocalAppWindowHeight
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.LocalAppBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
@@ -768,6 +771,9 @@ fun App(
                                             LocalAppDialogOpen provides appDialogOpen,
                                             LocalNowPlayingOpen provides isShowNowPlaylistScreen,
                                             LocalUserStarted provides userStarted,
+                                            // Glass action sheets opened from these screens refract it.
+                                            LocalAppBackdrop provides backdrop,
+                                            LocalAppWindowHeight provides LocalWindowInfo.current.containerSize.height,
                                         ) {
                                             AppNavigationGraph(
                                                 innerPadding = innerPadding,
@@ -850,16 +856,25 @@ fun App(
                                                 },
                                             ),
                                     ) {
-                                        ForceDarkContent {
-                                            NowPlayingScreenContent(
-                                                navController = navController,
-                                                sharedViewModel = viewModel,
-                                                isExpanded = true,
-                                                dismissIcon = SimpIcons.ArrowForwardIos,
+                                        // The Desktop panel sits inside the Row the backdrop records, so the
+                                        // sheets it opens (song menu, comments, output) can be glass too.
+                                        // Elsewhere the panel is not in the recording and they stay flat.
+                                        val nowPlayingPanel: @Composable () -> Unit = {
+                                            CompositionLocalProvider(
+                                                LocalAppBackdrop provides if (isDesktopShell) backdrop else null,
+                                                LocalAppWindowHeight provides LocalWindowInfo.current.containerSize.height,
                                             ) {
-                                                isShowNowPlaylistScreen = false
+                                                NowPlayingScreenContent(
+                                                    navController = navController,
+                                                    sharedViewModel = viewModel,
+                                                    isExpanded = true,
+                                                    dismissIcon = SimpIcons.ArrowForwardIos,
+                                                ) {
+                                                    isShowNowPlaylistScreen = false
+                                                }
                                             }
                                         }
+                                        ForceDarkContent { nowPlayingPanel() }
                                     }
                                 }
                             }

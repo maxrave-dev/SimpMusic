@@ -33,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -73,6 +72,7 @@ import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.AddLyricsSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.ValueSlider
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.FullscreenExit
@@ -589,7 +589,7 @@ fun FullscreenPlayer(
                                         }
                                     }
                                     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                        Slider(
+                                        ValueSlider(
                                             // Fraction, not 0..100 — see the note in NowPlayingScreen:
                                             // material3 alpha25 drops valueRange on its
                                             // binary-compatibility overload.
@@ -776,6 +776,7 @@ fun FullscreenPlayer(
                         } else {
                             null
                         },
+                    onDeleteLyrics = nowPlayingState.lyricsData?.let { shown -> { sharedViewModel.deleteLyrics(shown) } },
                 )
             }
             addLyricsFor?.let { (videoId, title, artist) ->

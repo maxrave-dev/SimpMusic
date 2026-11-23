@@ -69,8 +69,12 @@ private const val BAND_RANGE_DB = 12f
  * sample of sixty published profiles was −12.1 dB. A stored value outside a [Slider]'s range is
  * pinned to the end of the track, which would have shown those profiles sitting at the limit while
  * holding a different number.
+ *
+ * Down to −30 rather than −15 (#2577): on Android a screen recorder or a live stream captures media
+ * at full digital level whatever the system volume is, so turning the music down under game audio
+ * can only happen here, at the source, and −15 was still too loud for that.
  */
-private const val PREAMP_MIN_DB = -15f
+private const val PREAMP_MIN_DB = -30f
 
 private val CURVE_HEIGHT = 240.dp
 

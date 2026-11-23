@@ -84,6 +84,19 @@ val LocalTitleMarquee = staticCompositionLocalOf { true }
  */
 val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
 
+/**
+ * The app's own scheme and light/dark, as [AppTheme] resolved them, so [SheetTheme] can give a sheet
+ * the app theme back inside a [ForceDarkContent] screen. Null/true only outside of [AppTheme].
+ */
+val LocalAppColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
+val LocalAppIsDark = staticCompositionLocalOf { true }
+
+/**
+ * True inside a sheet that [SheetTheme] took out of a [ForceDarkContent] screen: the sheet follows the
+ * app theme while the page behind it stays dark, which the sheet's glass has to account for.
+ */
+val LocalSheetOverDarkScreen = staticCompositionLocalOf { false }
+
 /** Parses "RRGGBB" or "AARRGGBB" (optionally "#"-prefixed) into a [Color]; null if malformed. */
 fun parseThemeColorHex(hex: String): Color? {
     val clean = hex.trim().removePrefix("#")
@@ -184,6 +197,8 @@ fun AppTheme(
                 LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
                 LocalIsDarkTheme provides isDark,
                 LocalForcedDarkColorScheme provides forcedDarkScheme,
+                LocalAppColorScheme provides colorScheme,
+                LocalAppIsDark provides isDark,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
                 LocalTitleMarquee provides titleMarquee,
                 content = content,
@@ -256,6 +271,42 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
             )
         },
         typography = typo(darkScheme, forceDark = true),
+    )
+}
+
+/**
+ * Gives a sheet the app theme back. Sheets follow the app theme on every platform, even when the
+ * screen that opened them is forced dark ([ForceDarkContent]: Now Playing, Artist, Album, Playlist…);
+ * without this they inherit the forced scheme, because a sheet keeps its caller's CompositionLocals.
+ * Dialogs opened from a sheet take it too. Outside a forced-dark screen, and nested in another
+ * [SheetTheme], it changes nothing.
+ *
+ * [com.maxrave.simpmusic.ui.component.SheetSurface] applies it to its content. A sheet that reads the
+ * theme outside that content (a colour taken before the sheet opens, a full-screen sheet without a
+ * SheetSurface, a dialog declared beside the sheet) wraps that part itself.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SheetTheme(content: @Composable () -> Unit) {
+    val appScheme = LocalAppColorScheme.current
+    if (!LocalForceDarkText.current || appScheme == null) {
+        content()
+        return
+    }
+    val appIsDark = LocalAppIsDark.current
+    MaterialExpressiveTheme(
+        colorScheme = appScheme,
+        content = {
+            CompositionLocalProvider(
+                LocalForceDarkText provides false,
+                LocalSheetOverDarkScreen provides true,
+                LocalIsDarkTheme provides appIsDark,
+                LocalContentColor provides appScheme.onSurfaceVariant,
+                LocalAppColors provides if (appIsDark) DarkAppColors else LightAppColors,
+                content = content,
+            )
+        },
+        typography = typo(appScheme, forceDark = false),
     )
 }
 

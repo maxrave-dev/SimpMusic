@@ -60,7 +60,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -123,6 +122,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
 import com.maxrave.simpmusic.ui.component.QueueBottomSheet
+import com.maxrave.simpmusic.ui.component.ValueSlider
 import com.maxrave.simpmusic.ui.component.liquidGlass
 import com.maxrave.simpmusic.ui.component.rememberGlassLuminance
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
@@ -1107,7 +1107,7 @@ fun MiniPlayer(
                                                 // A vertical Slider is a horizontal one rotated a quarter
                                                 // turn: graphicsLayer rotates the drawing AND the pointer
                                                 // input, so drag direction follows the visual.
-                                                Slider(
+                                                ValueSlider(
                                                     value = volumeValue,
                                                     onValueChangeFinished = {
                                                         isVolumeSliding = false
@@ -1251,7 +1251,7 @@ private fun CapsuleProgress(
                             strokeCap = StrokeCap.Round,
                         )
                     } else {
-                        Slider(
+                        ValueSlider(
                             // Fraction, not 0..100 — see the note in NowPlayingScreen: material3 alpha25
                             // drops valueRange on its binary-compatibility overload.
                             value = sliderValue / 100f,

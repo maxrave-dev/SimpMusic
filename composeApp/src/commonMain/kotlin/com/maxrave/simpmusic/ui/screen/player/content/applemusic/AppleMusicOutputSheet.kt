@@ -18,10 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -50,6 +47,7 @@ import com.maxrave.simpmusic.expect.ui.DeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.rememberCastReceivers
 import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.ui.component.SheetSurface
 import com.maxrave.simpmusic.ui.component.SurfaceDarkColors
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
 import com.maxrave.simpmusic.ui.icon.Check
@@ -58,6 +56,7 @@ import com.maxrave.simpmusic.ui.icon.MusicCast
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.Smartphone
 import com.maxrave.simpmusic.ui.icon.Speaker
+import com.maxrave.simpmusic.ui.theme.SheetTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -111,104 +110,102 @@ internal fun AppleMusicOutputSheet(
     onRefresh: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val colors = rememberSurfaceDarkColors()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    // A pick is the whole job: the sheet slides away and the caption under the button names the new
-    // output. onDismiss runs however the slide ends — waiting for a finished hide is how a sheet gets
-    // left parked half-way with no scrim to close it.
-    val closeSheet: () -> Unit = { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() } }
-    val localDensity = LocalDensity.current
-    // Scanning for receivers only while this is open: discovery keeps the radio busy.
-    val cast = rememberCastReceivers(discover = true)
-    // Devices coming and going update the list on their own; the system's own route changing does not.
-    LaunchedEffect(Unit) { onRefresh() }
+    SheetTheme {
+        val colors = rememberSurfaceDarkColors()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        // A pick is the whole job: the sheet slides away and the caption under the button names the new
+        // output. onDismiss runs however the slide ends — waiting for a finished hide is how a sheet gets
+        // left parked half-way with no scrim to close it.
+        val closeSheet: () -> Unit = { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() } }
+        val localDensity = LocalDensity.current
+        // Scanning for receivers only while this is open: discovery keeps the radio busy.
+        val cast = rememberCastReceivers(discover = true)
+        // Devices coming and going update the list on their own; the system's own route changing does not.
+        LaunchedEffect(Unit) { onRefresh() }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = colors.container),
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Box(
-                    modifier =
-                        Modifier
-                            .width(60.dp)
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(colors.handle),
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = stringResource(Res.string.audio_output),
-                    style = typo().labelMedium,
-                    color = colors.content,
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 6.dp),
-                )
-                outputs.forEach { output ->
-                    val playingHere = output.isActive && !castState.isRemote
-                    OutputRow(
-                        icon = output.icon(),
-                        name = output.displayName(),
-                        status = if (playingHere) stringResource(Res.string.audio_output_playing_here) else output.kindLabel(),
-                        selected = playingHere,
-                        colors = colors,
-                        onClick = {
-                            // Coming back from a receiver: end the Cast session first, or the pick
-                            // would route a local player that is not the one playing.
-                            if (castState.isRemote) cast.disconnect()
-                            onSelectOutput(output)
-                            closeSheet()
-                        },
+            SheetSurface {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Box(
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(colors.handle),
                     )
-                }
-                if (cast.receivers.isNotEmpty()) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                        thickness = 1.dp,
-                        color = Color.White.copy(alpha = 0.10f),
-                    )
+                    Spacer(modifier = Modifier.height(5.dp))
                     Text(
-                        text = stringResource(Res.string.audio_output_cast),
-                        style = typo().bodySmall,
-                        color = colors.subtitle,
-                        modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 20.dp, top = 4.dp),
+                        text = stringResource(Res.string.audio_output),
+                        style = typo().labelMedium,
+                        color = colors.content,
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 6.dp),
                     )
-                    cast.receivers.forEach { receiver ->
+                    outputs.forEach { output ->
+                        val playingHere = output.isActive && !castState.isRemote
                         OutputRow(
-                            icon = SimpIcons.MusicCast,
-                            name = receiver.name,
-                            status = if (receiver.isConnected) stringResource(Res.string.audio_output_playing_here) else null,
-                            selected = receiver.isConnected,
+                            icon = output.icon(),
+                            name = output.displayName(),
+                            status = if (playingHere) stringResource(Res.string.audio_output_playing_here) else output.kindLabel(),
+                            selected = playingHere,
                             colors = colors,
-                            onClick = { if (!receiver.isConnected) cast.connect(receiver.id) },
+                            onClick = {
+                                // Coming back from a receiver: end the Cast session first, or the pick
+                                // would route a local player that is not the one playing.
+                                if (castState.isRemote) cast.disconnect()
+                                onSelectOutput(output)
+                                closeSheet()
+                            },
                         )
                     }
-                }
-                deviceVolumeController?.let { controller ->
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                        thickness = 1.dp,
-                        color = Color.White.copy(alpha = 0.10f),
+                    if (cast.receivers.isNotEmpty()) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                            thickness = 1.dp,
+                            color = Color.White.copy(alpha = 0.10f),
+                        )
+                        Text(
+                            text = stringResource(Res.string.audio_output_cast),
+                            style = typo().bodySmall,
+                            color = colors.subtitle,
+                            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 20.dp, top = 4.dp),
+                        )
+                        cast.receivers.forEach { receiver ->
+                            OutputRow(
+                                icon = SimpIcons.MusicCast,
+                                name = receiver.name,
+                                status = if (receiver.isConnected) stringResource(Res.string.audio_output_playing_here) else null,
+                                selected = receiver.isConnected,
+                                colors = colors,
+                                onClick = { if (!receiver.isConnected) cast.connect(receiver.id) },
+                            )
+                        }
+                    }
+                    deviceVolumeController?.let { controller ->
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                            thickness = 1.dp,
+                            color = Color.White.copy(alpha = 0.10f),
+                        )
+                        AppleMusicVolumeRow(controller = controller, modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp))
+                    }
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() } + 12.dp,
+                            ),
                     )
-                    AppleMusicVolumeRow(controller = controller, modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp))
                 }
-                Spacer(
-                    modifier =
-                        Modifier.height(
-                            with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() } + 12.dp,
-                        ),
-                )
             }
         }
     }

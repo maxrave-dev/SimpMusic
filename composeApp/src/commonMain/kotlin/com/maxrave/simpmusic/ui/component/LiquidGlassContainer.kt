@@ -35,15 +35,18 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.lerp
+import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
+import com.kyant.backdrop.shadow.InnerShadow
 import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.ui.theme.LocalIsDarkTheme
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
@@ -254,7 +257,9 @@ fun rememberGlassInteraction(): GlassInteraction {
  */
 fun Modifier.drawInteractiveGlass(
     isDark: Boolean,
-    backdrop: PlatformBackdrop,
+    // Any Kyant backdrop, not only a recorded layer: the action sheets pass one that draws the
+    // screen's dimming over the recorded layer (SheetSurface).
+    backdrop: Backdrop,
     layer: GraphicsLayer?,
     luminance: () -> Float,
     shape: Shape,
@@ -264,11 +269,18 @@ fun Modifier.drawInteractiveGlass(
     blurScale: Float = 1f,
     minScrim: Float = 0.12f,
     maxScrim: Float = 0.5f,
+    // A large surface (an action sheet) needs a fixed, shallow lens: the size-based default below is
+    // tuned for controls and would bend a whole sheet. Null keeps the default.
+    lensHeight: Dp? = null,
+    lensAmount: Dp? = null,
+    // iOS 27's darkened edge around glass; null draws none, as before.
+    innerShadow: InnerShadow? = null,
 ): Modifier =
     this
         .drawBackdrop(
             backdrop = backdrop,
             shape = { shape },
+            innerShadow = innerShadow?.let { edge -> { edge } },
             // Kyant's own default is Highlight.Default, whose HighlightStyle.Default is a
             // DIRECTIONAL rim (angle 45°, falloff 1f) — it lights one side rather than the
             // whole outline. That reads well on an elongated pill, whose long edge catches
@@ -299,7 +311,11 @@ fun Modifier.drawInteractiveGlass(
                 // top and bottom refraction never meet at the medial axis — that meeting point on
                 // a wide pill is what produced the dark horizontal seam. depthEffect is off to
                 // match the crisp Kyant demo look and avoid the radial discontinuity at the centre.
-                lens(size.minDimension / 4f + 2f.dp.toPx() * press, size.minDimension / 2f, false)
+                lens(
+                    lensHeight?.toPx() ?: (size.minDimension / 4f + 2f.dp.toPx() * press),
+                    lensAmount?.toPx() ?: (size.minDimension / 2f),
+                    false,
+                )
             },
             onDrawBackdrop = { drawBackdrop ->
                 drawBackdrop()

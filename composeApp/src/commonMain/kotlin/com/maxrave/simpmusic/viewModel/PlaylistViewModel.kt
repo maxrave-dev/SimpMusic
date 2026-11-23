@@ -216,7 +216,15 @@ class PlaylistViewModel(
                                 _tracks.value = data.first.tracks
                                 _continuation.value = data.second
                                 if (data.second.isNullOrEmpty()) _tracksListState.value = ListState.PAGINATION_EXHAUST
-                                playlistRepository.insertRadioPlaylist(data.first.toPlaylistEntity())
+                                // insertRadioPlaylist replaces the whole row, so a saved radio keeps its
+                                // heart only if the fresh row carries it over. The row it leaves is what the
+                                // heart reads and what Favorite Playlists lists: title, artwork and id.
+                                val fresh = data.first.toPlaylistEntity()
+                                val saved = playlistRepository.getPlaylist(fresh.id).firstOrNull()
+                                playlistRepository.insertRadioPlaylist(
+                                    saved?.let { fresh.copy(liked = it.liked, favoriteAt = it.favoriteAt) } ?: fresh,
+                                )
+                                _playlistEntity.value = playlistRepository.getPlaylist(fresh.id).firstOrNull()
                             }
 
                             else -> {
@@ -427,7 +435,9 @@ class PlaylistViewModel(
                     liked = tempLiked == 1,
                 )
             }
-            getFullTracks { }
+            // A radio is saved by its id and rebuilt on every open; reading it to the end to store its
+            // tracks would page through a queue that may never end.
+            if (uiState.value.data?.isRadio != true) getFullTracks { }
         }
     }
 

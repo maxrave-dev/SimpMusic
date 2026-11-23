@@ -79,6 +79,10 @@ import kotlin.time.Clock
 /** DataStore key of the "Scroll long text" setting, read by [SharedViewModel.getTitleMarquee] too. */
 const val TITLE_MARQUEE_KEY = "title_marquee"
 
+/** DataStore keys of the two lyrics background settings, read by the lyrics pages' LyricsFlowBackground too. */
+const val ANIMATED_LYRICS_BACKGROUND_KEY = "animated_lyrics_background"
+const val LYRICS_BACKGROUND_PULSE_KEY = "lyrics_background_pulse"
+
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
     private val commonRepository: CommonRepository,
@@ -211,6 +215,12 @@ class SettingsViewModel(
 
     private val _titleMarquee = MutableStateFlow(true)
     val titleMarquee: StateFlow<Boolean> = _titleMarquee
+
+    private val _animatedLyricsBackground = MutableStateFlow(false)
+    val animatedLyricsBackground: StateFlow<Boolean> = _animatedLyricsBackground
+
+    private val _lyricsBackgroundPulse = MutableStateFlow(false)
+    val lyricsBackgroundPulse: StateFlow<Boolean> = _lyricsBackgroundPulse
 
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
@@ -345,6 +355,12 @@ class SettingsViewModel(
         getEnableLiquidGlass()
         viewModelScope.launch {
             dataStoreManager.getString(TITLE_MARQUEE_KEY).collect { _titleMarquee.value = it != DataStoreManager.FALSE }
+        }
+        viewModelScope.launch {
+            dataStoreManager.getString(ANIMATED_LYRICS_BACKGROUND_KEY).collect { _animatedLyricsBackground.value = it == DataStoreManager.TRUE }
+        }
+        viewModelScope.launch {
+            dataStoreManager.getString(LYRICS_BACKGROUND_PULSE_KEY).collect { _lyricsBackgroundPulse.value = it == DataStoreManager.TRUE }
         }
         getExplicitContentEnabled()
         getDiscordLoggedIn()
@@ -693,6 +709,18 @@ class SettingsViewModel(
     fun setTitleMarquee(enabled: Boolean) {
         viewModelScope.launch {
             dataStoreManager.putString(TITLE_MARQUEE_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
+        }
+    }
+
+    fun setAnimatedLyricsBackground(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(ANIMATED_LYRICS_BACKGROUND_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
+        }
+    }
+
+    fun setLyricsBackgroundPulse(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(LYRICS_BACKGROUND_PULSE_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
         }
     }
 

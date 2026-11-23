@@ -522,19 +522,18 @@ fun PlaylistScreen(
                                                                 .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
                                                         verticalAlignment = Alignment.CenterVertically,
                                                     ) {
-                                                        if (!data.isRadio) {
-                                                            Box(
-                                                                modifier = Modifier.size(48.dp),
-                                                                contentAlignment = Alignment.Center,
-                                                            ) {
-                                                                HeartCheckBox(
-                                                                    size = 28,
-                                                                    checked = liked,
-                                                                    onStateChange = {
-                                                                        viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                    },
-                                                                )
-                                                            }
+                                                        // Radios too: saving one keeps its id, title and artwork, and it opens rebuilt.
+                                                        Box(
+                                                            modifier = Modifier.size(48.dp),
+                                                            contentAlignment = Alignment.Center,
+                                                        ) {
+                                                            HeartCheckBox(
+                                                                size = 28,
+                                                                checked = liked,
+                                                                onStateChange = {
+                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                                },
+                                                            )
                                                         }
                                                         IconButton(
                                                             onClick = {
@@ -819,19 +818,17 @@ fun PlaylistScreen(
                                                             .liquidGlass(headerBackdrop, RoundedCornerShape(24.dp)),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                 ) {
-                                                    if (!data.isRadio) {
-                                                        Box(
-                                                            modifier = Modifier.size(48.dp),
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            HeartCheckBox(
-                                                                size = 28,
-                                                                checked = liked,
-                                                                onStateChange = {
-                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                },
-                                                            )
-                                                        }
+                                                    Box(
+                                                        modifier = Modifier.size(48.dp),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        HeartCheckBox(
+                                                            size = 28,
+                                                            checked = liked,
+                                                            onStateChange = {
+                                                                viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                            },
+                                                        )
                                                     }
                                                     IconButton(
                                                         onClick = {

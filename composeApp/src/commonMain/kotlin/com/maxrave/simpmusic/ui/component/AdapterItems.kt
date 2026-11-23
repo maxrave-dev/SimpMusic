@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -321,6 +322,7 @@ fun SectionHeaderButton(
  * starts its radio, anything else opens its page. Shared by Home's rows and the "More" page, so an
  * item behaves the same in both.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContentCard(
     temp: Content,
@@ -342,13 +344,39 @@ fun HomeContentCard(
                 )
             }, data = temp, fillMaxWidth = fillMaxWidth)
         } else {
-            HomeItemContentPlaylist(onClick = {
-                navController.navigate(
-                    PlaylistDestination(
-                        playlistId = playlistId,
-                    ),
+            // A long press offers Like and Share for the playlist or radio without opening it.
+            var showMenu by remember { mutableStateOf(false) }
+            HomeItemContentPlaylist(
+                onClick = {
+                    navController.navigate(
+                        PlaylistDestination(
+                            playlistId = playlistId,
+                        ),
+                    )
+                },
+                onLongClick = { showMenu = true },
+                data = temp,
+                fillMaxWidth = fillMaxWidth,
+                onPlay = temp.hoverPlay(viewModel),
+            )
+            if (showMenu) {
+                PlaylistBottomSheet(
+                    onDismiss = { showMenu = false },
+                    playlistId = playlistId,
+                    playlistName = temp.title,
+                    // The id the card opens, which is also the id the playlist page saves under.
+                    saveAs =
+                        PlaylistEntity(
+                            id = playlistId,
+                            title = temp.title,
+                            // The card's own subtitle is every run YouTube sent joined ("Thế Anh Trần •
+                            // 9.8K views"); the author is its first part. `artists` cannot be used here:
+                            // on playlist cards it holds the view count.
+                            author = temp.description?.substringBefore(" • ")?.trim()?.takeIf { it.isNotEmpty() },
+                            thumbnails = temp.thumbnails.lastOrNull()?.url ?: "",
+                        ),
                 )
-            }, data = temp, fillMaxWidth = fillMaxWidth, onPlay = temp.hoverPlay(viewModel))
+            }
         }
     } else if ((browseId != null && temp.videoId == null) || (browseId != null && temp.videoId == "")) {
         if (browseId.startsWith("UC")) {
@@ -570,6 +598,7 @@ fun NavController.navigateToMoreEndpoint(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
@@ -580,6 +609,7 @@ fun HomeItemContentPlaylist(
     fillMaxWidth: Boolean = false,
     // Home's hover play button; null leaves the card exactly as it was.
     onPlay: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val titleColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
     val textWidth = if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier.width(thumbSize)
@@ -590,9 +620,10 @@ fun HomeItemContentPlaylist(
             .wrapContentSize()
             .focusable(true)
             .clip(RoundedCornerShape(8.dp))
-            .clickable {
-                onClick()
-            },
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
     ) {
         Column(
             modifier =

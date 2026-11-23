@@ -934,6 +934,70 @@ class SharedViewModel(
         viewModelScope.launch { getAITranslationLyrics(videoId, lyrics) }
     }
 
+    /**
+     * Delete lyrics in the song menu, for [shown], the lyrics on screen when it was tapped, with the song and
+     * the ids they carry. They go from this device with their saved translation, and from the screen if it
+     * still shows them. SimpMusic lyrics, and a SimpMusic translation shown with them, are also taken off the
+     * server on their own, with nothing waiting for it; see [removeFromSimpMusic].
+     */
+    fun deleteLyrics(shown: NowPlayingScreenData.LyricsData) {
+        val videoId = shown.videoId
+        val onScreen = _nowPlayingScreenData.value.lyricsData
+        if (onScreen != null && onScreen.videoId == videoId && onScreen.lyrics == shown.lyrics) {
+            resetLyricsVoteState()
+            _nowPlayingScreenData.update { it.copy(lyricsData = null, lyricsNotFound = true) }
+        }
+        val translatedId = shown.translatedLyrics?.takeIf { it.second == LyricsProvider.SIMPMUSIC }?.first?.simpMusicLyrics?.id
+        viewModelScope.launch {
+            // A provider's copy is remembered by its id, and so is a SimpMusic translation, which would otherwise
+            // come back under other lyrics; the offline copy only has to go from the cache.
+            lyricsCanvasRepository.deleteLyrics(
+                videoId,
+                listOfNotNull(
+                    shown.lyrics.id
+                        ?.takeIf { shown.lyricsProvider != LyricsProvider.OFFLINE }
+                        ?.let { shown.lyricsProvider.name to it },
+                    translatedId?.let { LyricsProvider.SIMPMUSIC.name to it },
+                ),
+            )
+        }
+        val lyricsId = shown.lyrics.simpMusicLyrics?.id
+        if (shown.lyricsProvider == LyricsProvider.SIMPMUSIC && lyricsId != null) {
+            viewModelScope.launch { removeFromSimpMusic(lyricsId, translated = false) }
+        }
+        if (translatedId != null) {
+            viewModelScope.launch { removeFromSimpMusic(translatedId, translated = true) }
+        }
+    }
+
+    /**
+     * Deletes SimpMusic lyrics or a translation [id] on the server under the contributor email, which the server
+     * checks against the one it was contributed with. Without an email, or when the server refuses (someone
+     * else's), it is voted down instead.
+     */
+    private suspend fun removeFromSimpMusic(
+        id: String,
+        translated: Boolean,
+    ) {
+        val email = dataStoreManager.contributorEmail.first().trim()
+        val deleted =
+            email.isNotEmpty() &&
+                (
+                    if (translated) {
+                        lyricsCanvasRepository.deleteSimpMusicTranslatedLyrics(id, email)
+                    } else {
+                        lyricsCanvasRepository.deleteSimpMusicLyrics(id, email)
+                    }
+                ).first() is Resource.Success
+        if (!deleted) {
+            if (translated) {
+                lyricsCanvasRepository.voteSimpMusicTranslatedLyrics(id, false).first()
+            } else {
+                lyricsCanvasRepository.voteSimpMusicLyrics(id, false).first()
+            }
+        }
+    }
+
     fun loadSharedMediaItem(videoId: String) {
         viewModelScope.launch {
             val localSong = songRepository.getSongById(videoId).firstOrNull()
@@ -1528,6 +1592,7 @@ class SharedViewModel(
                         it.copy(
                             lyricsData =
                                 NowPlayingScreenData.LyricsData(
+                                    videoId = videoId,
                                     lyrics = lyrics,
                                     lyricsProvider = lyricsProvider,
                                 ),
@@ -1639,6 +1704,12 @@ class SharedViewModel(
         }
     }
 
+    /** Lyrics the user deleted from this provider are passed over, as if the provider had none. */
+    private suspend fun Lyrics.isDeleted(
+        videoId: String,
+        provider: LyricsProvider,
+    ): Boolean = id?.let { lyricsCanvasRepository.isLyricsDeleted(videoId, provider.name, it) } == true
+
     private suspend fun getSimpMusicLyrics(
         videoId: String,
         song: SongEntity,
@@ -1648,7 +1719,7 @@ class SharedViewModel(
         lyricsCanvasRepository.getSimpMusicLyrics(videoId).collectLatest {
             Logger.d(tag, "Get SimpMusic Lyrics for $videoId: ${it::class.simpleName}")
             val data = it.data
-            if (it is Resource.Success && data != null) {
+            if (it is Resource.Success && data != null && !data.isDeleted(videoId, LyricsProvider.SIMPMUSIC)) {
                 Logger.d(tag, "Get SimpMusic Lyrics Success")
                 updateLyrics(
                     videoId,
@@ -1692,7 +1763,7 @@ class SharedViewModel(
             .collect { response ->
                 val data = response.data
                 when (response) {
-                    is Resource.Success if (data != null) -> {
+                    is Resource.Success if (data != null && !data.first.isDeleted(videoId, LyricsProvider.YOUTUBE)) -> {
                         val lyrics = data.first
                         val translatedLyrics = data.second
                         insertLyrics(lyrics.toLyricsEntity(videoId))
@@ -1745,7 +1816,7 @@ class SharedViewModel(
                 ).collectLatest { res ->
                     val data = res.data
                     when (res) {
-                        is Resource.Success if (data != null) -> {
+                        is Resource.Success if (data != null && !data.isDeleted(song.videoId, LyricsProvider.LRCLIB)) -> {
                             Logger.d(tag, "Get Lyrics Data Success")
                             updateLyrics(
                                 song.videoId,
@@ -1791,7 +1862,7 @@ class SharedViewModel(
                 ).collectLatest { res ->
                     val data = res.data
                     when (res) {
-                        is Resource.Success if (data != null) -> {
+                        is Resource.Success if (data != null && !data.isDeleted(song.videoId, LyricsProvider.BETTER_LYRICS)) -> {
                             Logger.d(tag, "Get BetterLyrics Success")
                             updateLyrics(
                                 song.videoId,
@@ -1834,7 +1905,7 @@ class SharedViewModel(
         lyricsCanvasRepository.getSimpMusicTranslatedLyrics(videoId, translationLanguage).collectLatest { response ->
             val data = response.data
             when (response) {
-                is Resource.Success if (data != null) -> {
+                is Resource.Success if (data != null && !data.isDeleted(videoId, LyricsProvider.SIMPMUSIC)) -> {
                     // If SimpMusic translated lyrics are RICH_SYNCED (word-by-word),
                     // convert to LINE_SYNCED, downvote, and fallback to AI translation
                     if (data.syncType == "RICH_SYNCED") {
@@ -1920,6 +1991,9 @@ class SharedViewModel(
                         when (it) {
                             is Resource.Success if (data != null) -> {
                                 Logger.d(tag, "Get AI Translate Lyrics Success")
+                                // Lyrics deleted while the AI was translating them are gone from the cache; their
+                                // translation is dropped, or it would be cached and shown under the next lyrics.
+                                if (lyricsCanvasRepository.getSavedLyrics(videoId).first() == null) return@collectLatest
                                 lyricsCanvasRepository.insertTranslatedLyrics(
                                     TranslatedLyricsEntity(
                                         videoId = videoId,
@@ -1954,29 +2028,30 @@ class SharedViewModel(
     ) {
         viewModelScope.launch {
             Logger.d("Check SpotifyLyrics", "SpotifyLyrics $query")
-            lyricsCanvasRepository.getSpotifyLyrics(dataStoreManager, query, duration).cancellable().collect { response ->
+            lyricsCanvasRepository
+                .getSpotifyLyrics(dataStoreManager, query, duration, track.title, track.artists?.map { it.name }.orEmpty())
+                .cancellable()
+                .collect { response ->
                 Logger.d("Check SpotifyLyrics", response.toString())
                 val data = response.data
                 when (response) {
-                    is Resource.Success -> {
-                        if (data != null) {
-                            insertLyrics(
-                                data.toLyricsEntity(
-                                    track.videoId,
-                                ),
-                            )
-                            updateLyrics(
+                    is Resource.Success if (data != null && !data.isDeleted(track.videoId, LyricsProvider.SPOTIFY)) -> {
+                        insertLyrics(
+                            data.toLyricsEntity(
                                 track.videoId,
-                                duration ?: 0,
-                                data,
-                                false,
-                                LyricsProvider.SPOTIFY,
-                            )
-                            getAITranslationLyrics(
-                                track.videoId,
-                                data,
-                            )
-                        }
+                            ),
+                        )
+                        updateLyrics(
+                            track.videoId,
+                            duration ?: 0,
+                            data,
+                            false,
+                            LyricsProvider.SPOTIFY,
+                        )
+                        getAITranslationLyrics(
+                            track.videoId,
+                            data,
+                        )
                     }
 
                     else -> {
@@ -2426,6 +2501,8 @@ data class NowPlayingScreenData(
     )
 
     data class LyricsData(
+        /** The song these lyrics belong to. */
+        val videoId: String,
         val lyrics: Lyrics,
         val translatedLyrics: Pair<Lyrics, LyricsProvider>? = null,
         val lyricsProvider: LyricsProvider,

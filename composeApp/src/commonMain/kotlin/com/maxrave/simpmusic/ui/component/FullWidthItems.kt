@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -516,6 +517,7 @@ fun SuggestItems(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistFullWidthItems(
     data: PlaylistType,
@@ -525,6 +527,34 @@ fun PlaylistFullWidthItems(
     forceDark: Boolean = LocalForceDarkText.current,
 ) {
     val contentColor = if (forceDark) Color.White else MaterialTheme.colorScheme.onSurface
+    // Playlists and radios get Like and Share behind a ⋯, as a song row does; albums, podcasts
+    // and local playlists keep the row as it was. The id is the one the row opens, which is also the
+    // id the playlist page saves under.
+    val menuTarget: PlaylistEntity? =
+        when (data) {
+            is PlaylistEntity -> data
+            is PlaylistsResult ->
+                if (data.resultType == "Podcast") {
+                    null
+                } else {
+                    PlaylistEntity(
+                        id = data.browseId,
+                        title = data.title,
+                        author = data.author,
+                        thumbnails = data.thumbnails.lastOrNull()?.url ?: "",
+                    )
+                }
+            else -> null
+        }
+    var showMenu by remember { mutableStateOf(false) }
+    if (showMenu && menuTarget != null) {
+        PlaylistBottomSheet(
+            onDismiss = { showMenu = false },
+            playlistId = menuTarget.id,
+            playlistName = menuTarget.title,
+            saveAs = menuTarget,
+        )
+    }
     val subtitleColor = if (forceDark) Color(0xC4FFFFFF) else MaterialTheme.colorScheme.onSurfaceVariant
     Box(
         modifier =
@@ -687,6 +717,11 @@ fun PlaylistFullWidthItems(
             }
             if (rightView != null) {
                 rightView()
+            }
+            if (menuTarget != null) {
+                RippleIconButton(imageVector = SimpIcons.MoreVert, fillMaxSize = false, tint = contentColor) {
+                    showMenu = true
+                }
             }
         }
     }

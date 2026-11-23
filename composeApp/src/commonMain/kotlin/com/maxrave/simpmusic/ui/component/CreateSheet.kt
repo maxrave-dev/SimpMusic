@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -198,13 +197,8 @@ private fun CreateSheet(
         scrimColor = Color.Black.copy(alpha = .5f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        SheetSurface(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Column(Modifier.padding(bottom = 8.dp)) {
                 SheetHandle()
@@ -311,13 +305,8 @@ fun CreateLocalPlaylistSheet(
         scrimColor = Color.Black.copy(alpha = .5f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        SheetSurface(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
