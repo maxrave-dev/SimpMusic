@@ -72,9 +72,16 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
-import com.maxrave.simpmusic.expect.getDownloadFolderPath
+import com.maxrave.simpmusic.expect.StagedDeviceDownload
+import com.maxrave.simpmusic.expect.cleanupStagedDeviceDownload
+import com.maxrave.simpmusic.expect.finalizeDeviceDownload
+import com.maxrave.simpmusic.expect.hasFinalMergedDeviceOutput
 import com.maxrave.simpmusic.expect.isOnUnmeteredNetwork
+import com.maxrave.simpmusic.expect.normalizeDeviceDownloadProgress
+import com.maxrave.simpmusic.expect.prepareDeviceDownloadTarget
+import com.maxrave.simpmusic.expect.sanitizeDownloadBaseName
 import com.maxrave.simpmusic.expect.ui.toByteArray
+import com.maxrave.simpmusic.expect.writeStagedThumbnail
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.utils.LyricsPromo
 import com.maxrave.simpmusic.utils.VersionManager
@@ -126,7 +133,6 @@ import simpmusic.composeapp.generated.resources.removed_from_youtube_liked
 import simpmusic.composeapp.generated.resources.shared
 import simpmusic.composeapp.generated.resources.updated
 import simpmusic.composeapp.generated.resources.vote_submitted
-import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.reflect.KClass
 import kotlin.time.Clock
@@ -2172,32 +2178,79 @@ class SharedViewModel(
     val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
 
     fun downloadFile(bitmap: ImageBitmap) {
-        val fileName =
-            "${nowPlayingScreenData.value.nowPlayingTitle} - ${nowPlayingScreenData.value.artistName}"
-                .replace(Regex("""[|\\?*<":>]"""), "")
-                .replace(" ", "_")
-        val path =
-            "${getDownloadFolderPath()}/$fileName"
+        val displayBaseName =
+            sanitizeDownloadBaseName(
+                title = nowPlayingScreenData.value.nowPlayingTitle,
+                artist = nowPlayingScreenData.value.artistName,
+            )
+        val isVideo = nowPlayingScreenData.value.isVideo && getVideo.value
         viewModelScope.launch {
-            nowPlayingState.value?.track?.let { track ->
-                val bytesArray = bitmap.toByteArray()
-                try {
-                    val fileOutputStream = FileOutputStream("$path.jpg")
-                    fileOutputStream.write(bytesArray)
-                    fileOutputStream.close()
-                    Logger.d(tag, "Thumbnail saved to $path.jpg")
-                } catch (e: Exception) {
-                    throw RuntimeException(e)
+            val track =
+                nowPlayingState.value?.track
+                    ?: nowPlayingState.value?.songEntity?.toTrack()
+            if (track == null) {
+                _downloadFileProgress.value = DownloadProgress.failed("Track unavailable")
+                return@launch
+            }
+            _downloadFileProgress.value =
+                if (isVideo) {
+                    DownloadProgress(videoDownloadProgress = 0.01f)
+                } else {
+                    DownloadProgress(audioDownloadProgress = 0.01f)
                 }
+            var staged: StagedDeviceDownload? = null
+            var exported = false
+            try {
+                val prepared =
+                    withContext(Dispatchers.IO) {
+                        val bytesArray =
+                            bitmap.toByteArray()
+                                ?: throw IllegalStateException("Could not encode cover artwork")
+                        val target = prepareDeviceDownloadTarget(track.videoId, displayBaseName)
+                        staged = target
+                        writeStagedThumbnail(target, bytesArray).getOrThrow()
+                        target
+                    }
+                Logger.d(tag, "Thumbnail saved to ${prepared.stagingBasePath}.jpg")
                 songRepository
                     .downloadToFile(
                         track = track,
                         videoId = track.videoId,
-                        path = path,
-                        isVideo = nowPlayingScreenData.value.isVideo && getVideo.value,
-                    ).collectLatest {
-                        _downloadFileProgress.value = it
+                        path = prepared.stagingBasePath,
+                        isVideo = isVideo,
+                    ).collect { rawProgress ->
+                        val outputReady = exported || hasFinalMergedDeviceOutput(prepared, isVideo)
+                        val normalized =
+                            normalizeDeviceDownloadProgress(
+                                progress = rawProgress,
+                                requiresFinalMergeExport = prepared.requiresFinalMergeExport,
+                                finalMergedOutputExists = outputReady,
+                            )
+                        if (normalized.isDone && !normalized.isError) {
+                            if (!exported) {
+                                finalizeDeviceDownload(prepared, isVideo)
+                                    .onSuccess {
+                                        exported = true
+                                        _downloadFileProgress.value = normalized
+                                    }.onFailure { error ->
+                                        Logger.e(tag, "Failed to export downloaded file: ${error.message}")
+                                        _downloadFileProgress.value =
+                                            DownloadProgress.failed(error.message ?: "Failed to save file to Downloads")
+                                    }
+                            } else {
+                                _downloadFileProgress.value = normalized
+                            }
+                        } else {
+                            _downloadFileProgress.value = normalized
+                        }
                     }
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.e(tag, "downloadFile failed: ${e.message}")
+                _downloadFileProgress.value = DownloadProgress.failed(e.message ?: "Download failed")
+            } finally {
+                staged?.let { cleanupStagedDeviceDownload(it) }
             }
         }
     }
