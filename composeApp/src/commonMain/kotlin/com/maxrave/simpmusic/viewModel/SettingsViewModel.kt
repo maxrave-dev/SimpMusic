@@ -279,6 +279,9 @@ class SettingsViewModel(
     private val _autoBackupMaxFiles = MutableStateFlow<Int>(5)
     val autoBackupMaxFiles: StateFlow<Int> = _autoBackupMaxFiles
 
+    private val _maxParallelDownloads = MutableStateFlow<Int>(3)
+    val maxParallelDownloads: StateFlow<Int> = _maxParallelDownloads
+
     private val _autoBackupLastTime = MutableStateFlow<Long>(0L)
     val autoBackupLastTime: StateFlow<Long> = _autoBackupLastTime
 
@@ -380,6 +383,7 @@ class SettingsViewModel(
         getAutoBackupEnabled()
         getAutoBackupFrequency()
         getAutoBackupMaxFiles()
+        getMaxParallelDownloads()
         getAutoBackupLastTime()
         viewModelScope.launch {
             calculateDataFraction(
@@ -812,6 +816,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setAutoBackupMaxFiles(max)
             getAutoBackupMaxFiles()
+        }
+    }
+
+    private fun getMaxParallelDownloads() {
+        viewModelScope.launch {
+            dataStoreManager.maxParallelDownloads.collect { count ->
+                _maxParallelDownloads.value = count
+            }
+        }
+    }
+
+    fun setMaxParallelDownloads(count: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setMaxParallelDownloads(count)
+            getMaxParallelDownloads()
         }
     }
 
@@ -1475,7 +1494,7 @@ class SettingsViewModel(
                         .onFailure { Logger.e(tag, "library sync: unpair before restore failed", it) }
                     restoreNative(commonRepository, uri) {
                         if (!restoreLoginSession.value) {
-                            logOutAllYouTube()
+                            clearYouTubeSession()
                         }
                         getData()
                     }
@@ -1792,18 +1811,22 @@ class SettingsViewModel(
         }
     }
 
+    private suspend fun clearYouTubeSession() {
+        accountRepository.getGoogleAccounts().firstOrNull()?.forEach { account ->
+            accountRepository.deleteGoogleAccount(account.email)
+        }
+        dataStoreManager.putString("AccountName", "")
+        dataStoreManager.putString("AccountThumbUrl", "")
+        dataStoreManager.setLoggedIn(false)
+        dataStoreManager.setCookie("", null)
+        com.maxrave.simpmusic.expect.ui.createWebViewCookieManager().removeAllCookies()
+        Logger.i("Auth", "YouTube: signed out of all accounts")
+        dataStoreManager.setSyncFollowToYouTube(false)
+    }
+
     fun logOutAllYouTube() {
         viewModelScope.launch {
-            googleAccounts.value.data?.forEach { account ->
-                accountRepository.deleteGoogleAccount(account.email)
-            }
-            dataStoreManager.putString("AccountName", "")
-            dataStoreManager.putString("AccountThumbUrl", "")
-            dataStoreManager.setLoggedIn(false)
-            dataStoreManager.setCookie("", null)
-            com.maxrave.simpmusic.expect.ui.createWebViewCookieManager().removeAllCookies()
-            Logger.i("Auth", "YouTube: signed out of all accounts")
-            dataStoreManager.setSyncFollowToYouTube(false)
+            clearYouTubeSession()
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()
@@ -2298,7 +2321,7 @@ expect suspend fun calculateDataFraction(cacheRepository: CacheRepository): Sett
 expect suspend fun restoreNative(
     commonRepository: CommonRepository,
     uri: Uri,
-    getData: () -> Unit = {},
+    getData: suspend () -> Unit = {},
 )
 
 /** Reads the whole of a file the user picked: a content Uri on Android, a plain path on Desktop. */
