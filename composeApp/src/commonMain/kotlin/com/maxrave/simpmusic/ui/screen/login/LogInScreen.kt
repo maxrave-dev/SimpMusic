@@ -114,7 +114,7 @@ fun LoginScreen(
     var devLoginSheet by rememberSaveable {
         mutableStateOf(false)
     }
-    var isLoggingIn by rememberSaveable {
+    var isLoggingIn by androidx.compose.runtime.remember {
         mutableStateOf(false)
     }
 
@@ -230,10 +230,11 @@ fun LoginScreen(
                     clearCookies = true,
                 ) { url ->
                     Logger.d("LogInScreen", "Current URL: $url")
-                    if (!isLoggingIn && (url.startsWith("https://music.youtube.com") || url.contains("music.youtube.com"))) {
+                    val host = runCatching { com.eygraber.uri.Uri.parse(url).host?.lowercase() }.getOrNull()
+                    if (!isLoggingIn && (host == "music.youtube.com" || host == "youtube.com" || host == "www.youtube.com")) {
                         val cookieManager = createWebViewCookieManager()
-                        val cookie = cookieManager.getCookie(url).takeIf { it.isNotEmpty() }
-                            ?: cookieManager.getCookie(Config.YOUTUBE_MUSIC_MAIN_URL)
+                        val cookie = cookieManager.getCookie(Config.YOUTUBE_MUSIC_MAIN_URL).takeIf { it.isNotEmpty() }
+                            ?: cookieManager.getCookie(url)
                         val hasAuthTokens = cookie.contains("SAPISID") ||
                             cookie.contains("__Secure-1PAPISID") ||
                             cookie.contains("__Secure-3PAPISID") ||
