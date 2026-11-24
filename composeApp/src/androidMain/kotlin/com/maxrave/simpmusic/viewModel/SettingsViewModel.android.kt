@@ -102,7 +102,7 @@ actual suspend fun readPickedFile(uri: Uri): ByteArray {
 actual suspend fun restoreNative(
     commonRepository: CommonRepository,
     uri: Uri,
-    getData: () -> Unit,
+    getData: suspend () -> Unit,
 ) {
     val application: Context = getKoin().get()
     application.applicationContext.contentResolver.openInputStream(uri.toAndroidUri())?.use {
@@ -116,6 +116,7 @@ actual suspend fun restoreNative(
 
             var downloadFolderCleared = false
             var restoredBackupEntry = false
+            var restoredExoPlayerDb = false
 
             while (entry != null) {
                 Logger.d("BackupRestore", "Processing entry: ${entry.name}")
@@ -143,7 +144,8 @@ actual suspend fun restoreNative(
                     }
 
                     entry.name == EXOPLAYER_DB_NAME -> {
-                        restoredBackupEntry = true
+                        restoredExoPlayerDb = true
+                        stopService(application)
                         val exoDbFile = application.getDatabasePath(EXOPLAYER_DB_NAME)
                         deleteSqliteSidecars(exoDbFile)
                         FileOutputStream(exoDbFile).use { outputStream ->
@@ -173,7 +175,7 @@ actual suspend fun restoreNative(
                 }
                 entry = inputStream.nextEntry
             }
-            if (restoredBackupEntry && !downloadFolderCleared) {
+            if (restoredExoPlayerDb && !downloadFolderCleared) {
                 clearFolder(application.filesDir / DOWNLOAD_EXOPLAYER_FOLDER)
             }
         }
