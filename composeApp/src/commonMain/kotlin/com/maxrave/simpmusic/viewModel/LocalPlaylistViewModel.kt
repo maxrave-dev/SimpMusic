@@ -918,16 +918,16 @@ class LocalPlaylistViewModel(
 
             is LocalPlaylistUIEvent.ShuffleClick -> {
                 viewModelScope.launch {
-                    val listVideoId = localPlaylistRepository.getListTrackVideoId(uiState.value.id)
-                    log("ShuffleClick: uiState id ${uiState.value.id}")
-                    log("ShuffleClick: $listVideoId")
-                    if (listVideoId.isEmpty()) {
+                    // A random row, not a random index into `tracks`: `tracks` keeps the order songs were
+                    // added in, so its index named a different song once the playlist had been reordered.
+                    val rows = localPlaylistRepository.getPlaylistRows(uiState.value.id)
+                    log("ShuffleClick: uiState id ${uiState.value.id}, ${rows.size} rows")
+                    val first = rows.randomOrNull()
+                    if (first == null) {
                         makeToast(getString(Res.string.playlist_is_empty))
                         return@launch
                     }
-                    val random = listVideoId.random()
-                    val randomIndex = listVideoId.indexOf(random)
-                    val firstPlayedTrack = songRepository.getSongById(random).singleOrNull()?.toTrack() ?: return@launch
+                    val firstPlayedTrack = songRepository.getSongById(first.songId).singleOrNull()?.toTrack() ?: return@launch
                     setQueueData(
                         QueueData.Data(
                             listTracks = arrayListOf(firstPlayedTrack),
@@ -942,7 +942,7 @@ class LocalPlaylistViewModel(
                             continuation = "",
                         ),
                     )
-                    shufflePlaylist(randomIndex)
+                    shufflePlaylist(first.id)
                 }
             }
         }

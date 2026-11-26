@@ -137,8 +137,8 @@ abstract class BaseViewModel :
         }
     }
 
-    fun shufflePlaylist(firstPlayIndex: Int = 0) {
-        mediaPlayerHandler.shufflePlaylist(firstPlayIndex)
+    fun shufflePlaylist(firstRowId: Int) {
+        mediaPlayerHandler.shufflePlaylist(firstRowId)
     }
 
     private val playbackSongRepository: SongRepository by inject<SongRepository>()
