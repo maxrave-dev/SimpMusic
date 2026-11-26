@@ -129,6 +129,9 @@ import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.rememberPaletteColor
 import com.maxrave.simpmusic.getPlatform
+import com.maxrave.simpmusic.pagination.normalizePermutationForCount
+import com.maxrave.simpmusic.pagination.resolveBackingIndex
+import com.maxrave.simpmusic.pagination.stablePlaylistRowKey
 import com.maxrave.simpmusic.ui.component.SearchBarExit
 import com.maxrave.simpmusic.ui.component.SearchBarEnter
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -313,6 +316,11 @@ fun LocalPlaylistScreen(
     }
 
     val trackPagingItems: LazyPagingItems<Pair<SongEntity, PairSongLocalPlaylist>> = viewModel.tracksPagingState.collectAsLazyPagingItems()
+    val reorderedIndices by viewModel.reorderedIndices.collectAsStateWithLifecycle()
+    val activePermutation =
+        remember(reorderedIndices, trackPagingItems.itemCount) {
+            normalizePermutationForCount(reorderedIndices, trackPagingItems.itemCount)
+        }
     LaunchedEffect(Unit) {
         snapshotFlow {
             trackPagingItems.loadState
@@ -431,10 +439,16 @@ fun LocalPlaylistScreen(
     val coroutineScope = rememberCoroutineScope()
     val dragDropState =
         rememberDragDropState(lazyState) { from, to ->
-            coroutineScope.launch {
-                Logger.d(TAG, "onMove from $from to $to")
-                viewModel.changeLocalPlaylistItemPosition(from - 1, to - 1)
-                trackPagingItems.refresh()
+            val itemCount = trackPagingItems.itemCount
+            val fromTrackIdx = from - 1
+            if (itemCount > 1 && fromTrackIdx in 0 until itemCount) {
+                val toTrackIdx = (to - 1).coerceIn(0, itemCount - 1)
+                if (fromTrackIdx != toTrackIdx) {
+                    coroutineScope.launch {
+                        Logger.d(TAG, "onMove from $from to $to (track $fromTrackIdx -> $toTrackIdx)")
+                        viewModel.changeLocalPlaylistItemPosition(fromTrackIdx, toTrackIdx, itemCount)
+                    }
+                }
             }
         }
     var overscrollJob by remember { mutableStateOf<Job?>(null) }
@@ -1336,10 +1350,16 @@ fun LocalPlaylistScreen(
             }
         }
         items(count = trackPagingItems.itemCount, key = { index ->
-            val item = trackPagingItems[index]
-            (item?.first?.videoId ?: "") + "item_$index" + item?.second?.inPlaylist + item?.second?.position
+            val backingIndex = resolveBackingIndex(activePermutation, index, trackPagingItems.itemCount)
+            val entry = trackPagingItems.peek(backingIndex)
+            stablePlaylistRowKey(
+                pairId = entry?.second?.id,
+                videoId = entry?.first?.videoId,
+                fallbackIndex = backingIndex,
+            )
         }) { index ->
-            val item = trackPagingItems[index]?.first
+            val backingIndex = resolveBackingIndex(activePermutation, index, trackPagingItems.itemCount)
+            val item = trackPagingItems[backingIndex]?.first
             if (item != null) {
                 val content = @Composable { mod: Modifier ->
                     if (playingTrack?.videoId == item.videoId && isPlaying) {
@@ -1442,8 +1462,9 @@ fun LocalPlaylistScreen(
                 // peek() rather than get(): reading an item is what asks Paging to load its page,
                 // and select-all must not drag the whole playlist into memory.
                 selectionState.toggleSelectAll(
-                    (0 until trackPagingItems.itemCount).mapNotNull {
-                        trackPagingItems.peek(it)?.first?.videoId
+                    (0 until trackPagingItems.itemCount).mapNotNull { displayIdx ->
+                        val backingIndex = resolveBackingIndex(activePermutation, displayIdx, trackPagingItems.itemCount)
+                        trackPagingItems.peek(backingIndex)?.first?.videoId
                     },
                 )
             },
