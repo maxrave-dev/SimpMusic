@@ -60,6 +60,7 @@ import io.sentry.protocol.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -174,7 +175,15 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     // (wordbyword://lastfm-auth?token=…): the OS launched us with the token, this filter
     // discarded it, and the app merely came to the foreground while the login sat there
     // waiting forever. Any scheme we register with the OS must survive this line.
-    val deepLinkArg = args.firstOrNull()?.takeIf { DEEP_LINK_ARG.matches(it) }
+    val deepLinkArg =
+        args
+            .asSequence()
+            .map { it.trim().trim('"') }
+            .firstOrNull { DEEP_LINK_ARG.matches(it) }
+    // Stage any incoming deep link BEFORE the single-instance check. SingleInstanceManager wakes
+    // the first instance inside isSingleInstance(), so writing the file afterwards raced with
+    // consumePendingUri() on the primary instance (#2894).
+    deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
     // Single-instance guard — MUST run before startKoin. The DataStore Koin
     // singleton is `createdAtStart`, so a second Windows instance would touch
     // ~/.simpmusic/settings.preferences_pb and crash with an "Unable to rename
@@ -185,10 +194,12 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
             onRestoreRequest = { DesktopRestoreSignal.request() },
         )
     if (!isSingleInstance) {
-        // Second instance: forward the deep link (if any) to the running instance,
-        // then exit. Nothing has touched the DataStore file yet.
-        deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
+        // Second instance: deep link (if any) was staged above before waking
+        // the running instance. Exit before touching Koin or DataStore.
         return
+    }
+    if (deepLinkArg != null) {
+        DesktopDeepLinkHandler.clearPendingUri(expectedUri = deepLinkArg)
     }
     // Past the guard on purpose: a second instance must not open the same log files.
     Logger.enableFileLogging(getHomeFolderPath(listOf(".simpmusic", "logs")))
@@ -302,10 +313,19 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         // second instance launches: bring the window back to the foreground and
         // consume any deep link the second instance forwarded.
         LaunchedEffect(Unit) {
+            // Drain any deep link written by a second instance during cold start before
+            // DesktopRestoreSignal had an active collector.
+            DesktopDeepLinkHandler.consumePendingUri()
             DesktopRestoreSignal.requests.collect {
                 isVisible = true
                 windowState.isMinimized = false
-                DesktopDeepLinkHandler.consumePendingUri()
+                var consumed = DesktopDeepLinkHandler.consumePendingUri()
+                var attempt = 0
+                while (!consumed && attempt < 3) {
+                    delay(40)
+                    consumed = DesktopDeepLinkHandler.consumePendingUri()
+                    attempt++
+                }
             }
         }
         val openAppString = stringResource(Res.string.open_app)

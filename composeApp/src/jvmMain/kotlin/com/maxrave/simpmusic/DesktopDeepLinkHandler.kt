@@ -1,9 +1,12 @@
 package com.maxrave.simpmusic
 
 import com.eygraber.uri.Uri
+import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.logger.Logger
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 /**
  * Singleton to handle deep link URIs on Desktop.
@@ -25,7 +28,9 @@ object DesktopDeepLinkHandler {
     private const val TAG = "DesktopDeepLinkHandler"
 
     private val pendingUriFile: File by lazy {
-        File(System.getProperty("java.io.tmpdir"), "simpmusic_pending_deeplink.txt")
+        File(getHomeFolderPath(listOf(".simpmusic")), "simpmusic_pending_deeplink.txt").also {
+            it.parentFile?.mkdirs()
+        }
     }
 
     private var cached: String? = null
@@ -56,12 +61,37 @@ object DesktopDeepLinkHandler {
     }
 
     /**
-     * Write URI to a temp file so the running (first) instance can pick it up.
-     * Called by the second instance before it exits.
+     * Write URI to a pending file so the running (first) instance can pick it up.
+     * Called by the second instance before waking the primary instance.
      */
-    fun writePendingUri(uri: String) {
+    fun writePendingUri(
+        uri: String,
+        targetFile: File = pendingUriFile,
+    ) {
         try {
-            pendingUriFile.writeText(uri)
+            targetFile.parentFile?.mkdirs()
+            val tempFile = File(targetFile.parentFile, "${targetFile.name}.${System.nanoTime()}.tmp")
+            try {
+                tempFile.writeText(uri)
+                try {
+                    Files.move(
+                        tempFile.toPath(),
+                        targetFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE,
+                    )
+                } catch (_: Exception) {
+                    Files.move(
+                        tempFile.toPath(),
+                        targetFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
+                    )
+                }
+            } finally {
+                if (tempFile.exists()) {
+                    tempFile.delete()
+                }
+            }
             Logger.d(TAG, "Wrote pending URI to file: $uri")
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to write pending URI: ${e.message}")
@@ -72,19 +102,45 @@ object DesktopDeepLinkHandler {
      * Read and consume the pending URI file written by a second instance.
      * Called by the first instance when it receives a restore request.
      */
-    fun consumePendingUri() {
-        try {
-            if (pendingUriFile.exists()) {
-                val uri = pendingUriFile.readText().trim()
-                pendingUriFile.delete()
-                if (uri.isNotEmpty()) {
-                    Logger.d(TAG, "Consumed pending URI from file: $uri")
-                    onNewUri(uri)
-                }
+    fun consumePendingUri(sourceFile: File = pendingUriFile): Boolean {
+        return try {
+            if (!sourceFile.exists()) return false
+            val uri = sourceFile.readText().trim()
+            if (uri.isNotEmpty()) {
+                sourceFile.delete()
+                Logger.d(TAG, "Consumed pending URI from file: $uri")
+                onNewUri(uri)
+                true
+            } else {
+                false
             }
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to read pending URI: ${e.message}")
+            false
         }
+    }
+
+    /**
+     * Remove a staged pending URI file. When [expectedUri] is supplied, only deletes the file if
+     * its content still matches [expectedUri], preserving any newer URI written by a second
+     * instance during cold start.
+     */
+    fun clearPendingUri(
+        expectedUri: String? = null,
+        targetFile: File = pendingUriFile,
+    ) {
+        try {
+            if (!targetFile.exists()) return
+            if (expectedUri == null || targetFile.readText().trim() == expectedUri) {
+                targetFile.delete()
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    internal fun resetForTest() {
+        cached = null
+        listener = null
     }
 
     /**

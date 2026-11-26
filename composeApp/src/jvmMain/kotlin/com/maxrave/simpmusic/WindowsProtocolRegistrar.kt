@@ -2,6 +2,12 @@ package com.maxrave.simpmusic
 
 import com.maxrave.logger.Logger
 
+internal enum class ProtocolRegistrationDecision {
+    REGISTER,
+    SKIP_MSIX_AND_CLEANUP,
+    SKIP_DEV_OR_JAVA,
+}
+
 /**
  * Registers the "simpmusic://" custom URI protocol handler in Windows Registry
  * under HKEY_CURRENT_USER (no admin rights required).
@@ -37,8 +43,73 @@ object WindowsProtocolRegistrar {
             return
         }
 
-        register(SCHEME, "URL:SimpMusic Protocol", exePath)
-        register(LASTFM_SCHEME, "URL:SimpMusic Last.fm Callback", exePath)
+        when (decideRegistration(exePath)) {
+            ProtocolRegistrationDecision.SKIP_MSIX_AND_CLEANUP -> {
+                Logger.d(
+                    TAG,
+                    "Running inside MSIX WindowsApps; AppxManifest handles $SCHEME:// and $LASTFM_SCHEME://, cleaning up stale HKCU entries",
+                )
+                cleanupStaleHkcuIfNeeded(SCHEME)
+                cleanupStaleHkcuIfNeeded(LASTFM_SCHEME)
+                return
+            }
+
+            ProtocolRegistrationDecision.SKIP_DEV_OR_JAVA -> {
+                Logger.d(TAG, "Skipping protocol registration for dev/java executable: $exePath")
+                cleanupStaleHkcuIfNeeded(SCHEME)
+                cleanupStaleHkcuIfNeeded(LASTFM_SCHEME)
+                return
+            }
+
+            ProtocolRegistrationDecision.REGISTER -> {
+                register(SCHEME, "URL:SimpMusic Protocol", exePath)
+                register(LASTFM_SCHEME, "URL:SimpMusic Last.fm Callback", exePath)
+            }
+        }
+    }
+
+    internal fun decideRegistration(
+        exePath: String,
+        isDevBuild: Boolean = System.getProperty("simpmusic.dev") == "true",
+    ): ProtocolRegistrationDecision {
+        val normalized = exePath.trim().trim('"').replace('\\', '/').lowercase()
+        if (normalized.contains("/windowsapps/")) {
+            return ProtocolRegistrationDecision.SKIP_MSIX_AND_CLEANUP
+        }
+        val exeName = normalized.substringAfterLast('/')
+        if (isDevBuild || exeName == "java.exe" || exeName == "javaw.exe") {
+            return ProtocolRegistrationDecision.SKIP_DEV_OR_JAVA
+        }
+        return ProtocolRegistrationDecision.REGISTER
+    }
+
+    internal fun shouldDeleteStaleHkcuCommand(commandValue: String?): Boolean {
+        if (commandValue.isNullOrBlank()) return false
+        val normalized = commandValue.replace('\\', '/').lowercase()
+        return normalized.contains("/windowsapps/") ||
+            normalized.contains("/java.exe") ||
+            normalized.contains("/javaw.exe")
+    }
+
+    private fun cleanupStaleHkcuIfNeeded(scheme: String) {
+        try {
+            val existing = regQuery("${regKeyOf(scheme)}\\shell\\open\\command", null)
+            if (shouldDeleteStaleHkcuCommand(existing)) {
+                val regKey = regKeyOf(scheme)
+                val process = ProcessBuilder("reg", "delete", regKey, "/f")
+                    .redirectErrorStream(true)
+                    .start()
+                val output = process.inputStream.bufferedReader().readText()
+                val exitCode = process.waitFor()
+                if (exitCode == 0) {
+                    Logger.d(TAG, "Removed stale HKCU protocol key $regKey")
+                } else {
+                    Logger.e(TAG, "Failed to remove stale HKCU protocol key $regKey (exit=$exitCode): $output")
+                }
+            }
+        } catch (e: Exception) {
+            Logger.e(TAG, "Failed to check/cleanup stale HKCU protocol key for $scheme://: ${e.message}")
+        }
     }
 
     private fun register(
@@ -105,8 +176,11 @@ object WindowsProtocolRegistrar {
         }
 
         if (appDir != null) {
-            val exeFile = java.io.File(appDir, "SimpMusic.exe")
-            if (exeFile.exists()) {
+            val exeFile =
+                listOf("SimpMusic.exe", "simpmusic.exe")
+                    .map { java.io.File(appDir, it) }
+                    .firstOrNull { it.exists() }
+            if (exeFile != null) {
                 return exeFile.absolutePath
             }
         }
