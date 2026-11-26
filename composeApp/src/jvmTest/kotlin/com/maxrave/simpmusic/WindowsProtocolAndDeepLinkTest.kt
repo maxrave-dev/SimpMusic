@@ -9,7 +9,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WindowsProtocolAndDeepLinkTest {
@@ -104,58 +103,48 @@ class WindowsProtocolAndDeepLinkTest {
     }
 
     @Test
-    fun pendingUriRoundTripDeliversDiscordAndLastfmCallbacks() {
+    fun restoreRequestCarriesDiscordAndLastfmCallbacks() {
         val dir = createTempDirectory("simpmusic-deeplink-test").toFile().also { tempDir = it }
-        val pendingFile = File(File(dir, "nested"), "simpmusic_pending_deeplink.txt")
+        val restoreRequest = File(dir, "simpmusic.restore_request").toPath()
 
         val delivered = mutableListOf<GenericIntent>()
         DesktopDeepLinkHandler.listener = { intent -> delivered.add(intent) }
 
+        // Second instance writes the link into its restore request; the running one reads it off
+        // the request (watcher thread) and delivers it when the window is restored.
         val discordUri = "simpmusic://discord-auth?code=abc&state=123"
-        DesktopDeepLinkHandler.writePendingUri(discordUri, pendingFile)
-        assertTrue(pendingFile.exists(), "Pending URI file should exist after writePendingUri")
-
-        assertTrue(DesktopDeepLinkHandler.consumePendingUri(pendingFile))
-        assertFalse(pendingFile.exists(), "Pending URI file should be deleted after consumePendingUri")
+        DesktopDeepLinkHandler.writePendingUri(restoreRequest, discordUri)
+        DesktopDeepLinkHandler.readPendingUri(restoreRequest)
+        DesktopDeepLinkHandler.consumePendingUri()
         assertEquals(1, delivered.size)
 
         val discordData = delivered.single().data
         assertNotNull(discordData)
         assertEquals("simpmusic", discordData.scheme)
         assertEquals("discord-auth", discordData.host)
-        assertEquals("code=abc&state=123", discordData.query)
         assertEquals("abc", discordData.getQueryParameter("code"))
         assertEquals("123", discordData.getQueryParameter("state"))
 
-        delivered.clear()
-
-        val lastfmUri = "wordbyword://lastfm-auth?token=tok"
-        DesktopDeepLinkHandler.writePendingUri(lastfmUri, pendingFile)
-        assertTrue(pendingFile.exists())
-
-        assertTrue(DesktopDeepLinkHandler.consumePendingUri(pendingFile))
-        assertFalse(pendingFile.exists())
+        // A link is delivered once: a later restore (tray, Dock) carries nothing.
+        DesktopDeepLinkHandler.consumePendingUri()
         assertEquals(1, delivered.size)
 
+        delivered.clear()
+        val lastfmUri = "wordbyword://lastfm-auth?token=tok"
+        DesktopDeepLinkHandler.writePendingUri(restoreRequest, lastfmUri)
+        DesktopDeepLinkHandler.readPendingUri(restoreRequest)
+        DesktopDeepLinkHandler.consumePendingUri()
         val lastfmData = delivered.single().data
         assertNotNull(lastfmData)
         assertEquals("wordbyword", lastfmData.scheme)
         assertEquals("lastfm-auth", lastfmData.host)
-        assertEquals("token=tok", lastfmData.query)
         assertEquals("tok", lastfmData.getQueryParameter("token"))
 
-        // Consuming again when file is absent returns false and emits nothing.
-        assertFalse(DesktopDeepLinkHandler.consumePendingUri(pendingFile))
-        assertEquals(1, delivered.size)
-
-        // clearPendingUri deletes staged file only when expectedUri matches (preserving newer second-instance URIs).
-        DesktopDeepLinkHandler.writePendingUri(discordUri, pendingFile)
-        assertTrue(pendingFile.exists())
-        DesktopDeepLinkHandler.clearPendingUri(expectedUri = lastfmUri, targetFile = pendingFile)
-        assertTrue(pendingFile.exists(), "clearPendingUri must preserve file if overwritten by a newer URI")
-        DesktopDeepLinkHandler.clearPendingUri(expectedUri = discordUri, targetFile = pendingFile)
-        assertFalse(pendingFile.exists())
-        assertFalse(DesktopDeepLinkHandler.consumePendingUri(pendingFile))
-        assertNull(delivered.getOrNull(1))
+        // A restore request with no link (second launch without arguments) delivers nothing.
+        delivered.clear()
+        restoreRequest.toFile().writeText("")
+        DesktopDeepLinkHandler.readPendingUri(restoreRequest)
+        DesktopDeepLinkHandler.consumePendingUri()
+        assertTrue(delivered.isEmpty())
     }
 }

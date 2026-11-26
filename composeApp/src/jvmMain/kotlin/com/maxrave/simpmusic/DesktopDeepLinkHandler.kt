@@ -1,20 +1,18 @@
 package com.maxrave.simpmusic
 
 import com.eygraber.uri.Uri
-import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.domain.data.model.intent.GenericIntent
 import com.maxrave.logger.Logger
-import java.io.File
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Singleton to handle deep link URIs on Desktop.
  * Caches URI if app UI is not ready yet, delivers immediately if listener is set.
  *
- * Also provides file-based IPC for single-instance deep link forwarding:
- * when a second instance launches with a URI, it writes the URI to a temp file,
- * and the first instance reads it on restore.
+ * Also forwards a second instance's URI to the running one: the URI travels inside the
+ * single-instance restore request, so it is there as soon as that request is seen.
  *
  * Supported URI patterns:
  * - simpmusic://open-app?url=<encoded_url>  (redirected from website)
@@ -27,11 +25,9 @@ import java.nio.file.StandardCopyOption
 object DesktopDeepLinkHandler {
     private const val TAG = "DesktopDeepLinkHandler"
 
-    private val pendingUriFile: File by lazy {
-        File(getHomeFolderPath(listOf(".simpmusic")), "simpmusic_pending_deeplink.txt").also {
-            it.parentFile?.mkdirs()
-        }
-    }
+    // The link a second instance forwarded, read off its restore request on the watcher thread and
+    // taken by the UI when it handles that restore.
+    private val pendingUri = AtomicReference<String?>(null)
 
     private var cached: String? = null
 
@@ -61,86 +57,40 @@ object DesktopDeepLinkHandler {
     }
 
     /**
-     * Write URI to a pending file so the running (first) instance can pick it up.
-     * Called by the second instance before waking the primary instance.
+     * Second instance: writes [uri] into its restore request [file] before the request is moved into
+     * place. The link used to go into a file of its own after the request had been sent, and the
+     * running instance, woken by the request, read that file before it existed: Discord and Last.fm
+     * logins never finished on Windows and Linux (#2894).
      */
     fun writePendingUri(
+        file: Path,
         uri: String,
-        targetFile: File = pendingUriFile,
     ) {
         try {
-            targetFile.parentFile?.mkdirs()
-            val tempFile = File(targetFile.parentFile, "${targetFile.name}.${System.nanoTime()}.tmp")
-            try {
-                tempFile.writeText(uri)
-                try {
-                    Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.ATOMIC_MOVE,
-                    )
-                } catch (_: Exception) {
-                    Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                    )
-                }
-            } finally {
-                if (tempFile.exists()) {
-                    tempFile.delete()
-                }
-            }
-            Logger.d(TAG, "Wrote pending URI to file: $uri")
+            Files.writeString(file, uri)
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to write pending URI: ${e.message}")
         }
     }
 
-    /**
-     * Read and consume the pending URI file written by a second instance.
-     * Called by the first instance when it receives a restore request.
-     */
-    fun consumePendingUri(sourceFile: File = pendingUriFile): Boolean {
-        return try {
-            if (!sourceFile.exists()) return false
-            val uri = sourceFile.readText().trim()
-            if (uri.isNotEmpty()) {
-                sourceFile.delete()
-                Logger.d(TAG, "Consumed pending URI from file: $uri")
-                onNewUri(uri)
-                true
-            } else {
-                false
-            }
+    /** Running instance, on the watcher thread: reads the link before the library deletes [file]. */
+    fun readPendingUri(file: Path) {
+        try {
+            Files.readString(file).trim().takeIf { it.isNotEmpty() }?.let { pendingUri.set(it) }
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to read pending URI: ${e.message}")
-            false
         }
     }
 
-    /**
-     * Remove a staged pending URI file. When [expectedUri] is supplied, only deletes the file if
-     * its content still matches [expectedUri], preserving any newer URI written by a second
-     * instance during cold start.
-     */
-    fun clearPendingUri(
-        expectedUri: String? = null,
-        targetFile: File = pendingUriFile,
-    ) {
-        try {
-            if (!targetFile.exists()) return
-            if (expectedUri == null || targetFile.readText().trim() == expectedUri) {
-                targetFile.delete()
-            }
-        } catch (_: Exception) {
-        }
+    /** Delivers the link a second instance forwarded, if any. Called when the window is restored. */
+    fun consumePendingUri() {
+        pendingUri.getAndSet(null)?.let { onNewUri(it) }
     }
 
     internal fun resetForTest() {
         cached = null
         listener = null
+        pendingUri.set(null)
     }
 
     /**
