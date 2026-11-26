@@ -1,0 +1,12 @@
+Mới:
+- Tạo radio và Replay Mix
+- Xoá lời bài hát, nền lời chuyển động đập theo nhạc
+- Tìm kiếm trong Cài đặt, thêm nhà cung cấp AI kèm chọn model
+- Giao diện AMOLED, công tắc tắt chữ chạy
+- Android: chọn biểu tượng app. Máy tính: toàn màn hình
+Cải thiện:
+- AutoMix giữ trọn nửa đầu của drop cuối
+- Menu dạng kính lỏng, Android Auto: Phát tất cả trong playlist
+Sửa lỗi:
+- Android Auto: crash, phát nhầm bài khi tìm, mất tiếng
+- Đăng nhập Discord trên máy tính, Mix cho bạn tải mãi, trộn bài playlist
