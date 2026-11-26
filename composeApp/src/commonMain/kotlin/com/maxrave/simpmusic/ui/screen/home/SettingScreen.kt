@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -111,6 +113,9 @@ import com.maxrave.domain.repository.ImportProgress
 import com.maxrave.domain.utils.LocalResource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.expect.AppIconStyle
+import com.maxrave.simpmusic.expect.currentAppIcon
+import com.maxrave.simpmusic.expect.setAppIcon
 import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.LibrarySyncDialog
 import com.maxrave.simpmusic.expect.ui.LoginSyncDialog
@@ -182,10 +187,23 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import simpmusic.composeapp.generated.resources.Res
+import simpmusic.composeapp.generated.resources.app_icon_close_warning
+import simpmusic.composeapp.generated.resources.app_icon_liquid_glass
+import simpmusic.composeapp.generated.resources.app_icon_minimalism_dark
+import simpmusic.composeapp.generated.resources.app_icon_minimalism_light
+import simpmusic.composeapp.generated.resources.app_icon_old_school
+import simpmusic.composeapp.generated.resources.app_icon_option_liquid_glass
+import simpmusic.composeapp.generated.resources.app_icon_option_minimalism_dark
+import simpmusic.composeapp.generated.resources.app_icon_option_minimalism_light
+import simpmusic.composeapp.generated.resources.app_icon_option_old_school
+import simpmusic.composeapp.generated.resources.app_icon_option_pixel
+import simpmusic.composeapp.generated.resources.app_icon_pixel
+import simpmusic.composeapp.generated.resources.app_icon_title
 import simpmusic.composeapp.generated.resources.base_url
 import simpmusic.composeapp.generated.resources.configured
 import simpmusic.composeapp.generated.resources.custom_base_url
@@ -465,6 +483,7 @@ import simpmusic.composeapp.generated.resources.theme_color_custom
 import simpmusic.composeapp.generated.resources.theme_color_default
 import simpmusic.composeapp.generated.resources.theme_color_wallpaper
 import simpmusic.composeapp.generated.resources.theme_mode_dark
+import simpmusic.composeapp.generated.resources.theme_mode_amoled
 import simpmusic.composeapp.generated.resources.theme_mode_light
 import simpmusic.composeapp.generated.resources.theme_mode_system
 import simpmusic.composeapp.generated.resources.third_party_libraries
@@ -827,6 +846,7 @@ fun SettingScreen(
                                 DataStoreManager.THEME_MODE_SYSTEM to stringResource(Res.string.theme_mode_system),
                                 DataStoreManager.THEME_MODE_DARK to stringResource(Res.string.theme_mode_dark),
                                 DataStoreManager.THEME_MODE_LIGHT to stringResource(Res.string.theme_mode_light),
+                                DataStoreManager.THEME_MODE_AMOLED to stringResource(Res.string.theme_mode_amoled),
                             )
                         SettingItem(
                             title = stringResource(Res.string.theme),
@@ -888,6 +908,57 @@ fun SettingScreen(
                                 )
                             },
                         )
+                        // Android only: the launcher entry is an activity-alias the app switches, and
+                        // Desktop keeps its packaged icon, so there currentAppIcon() is null and the row is gone.
+                        val appIcon = remember { currentAppIcon() }
+                        appIcon?.let { current ->
+                            val appIconOptions =
+                                listOf(
+                                    Triple(AppIconStyle.LIQUID_GLASS, stringResource(Res.string.app_icon_liquid_glass), Res.drawable.app_icon_option_liquid_glass),
+                                    Triple(AppIconStyle.OLD_SCHOOL, stringResource(Res.string.app_icon_old_school), Res.drawable.app_icon_option_old_school),
+                                    Triple(AppIconStyle.MINIMALISM_LIGHT, stringResource(Res.string.app_icon_minimalism_light), Res.drawable.app_icon_option_minimalism_light),
+                                    Triple(AppIconStyle.MINIMALISM_DARK, stringResource(Res.string.app_icon_minimalism_dark), Res.drawable.app_icon_option_minimalism_dark),
+                                    Triple(AppIconStyle.PIXEL, stringResource(Res.string.app_icon_pixel), Res.drawable.app_icon_option_pixel),
+                                )
+                            SettingItem(
+                                title = stringResource(Res.string.app_icon_title),
+                                subtitle = appIconOptions.firstOrNull { it.first == current }?.second ?: "",
+                                onClick = {
+                                    viewModel.setAlertData(
+                                        SettingAlertState(
+                                            title = runBlocking { getString(Res.string.app_icon_title) },
+                                            selectOne =
+                                                SettingAlertState.SelectData(
+                                                    listSelect = appIconOptions.map { (it.first == current) to it.second },
+                                                    icons = appIconOptions.map { it.third },
+                                                ),
+                                            confirm =
+                                                runBlocking { getString(Res.string.change) } to { state ->
+                                                    val selected = state.selectOne?.getSelected()
+                                                    appIconOptions.firstOrNull { it.second == selected }?.first?.let { style ->
+                                                        if (style != current) {
+                                                            // The switch closes the app, so ask first, as a language change does.
+                                                            viewModel.setBasicAlertData(
+                                                                SettingBasicAlertState(
+                                                                    title = runBlocking { getString(Res.string.warning) },
+                                                                    message = runBlocking { getString(Res.string.app_icon_close_warning) },
+                                                                    confirm =
+                                                                        runBlocking { getString(Res.string.change) } to {
+                                                                            viewModel.setBasicAlertData(null)
+                                                                            setAppIcon(style)
+                                                                        },
+                                                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                                                ),
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                            dismiss = runBlocking { getString(Res.string.cancel) },
+                                        ),
+                                    )
+                                },
+                            )
+                        }
                         // Hidden outright below Android 12 rather than offered with one option: the Apple
                         // Music treatment IS the blur, and Modifier.blur is a documented no-op there, so
                         // the choice would be between Classic and a broken-looking Classic.
@@ -3364,7 +3435,7 @@ fun SettingScreen(
                             .padding(vertical = 6.dp)
                             .heightIn(0.dp, 500.dp),
                     ) {
-                        items(alertState.selectOne.listSelect) { item ->
+                        itemsIndexed(alertState.selectOne.listSelect) { index, item ->
                             val onSelect = {
                                 viewModel.setAlertData(
                                     alertState.copy(
@@ -3397,6 +3468,14 @@ fun SettingScreen(
                                     },
                                 )
                                 Spacer(Modifier.width(8.dp))
+                                alertState.selectOne.icons?.getOrNull(index)?.let { icon ->
+                                    Image(
+                                        painter = painterResource(icon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp),
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                }
                                 Text(
                                     text = item.second,
                                     style = typo().bodyMedium,

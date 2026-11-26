@@ -51,6 +51,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.simpmusic.lastfm.isLastfmAvailable
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.getString as formatString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
@@ -2264,6 +2265,8 @@ data class SettingAlertState(
     data class SelectData(
         // Selected / Data
         val listSelect: List<Pair<Boolean, String>>,
+        // An image drawn before each option's label, in the same order (the App icon picker).
+        val icons: List<DrawableResource>? = null,
     ) {
         fun getSelected(): String = listSelect.firstOrNull { it.first }?.second ?: ""
 

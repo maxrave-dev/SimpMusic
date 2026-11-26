@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Backgrounds of the selectable app icons, measured off the owner's artwork. -->
+    <color name="ic_launcher_old_school_background">#FFFFFF</color>
+    <color name="ic_launcher_minimalism_light_background">#FDFDFD</color>
+    <color name="ic_launcher_minimalism_dark_background">#090909</color>
+    <color name="ic_launcher_pixel_background">#101010</color>
+</resources>

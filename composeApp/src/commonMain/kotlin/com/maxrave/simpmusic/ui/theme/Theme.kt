@@ -78,6 +78,9 @@ val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
  */
 val LocalTitleMarquee = staticCompositionLocalOf { true }
 
+/** Whether the AMOLED theme is on: pure black pages, which the Desktop panels follow too ([desktopPanelDark]). */
+val LocalIsAmoled = staticCompositionLocalOf { false }
+
 /**
  * The dark scheme to use for immersive screens while the app itself is on the light theme.
  * Provided by [AppTheme], consumed by [ForceDarkContent]; null only outside of [AppTheme].
@@ -153,9 +156,12 @@ fun AppTheme(
         () -> Unit,
 ) {
     val isDark = isDarkTheme(themeMode)
+    val isAmoled = themeMode == DataStoreManager.THEME_MODE_AMOLED
     val wallpaperScheme =
         if (themeColorSource == DataStoreManager.THEME_COLOR_WALLPAPER) {
-            platformDynamicColorScheme(isDark)
+            platformDynamicColorScheme(isDark)?.let { scheme ->
+                if (isAmoled) scheme.copy(background = Color.Black, surface = Color.Black) else scheme
+            }
         } else {
             null
         }
@@ -172,6 +178,8 @@ fun AppTheme(
             ?: rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = isDark,
+                // AMOLED theme: MaterialKolor pins background/surface to #000 and onBackground/onSurface to #FFF.
+                isAmoled = isAmoled,
                 style = PaletteStyle.TonalSpot,
                 modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
             )
@@ -201,6 +209,7 @@ fun AppTheme(
                 LocalAppIsDark provides isDark,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
                 LocalTitleMarquee provides titleMarquee,
+                LocalIsAmoled provides isAmoled,
                 content = content,
             )
         },
@@ -322,5 +331,6 @@ fun isDarkTheme(themeMode: String): Boolean =
     when (themeMode) {
         DataStoreManager.THEME_MODE_LIGHT -> false
         DataStoreManager.THEME_MODE_SYSTEM -> isSystemInDarkTheme()
+        DataStoreManager.THEME_MODE_AMOLED -> true
         else -> true
     }

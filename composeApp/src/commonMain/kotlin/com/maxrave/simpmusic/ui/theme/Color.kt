@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 
 // ===== Brand =====
@@ -35,7 +37,10 @@ val blackMoreOverlay = Color(0x8f242424)
 
 val desktopWindowDark = Color(0xFF000000)
 val desktopWindowLight = Color(0xFFFFFFFF)
-val desktopPanelDark = Color(0xFF121212)
+// Under the AMOLED theme the panels go pure black with the window, like every other page.
+val desktopPanelDark: Color
+    @Composable @ReadOnlyComposable
+    get() = if (LocalIsAmoled.current) Color.Black else Color(0xFF121212)
 
 // ===== Legacy — do not add new usages =====
 
