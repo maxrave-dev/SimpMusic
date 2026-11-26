@@ -12,6 +12,7 @@ import com.maxrave.domain.data.model.browse.album.Track
 import com.maxrave.domain.data.model.browse.playlist.Author
 import com.maxrave.domain.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.domain.data.model.browse.playlist.PlaylistState
+import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.extension.now
 import com.maxrave.domain.mediaservice.handler.DownloadHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
@@ -445,6 +446,24 @@ class PlaylistViewModel(
     private fun queueName(data: PlaylistState): String =
         if (data.isRadio) data.title else "${getString(Res.string.playlist)} \"${data.title}\""
 
+    /** Plays the songs already loaded in a random order, for when YouTube cannot be asked; false when there are none. */
+    private fun playLoadedTracksShuffled(data: PlaylistState): Boolean {
+        val shuffled = tracks.value.shuffled()
+        val first = shuffled.firstOrNull() ?: return false
+        setQueueData(
+            QueueData.Data(
+                listTracks = shuffled.toCollection(arrayListOf<Track>()),
+                firstPlayedTrack = first,
+                playlistId = data.id,
+                playlistName = "\"${data.title}\" ${getString(Res.string.shuffle)}",
+                playlistType = PlaylistType.PLAYLIST,
+                continuation = null,
+            ),
+        )
+        loadMediaItem(first, Config.PLAYLIST_CLICK, 0)
+        return true
+    }
+
     fun onUIEvent(event: PlaylistUIEvent) {
         val data = uiState.value.data ?: return
         when (event) {
@@ -497,42 +516,35 @@ class PlaylistViewModel(
             }
 
             PlaylistUIEvent.Shuffle -> {
-                val shuffleEndpoint = data.shuffleEndpoint
-                if (shuffleEndpoint == null) {
-                    makeToast(
-                        getString(Res.string.shuffle_not_available),
-                    )
-                    return
-                } else {
-                    viewModelScope.launch {
-                        songRepository.getRadioFromEndpoint(shuffleEndpoint).collectLatest { res ->
-                            val result = res.data
-                            when (res) {
-                                is Resource.Success if (result != null) -> {
-                                    Logger.d(tag, "Shuffle data: ${result.first.size}")
-                                    setQueueData(
-                                        QueueData.Data(
-                                            listTracks = result.first.toCollection(arrayListOf<Track>()),
-                                            firstPlayedTrack = result.first.firstOrNull() ?: return@collectLatest,
-                                            playlistId = shuffleEndpoint.playlistId,
-                                            playlistName = "\"${data.title}\" ${getString(Res.string.shuffle)}",
-                                            playlistType = PlaylistType.RADIO,
-                                            continuation = result.second,
-                                        ),
-                                    )
-                                    loadMediaItem(
-                                        result.first.firstOrNull() ?: return@collectLatest,
-                                        Config.RADIO_CLICK,
-                                        0,
-                                    )
-                                }
-
-                                else -> {
-                                    makeToast(
-                                        res.message ?: getString(Res.string.error),
-                                    )
-                                }
-                            }
+                // A playlist opened offline (#2083), or a header whose Shuffle the parser cannot read, has no
+                // endpoint. YouTube's own Shuffle is the playlist plus a fixed params value, so it is built here.
+                val playlistId = data.id.removePrefix("VL")
+                val shuffleEndpoint =
+                    data.shuffleEndpoint
+                        ?: YouTubeWatchEndpoint(
+                            playlistId = playlistId,
+                            params = if (playlistId.startsWith("RD")) RADIO_SHUFFLE_PARAMS else SHUFFLE_PARAMS,
+                        )
+                viewModelScope.launch {
+                    songRepository.getRadioFromEndpoint(shuffleEndpoint).collectLatest { res ->
+                        val shuffledTracks = res.data?.first.orEmpty()
+                        val first = shuffledTracks.firstOrNull()
+                        if (res is Resource.Success && first != null) {
+                            Logger.d(tag, "Shuffle data: ${shuffledTracks.size}")
+                            setQueueData(
+                                QueueData.Data(
+                                    listTracks = shuffledTracks.toCollection(arrayListOf<Track>()),
+                                    firstPlayedTrack = first,
+                                    playlistId = shuffleEndpoint.playlistId,
+                                    playlistName = "\"${data.title}\" ${getString(Res.string.shuffle)}",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = res.data?.second,
+                                ),
+                            )
+                            loadMediaItem(first, Config.RADIO_CLICK, 0)
+                        } else if (!playLoadedTracksShuffled(data)) {
+                            // No connection (a downloaded playlist offline) falls back to the songs already here.
+                            makeToast(res.message ?: getString(Res.string.shuffle_not_available))
                         }
                     }
                 }
@@ -732,3 +744,9 @@ enum class ListState {
     ERROR,
     PAGINATION_EXHAUST,
 }
+
+// The params YouTube puts on a Shuffle button: playlists and albums (PL…, OLAK…) carry SHUFFLE_PARAMS, which
+// ytmusicapi also sends for `get_watch_playlist(shuffle=True)`; RD… ids (RDCLAK… playlists, an artist's RDAO…
+// shuffle) carry RADIO_SHUFFLE_PARAMS.
+private const val SHUFFLE_PARAMS = "wAEB8gECKAE%3D"
+private const val RADIO_SHUFFLE_PARAMS = "wAEB8gECGAE%3D"

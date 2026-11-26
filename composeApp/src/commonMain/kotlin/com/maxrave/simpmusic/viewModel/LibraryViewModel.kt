@@ -243,8 +243,9 @@ class LibraryViewModel(
     fun getYouTubeMixedForYou() {
         _youTubeMixForYou.value = LocalResource.Loading()
         viewModelScope.launch {
-            playlistRepository.getMixedForYou().collect { data ->
-                _youTubeMixForYou.value = LocalResource.Success(data ?: emptyList())
+            playlistRepository.getMixedForYou().collect { res ->
+                if (res is Resource.Error) makeToast(res.message)
+                _youTubeMixForYou.value = LocalResource.Success(res.data ?: emptyList())
             }
         }
     }
