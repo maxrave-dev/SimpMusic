@@ -295,8 +295,9 @@ class LocalPlaylistViewModel(
             }
 
             is PagingActions.Remove -> {
+                // By row, not by song: a song in the playlist twice keeps its other copy (#2933).
                 pagingData.filter {
-                    actions.item.first.videoId != it.first.videoId
+                    actions.item.second.id != it.second.id
                 }
             }
         }
@@ -515,16 +516,18 @@ class LocalPlaylistViewModel(
         }
     }
 
+    /** Removes [pair], the row the user picked, not whichever copy of [song] comes first. */
     fun deleteItem(
         id: Long,
         song: SongEntity,
+        pair: PairSongLocalPlaylist,
     ) {
         viewModelScope.launch {
-            val pair = localPlaylistRepository.getPlaylistPairOfSong(id, song.videoId).lastOrNull() ?: return@launch
             localPlaylistRepository
                 .removeTrackFromLocalPlaylist(
                     id,
                     song,
+                    pair.id,
                     getString(Res.string.delete_song_from_playlist),
                     getString(Res.string.removed_from_YouTube_playlist),
                     getString(Res.string.can_t_delete_from_youtube_playlist),
@@ -536,6 +539,8 @@ class LocalPlaylistViewModel(
                     },
                     onError = {
                         makeToast(it)
+                        // A row already gone from the database must not stay on screen either.
+                        onApplyActions(PagingActions.Remove(song to pair))
                     },
                 )
         }

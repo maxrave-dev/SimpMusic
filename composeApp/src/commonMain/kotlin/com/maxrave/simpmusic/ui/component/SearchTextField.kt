@@ -25,6 +25,7 @@ fun SearchTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(8.dp),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
 ) {
     TextField(
         value = query,
@@ -47,8 +48,8 @@ fun SearchTextField(
             },
         colors =
             TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedContainerColor = containerColor,
+                unfocusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
             ),

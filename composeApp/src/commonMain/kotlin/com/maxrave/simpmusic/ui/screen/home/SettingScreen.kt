@@ -144,6 +144,7 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SearchTextField
 import com.maxrave.simpmusic.ui.component.SettingGroup
 import com.maxrave.simpmusic.ui.component.SettingGroupShape
+import com.maxrave.simpmusic.ui.component.settingGroupBackground
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.component.searchKey
 import com.maxrave.simpmusic.ui.component.settingShown
@@ -790,8 +791,9 @@ fun SettingScreen(
                         onQueryChange = { searchQuery = it },
                         placeholder = stringResource(Res.string.search_settings),
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        // The groups' own corner, so the field reads as one of them.
+                        // The groups' own corner and fill, so the field reads as one of them.
                         shape = SettingGroupShape,
+                        containerColor = settingGroupBackground(),
                     )
                     // Above every section, and inside item 0 rather than an item of its own, for the
                     // glow reason above.

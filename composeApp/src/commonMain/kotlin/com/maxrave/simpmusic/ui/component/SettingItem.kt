@@ -160,7 +160,6 @@ fun SettingGroup(
     footer: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val cardColor = settingGroupColor()
     val query = LocalSettingSearch.current
     // A group whose own name is searched shows whole, as if nothing were typed.
     val titleMatches = query.isNotEmpty() && searchKey(title).contains(query)
@@ -183,7 +182,7 @@ fun SettingGroup(
                                 Modifier
                                     .fillMaxWidth()
                                     .clip(SettingGroupShape)
-                                    .background(cardColor.copy(alpha = 0.5f))
+                                    .background(settingGroupBackground())
                                     .drawWithContent {
                                         // The first row's hairline would sit on the card's own edge, so that strip is
                                         // left undrawn. Clipped rather than painted over: the card is translucent.
@@ -252,6 +251,10 @@ private fun settingGroupColor(): Color =
     } else {
         MaterialTheme.colorScheme.surfaceContainer
     }
+
+/** The group card's fill, translucent over the page; the settings search field wears it too. */
+@Composable
+internal fun settingGroupBackground(): Color = settingGroupColor().copy(alpha = 0.5f)
 
 internal val SettingGroupShape = RoundedCornerShape(20.dp)
 private val SettingRowPaddingHorizontal = 16.dp
