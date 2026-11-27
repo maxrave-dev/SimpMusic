@@ -26,33 +26,40 @@ object CrashDialog {
 
     fun install() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            try {
-                // Report to Sentry if available
-                if (BuildKonfig.sentryDsn.isNotEmpty()) {
-                    Sentry.captureException(throwable)
-                }
-            } catch (_: Exception) {
-                // Sentry might not be initialized
-            }
-
-            // Show crash dialog on EDT
-            try {
-                if (SwingUtilities.isEventDispatchThread()) {
-                    // Already on EDT — call directly
-                    showCrashDialog(thread, throwable)
-                } else {
-                    SwingUtilities.invokeAndWait {
-                        showCrashDialog(thread, throwable)
-                    }
-                }
-            } catch (_: Exception) {
-                // If EDT is broken too, print to stderr and exit
-                System.err.println("Fatal crash in thread ${thread.name}:")
-                throwable.printStackTrace()
-            }
-
-            exitProcess(1)
+            reportAndExit(thread, throwable)
         }
+    }
+
+    fun reportAndExit(
+        thread: Thread = Thread.currentThread(),
+        throwable: Throwable,
+    ) {
+        try {
+            // Report to Sentry if available
+            if (BuildKonfig.sentryDsn.isNotEmpty()) {
+                Sentry.captureException(throwable)
+            }
+        } catch (_: Exception) {
+            // Sentry might not be initialized
+        }
+
+        // Show crash dialog on EDT
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
+                // Already on EDT — call directly
+                showCrashDialog(thread, throwable)
+            } else {
+                SwingUtilities.invokeAndWait {
+                    showCrashDialog(thread, throwable)
+                }
+            }
+        } catch (_: Exception) {
+            // If EDT is broken too, print to stderr and exit
+            System.err.println("Fatal crash in thread ${thread.name}:")
+            throwable.printStackTrace()
+        }
+
+        exitProcess(1)
     }
 
     private fun showCrashDialog(thread: Thread, throwable: Throwable) {

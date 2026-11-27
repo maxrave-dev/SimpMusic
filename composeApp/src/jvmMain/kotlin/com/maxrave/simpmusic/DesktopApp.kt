@@ -108,6 +108,8 @@ private val DEEP_LINK_ARG = Regex("^[A-Za-z][A-Za-z0-9+.\\-]*://.+")
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
 fun runDesktopApp(args: Array<String> = emptyArray()) {
+    DesktopTempEnvironment.configure()
+
     // Install crash dialog handler first — catches all uncaught exceptions
     CrashDialog.install()
 
