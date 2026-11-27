@@ -28,6 +28,7 @@ import com.maxrave.domain.utils.toPlaylistEntity
 import com.maxrave.domain.utils.toSongEntity
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Error
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Loading
 import com.maxrave.simpmusic.viewModel.PlaylistUIState.Success
@@ -182,6 +183,10 @@ class PlaylistViewModel(
     }
 
     fun getData(id: String) {
+        if (!isNetworkAvailable()) {
+            _uiState.value = Error("offline")
+            return
+        }
         resetData()
         viewModelScope.launch {
             // Check radio
@@ -281,6 +286,7 @@ class PlaylistViewModel(
         playlistId: String,
         continuation: String?,
     ) {
+        if (!isNetworkAvailable()) return
         viewModelScope.launch {
             if (continuation.isNullOrEmpty()) {
                 _tracksListState.value = ListState.PAGINATION_EXHAUST

@@ -312,7 +312,7 @@ class NetworkFirstInterceptorTest {
                 .mainCoroutineContext(Dispatchers.Unconfined)
                 .diskCache(diskCache)
                 .components {
-                    add(NetworkFirstInterceptor(ttlMillis = ttlMillis, nowMillis = { client.nowMillis }) { loader })
+                    add(NetworkFirstInterceptor(ttlMillis = ttlMillis, nowMillis = { client.nowMillis }, isOnline = { true }) { loader })
                     add(Interceptor { chain ->
                         val result = chain.proceed()
                         if (client.cancelAfterDecode && result is SuccessResult && result.dataSource == DataSource.NETWORK) {

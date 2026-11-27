@@ -84,6 +84,9 @@ kotlin {
             api(libs.koin.android)
             implementation(libs.koin.androidx.compose)
 
+            // Pinned canvases are downloaded directly, without going through Coil.
+            implementation(libs.okhttp3.okhttp)
+
             implementation(libs.jetbrains.ui.tooling.preview)
             implementation(libs.constraintlayout.compose)
 

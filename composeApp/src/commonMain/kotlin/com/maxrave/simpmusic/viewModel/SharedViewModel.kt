@@ -72,7 +72,11 @@ import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
+import com.maxrave.simpmusic.artwork.ArtworkStore
+import com.maxrave.simpmusic.canvas.CanvasSource
+import com.maxrave.simpmusic.canvas.CanvasStore
 import com.maxrave.simpmusic.expect.getDownloadFolderPath
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.expect.isOnUnmeteredNetwork
 import com.maxrave.simpmusic.expect.ui.toByteArray
 import com.maxrave.simpmusic.getPlatform
@@ -108,6 +112,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import org.koin.core.component.inject
@@ -155,6 +161,9 @@ class SharedViewModel(
     var showedUpdateDialog: Boolean = false
 
     private val appIdentity: AppIdentity by inject()
+    private val downloadHandler: DownloadHandler by inject()
+    private val artworkStore: ArtworkStore by inject()
+    private val canvasStore: CanvasStore by inject()
 
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
@@ -290,6 +299,9 @@ class SharedViewModel(
     val shareSavedLyrics: StateFlow<Boolean> get() = _shareSavedLyrics
 
     init {
+        viewModelScope.launch {
+            observeDownloadedMedia()
+        }
         viewModelScope.launch {
             log("SharedViewModel init")
             if (dataStoreManager.appVersion.first() != VersionManager.getVersionName()) {
@@ -686,16 +698,41 @@ class SharedViewModel(
             // animated artwork first, and a Spotify canvas only if that found nothing AND the user
             // has that switch on too. Neither switch touches the other — a track with no animated
             // artwork still gets its canvas, and turning Spotify off still means no canvas at all.
+            val amEnabled = dataStoreManager.amAnimatedArtwork.first() == TRUE
+            val spotifyEnabled = dataStoreManager.spotifyCanvas.first() == TRUE
+            if (!amEnabled && !spotifyEnabled) return@launch
+
+            // A downloaded song keeps its canvas on disk. Show it before asking any source, so a
+            // device with no network still gets the artwork it downloaded with the song. The
+            // pinned file belongs to one source, and that source's switch has to still be on:
+            // turning animated artwork off must not leave an old Apple Music loop on screen.
+            val pinned = canvasStore.pinned(videoId)
+            if (pinned != null && pinned.isEnabled(amEnabled, spotifyEnabled) && isDownloaded(videoId)) {
+                applyCanvas(
+                    videoId = videoId,
+                    data =
+                        CanvasResult(
+                            isVideo = pinned.isVideo,
+                            canvasUrl = pinned.url,
+                            canvasThumbUrl = pinned.thumbUrl,
+                        ),
+                    persist = false,
+                )
+                return@launch
+            }
+
+            // Offline: pinned canvas was already shown; no source fetch can succeed.
+            if (!isNetworkAvailable()) return@launch
+
             val sources =
                 buildList {
-                    if (dataStoreManager.amAnimatedArtwork.first() == TRUE) {
+                    if (amEnabled) {
                         add(lyricsCanvasRepository.getAMAnimatedArtwork(videoId))
                     }
-                    if (dataStoreManager.spotifyCanvas.first() == TRUE) {
+                    if (spotifyEnabled) {
                         add(lyricsCanvasRepository.getCanvas(dataStoreManager, videoId, duration))
                     }
                 }
-            if (sources.isEmpty()) return@launch
 
             var resolved = false
             for (source in sources) {
@@ -704,21 +741,14 @@ class SharedViewModel(
                     val data = response.data
                     if (response is Resource.Success && data != null && nowPlayingState.value?.mediaItem?.mediaId == videoId) {
                         resolved = true
-                        _canvas.value = data
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                canvasData =
-                                    NowPlayingScreenData.CanvasData(
-                                        isVideo = data.isVideo,
-                                        url = data.canvasUrl,
-                                        thumbUrl = data.canvasThumbUrl,
-                                    ),
-                            )
+                        applyCanvas(videoId, data, persist = true)
+                        // A downloaded song keeps this result for the next offline play. The
+                        // download itself may have already pinned one; save() returns early then.
+                        if (isDownloaded(videoId)) {
+                            viewModelScope.launch {
+                                canvasStore.save(videoId, data.canvasUrl, data.canvasThumbUrl, data.isVideo)
+                            }
                         }
-                        // Save canvas video url
-                        if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
-                        // Save canvas thumb url
-                        data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
                     } else {
                         log("Get canvas miss from a source: ${response.message}")
                     }
@@ -727,20 +757,53 @@ class SharedViewModel(
 
             if (!resolved) {
                 nowPlayingState.value?.songEntity?.canvasUrl?.let { url ->
-                    _nowPlayingScreenData.update {
-                        it.copy(
-                            canvasData =
-                                NowPlayingScreenData.CanvasData(
+                    val source = if (url.contains(".m3u8", ignoreCase = true)) CanvasSource.AM else CanvasSource.SPOTIFY
+                    if (source.isEnabled(amEnabled, spotifyEnabled)) {
+                        applyCanvas(
+                            videoId = videoId,
+                            data =
+                                CanvasResult(
                                     isVideo = url.isCanvasVideoUrl(),
-                                    url = url,
-                                    thumbUrl = nowPlayingState.value?.songEntity?.canvasThumbUrl,
+                                    canvasUrl = url,
+                                    canvasThumbUrl = nowPlayingState.value?.songEntity?.canvasThumbUrl,
                                 ),
+                            persist = false,
                         )
                     }
                 }
             }
         }
     }
+
+    private suspend fun applyCanvas(
+        videoId: String,
+        data: CanvasResult,
+        persist: Boolean,
+    ) {
+        if (nowPlayingState.value?.mediaItem?.mediaId != videoId) return
+        _canvas.value = data
+        _nowPlayingScreenData.update {
+            it.copy(
+                canvasData =
+                    NowPlayingScreenData.CanvasData(
+                        isVideo = data.isVideo,
+                        url = data.canvasUrl,
+                        thumbUrl = data.canvasThumbUrl,
+                    ),
+            )
+        }
+        if (persist) {
+            // Save canvas video url
+            if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(videoId, data.canvasUrl)
+            // Save canvas thumb url
+            data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(videoId, it) }
+        }
+    }
+
+    private suspend fun isDownloaded(videoId: String): Boolean =
+        songRepository.getSongById(videoId).firstOrNull()?.downloadState?.let {
+            it != DownloadState.STATE_NOT_DOWNLOADED
+        } == true
 
     fun getString(key: String): String? = runBlocking { dataStoreManager.getString(key).first() }
 
@@ -998,6 +1061,56 @@ class SharedViewModel(
         }
     }
 
+    /**
+     * Renders the lyrics already saved on this device before the selected provider is asked.
+     *
+     * A song that has been played before therefore shows its lyrics immediately, and keeps them
+     * when the device is offline; the provider fetch that follows still replaces them when it
+     * returns a fresh copy. The saved copy is not written back or offered to the community
+     * database: it came from a provider in the first place.
+     */
+    private suspend fun showSavedLyricsFirst(
+        song: SongEntity,
+        duration: Int,
+    ) {
+        val savedLyrics =
+            lyricsCanvasRepository
+                .getSavedLyrics(song.videoId)
+                .firstOrNull()
+                ?.takeUnless { it.error || it.lines.isNullOrEmpty() }
+                ?: return
+        val lyrics = savedLyrics.toLyrics()
+        Logger.d(tag, "Show saved lyrics for ${song.videoId} before provider fetch")
+        updateLyrics(
+            song.videoId,
+            duration,
+            lyrics,
+            false,
+            LyricsProvider.OFFLINE,
+            saveToDatabase = false,
+        )
+        showSavedTranslatedLyrics(song.videoId)
+    }
+
+    private suspend fun showSavedTranslatedLyrics(videoId: String) {
+        if (dataStoreManager.useAITranslation.first() != TRUE) return
+        val savedTranslation =
+            lyricsCanvasRepository
+                .getSavedTranslatedLyrics(
+                    videoId,
+                    dataStoreManager.translationLanguage.first(),
+                ).firstOrNull()
+                ?: return
+        updateLyrics(
+            videoId,
+            0,
+            savedTranslation.toLyrics(),
+            true,
+            LyricsProvider.AI,
+            saveToDatabase = false,
+        )
+    }
+
     fun loadSharedMediaItem(videoId: String) {
         viewModelScope.launch {
             val localSong = songRepository.getSongById(videoId).firstOrNull()
@@ -1238,6 +1351,278 @@ class SharedViewModel(
         }
     }
 
+    private var artworkSyncJob: Job? = null
+
+    /**
+     * Pins covers for downloads that predate artwork pinning, finishes covers for downloads still
+     * in progress, and drops pinned media whose download is gone. Called when the app comes to
+     * the foreground: a widget creating this ViewModel in the background must not start a batch
+     * of downloads. Cheap after the first pass, because [ArtworkStore.save] returns before the
+     * network when the file is already there. Canvases are not backfilled here: a downloaded song
+     * gets its canvas when it is played online, or when it is downloaded again, so opening the
+     * app does not silently fetch gigabytes of video for an old library.
+     */
+    fun ensureDownloadedMedia() {
+        if (artworkSyncJob?.isActive == true) return
+        artworkSyncJob =
+            viewModelScope.launch {
+                val downloaded = songRepository.getDownloadedSongs().firstOrNull().orEmpty()
+                // A download that is still running keeps its media too: retainOnly must not delete
+                // it just because the song is not in the downloaded table yet.
+                val downloading = songRepository.getDownloadingSongs().firstOrNull().orEmpty()
+                val songs = downloaded + downloading
+                val urls = songs.mapNotNull { it.thumbnails?.takeIf { url -> url.isNotBlank() } }
+                artworkStore.retainOnly(urls)
+                // Removing a download deletes its canvas immediately; this sweep catches the
+                // cases that never reached that code, such as a process killed mid-removal.
+                canvasStore.retainOnly(songs.map { it.videoId })
+                songs.forEach { song ->
+                    val url = song.thumbnails?.takeIf { it.isNotBlank() } ?: return@forEach
+                    artworkStore.save(song.videoId, url)
+                }
+            }
+    }
+
+    // A bulk download can start dozens of transitions at once. Cap the cover/lyrics/canvas
+    // fetches they trigger so the app does not open a connection per song; Media3 still handles
+    // the audio/video downloads themselves.
+    private val mediaPinSemaphore = Semaphore(permits = 3)
+
+    /**
+     * Pins the cover and canvas of every song whose download starts while this process is alive.
+     * A download that was already running when the ViewModel was created is picked up by
+     * [ensureDownloadedMedia]; completed ones are left to it too, so they are not fetched again
+     * in the background.
+     */
+    private suspend fun observeDownloadedMedia() {
+        var previous = emptyMap<String, Int>()
+        downloadHandler.downloadTask.collect { tasks ->
+            tasks.forEach { (videoId, state) ->
+                val wasDownloading =
+                    previous[videoId] == DownloadState.STATE_PREPARING ||
+                        previous[videoId] == DownloadState.STATE_DOWNLOADING
+                val isDownloading =
+                    state == DownloadState.STATE_PREPARING ||
+                        state == DownloadState.STATE_DOWNLOADING
+                if (!wasDownloading && isDownloading) {
+                    // Save off the collector: fetching a cover or a canvas can take a while, and
+                    // the download state flow conflates, so blocking here could drop the next
+                    // song's transition.
+                    viewModelScope.launch {
+                        mediaPinSemaphore.withPermit { saveDownloadedMedia(videoId) }
+                    }
+                }
+            }
+            previous = tasks
+        }
+    }
+
+    private suspend fun saveDownloadedMedia(videoId: String) {
+        val song = songRepository.getSongById(videoId).firstOrNull() ?: return
+        song.thumbnails?.takeIf { it.isNotBlank() }?.let { url ->
+            artworkStore.save(videoId, url)
+        }
+        pinCanvasFor(song)
+        // Fetch and save lyrics for the downloaded song using the selected provider
+        if (isNetworkAvailable()) {
+            fetchAndSaveLyricsForDownload(song)
+        }
+    }
+
+    /**
+     * Fetches lyrics using the user's selected provider and saves them to the local DB so the
+     * downloaded song has lyrics available offline. Runs under the same semaphore as cover/canvas
+     * to avoid a connection burst when a bulk download starts.
+     */
+    private suspend fun fetchAndSaveLyricsForDownload(song: SongEntity) {
+        val lyricsProvider = dataStoreManager.lyricsProvider.first()
+        val artistName = song.artistName
+        val artist =
+            if (artistName?.firstOrNull() != null &&
+                artistName
+                    .firstOrNull()
+                    ?.contains("Various Artists") == false
+            ) {
+                artistName.firstOrNull()
+            } else {
+                mediaPlayerHandler.nowPlaying
+                    .first()
+                    ?.metadata
+                    ?.artist
+                    ?: ""
+            }
+        val duration = song.durationSeconds
+        val videoId = song.videoId
+
+        when (lyricsProvider) {
+            DataStoreManager.SIMPMUSIC -> {
+                getSimpMusicLyricsForDownload(videoId, song, artist ?: "", duration)
+            }
+            DataStoreManager.LRCLIB -> {
+                getLrclibLyricsForDownload(song, artist ?: "", duration)
+            }
+            DataStoreManager.YOUTUBE -> {
+                getYouTubeCaptionForDownload(videoId, song, artist ?: "", duration)
+            }
+            DataStoreManager.BETTER_LYRICS -> {
+                getBetterLyricsForDownload(song, (artist ?: "").toString(), duration)
+            }
+        }
+    }
+
+    private suspend fun getSimpMusicLyricsForDownload(
+        videoId: String,
+        song: SongEntity,
+        artist: String?,
+        duration: Int,
+    ) {
+        lyricsCanvasRepository.getSimpMusicLyrics(videoId).collectLatest {
+            val data = it.data
+            if (it is Resource.Success && data != null) {
+                insertLyrics(data.toLyricsEntity(videoId))
+                getSimpMusicTranslatedLyricsForDownload(videoId, data)
+            }
+        }
+    }
+
+    private suspend fun getSimpMusicTranslatedLyricsForDownload(
+        videoId: String,
+        lyrics: Lyrics,
+    ) {
+        if (dataStoreManager.useAITranslation.first() == TRUE) {
+            lyricsCanvasRepository
+                .getSimpMusicTranslatedLyrics(
+                    videoId,
+                    dataStoreManager.translationLanguage.first(),
+                ).collectLatest { res ->
+                    if (res is Resource.Success && res.data != null) {
+                        insertTranslatedLyrics(
+                            TranslatedLyricsEntity(
+                                videoId = videoId,
+                                language = dataStoreManager.translationLanguage.first(),
+                                error = false,
+                                lines = res.data.lines,
+                                syncType = res.data.syncType,
+                            )
+                        )
+                    }
+                }
+        }
+    }
+
+    private suspend fun getLrclibLyricsForDownload(
+        song: SongEntity,
+        artist: String,
+        duration: Int,
+    ) {
+        lyricsCanvasRepository
+            .getLrclibLyricsData(
+                artist,
+                song.title,
+                duration,
+            ).collectLatest { res ->
+                val data = res.data
+                if (res is Resource.Success && data != null) {
+                    insertLyrics(
+                        data.toLyricsEntity(song.videoId),
+                    )
+                }
+            }
+    }
+
+    private suspend fun getYouTubeCaptionForDownload(
+        videoId: String,
+        song: SongEntity,
+        artist: String?,
+        duration: Int,
+    ) {
+        lyricsCanvasRepository
+            .getYouTubeCaption(dataStoreManager.youtubeSubtitleLanguage.first(), videoId)
+            .cancellable()
+            .collect { response ->
+                val data = response.data
+                when (response) {
+                    is Resource.Success if (data != null) -> {
+                        val lyrics = data.first
+                        val translatedLyrics = data.second
+                        insertLyrics(lyrics.toLyricsEntity(videoId))
+                        if (translatedLyrics != null) {
+                            insertTranslatedLyrics(
+                                TranslatedLyricsEntity(
+                                    videoId = videoId,
+                                    language = dataStoreManager.translationLanguage.first(),
+                                    error = false,
+                                    lines = translatedLyrics.lines,
+                                    syncType = translatedLyrics.syncType,
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+    }
+
+    private suspend fun getBetterLyricsForDownload(
+        song: SongEntity,
+        artist: String,
+        duration: Int,
+    ) {
+        lyricsCanvasRepository
+            .getBetterLyrics(
+                artist,
+                song.title,
+                duration,
+            ).collectLatest { res ->
+                val data = res.data
+                if (res is Resource.Success && data != null) {
+                    insertLyrics(
+                        data.toLyricsEntity(song.videoId),
+                    )
+                }
+            }
+    }
+
+    private suspend fun insertTranslatedLyrics(translatedLyrics: TranslatedLyricsEntity) {
+        lyricsCanvasRepository.insertTranslatedLyrics(translatedLyrics)
+    }
+
+    /**
+     * Pins the canvas of a song whose download just started, so the song is complete when the
+     * device goes offline. Both switches are checked here, not just where the canvas is shown:
+     * a user who turned canvas off does not expect downloads to keep fetching it.
+     */
+    private suspend fun pinCanvasFor(song: SongEntity) {
+        val amEnabled = dataStoreManager.amAnimatedArtwork.first() == TRUE
+        val spotifyEnabled = dataStoreManager.spotifyCanvas.first() == TRUE
+        if (!amEnabled && !spotifyEnabled) return
+        val pinned = canvasStore.pinned(song.videoId)
+        if (pinned != null && pinned.isEnabled(amEnabled, spotifyEnabled)) return
+
+        // Offline: cannot fetch canvas, will try again on next online download or playback.
+        if (!isNetworkAvailable()) return
+
+        val sources =
+            buildList {
+                if (amEnabled) {
+                    add(lyricsCanvasRepository.getAMAnimatedArtwork(song.videoId))
+                }
+                if (spotifyEnabled) {
+                    add(lyricsCanvasRepository.getCanvas(dataStoreManager, song.videoId, song.durationSeconds))
+                }
+            }
+        for (source in sources) {
+            val data =
+                source.cancellable().firstOrNull { it is Resource.Success && it.data != null }?.data
+                    ?: continue
+            val saved = canvasStore.save(song.videoId, data.canvasUrl, data.canvasThumbUrl, data.isVideo)
+            if (saved != null) {
+                if (data.isVideo) lyricsCanvasRepository.updateCanvasUrl(song.videoId, data.canvasUrl)
+                data.canvasThumbUrl?.let { lyricsCanvasRepository.updateCanvasThumbUrl(song.videoId, it) }
+                return
+            }
+        }
+    }
+
     private var smartDownloadsJob: Job? = null
 
     /**
@@ -1408,6 +1793,7 @@ class SharedViewModel(
         inputLyrics: Lyrics?,
         isTranslatedLyrics: Boolean,
         lyricsProvider: LyricsProvider = LyricsProvider.SIMPMUSIC,
+        saveToDatabase: Boolean = true,
     ) {
         if (inputLyrics == null) {
             _nowPlayingScreenData.update {
@@ -1532,10 +1918,12 @@ class SharedViewModel(
         }
 
         val shouldSendLyricsToSimpMusic =
-            runBlocking {
-                dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
-            } &&
-                lyricsProvider != LyricsProvider.SIMPMUSIC
+            saveToDatabase &&
+                runBlocking {
+                    dataStoreManager.helpBuildLyricsDatabase.first() == TRUE
+                } &&
+                lyricsProvider != LyricsProvider.SIMPMUSIC &&
+                lyricsProvider != LyricsProvider.OFFLINE
         if (_nowPlayingState.value?.songEntity?.videoId == videoId) {
             val track = _nowPlayingState.value?.track
             when (isTranslatedLyrics) {
@@ -1599,15 +1987,17 @@ class SharedViewModel(
                         )
                     }
                     // Save lyrics to database
-                    viewModelScope.launch {
-                        lyricsCanvasRepository.insertLyrics(
-                            LyricsEntity(
-                                videoId = videoId,
-                                error = false,
-                                lines = lyrics.lines,
-                                syncType = lyrics.syncType,
-                            ),
-                        )
+                    if (saveToDatabase) {
+                        viewModelScope.launch {
+                            lyricsCanvasRepository.insertLyrics(
+                                LyricsEntity(
+                                    videoId = videoId,
+                                    error = false,
+                                    lines = lyrics.lines,
+                                    syncType = lyrics.syncType,
+                                ),
+                            )
+                        }
                     }
                     if (shouldSendLyricsToSimpMusic && track != null) {
                         viewModelScope.launch {
@@ -1665,6 +2055,14 @@ class SharedViewModel(
                         ?: ""
                 }
             resetLyricsVoteState()
+            showSavedLyricsFirst(song, duration)
+            // Offline: saved lyrics are already shown; the provider fetch can only time out.
+            if (!isNetworkAvailable()) {
+                if (_nowPlayingScreenData.value.lyricsData == null) {
+                    _nowPlayingScreenData.update { it.copy(lyricsNotFound = true) }
+                }
+                return
+            }
             val lyricsProvider = dataStoreManager.lyricsProvider.first()
             when (lyricsProvider) {
                 DataStoreManager.SIMPMUSIC -> {

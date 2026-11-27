@@ -13,6 +13,7 @@ import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -184,6 +185,17 @@ class HomeViewModel(
     }
 
     fun getHomeItemList(params: String? = null) {
+        // Offline: skip all feed requests and show the empty/offline state immediately.
+        if (!isNetworkAvailable()) {
+            loading.value = false
+            _homeListState.value = ListState.PAGINATION_EXHAUST
+            _homeItemList.value = emptyList()
+            _homeBackground.value = null
+            _exploreMoodItem.value = null
+            _chart.value = null
+            _newRelease.value = arrayListOf()
+            return
+        }
         loading.value = true
         _homeListState.value = ListState.LOADING
         language =
@@ -331,6 +343,11 @@ class HomeViewModel(
     }
 
     fun exploreChart(region: String) {
+        if (!isNetworkAvailable()) {
+            loadingChart.value = false
+            _chart.value = null
+            return
+        }
         viewModelScope.launch {
             loadingChart.value = true
             homeRepository

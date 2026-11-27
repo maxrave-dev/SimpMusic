@@ -11,6 +11,7 @@ import com.maxrave.domain.mediaservice.handler.QueueData
 import com.maxrave.domain.repository.PodcastRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.toTrack
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +81,10 @@ class PodcastViewModel(
     }
 
     fun getPodcastBrowse(id: String) {
+        if (!isNetworkAvailable()) {
+            _uiState.value = PodcastUIState.Error("offline")
+            return
+        }
         _isFavorite.value = false
         _uiState.value = PodcastUIState.Loading
         viewModelScope.launch {

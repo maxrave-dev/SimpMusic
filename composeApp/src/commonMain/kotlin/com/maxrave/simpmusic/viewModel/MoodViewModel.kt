@@ -7,6 +7,7 @@ import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,12 @@ class MoodViewModel(
     }
 
     fun getMood(params: String) {
+        if (!isNetworkAvailable()) {
+            loading.value = false
+            _moodsMomentObject.value = null
+            loadedParams = null
+            return
+        }
         if (params == loadedParams && _moodsMomentObject.value != null) return
         loading.value = true
         viewModelScope.launch {

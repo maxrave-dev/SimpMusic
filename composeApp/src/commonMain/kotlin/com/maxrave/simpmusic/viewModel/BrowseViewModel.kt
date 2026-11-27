@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.maxrave.domain.data.model.home.BrowsePage
 import com.maxrave.domain.repository.HomeRepository
 import com.maxrave.domain.utils.Resource
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +23,10 @@ class BrowseViewModel(
         browseId: String,
         params: String?,
     ) {
+        if (!isNetworkAvailable()) {
+            _uiState.value = BrowseUIState.Error(getString(Res.string.error))
+            return
+        }
         viewModelScope.launch {
             _uiState.value = BrowseUIState.Loading
             homeRepository.getBrowsePage(browseId, params, getString(Res.string.song)).collect { resource ->

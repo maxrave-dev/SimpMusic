@@ -12,6 +12,7 @@ import coil3.request.ImageRequest
 import coil3.request.ImageResult
 import coil3.request.SuccessResult
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -32,6 +33,7 @@ import java.util.UUID
 class NetworkFirstInterceptor(
     private val ttlMillis: Long = 24L * 60 * 60 * 1000,
     private val nowMillis: () -> Long = { System.currentTimeMillis() },
+    private val isOnline: () -> Boolean = { isNetworkAvailable() },
     private val imageLoader: () -> ImageLoader,
 ) : Interceptor {
     init {
@@ -103,6 +105,15 @@ class NetworkFirstInterceptor(
                 updateMemoryEntry(loader.memoryCache, cachedResult, cachedAtMillis = cachedAtMillis)
             }
             if (isFresh(cachedAtMillis)) return cachedResult.copy(request = request)
+        }
+
+        // Offline: a stale image is still better than none, and a cache miss must not become a
+        // network attempt that can only time out. The next online load refreshes it normally.
+        if (!isOnline()) {
+            return when (cachedResult) {
+                is SuccessResult -> cachedResult.copy(request = request)
+                is ErrorResult -> cachedResult.copy(request = request)
+            }
         }
 
         // Keep a successfully decoded stale image alive while refreshing. A failed refresh can

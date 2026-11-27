@@ -22,6 +22,7 @@ import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.LyricsCanvasRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
+import com.maxrave.simpmusic.expect.isNetworkAvailable
 import com.maxrave.simpmusic.extension.toArtistScreenData
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Error
 import com.maxrave.simpmusic.viewModel.ArtistScreenState.Loading
@@ -69,6 +70,10 @@ class ArtistViewModel(
     val artistScreenState: StateFlow<ArtistScreenState> = _artistScreenState
 
     fun browseArtist(channelId: String) {
+        if (!isNetworkAvailable()) {
+            _artistScreenState.value = ArtistScreenState.Error("offline")
+            return
+        }
         _artistScreenState.value = Loading
         _artistLogo.value = null
         _artistMotion.value = null
