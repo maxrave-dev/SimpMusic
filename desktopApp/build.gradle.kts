@@ -479,6 +479,11 @@ tasks.register("packageConveyorAppImage") {
             |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
             |sed "s|Exec=bin/simpmusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
             |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |# Make this entry, which now points at this AppImage, the one that opens our links. With
+            |# several versions integrated (AppImageLauncher writes an entry per AppImage, each claiming
+            |# the schemes), xdg-open took the first entry by name, an old version: it lost the Discord
+            |# and Last.fm callbacks, since it hands links to the running app the old way (#2894).
+            |xdg-mime default com-maxrave-simpmusic-MainKt.desktop x-scheme-handler/simpmusic x-scheme-handler/wordbyword 2>/dev/null || true
             |
             |# Cap glibc's per-thread malloc arenas.
             |#
