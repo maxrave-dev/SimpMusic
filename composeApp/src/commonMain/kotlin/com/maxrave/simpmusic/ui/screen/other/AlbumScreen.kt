@@ -111,6 +111,7 @@ import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.theme.ArtworkShape
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.utils.normalizeReleaseYear
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.LocalPlaylistState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -332,13 +333,19 @@ fun AlbumScreen(
                                                             },
                                                     )
                                                     Spacer(modifier = Modifier.height(2.dp))
+                                                    val validHeaderYear = normalizeReleaseYear(uiState.year)
+                                                    val headerAlbumLabel = stringResource(Res.string.album)
                                                     Text(
                                                         text =
-                                                            stringResource(
-                                                                Res.string.year_and_category,
-                                                                uiState.year,
-                                                                stringResource(Res.string.album),
-                                                            ),
+                                                            if (validHeaderYear != null) {
+                                                                stringResource(
+                                                                    Res.string.year_and_category,
+                                                                    validHeaderYear,
+                                                                    headerAlbumLabel,
+                                                                )
+                                                            } else {
+                                                                headerAlbumLabel
+                                                            },
                                                         style = typo().bodyMedium,
                                                         color = Color(0xC4FFFFFF),
                                                         textAlign = TextAlign.Center,
@@ -470,13 +477,19 @@ fun AlbumScreen(
                                                                 },
                                                         )
                                                         Spacer(modifier = Modifier.height(6.dp))
+                                                        val validDesktopYear = normalizeReleaseYear(uiState.year)
+                                                        val desktopAlbumLabel = stringResource(Res.string.album)
                                                         Text(
                                                             text =
-                                                                stringResource(
-                                                                    Res.string.year_and_category,
-                                                                    uiState.year,
-                                                                    stringResource(Res.string.album),
-                                                                ),
+                                                                if (validDesktopYear != null) {
+                                                                    stringResource(
+                                                                        Res.string.year_and_category,
+                                                                        validDesktopYear,
+                                                                        desktopAlbumLabel,
+                                                                    )
+                                                                } else {
+                                                                    desktopAlbumLabel
+                                                                },
                                                             style = typo().labelMedium,
                                                             color = Color(0xC4FFFFFF),
                                                         )

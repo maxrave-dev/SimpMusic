@@ -88,6 +88,7 @@ import com.maxrave.domain.data.model.browse.artist.ResultAlbum
 import com.maxrave.domain.data.model.browse.artist.ResultPlaylist
 import com.maxrave.domain.data.model.browse.artist.ResultSingle
 import com.maxrave.domain.data.model.home.Content
+import com.maxrave.simpmusic.utils.normalizeReleaseYear
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.HomeItem.MoreEndpoint
 import com.maxrave.domain.data.model.home.chart.ItemArtist
@@ -823,11 +824,11 @@ fun HomeItemContentPlaylist(
                         }
 
                         is ResultSingle -> {
-                            data.year
+                            normalizeReleaseYear(data.year).orEmpty()
                         }
 
                         is ResultAlbum -> {
-                            data.year
+                            normalizeReleaseYear(data.year).orEmpty()
                         }
 
                         is ResultPlaylist -> {
@@ -843,7 +844,7 @@ fun HomeItemContentPlaylist(
                         }
 
                         is AlbumsResult -> {
-                            data.year
+                            normalizeReleaseYear(data.year).orEmpty()
                         }
 
                         else -> {

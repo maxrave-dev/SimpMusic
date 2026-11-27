@@ -17,6 +17,7 @@ import com.maxrave.domain.repository.ArtistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.repository.TasteRepository
 import com.maxrave.logger.Logger
+import com.maxrave.simpmusic.utils.normalizeReleaseYear
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -235,7 +236,7 @@ class TasteViewModel(
                 hasEarlierHistory = previousRows.isNotEmpty(),
                 topArtists = artists.map { it.name },
                 topSongs = songs.map { TasteSong(title = it.title, artists = it.artistName.creditLine()) },
-                topAlbums = topAlbums(start, end).map { TasteAlbum(it.title, it.artistName.creditLine(), it.year?.takeIf(String::isNotBlank)) },
+                topAlbums = topAlbums(start, end).map { TasteAlbum(it.title, it.artistName.creditLine(), normalizeReleaseYear(it.year)) },
                 dayParts = dayPartsOf(stats.playsByHour),
                 replay = stats.fingerprint.replay,
                 concentration = stats.fingerprint.concentration,
