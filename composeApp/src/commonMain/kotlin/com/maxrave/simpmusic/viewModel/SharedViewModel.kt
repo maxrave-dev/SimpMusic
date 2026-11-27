@@ -408,11 +408,16 @@ class SharedViewModel(
                     // the container is parsed, because those rows have no durationSeconds stored.
                     // Asking the player before giving up covers exactly that case: on a normal
                     // track change it usually already knows.
-                    val metadataDurationMs = (state.songEntity?.durationSeconds ?: 0).toLong() * 1000L
+                    val currentSong = state.songEntity
                     val seededTotal =
-                        metadataDurationMs.takeIf { it > 0L }
-                            ?: mediaPlayerHandler.getPlayerDuration().takeIf { it > 0L }
-                            ?: -1L
+                        if (currentSong == null) {
+                            -1L
+                        } else {
+                            val metadataDurationMs = currentSong.durationSeconds.toLong() * 1000L
+                            metadataDurationMs.takeIf { it > 0L }
+                                ?: mediaPlayerHandler.getPlayerDuration().takeIf { it > 0L }
+                                ?: -1L
+                        }
                     _timeline.update { it.copy(total = seededTotal) }
                     state.songEntity?.let { track ->
                         _nowPlayingScreenData.value =
@@ -440,14 +445,16 @@ class SharedViewModel(
                     }
                     state.mediaItem.let { now ->
                         _canvas.value = null
-                        getLikeStatus(now.mediaId)
-                        getSongInfo(now.mediaId)
-                        getFormat(now.mediaId)
-                        _nowPlayingScreenData.update {
-                            it.copy(
-                                thumbnailURL = now.metadata.artworkUri,
-                                isVideo = now.isVideo(),
-                            )
+                        if (now.mediaId.isNotEmpty()) {
+                            getLikeStatus(now.mediaId)
+                            getSongInfo(now.mediaId)
+                            getFormat(now.mediaId)
+                            _nowPlayingScreenData.update {
+                                it.copy(
+                                    thumbnailURL = now.metadata.artworkUri,
+                                    isVideo = now.isVideo(),
+                                )
+                            }
                         }
                     }
                     state.songEntity?.let { song ->
@@ -1383,8 +1390,15 @@ class SharedViewModel(
     fun stopPlayer() {
         _nowPlayingScreenData.value = NowPlayingScreenData.initial()
         _nowPlayingState.value = null
-        mediaPlayerHandler.resetSongAndQueue()
-        onUIEvent(UIEvent.Stop)
+        viewModelScope.launch {
+            stopAndClearPersistedPlayback(
+                stopPlayerEvent = { mediaPlayerHandler.onPlayerEvent(PlayerEvent.Stop) },
+                resetQueue = { mediaPlayerHandler.resetSongAndQueue() },
+                clearRecentSong = { mediaId, position -> dataStoreManager.saveRecentSong(mediaId, position) },
+                clearSavedPlaylist = { playlist -> dataStoreManager.setPlaylistFromSaved(playlist) },
+                removeSavedQueue = { songRepository.removeQueue() },
+            )
+        }
     }
 
     fun createLocalPlaylist(title: String) {
