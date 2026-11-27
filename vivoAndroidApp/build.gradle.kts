@@ -32,13 +32,16 @@ android {
         applicationId = "com.spotify.music"
         minSdk = 26
         targetSdk = 36
-        versionCode =
+        // vivo's built-in music widget checks PackageInfo of com.spotify.music against modern 9.x
+        // Spotify releases and blocks SimpMusic's 2.x version with "Update Spotify to the latest
+        // version" (#2751). Adding the catalog code to 120_000_000 keeps in-place upgrades monotonic;
+        // in-app UI, update checks, and AppIdentity read BuildKonfig.versionName instead.
+        val simpMusicVersionCode =
             libs.versions.version.code
                 .get()
                 .toInt()
-        versionName =
-            libs.versions.version.name
-                .get()
+        versionCode = 120_000_000 + simpMusicVersionCode
+        versionName = "9.1.28.$simpMusicVersionCode"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
 

@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.service.backup.AutoBackupScheduler
 import com.maxrave.simpmusic.service.sync.LibrarySyncScheduler
 import com.maxrave.simpmusic.utils.NetworkFirstInterceptor
+import com.maxrave.simpmusic.utils.VivoSpotifyVersionCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,7 +71,11 @@ class SimpMusicApplication :
             loadAllModules(
                 AppIdentity(
                     applicationId = BuildConfig.APPLICATION_ID,
-                    versionName = BuildConfig.VERSION_NAME,
+                    versionName =
+                        VivoSpotifyVersionCompat.appIdentityVersionName(
+                            buildKonfigVersionName = BuildKonfig.versionName,
+                            isDebug = BuildConfig.DEBUG,
+                        ),
                     platform = "Android ${Build.VERSION.RELEASE}",
                     isDevBuild = BuildConfig.DEBUG,
                 ),
