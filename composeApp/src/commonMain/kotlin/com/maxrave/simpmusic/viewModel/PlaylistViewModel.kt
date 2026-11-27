@@ -212,6 +212,7 @@ class PlaylistViewModel(
                                                 description = data.first.description,
                                                 trackCount = data.first.trackCount,
                                                 year = data.first.year,
+                                                length = data.first.duration
                                             ),
                                     )
                                 _tracks.value = data.first.tracks
@@ -260,6 +261,7 @@ class PlaylistViewModel(
                                                 year = data.first.year,
                                                 shuffleEndpoint = data.first.shuffleEndpoint,
                                                 radioEndpoint = data.first.radioEndpoint,
+                                                length = data.first.duration
                                             ),
                                     )
                                 _tracks.value = data.first.tracks
@@ -384,6 +386,7 @@ class PlaylistViewModel(
                                     description = playlistEntity.description,
                                     trackCount = playlistEntity.trackCount,
                                     year = playlistEntity.year ?: now().year.toString(),
+                                    length = playlistEntity.duration
                                 ),
                         )
                     _tracksListState.value = ListState.LOADING
