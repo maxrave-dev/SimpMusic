@@ -30,7 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import androidx.webkit.WebViewOutcomeReceiver
 import androidx.webkit.WebViewStartUpConfig
 import androidx.webkit.WebViewStartUpResult
@@ -76,13 +78,27 @@ actual fun PlatformWebView(
                 )
             webViewClient =
                 object : WebViewClient() {
+                    private fun checkUrl(url: String?) {
+                        url?.let {
+                            onPageFinished(it)
+                        }
+                    }
+
                     override fun onPageFinished(
                         view: WebView?,
                         url: String?,
                     ) {
-                        url?.let {
-                            onPageFinished(it)
-                        }
+                        super.onPageFinished(view, url)
+                        checkUrl(url)
+                    }
+
+                    override fun doUpdateVisitedHistory(
+                        view: WebView?,
+                        url: String?,
+                        isReload: Boolean,
+                    ) {
+                        super.doUpdateVisitedHistory(view, url, isReload)
+                        checkUrl(url)
                     }
 
                     override fun onRenderProcessGone(
@@ -92,6 +108,25 @@ actual fun PlatformWebView(
                 }
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+
+            // Allow third-party cookies for cross-domain auth redirects (accounts.google.com -> youtube.com)
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.setAcceptCookie(true)
+            cookieManager.setAcceptThirdPartyCookies(this, true)
+
+            // Remove WebView markers (; wv and Version/X.X) from User-Agent so Google accounts login does not block as "untrusted browser/app"
+            val defaultUa = settings.userAgentString.orEmpty()
+            val sanitizedUa = defaultUa
+                .replace("; wv", "")
+                .replace(Regex("Version/\\d+\\.\\d+\\s?"), "")
+            if (sanitizedUa.isNotBlank()) {
+                settings.userAgentString = sanitizedUa
+            }
+
+            // Suppress X-Requested-With header to prevent Google from detecting embedded WebView
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
+                WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, emptySet())
+            }
 
             // Runs inside the factory, so after ManagedWebView's startup has finished.
             if (clearCookies && cookiesCleared.compareAndSet(false, true)) {
