@@ -21,7 +21,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -65,7 +64,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -125,6 +123,7 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.isElementVisible
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.AIBadge
@@ -135,6 +134,7 @@ import com.maxrave.simpmusic.ui.component.LyricsOffsetBar
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.component.PlayerControlLayout
+import com.maxrave.simpmusic.ui.component.ValueSlider
 import com.maxrave.simpmusic.ui.component.hasTiming
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
@@ -886,7 +886,7 @@ fun NowPlayingContentSpotify(
                                     Modifier
                                         .fillMaxWidth()
                                         .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(
+                                        .titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable(),
@@ -1005,7 +1005,7 @@ fun NowPlayingContentSpotify(
                                             Modifier
                                                 .fillMaxWidth()
                                                 .padding(horizontal = 20.dp)
-                                                .basicMarquee(
+                                                .titleMarquee(
                                                     iterations = Int.MAX_VALUE,
                                                     animationMode = MarqueeAnimationMode.Immediately,
                                                 ).focusable(),
@@ -1247,7 +1247,7 @@ fun NowPlayingContentSpotify(
                                                                     .fillMaxWidth()
                                                                     .padding(horizontal = 20.dp)
                                                                     .padding(bottom = 4.dp)
-                                                                    .basicMarquee(
+                                                                    .titleMarquee(
                                                                         iterations = Int.MAX_VALUE,
                                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                                     ).focusable(),
@@ -1271,7 +1271,7 @@ fun NowPlayingContentSpotify(
                                                                         .fillMaxWidth()
                                                                         .padding(horizontal = 20.dp)
                                                                         .padding(bottom = 8.dp)
-                                                                        .basicMarquee(
+                                                                        .titleMarquee(
                                                                             iterations = Int.MAX_VALUE,
                                                                             animationMode = MarqueeAnimationMode.Immediately,
                                                                         ).focusable(),
@@ -1701,7 +1701,7 @@ fun NowPlayingContentSpotify(
                                             .fillMaxWidth()
                                             .wrapContentHeight(
                                                 align = Alignment.CenterVertically,
-                                            ).basicMarquee(
+                                            ).titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),
@@ -1735,7 +1735,7 @@ fun NowPlayingContentSpotify(
                                                     .fillMaxWidth()
                                                     .wrapContentHeight(
                                                         align = Alignment.CenterVertically,
-                                                    ).basicMarquee(
+                                                    ).titleMarquee(
                                                         iterations = Int.MAX_VALUE,
                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                     ).focusable(),
@@ -1868,7 +1868,7 @@ internal fun NowPlayingTrackInfoRow(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
+                        .titleMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
@@ -1901,7 +1901,7 @@ internal fun NowPlayingTrackInfoRow(
                             Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(
+                                .titleMarquee(
                                     iterations = Int.MAX_VALUE,
                                     animationMode = MarqueeAnimationMode.Immediately,
                                 ).focusable()
@@ -2030,7 +2030,7 @@ internal fun ColumnScope.SpotifyPlaybackControls(
             }
         }
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-            Slider(
+            ValueSlider(
                 // material3 1.5.0-alpha25 keeps a
                 // binary-compatibility overload of Slider that
                 // accepts valueRange and then forwards without

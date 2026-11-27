@@ -10,7 +10,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.MarqueeDefaults
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -80,6 +84,7 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.Platform
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.theme.LocalAppColors
+import com.maxrave.simpmusic.ui.theme.LocalTitleMarquee
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.materials.HazeMaterials
@@ -153,6 +158,28 @@ fun LazyListState.visibilityPercent(info: LazyListItemInfo): Float {
 }
 
 fun Modifier.greyScale() = this.then(GreyScaleModifier())
+
+/**
+ * [basicMarquee] that obeys the "Scroll long text" setting ([LocalTitleMarquee]): with it off the
+ * text stays put and is cut at its edge (#196). Same parameters and defaults as [basicMarquee], so
+ * every call site swaps the name and nothing else. `composed` so it works wherever a Modifier is
+ * built, composable scope or not.
+ */
+fun Modifier.titleMarquee(
+    iterations: Int = MarqueeDefaults.Iterations,
+    animationMode: MarqueeAnimationMode = MarqueeAnimationMode.Immediately,
+    repeatDelayMillis: Int = MarqueeDefaults.RepeatDelayMillis,
+    initialDelayMillis: Int = if (animationMode == MarqueeAnimationMode.Immediately) repeatDelayMillis else 0,
+    spacing: MarqueeSpacing = MarqueeDefaults.Spacing,
+    velocity: Dp = MarqueeDefaults.Velocity,
+): Modifier =
+    composed {
+        if (LocalTitleMarquee.current) {
+            Modifier.basicMarquee(iterations, animationMode, repeatDelayMillis, initialDelayMillis, spacing, velocity)
+        } else {
+            Modifier
+        }
+    }
 
 /**
  * [colors] as gradient stops eased with smoothstep, the way [smoothScrimBrush] eases a scrim. Handed

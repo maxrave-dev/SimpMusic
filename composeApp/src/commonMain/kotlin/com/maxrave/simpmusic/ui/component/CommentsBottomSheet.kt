@@ -81,6 +81,7 @@ import com.maxrave.simpmusic.ui.icon.ThumbDown
 import com.maxrave.simpmusic.ui.icon.ThumbDownOutline
 import com.maxrave.simpmusic.ui.icon.ThumbUp
 import com.maxrave.simpmusic.ui.icon.ThumbUpOutline
+import com.maxrave.simpmusic.ui.theme.SheetTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.CommentReplies
 import com.maxrave.simpmusic.viewModel.CommentsStatus
@@ -130,147 +131,148 @@ fun CommentsBottomSheet(
     initialDraft: String = "",
     viewModel: CommentsViewModel = koinViewModel(),
 ) {
-    val draftVideoId = remember { videoId }
-    val colors = rememberSurfaceDarkColors()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    val localDensity = LocalDensity.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showLogIn by remember { mutableStateOf(false) }
-    var inputHeight by remember { mutableIntStateOf(0) }
+    SheetTheme {
+        val draftVideoId = remember { videoId }
+        val colors = rememberSurfaceDarkColors()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        val scope = rememberCoroutineScope()
+        val uriHandler = LocalUriHandler.current
+        val localDensity = LocalDensity.current
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        var showLogIn by remember { mutableStateOf(false) }
+        var inputHeight by remember { mutableIntStateOf(0) }
 
-    // The sheet follows the track: skipping while it is open loads the new one's comments. open()
-    // checks the sign-in state itself, so a page loaded signed out reloads after logging in from here.
-    LaunchedEffect(videoId) { viewModel.open(videoId) }
-    // Nothing to write into until the comments are in: loading, failed, or turned off.
-    val loaded = uiState.status == CommentsStatus.LOADED
+        // The sheet follows the track: skipping while it is open loads the new one's comments. open()
+        // checks the sign-in state itself, so a page loaded signed out reloads after logging in from here.
+        LaunchedEffect(videoId) { viewModel.open(videoId) }
+        // Nothing to write into until the comments are in: loading, failed, or turned off.
+        val loaded = uiState.status == CommentsStatus.LOADED
 
-    // Signed out, every write asks to log in first.
-    fun signedIn(write: () -> Unit) {
-        if (isLoggedIn) write() else showLogIn = true
-    }
+        // Signed out, every write asks to log in first.
+        fun signedIn(write: () -> Unit) {
+            if (isLoggedIn) write() else showLogIn = true
+        }
 
-    val rowActions =
-        CommentRowActions(
-            onTimestamp = onTimestamp,
-            onUrl = { uriHandler.openUri(it) },
-            onLike = { id -> signedIn { viewModel.toggleLike(id) } },
-            onDislike = { id -> signedIn { viewModel.toggleDislike(id) } },
-            onReply = { id -> signedIn { viewModel.startReply(id) } },
-        )
+        val rowActions =
+            CommentRowActions(
+                onTimestamp = onTimestamp,
+                onUrl = { uriHandler.openUri(it) },
+                onLike = { id -> signedIn { viewModel.toggleLike(id) } },
+                onDislike = { id -> signedIn { viewModel.toggleDislike(id) } },
+                onReply = { id -> signedIn { viewModel.startReply(id) } },
+            )
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        // Transparent above the card, so a fully expanded sheet stops below the status bar.
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() }),
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
-            Card(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = colors.container),
+            // Transparent above the card, so a fully expanded sheet stops below the status bar.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(top = with(localDensity) { WindowInsets.statusBars.getTop(localDensity).toDp() }),
             ) {
-                Box(Modifier.fillMaxSize()) {
-                    Column(Modifier.fillMaxSize()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Card(
-                            modifier =
-                                Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .width(32.dp)
-                                    .height(4.dp),
-                            colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
-                            shape = RoundedCornerShape(50),
-                        ) {}
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.comments),
-                                style = typo().titleMedium,
-                                color = colors.content,
-                            )
-                            val count = uiState.header?.let { it.countShort ?: it.countText }
-                            if (count != null && uiState.status == CommentsStatus.LOADED) {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = count, style = typo().bodyMedium, color = colors.subtitle)
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
-                            }) {
-                                Icon(imageVector = SimpIcons.Close, contentDescription = null, tint = colors.content)
-                            }
-                        }
-                        HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), thickness = 1.dp)
-                        Box(Modifier.weight(1f).fillMaxWidth()) {
-                            CommentsBody(
-                                uiState = uiState,
-                                viewModel = viewModel,
-                                colors = colors,
-                                actions = rowActions,
-                                bottomPadding = with(localDensity) { (if (loaded) inputHeight else 0).toDp() },
-                            )
-                        }
-                    }
-                    if (loaded) {
-                        // Keyed on the video: text typed for one track must not be sent to the next one.
-                        key(uiState.videoId) {
-                            CommentInput(
-                                sheetState = sheetState,
-                                isLoggedIn = isLoggedIn,
-                                userAvatar = uiState.header?.userAvatar,
-                                placeholder = uiState.replyingTo?.replyPlaceholder ?: uiState.header?.placeholder.orEmpty(),
-                                replyingTo = uiState.replyingTo?.author,
-                                posting = uiState.posting,
-                                colors = colors,
-                                onCancelReply = viewModel::cancelReply,
-                                onFocus = { scope.launch { sheetState.expand() } },
-                                onPost = { text, clear -> viewModel.post(text, clear) },
-                                onLogIn = { showLogIn = true },
-                                initialDraft = if (uiState.videoId == draftVideoId) initialDraft else "",
+                SheetSurface(
+                    sheetState = sheetState,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Box(Modifier.fillMaxSize()) {
+                        Column(Modifier.fillMaxSize()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Card(
                                 modifier =
                                     Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .onSizeChanged { inputHeight = it.height },
-                            )
+                                        .align(Alignment.CenterHorizontally)
+                                        .width(32.dp)
+                                        .height(4.dp),
+                                colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
+                                shape = RoundedCornerShape(50),
+                            ) {}
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.comments),
+                                    style = typo().titleMedium,
+                                    color = colors.content,
+                                )
+                                val count = uiState.header?.let { it.countShort ?: it.countText }
+                                if (count != null && uiState.status == CommentsStatus.LOADED) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = count, style = typo().bodyMedium, color = colors.subtitle)
+                                }
+                                Spacer(modifier = Modifier.weight(1f))
+                                IconButton(onClick = {
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
+                                }) {
+                                    Icon(imageVector = SimpIcons.Close, contentDescription = null, tint = colors.content)
+                                }
+                            }
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), thickness = 1.dp)
+                            Box(Modifier.weight(1f).fillMaxWidth()) {
+                                CommentsBody(
+                                    uiState = uiState,
+                                    viewModel = viewModel,
+                                    colors = colors,
+                                    actions = rowActions,
+                                    bottomPadding = with(localDensity) { (if (loaded) inputHeight else 0).toDp() },
+                                )
+                            }
+                        }
+                        if (loaded) {
+                            // Keyed on the video: text typed for one track must not be sent to the next one.
+                            key(uiState.videoId) {
+                                CommentInput(
+                                    sheetState = sheetState,
+                                    isLoggedIn = isLoggedIn,
+                                    userAvatar = uiState.header?.userAvatar,
+                                    placeholder = uiState.replyingTo?.replyPlaceholder ?: uiState.header?.placeholder.orEmpty(),
+                                    replyingTo = uiState.replyingTo?.author,
+                                    posting = uiState.posting,
+                                    colors = colors,
+                                    onCancelReply = viewModel::cancelReply,
+                                    onFocus = { scope.launch { sheetState.expand() } },
+                                    onPost = { text, clear -> viewModel.post(text, clear) },
+                                    onLogIn = { showLogIn = true },
+                                    initialDraft = if (uiState.videoId == draftVideoId) initialDraft else "",
+                                    modifier =
+                                        Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .onSizeChanged { inputHeight = it.height },
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-        if (showLogIn) {
-            AlertDialog(
-                title = { Text(stringResource(Res.string.log_in)) },
-                text = { Text(stringResource(Res.string.comments_log_in_message)) },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showLogIn = false
-                        onLogIn()
-                    }) {
-                        Text(stringResource(Res.string.go_to_log_in_page), color = LocalContentColor.current)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showLogIn = false }) {
-                        Text(stringResource(Res.string.cancel), color = LocalContentColor.current)
-                    }
-                },
-                onDismissRequest = { showLogIn = false },
-            )
+            if (showLogIn) {
+                AlertDialog(
+                    title = { Text(stringResource(Res.string.log_in)) },
+                    text = { Text(stringResource(Res.string.comments_log_in_message)) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showLogIn = false
+                            onLogIn()
+                        }) {
+                            Text(stringResource(Res.string.go_to_log_in_page), color = LocalContentColor.current)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLogIn = false }) {
+                            Text(stringResource(Res.string.cancel), color = LocalContentColor.current)
+                        }
+                    },
+                    onDismissRequest = { showLogIn = false },
+                )
+            }
         }
     }
 }

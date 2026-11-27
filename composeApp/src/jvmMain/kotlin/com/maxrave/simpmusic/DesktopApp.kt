@@ -2,7 +2,6 @@ package com.maxrave.simpmusic
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -12,11 +11,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.rememberWindowState
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -37,9 +39,9 @@ import com.maxrave.domain.repository.LibrarySyncHostRepository
 import com.maxrave.data.io.getHomeFolderPath
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.expect.DesktopFullscreen
 import com.maxrave.simpmusic.expect.ui.LibrarySyncLoginPrompt
-import com.maxrave.simpmusic.extension.DesktopWindowChrome
-import com.maxrave.simpmusic.ui.component.CustomTitleBar
+import com.maxrave.simpmusic.ui.component.MacAppearance
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerManager
 import com.maxrave.simpmusic.ui.mini_player.MiniPlayerWindow
 import com.maxrave.simpmusic.ui.theme.isDarkTheme
@@ -172,20 +174,29 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
     // (wordbyword://lastfm-auth?token=…): the OS launched us with the token, this filter
     // discarded it, and the app merely came to the foreground while the login sat there
     // waiting forever. Any scheme we register with the OS must survive this line.
-    val deepLinkArg = args.firstOrNull()?.takeIf { DEEP_LINK_ARG.matches(it) }
+    val deepLinkArg =
+        args
+            .asSequence()
+            .map { it.trim().trim('"') }
+            .firstOrNull { DEEP_LINK_ARG.matches(it) }
     // Single-instance guard — MUST run before startKoin. The DataStore Koin
     // singleton is `createdAtStart`, so a second Windows instance would touch
     // ~/.simpmusic/settings.preferences_pb and crash with an "Unable to rename
     // ...tmp" IOException (#2044) before it ever reached the old in-Compose check.
     // Bail out here, before Koin/DataStore initialize.
+    //
+    // A second instance forwards its deep link inside the restore request itself: the library
+    // writes it before the request appears, so the running instance never looks too early (#2894).
     val isSingleInstance =
         SingleInstanceManager.isSingleInstance(
-            onRestoreRequest = { DesktopRestoreSignal.request() },
+            onRestoreFileCreated = { deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(this, it) } },
+            onRestoreRequest = {
+                DesktopDeepLinkHandler.readPendingUri(this)
+                DesktopRestoreSignal.request()
+            },
         )
     if (!isSingleInstance) {
-        // Second instance: forward the deep link (if any) to the running instance,
-        // then exit. Nothing has touched the DataStore file yet.
-        deepLinkArg?.let { DesktopDeepLinkHandler.writePendingUri(it) }
+        // Second instance: the link is already on its way. Exit before Koin touches the DataStore file.
         return
     }
     // Past the guard on purpose: a second instance must not open the same log files.
@@ -300,6 +311,9 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
         // second instance launches: bring the window back to the foreground and
         // consume any deep link the second instance forwarded.
         LaunchedEffect(Unit) {
+            // A restore request that arrived before this collector existed was dropped by the
+            // flow, but its deep link was kept: deliver it now.
+            DesktopDeepLinkHandler.consumePendingUri()
             DesktopRestoreSignal.requests.collect {
                 isVisible = true
                 windowState.isMinimized = false
@@ -359,25 +373,55 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                 exitApplication()
             }
         }
-        // Windows and Linux keep the native title bar (on Linux, undecorated + transparent
-        // breaks on some distros/WMs). Only macOS draws the custom one.
-        val nativeTitleBar = !isMacOS
-        // Publish whether the custom title bar will be mounted so getScreenSizeInfo() can
-        // subtract the 40dp strip it occupies above the content (see DesktopWindowChrome).
-        LaunchedEffect(nativeTitleBar) {
-            DesktopWindowChrome.customTitleBarVisible = !nativeTitleBar
-        }
+        // Every OS keeps its own title bar. On macOS it takes the app's theme below.
         Window(
             onCloseRequest = {
                 isVisible = false
             },
             title = stringResource(Res.string.app_name),
             icon = painterResource(Res.drawable.circle_app_icon),
-            undecorated = !nativeTitleBar,
-            transparent = !nativeTitleBar,
             state = windowState,
             visible = isVisible,
+            // F11 toggles full screen; Esc leaves it, and only then is the key taken.
+            onPreviewKeyEvent = { event ->
+                when {
+                    event.type != KeyEventType.KeyDown -> false
+                    event.key == Key.F11 -> {
+                        DesktopFullscreen.toggle()
+                        true
+                    }
+                    event.key == Key.Escape && DesktopFullscreen.isFullscreen -> {
+                        DesktopFullscreen.toggle()
+                        true
+                    }
+                    else -> false
+                }
+            },
         ) {
+            LaunchedEffect(window) {
+                DesktopFullscreen.attach(windowState)
+            }
+            // macOS: AWT starts the app in light Aqua, so the system title bar is white whatever
+            // the theme. The appearance gives the title and AppKit dialogs the theme's colours; a
+            // transparent title bar over the window background gives the bar the same black or
+            // white the window paints behind the panels.
+            if (isMacOS) {
+                // Resolved inside the window, where isSystemInDarkTheme() has the system theme.
+                val themeMode by sharedViewModel
+                    .getThemeMode()
+                    .collectAsState(DataStoreManager.THEME_MODE_DARK)
+                val isDark = isDarkTheme(themeMode)
+                LaunchedEffect(window) {
+                    window.rootPane.putClientProperty("apple.awt.transparentTitleBar", true)
+                }
+                LaunchedEffect(window, isDark) {
+                    MacAppearance.set(isDark)
+                    window.background = if (isDark) java.awt.Color.BLACK else java.awt.Color.WHITE
+                }
+            }
+            LaunchedEffect(windowState.placement) {
+                if (windowState.placement == WindowPlacement.Floating) DesktopFullscreen.restoreMaximized()
+            }
             // Returning from macOS System Settings is the only reliable time to learn whether the
             // user enabled notifications after denying the one-shot system prompt.
             DisposableEffect(window) {
@@ -445,38 +489,7 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                     }
                 }
             }
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (!nativeTitleBar) {
-                                Modifier.clip(RoundedCornerShape(12.dp))
-                            } else {
-                                Modifier
-                            },
-                        ),
-            ) {
-                if (!nativeTitleBar) {
-                    // The bar sits outside AppTheme, so the colours are resolved here from the
-                    // same stored setting AppTheme uses and handed down. Pure black / pure white
-                    // to match the window colour the shell paints behind the panels.
-                    val themeMode by sharedViewModel
-                        .getThemeMode()
-                        .collectAsState(DataStoreManager.THEME_MODE_DARK)
-                    val isDark = isDarkTheme(themeMode)
-                    CustomTitleBar(
-                        title = stringResource(Res.string.app_name),
-                        windowState = windowState,
-                        window = window,
-                        onCloseRequest = {
-                            isVisible = false
-                        },
-                        containerColor = if (isDark) Color.Black else Color.White,
-                        titleColor = if (isDark) Color.White else Color.Black,
-                    )
-                }
-
+            Column(modifier = Modifier.fillMaxSize()) {
                 val context = LocalPlatformContext.current
                 setSingletonImageLoaderFactory {
                     lateinit var imageLoader: ImageLoader
@@ -513,6 +526,8 @@ fun runDesktopApp(args: Array<String> = emptyArray()) {
                         desktopNotificationManager::dismissPermissionDialog,
                     onOpenDesktopNotificationSettings =
                         desktopNotificationManager::openNotificationSettings,
+                    // macOS only; full screen hides the title bar, so the panels get their gap back.
+                    desktopPanelTop = if (isMacOS && !DesktopFullscreen.isFullscreen) 0.dp else 8.dp,
                 )
                 LibrarySyncLoginPrompt(sharedViewModel)
                 ToastHost()

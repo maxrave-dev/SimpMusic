@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.EndOfModalBottomSheet
+import com.maxrave.simpmusic.ui.component.SheetSurface
 import com.maxrave.simpmusic.ui.component.addToQueueLabel
 import com.maxrave.simpmusic.ui.component.rememberAddToQueueBlock
 import com.maxrave.simpmusic.ui.component.rememberSurfaceDarkColors
@@ -34,6 +34,7 @@ import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.QueueMusic
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.SkipNext
+import com.maxrave.simpmusic.ui.theme.SheetTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -71,97 +72,92 @@ fun SelectedSongsBottomSheet(
     onAddToFavorite: (() -> Unit)? = null,
     extraActions: List<SongSelectionAction> = emptyList(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val colors = rememberSurfaceDarkColors()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hideThen: (() -> Unit) -> Unit = { action ->
-        coroutineScope.launch {
-            sheetState.hide()
-            onDismiss()
-            action()
+    SheetTheme {
+        val coroutineScope = rememberCoroutineScope()
+        val colors = rememberSurfaceDarkColors()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val hideThen: (() -> Unit) -> Unit = { action ->
+            coroutineScope.launch {
+                sheetState.hide()
+                onDismiss()
+                action()
+            }
         }
-    }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.Transparent,
-        contentColor = Color.Transparent,
-        dragHandle = null,
-        scrimColor = Color.Black.copy(alpha = .5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-    ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = colors.container),
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Card(
-                    modifier =
-                        Modifier
-                            .width(60.dp)
-                            .height(4.dp),
-                    colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
-                    shape = RoundedCornerShape(50),
-                ) {}
-                Spacer(modifier = Modifier.height(5.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Top,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.n_songs_selected, count),
-                        style = typo().bodySmall,
-                        color = colors.subtitle,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                    )
-                    if (onPlayNext != null) {
-                        ActionButton(
-                            icon = SimpIcons.SkipNext,
-                            text = Res.string.play_next,
-                        ) { hideThen(onPlayNext) }
+            SheetSurface {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors = CardDefaults.cardColors().copy(containerColor = colors.handle),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.Top,
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.n_songs_selected, count),
+                            style = typo().bodySmall,
+                            color = colors.subtitle,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                        )
+                        if (onPlayNext != null) {
+                            ActionButton(
+                                icon = SimpIcons.SkipNext,
+                                text = Res.string.play_next,
+                            ) { hideThen(onPlayNext) }
+                        }
+                        if (onAddToQueue != null) {
+                            val addToQueueBlock = rememberAddToQueueBlock()
+                            ActionButton(
+                                icon = SimpIcons.QueueMusic,
+                                text = addToQueueBlock.addToQueueLabel(),
+                                enable = addToQueueBlock == null,
+                            ) { hideThen(onAddToQueue) }
+                        }
+                        if (onAddToPlaylist != null) {
+                            ActionButton(
+                                icon = SimpIcons.PlaylistAdd,
+                                text = Res.string.add_to_a_playlist,
+                            ) { hideThen(onAddToPlaylist) }
+                        }
+                        if (onDownload != null) {
+                            ActionButton(
+                                icon = SimpIcons.Download,
+                                text = Res.string.download,
+                            ) { hideThen(onDownload) }
+                        }
+                        if (onAddToFavorite != null) {
+                            ActionButton(
+                                icon = SimpIcons.Favorite,
+                                text = Res.string.favorite,
+                            ) { hideThen(onAddToFavorite) }
+                        }
+                        extraActions.forEach { action ->
+                            ActionButton(
+                                icon = action.icon,
+                                text = null,
+                                textString = action.label,
+                                textColor = action.tint,
+                                iconColor = action.tint ?: Color.Unspecified,
+                            ) { hideThen(action.onClick) }
+                        }
+                        EndOfModalBottomSheet()
                     }
-                    if (onAddToQueue != null) {
-                        val addToQueueBlock = rememberAddToQueueBlock()
-                        ActionButton(
-                            icon = SimpIcons.QueueMusic,
-                            text = addToQueueBlock.addToQueueLabel(),
-                            enable = addToQueueBlock == null,
-                        ) { hideThen(onAddToQueue) }
-                    }
-                    if (onAddToPlaylist != null) {
-                        ActionButton(
-                            icon = SimpIcons.PlaylistAdd,
-                            text = Res.string.add_to_a_playlist,
-                        ) { hideThen(onAddToPlaylist) }
-                    }
-                    if (onDownload != null) {
-                        ActionButton(
-                            icon = SimpIcons.Download,
-                            text = Res.string.download,
-                        ) { hideThen(onDownload) }
-                    }
-                    if (onAddToFavorite != null) {
-                        ActionButton(
-                            icon = SimpIcons.Favorite,
-                            text = Res.string.favorite,
-                        ) { hideThen(onAddToFavorite) }
-                    }
-                    extraActions.forEach { action ->
-                        ActionButton(
-                            icon = action.icon,
-                            text = null,
-                            textString = action.label,
-                            textColor = action.tint,
-                            iconColor = action.tint ?: Color.Unspecified,
-                        ) { hideThen(action.onClick) }
-                    }
-                    EndOfModalBottomSheet()
                 }
             }
         }

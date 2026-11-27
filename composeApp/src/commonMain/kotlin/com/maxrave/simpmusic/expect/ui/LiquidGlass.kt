@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic.expect.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -38,6 +40,19 @@ fun rememberBackdrop(color: Color): PlatformBackdrop =
         drawRect(color)
         drawContent()
     }
+
+/**
+ * The backdrop App records behind its screens, for glass drawn outside them: the action sheets
+ * (SheetSurface) open in a layer of their own and so cannot be siblings of the source. Null where no
+ * screen provides it, which draws those sheets flat.
+ */
+val LocalAppBackdrop = staticCompositionLocalOf<PlatformBackdrop?> { null }
+
+/**
+ * The app window's height in px, read where App composes, so SheetSurface compares a sheet against
+ * the app window rather than whatever its own layer reports. 0 where not provided.
+ */
+val LocalAppWindowHeight = compositionLocalOf { 0 }
 
 fun Modifier.drawBackdropCustomShape(
     backdrop: PlatformBackdrop,

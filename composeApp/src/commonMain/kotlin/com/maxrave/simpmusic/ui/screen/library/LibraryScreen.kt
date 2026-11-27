@@ -65,6 +65,7 @@ import com.maxrave.simpmusic.expect.ui.layerBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.extension.isScrollingUp
+import com.maxrave.simpmusic.extension.mouseDragScroll
 import com.maxrave.simpmusic.extension.ultraThinBarStyle
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.AddToPlaylistModalBottomSheet
@@ -153,6 +154,10 @@ fun LibraryScreen(
     // screen is shown — coming back from the list after removing a song included.
     if (getPlatform() == Platform.Android) {
         LaunchedEffect(Unit) { viewModel.refreshCachedPreview() }
+    }
+    val replayMixPreview by viewModel.replayMixPreview.collectAsStateWithLifecycle()
+    LaunchedEffect(localTrackingEnabled) {
+        if (localTrackingEnabled) viewModel.refreshReplayMixPreview()
     }
 
     val selectionState = rememberSongSelectionState()
@@ -281,7 +286,14 @@ fun LibraryScreen(
                         state = state,
                     ) {
                         item {
-                            LibraryTilingBox(navController, libraryOverview, cachedPreview)
+                            // Replay Mix is ranked from playback_event, which local tracking fills.
+                            LibraryTilingBox(
+                                navController,
+                                libraryOverview,
+                                cachedPreview,
+                                replayMix = replayMixPreview,
+                                showReplayMix = localTrackingEnabled,
+                            )
                         }
 
                         // The reading is drawn from playback_event, so the card follows the same
@@ -514,6 +526,8 @@ fun LibraryScreen(
         Row(
             modifier =
                 Modifier
+                    // A mouse drags the row on Desktop, as Home's chip row does.
+                    .mouseDragScroll(chipRowState)
                     .horizontalScroll(chipRowState)
                     .padding(horizontal = 15.dp)
                     .padding(bottom = 8.dp)

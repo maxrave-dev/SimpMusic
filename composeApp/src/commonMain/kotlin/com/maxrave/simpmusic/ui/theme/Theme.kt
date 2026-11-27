@@ -72,10 +72,33 @@ val LocalIsDarkTheme = staticCompositionLocalOf { true }
 val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
 
 /**
+ * Whether long text may scroll ([com.maxrave.simpmusic.extension.titleMarquee]). Provided by
+ * [AppTheme] from the "Scroll long text" setting, and by the Desktop mini player window, which sits
+ * outside it; true elsewhere, which is today's behaviour.
+ */
+val LocalTitleMarquee = staticCompositionLocalOf { true }
+
+/** Whether the AMOLED theme is on: pure black pages, which the Desktop panels follow too ([desktopPanelDark]). */
+val LocalIsAmoled = staticCompositionLocalOf { false }
+
+/**
  * The dark scheme to use for immersive screens while the app itself is on the light theme.
  * Provided by [AppTheme], consumed by [ForceDarkContent]; null only outside of [AppTheme].
  */
 val LocalForcedDarkColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
+
+/**
+ * The app's own scheme and light/dark, as [AppTheme] resolved them, so [SheetTheme] can give a sheet
+ * the app theme back inside a [ForceDarkContent] screen. Null/true only outside of [AppTheme].
+ */
+val LocalAppColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
+val LocalAppIsDark = staticCompositionLocalOf { true }
+
+/**
+ * True inside a sheet that [SheetTheme] took out of a [ForceDarkContent] screen: the sheet follows the
+ * app theme while the page behind it stays dark, which the sheet's glass has to account for.
+ */
+val LocalSheetOverDarkScreen = staticCompositionLocalOf { false }
 
 /** Parses "RRGGBB" or "AARRGGBB" (optionally "#"-prefixed) into a [Color]; null if malformed. */
 fun parseThemeColorHex(hex: String): Color? {
@@ -127,14 +150,18 @@ fun AppTheme(
     themeColorSource: String = DataStoreManager.THEME_COLOR_DEFAULT,
     customThemeColor: Color? = null,
     liquidGlassEnabled: Boolean = true,
+    titleMarquee: Boolean = true,
     content:
         @Composable()
         () -> Unit,
 ) {
     val isDark = isDarkTheme(themeMode)
+    val isAmoled = themeMode == DataStoreManager.THEME_MODE_AMOLED
     val wallpaperScheme =
         if (themeColorSource == DataStoreManager.THEME_COLOR_WALLPAPER) {
-            platformDynamicColorScheme(isDark)
+            platformDynamicColorScheme(isDark)?.let { scheme ->
+                if (isAmoled) scheme.copy(background = Color.Black, surface = Color.Black) else scheme
+            }
         } else {
             null
         }
@@ -151,6 +178,8 @@ fun AppTheme(
             ?: rememberDynamicColorScheme(
                 seedColor = seedColor,
                 isDark = isDark,
+                // AMOLED theme: MaterialKolor pins background/surface to #000 and onBackground/onSurface to #FFF.
+                isAmoled = isAmoled,
                 style = PaletteStyle.TonalSpot,
                 modifyColorScheme = { cs -> if (isDark) cs else cs.withNeutralLightSurfaces() },
             )
@@ -176,7 +205,11 @@ fun AppTheme(
                 LocalAppColors provides if (isDark) DarkAppColors else LightAppColors,
                 LocalIsDarkTheme provides isDark,
                 LocalForcedDarkColorScheme provides forcedDarkScheme,
+                LocalAppColorScheme provides colorScheme,
+                LocalAppIsDark provides isDark,
                 LocalLiquidGlassEnabled provides liquidGlassEnabled,
+                LocalTitleMarquee provides titleMarquee,
+                LocalIsAmoled provides isAmoled,
                 content = content,
             )
         },
@@ -251,16 +284,53 @@ fun ForceDarkContent(content: @Composable () -> Unit) {
 }
 
 /**
+ * Gives a sheet the app theme back. Sheets follow the app theme on every platform, even when the
+ * screen that opened them is forced dark ([ForceDarkContent]: Now Playing, Artist, Album, Playlist…);
+ * without this they inherit the forced scheme, because a sheet keeps its caller's CompositionLocals.
+ * Dialogs opened from a sheet take it too. Outside a forced-dark screen, and nested in another
+ * [SheetTheme], it changes nothing.
+ *
+ * [com.maxrave.simpmusic.ui.component.SheetSurface] applies it to its content. A sheet that reads the
+ * theme outside that content (a colour taken before the sheet opens, a full-screen sheet without a
+ * SheetSurface, a dialog declared beside the sheet) wraps that part itself.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SheetTheme(content: @Composable () -> Unit) {
+    val appScheme = LocalAppColorScheme.current
+    if (!LocalForceDarkText.current || appScheme == null) {
+        content()
+        return
+    }
+    val appIsDark = LocalAppIsDark.current
+    MaterialExpressiveTheme(
+        colorScheme = appScheme,
+        content = {
+            CompositionLocalProvider(
+                LocalForceDarkText provides false,
+                LocalSheetOverDarkScreen provides true,
+                LocalIsDarkTheme provides appIsDark,
+                LocalContentColor provides appScheme.onSurfaceVariant,
+                LocalAppColors provides if (appIsDark) DarkAppColors else LightAppColors,
+                content = content,
+            )
+        },
+        typography = typo(appScheme, forceDark = false),
+    )
+}
+
+/**
  * Resolves the stored theme mode to a plain boolean.
  *
- * Pulled out of [AppTheme] so chrome living *outside* it can ask the same question — the desktop
- * title bar is drawn before AppTheme is entered, so it has no MaterialTheme to read and would
- * otherwise need its own copy of this `when`.
+ * Pulled out of [AppTheme] so chrome living *outside* it can ask the same question — DesktopApp
+ * themes the macOS system title bar before AppTheme is entered, so it has no MaterialTheme to read
+ * and would otherwise need its own copy of this `when`.
  */
 @Composable
 fun isDarkTheme(themeMode: String): Boolean =
     when (themeMode) {
         DataStoreManager.THEME_MODE_LIGHT -> false
         DataStoreManager.THEME_MODE_SYSTEM -> isSystemInDarkTheme()
+        DataStoreManager.THEME_MODE_AMOLED -> true
         else -> true
     }

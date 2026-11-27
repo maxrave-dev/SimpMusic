@@ -293,8 +293,9 @@ fun LocalPlaylistScreen(
         mutableStateOf(false)
     }
 
+    // The row the ⋯ menu was opened on, so Delete removes that copy and not another one (#2933).
     var currentItem by remember {
-        mutableStateOf<SongEntity?>(null)
+        mutableStateOf<Pair<SongEntity, PairSongLocalPlaylist>?>(null)
     }
 
     var itemBottomSheetShow by remember {
@@ -335,11 +336,9 @@ fun LocalPlaylistScreen(
             ),
         )
     }
-    val onItemMoreClick: (videoId: String) -> Unit = { videoId ->
-        currentItem = trackPagingItems.itemSnapshotList.findLast { it?.first?.videoId == videoId }?.first
-        if (currentItem != null) {
-            itemBottomSheetShow = true
-        }
+    val onItemMoreClick: (row: Pair<SongEntity, PairSongLocalPlaylist>) -> Unit = { row ->
+        currentItem = row
+        itemBottomSheetShow = true
     }
     val onPlaylistMoreClick: () -> Unit = {
         playlistBottomSheetShow = true
@@ -1339,8 +1338,10 @@ fun LocalPlaylistScreen(
             val item = trackPagingItems[index]
             (item?.first?.videoId ?: "") + "item_$index" + item?.second?.inPlaylist + item?.second?.position
         }) { index ->
-            val item = trackPagingItems[index]?.first
-            if (item != null) {
+            val row = trackPagingItems[index]
+            val item = row?.first
+            if (row != null && item != null) {
+                val rowKey = rowSelectionKey(row.second)
                 val content = @Composable { mod: Modifier ->
                     if (playingTrack?.videoId == item.videoId && isPlaying) {
                         SongFullWidthItems(
@@ -1348,7 +1349,7 @@ fun LocalPlaylistScreen(
                             isPlaying = true,
                             shouldShowDragHandle = changingOrder,
                             songEntity = item,
-                            onMoreClickListener = { onItemMoreClick(it) },
+                            onMoreClickListener = { onItemMoreClick(row) },
                             onClickListener = {
                                 Logger.w("PlaylistScreen", "index: $index")
                                 onPlaylistItemClick(it)
@@ -1359,10 +1360,10 @@ fun LocalPlaylistScreen(
                                 )
                             },
                             selectionMode = selectionState.isActive,
-                            isSelected = selectionState.isSelected(item.videoId),
+                            isSelected = selectionState.isSelected(rowKey),
                             // No long press while reordering: that gesture already belongs to drag.
-                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
-                            onSelectToggle = { selectionState.toggle(it) },
+                            onLongClick = if (changingOrder) null else ({ selectionState.start(rowKey) }),
+                            onSelectToggle = { selectionState.toggle(rowKey) },
                             modifier = mod,
                         )
                     } else {
@@ -1371,7 +1372,7 @@ fun LocalPlaylistScreen(
                             isPlaying = false,
                             shouldShowDragHandle = changingOrder,
                             songEntity = item,
-                            onMoreClickListener = { onItemMoreClick(it) },
+                            onMoreClickListener = { onItemMoreClick(row) },
                             onClickListener = {
                                 Logger.w("PlaylistScreen", "index: $index")
                                 onPlaylistItemClick(it)
@@ -1382,10 +1383,10 @@ fun LocalPlaylistScreen(
                                 )
                             },
                             selectionMode = selectionState.isActive,
-                            isSelected = selectionState.isSelected(item.videoId),
+                            isSelected = selectionState.isSelected(rowKey),
                             // No long press while reordering: that gesture already belongs to drag.
-                            onLongClick = if (changingOrder) null else ({ selectionState.start(it) }),
-                            onSelectToggle = { selectionState.toggle(it) },
+                            onLongClick = if (changingOrder) null else ({ selectionState.start(rowKey) }),
+                            onSelectToggle = { selectionState.toggle(rowKey) },
                             modifier = mod,
                         )
                     }
@@ -1443,7 +1444,7 @@ fun LocalPlaylistScreen(
                 // and select-all must not drag the whole playlist into memory.
                 selectionState.toggleSelectAll(
                     (0 until trackPagingItems.itemCount).mapNotNull {
-                        trackPagingItems.peek(it)?.first?.videoId
+                        trackPagingItems.peek(it)?.second?.let(::rowSelectionKey)
                     },
                 )
             },
@@ -1453,10 +1454,12 @@ fun LocalPlaylistScreen(
         )
     }
     if (showSelectionSheet) {
-        val selectedIds = selectionState.selected.toList()
+        // Selection is by row; everything but Remove acts on the songs of those rows.
+        val selectedRows = selectionState.selected.toList()
+        val selectedIds = selectedRows.map { it.selectedVideoId() }.distinct()
         val removeLabel = stringResource(Res.string.remove_from_playlist)
         SelectedSongsBottomSheet(
-            count = selectedIds.size,
+            count = selectedRows.size,
             onDismiss = { showSelectionSheet = false },
             onPlayNext = {
                 selectionViewModel.playNext(selectedIds)
@@ -1482,14 +1485,17 @@ fun LocalPlaylistScreen(
                         label = removeLabel,
                         tint = Color.Red,
                     ) {
-                        selectionViewModel.removeFromLocalPlaylist(uiState.id, selectedIds)
+                        selectionViewModel.removeFromLocalPlaylist(
+                            uiState.id,
+                            selectedRows.mapNotNull { key -> key.selectedPairId()?.let { it to key.selectedVideoId() } },
+                        )
                         selectionState.exit()
                     },
                 ),
         )
     }
     if (showSelectionAddToPlaylist) {
-        val selectedIds = selectionState.selected.toList()
+        val selectedIds = selectionState.selected.map { it.selectedVideoId() }.distinct()
         val localPlaylists by selectionViewModel.listLocalPlaylist.collectAsStateWithLifecycle()
         AddToPlaylistModalBottomSheet(
             isBottomSheetVisible = true,
@@ -1504,9 +1510,9 @@ fun LocalPlaylistScreen(
         )
     }
     if (itemBottomSheetShow && currentItem != null) {
-        val track = currentItem ?: return
+        val (track, pair) = currentItem ?: return
         NowPlayingBottomSheet(
-            onDelete = { viewModel.deleteItem(uiState.id, track) },
+            onDelete = { viewModel.deleteItem(uiState.id, track, pair) },
             onDismiss = {
                 itemBottomSheetShow = false
                 currentItem = null
@@ -1683,18 +1689,19 @@ fun LocalPlaylistScreen(
                 items(
                     searchResults,
                     key = { (song, pair) -> song.videoId + "_" + pair.position },
-                ) { (song, _) ->
+                ) { (song, pair) ->
+                    val rowKey = rowSelectionKey(pair)
                     SongFullWidthItems(
                         forceDark = true,
                         isPlaying = playingTrack?.videoId == song.videoId && isPlaying,
                         songEntity = song,
-                        onMoreClickListener = { onItemMoreClick(it) },
+                        onMoreClickListener = { onItemMoreClick(song to pair) },
                         onClickListener = { onPlaylistItemClick(it) },
                         onAddToQueue = { sharedViewModel.addListToQueue(arrayListOf(song.toTrack())) },
                         selectionMode = selectionState.isActive,
-                        isSelected = selectionState.isSelected(song.videoId),
-                        onLongClick = { selectionState.start(it) },
-                        onSelectToggle = { selectionState.toggle(it) },
+                        isSelected = selectionState.isSelected(rowKey),
+                        onLongClick = { selectionState.start(rowKey) },
+                        onSelectToggle = { selectionState.toggle(rowKey) },
                         // Required, no default — the paged list passes it down through `mod`.
                         modifier = Modifier,
                     )
@@ -1750,3 +1757,11 @@ fun LocalPlaylistScreen(
         )
     }
 }
+
+// Multi-select keys one playlist row, "<pair id>|<videoId>": a song in the playlist twice is two
+// rows, and picking one must pick, and remove, only that copy (#2933). videoIds never hold '|'.
+private fun rowSelectionKey(pair: PairSongLocalPlaylist): String = "${pair.id}|${pair.songId}"
+
+private fun String.selectedVideoId(): String = substringAfter('|')
+
+private fun String.selectedPairId(): Int? = substringBefore('|').toIntOrNull()

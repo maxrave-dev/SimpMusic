@@ -142,21 +142,24 @@ class SongSelectionViewModel(
         }
     }
 
+    /** Removes each picked row (pair id to videoId), so a song in the playlist twice loses only that copy. */
     fun removeFromLocalPlaylist(
         playlistId: Long,
-        videoIds: List<String>,
+        rows: List<Pair<Int, String>>,
     ) {
         viewModelScope.launch {
-            val songs = songsOf(videoIds)
+            val songs = songsOf(rows.map { it.second }.distinct()).associateBy { it.videoId }
             if (songs.isEmpty()) {
                 makeToast(getString(Res.string.error_occurred))
                 return@launch
             }
-            songs.forEach { song ->
+            rows.forEach { (pairId, videoId) ->
+                val song = songs[videoId] ?: return@forEach
                 localPlaylistRepository
                     .removeTrackFromLocalPlaylist(
                         id = playlistId,
                         song = song,
+                        pairId = pairId,
                         successMessage = getString(Res.string.delete_song_from_playlist),
                         updatedYtMessage = getString(Res.string.removed_from_YouTube_playlist),
                         errorMessage = getString(Res.string.error_occurred),

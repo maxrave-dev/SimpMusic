@@ -51,6 +51,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.simpmusic.lastfm.isLastfmAvailable
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.getString as formatString
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.backup_create_failed
@@ -75,6 +76,13 @@ import simpmusic.composeapp.generated.resources.smart_downloads_waiting_for_wifi
 import simpmusic.composeapp.generated.resources.warning
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
+
+/** DataStore key of the "Scroll long text" setting, read by [SharedViewModel.getTitleMarquee] too. */
+const val TITLE_MARQUEE_KEY = "title_marquee"
+
+/** DataStore keys of the two lyrics background settings, read by the lyrics pages' LyricsFlowBackground too. */
+const val ANIMATED_LYRICS_BACKGROUND_KEY = "animated_lyrics_background"
+const val LYRICS_BACKGROUND_PULSE_KEY = "lyrics_background_pulse"
 
 class SettingsViewModel(
     private val dataStoreManager: DataStoreManager,
@@ -166,6 +174,10 @@ class SettingsViewModel(
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
+
+    private val _aiModels = MutableStateFlow<AiModelsState>(AiModelsState.Loading)
+    val aiModels: StateFlow<AiModelsState> = _aiModels
+    private var aiModelsJob: Job? = null
     private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
     val customOpenAIBaseUrl: StateFlow<String> = _customOpenAIBaseUrl
     private val _customOpenAIHeaders = MutableStateFlow<String>("")
@@ -201,6 +213,15 @@ class SettingsViewModel(
 
     private var _enableLiquidGlass: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val enableLiquidGlass: StateFlow<Boolean> = _enableLiquidGlass
+
+    private val _titleMarquee = MutableStateFlow(true)
+    val titleMarquee: StateFlow<Boolean> = _titleMarquee
+
+    private val _animatedLyricsBackground = MutableStateFlow(false)
+    val animatedLyricsBackground: StateFlow<Boolean> = _animatedLyricsBackground
+
+    private val _lyricsBackgroundPulse = MutableStateFlow(false)
+    val lyricsBackgroundPulse: StateFlow<Boolean> = _lyricsBackgroundPulse
 
     private val _explicitContentEnabled = MutableStateFlow(false)
     val explicitContentEnabled: StateFlow<Boolean> = _explicitContentEnabled
@@ -333,6 +354,15 @@ class SettingsViewModel(
         getBackupDownloaded()
         getUpdateChannel()
         getEnableLiquidGlass()
+        viewModelScope.launch {
+            dataStoreManager.getString(TITLE_MARQUEE_KEY).collect { _titleMarquee.value = it != DataStoreManager.FALSE }
+        }
+        viewModelScope.launch {
+            dataStoreManager.getString(ANIMATED_LYRICS_BACKGROUND_KEY).collect { _animatedLyricsBackground.value = it == DataStoreManager.TRUE }
+        }
+        viewModelScope.launch {
+            dataStoreManager.getString(LYRICS_BACKGROUND_PULSE_KEY).collect { _lyricsBackgroundPulse.value = it == DataStoreManager.TRUE }
+        }
         getExplicitContentEnabled()
         getDiscordLoggedIn()
         getDiscordRichPresenceEnabled()
@@ -676,6 +706,25 @@ class SettingsViewModel(
         }
     }
 
+    // The collector started in init picks the new value up; re-collecting here would leak one per write.
+    fun setTitleMarquee(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(TITLE_MARQUEE_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
+        }
+    }
+
+    fun setAnimatedLyricsBackground(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(ANIMATED_LYRICS_BACKGROUND_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
+        }
+    }
+
+    fun setLyricsBackgroundPulse(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.putString(LYRICS_BACKGROUND_PULSE_KEY, if (enabled) DataStoreManager.TRUE else DataStoreManager.FALSE)
+        }
+    }
+
     fun setEnableLiquidGlass(enableLiquidGlass: Boolean) {
         viewModelScope.launch {
             dataStoreManager.setEnableLiquidGlass(enableLiquidGlass)
@@ -797,6 +846,23 @@ class SettingsViewModel(
                 _customModelId.value = customModelId
             }
         }
+    }
+
+    /** Asks the configured AI provider for its models, for the picker; fresh on every open. */
+    fun loadAiModels() {
+        aiModelsJob?.cancel()
+        _aiModels.value = AiModelsState.Loading
+        aiModelsJob =
+            viewModelScope.launch {
+                _aiModels.value =
+                    commonRepository.getAiModels().fold(
+                        onSuccess = { if (it.isEmpty()) AiModelsState.Unavailable else AiModelsState.Loaded(it) },
+                        onFailure = {
+                            log("AI model list unavailable: ${it.message}")
+                            AiModelsState.Unavailable
+                        },
+                    )
+            }
     }
 
     fun setCustomModelId(modelId: String) {
@@ -2199,6 +2265,8 @@ data class SettingAlertState(
     data class SelectData(
         // Selected / Data
         val listSelect: List<Pair<Boolean, String>>,
+        // An image drawn before each option's label, in the same order (the App icon picker).
+        val icons: List<DrawableResource>? = null,
     ) {
         fun getSelected(): String = listSelect.firstOrNull { it.first }?.second ?: ""
 
@@ -2258,3 +2326,14 @@ const val DEFAULT_DELAY_MIX = 0.3f
 
 /** See `DataStoreManagerImpl.reverbMix`. */
 const val DEFAULT_REVERB_MIX = 0.35f
+
+/** The AI model picker's list: loading, the provider's model IDs, or none to offer (type the ID). */
+sealed interface AiModelsState {
+    data object Loading : AiModelsState
+
+    data class Loaded(
+        val models: List<String>,
+    ) : AiModelsState
+
+    data object Unavailable : AiModelsState
+}

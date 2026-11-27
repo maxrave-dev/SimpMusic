@@ -24,7 +24,9 @@ val androidAppDir = rootProject.file("androidApp")
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 2 }
+    }
 
     defaultConfig {
         applicationId = "com.spotify.music"

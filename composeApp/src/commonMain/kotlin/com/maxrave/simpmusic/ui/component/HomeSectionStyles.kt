@@ -92,7 +92,8 @@ fun HomeDiscoverSection(
             val heroWidth = (maxWidth * 0.74f).coerceAtMost(HERO_TARGET_WIDTH)
             HorizontalCenteredHeroCarousel(
                 state = state,
-                maxItemWidth = heroWidth,
+                // Named maxItemWidth before material3 1.5; same parameter slot.
+                preferredItemWidth = heroWidth,
                 itemSpacing = 8.dp,
                 flingBehavior = flingBehavior,
                 contentPadding = PaddingValues(horizontal = 10.dp),

@@ -49,10 +49,12 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -70,7 +72,9 @@ import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.expect.Orientation
 import com.maxrave.simpmusic.expect.currentOrientation
 import com.maxrave.simpmusic.expect.openUrl
+import com.maxrave.simpmusic.expect.ui.LocalAppWindowHeight
 import com.maxrave.simpmusic.expect.ui.layerBackdrop
+import com.maxrave.simpmusic.expect.ui.LocalAppBackdrop
 import com.maxrave.simpmusic.expect.ui.rememberBackdrop
 import com.maxrave.simpmusic.extension.copy
 import com.maxrave.simpmusic.ui.component.AppBottomNavigationBar
@@ -150,6 +154,10 @@ fun App(
     showDesktopNotificationPermissionDialog: Boolean = false,
     onDismissDesktopNotificationPermissionDialog: (doNotShowAgain: Boolean) -> Unit = {},
     onOpenDesktopNotificationSettings: (doNotShowAgain: Boolean) -> Unit = {},
+    // The gap above the Desktop panels. macOS passes 0 while its system title bar shows: the bar
+    // already leaves room above the panels, and 8dp more under it put twice the space below the
+    // title as above it.
+    desktopPanelTop: Dp = 8.dp,
 ) {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
     val navController = rememberNavController()
@@ -162,6 +170,7 @@ fun App(
     val showNotificationPermissionDialog by viewModel.showNotificationPermissionDialog.collectAsStateWithLifecycle()
 
     val isLiquidGlassEnabled by viewModel.getEnableLiquidGlass().collectAsStateWithLifecycle(DataStoreManager.FALSE)
+    val titleMarquee by viewModel.getTitleMarquee().collectAsStateWithLifecycle(true)
     // Analytics only makes sense with local tracking on, so its tab follows that setting.
     val isLocalTrackingEnabled by viewModel.getLocalTrackingEnabled().collectAsStateWithLifecycle(DataStoreManager.FALSE)
     val showAnalyticsTab = isLocalTrackingEnabled == TRUE
@@ -515,6 +524,7 @@ fun App(
         customThemeColor = parseThemeColorHex(customThemeColorHex),
         // The setting governs Desktop too, the same as Android: off, every glass surface draws flat.
         liquidGlassEnabled = isLiquidGlassEnabled == TRUE,
+        titleMarquee = titleMarquee,
     ) {
         if (!isOfficialBuild) {
             UnofficialBuildScreen()
@@ -711,7 +721,7 @@ fun App(
                                             showAnalyticsTab = showAnalyticsTab,
                                             showMixForYouTab = showMixForYouTab,
                                             // No end padding: the content panel's own 8dp is the gap between the two.
-                                            modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
+                                            modifier = Modifier.padding(start = 8.dp, top = desktopPanelTop, bottom = 8.dp),
                                         ) { klass ->
                                             viewModel.reloadDestination(klass)
                                         }
@@ -736,7 +746,7 @@ fun App(
                                         .then(
                                             if (isDesktopShell) {
                                                 Modifier
-                                                    .padding(8.dp)
+                                                    .padding(start = 8.dp, top = desktopPanelTop, end = 8.dp, bottom = 8.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                                     .background(desktopPanel)
                                             } else {
@@ -761,6 +771,9 @@ fun App(
                                             LocalAppDialogOpen provides appDialogOpen,
                                             LocalNowPlayingOpen provides isShowNowPlaylistScreen,
                                             LocalUserStarted provides userStarted,
+                                            // Glass action sheets opened from these screens refract it.
+                                            LocalAppBackdrop provides backdrop,
+                                            LocalAppWindowHeight provides LocalWindowInfo.current.containerSize.height,
                                         ) {
                                             AppNavigationGraph(
                                                 innerPadding = innerPadding,
@@ -829,7 +842,7 @@ fun App(
                                                 // read as a pair of floating cards, not one panel
                                                 // with a seam down the middle.
                                                 if (isDesktopShell) {
-                                                    Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp)
+                                                    Modifier.padding(top = desktopPanelTop, end = 8.dp, bottom = 8.dp)
                                                 } else {
                                                     Modifier
                                                 },
@@ -843,16 +856,25 @@ fun App(
                                                 },
                                             ),
                                     ) {
-                                        ForceDarkContent {
-                                            NowPlayingScreenContent(
-                                                navController = navController,
-                                                sharedViewModel = viewModel,
-                                                isExpanded = true,
-                                                dismissIcon = SimpIcons.ArrowForwardIos,
+                                        // The Desktop panel sits inside the Row the backdrop records, so the
+                                        // sheets it opens (song menu, comments, output) can be glass too.
+                                        // Elsewhere the panel is not in the recording and they stay flat.
+                                        val nowPlayingPanel: @Composable () -> Unit = {
+                                            CompositionLocalProvider(
+                                                LocalAppBackdrop provides if (isDesktopShell) backdrop else null,
+                                                LocalAppWindowHeight provides LocalWindowInfo.current.containerSize.height,
                                             ) {
-                                                isShowNowPlaylistScreen = false
+                                                NowPlayingScreenContent(
+                                                    navController = navController,
+                                                    sharedViewModel = viewModel,
+                                                    isExpanded = true,
+                                                    dismissIcon = SimpIcons.ArrowForwardIos,
+                                                ) {
+                                                    isShowNowPlaylistScreen = false
+                                                }
                                             }
                                         }
+                                        ForceDarkContent { nowPlayingPanel() }
                                     }
                                 }
                             }

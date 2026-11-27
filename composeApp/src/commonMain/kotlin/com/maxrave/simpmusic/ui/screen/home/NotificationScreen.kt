@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,6 +65,7 @@ import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.extension.barBlurStyle
 import com.maxrave.simpmusic.extension.formatTimeAgo
 import com.maxrave.simpmusic.extension.mouseDragScroll
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.AmbientThemeGlow
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -426,7 +426,7 @@ fun ItemAlbumNotification(
                         .width(150.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 10.dp)
-                        .basicMarquee(
+                        .titleMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
@@ -440,7 +440,7 @@ fun ItemAlbumNotification(
                         .width(150.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 10.dp)
-                        .basicMarquee(
+                        .titleMarquee(
                             iterations = Int.MAX_VALUE,
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),

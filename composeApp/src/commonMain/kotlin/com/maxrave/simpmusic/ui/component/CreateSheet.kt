@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -52,9 +51,11 @@ import com.maxrave.simpmusic.expect.ui.PlatformBackdrop
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.PlaylistAdd
+import com.maxrave.simpmusic.ui.icon.Sensors
 import com.maxrave.simpmusic.ui.icon.Settings
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.navigation.destination.home.RadioBuilderDestination
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -65,16 +66,19 @@ import org.koin.compose.koinInject
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.create
 import simpmusic.composeapp.generated.resources.create_playlist_description
+import simpmusic.composeapp.generated.resources.create_radio_description
 import simpmusic.composeapp.generated.resources.create_room_description
 import simpmusic.composeapp.generated.resources.create_room_live
 import simpmusic.composeapp.generated.resources.listen_together
 import simpmusic.composeapp.generated.resources.local_playlist
 import simpmusic.composeapp.generated.resources.playlist_name
 import simpmusic.composeapp.generated.resources.playlist_name_cannot_be_empty
+import simpmusic.composeapp.generated.resources.radio
 import simpmusic.composeapp.generated.resources.settings
 
 /**
- * The top-bar "+" (Spotify's Create): a local playlist or a Listen Together room.
+ * The top-bar "+" (Spotify's Create): a local playlist, a radio built from picked artists, or a
+ * Listen Together room.
  *
  * With liquid glass on it is a glass pill, shared with Settings when [onSettings] is given, like the
  * like/search/more pill on the playlist screens; [backdrop] must be a sibling of this, never an
@@ -157,6 +161,10 @@ fun CreateActions(
                 showCreate = false
                 showPlaylistName = true
             },
+            onRadio = {
+                showCreate = false
+                navController.navigate(RadioBuilderDestination)
+            },
             onListenTogether = {
                 showCreate = false
                 navController.navigate(ListenTogetherDestination)
@@ -177,6 +185,7 @@ private fun CreateSheet(
     liveRoom: Boolean,
     onDismiss: () -> Unit,
     onPlaylist: () -> Unit,
+    onRadio: () -> Unit,
     onListenTogether: () -> Unit,
 ) {
     ModalBottomSheet(
@@ -188,13 +197,8 @@ private fun CreateSheet(
         scrimColor = Color.Black.copy(alpha = .5f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        SheetSurface(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Column(Modifier.padding(bottom = 8.dp)) {
                 SheetHandle()
@@ -208,6 +212,12 @@ private fun CreateSheet(
                     title = stringResource(Res.string.local_playlist),
                     subtitle = stringResource(Res.string.create_playlist_description),
                     onClick = onPlaylist,
+                )
+                CreateRow(
+                    icon = SimpIcons.Sensors,
+                    title = stringResource(Res.string.radio),
+                    subtitle = stringResource(Res.string.create_radio_description),
+                    onClick = onRadio,
                 )
                 CreateRow(
                     icon = SimpIcons.Groups,
@@ -295,13 +305,8 @@ fun CreateLocalPlaylistSheet(
         scrimColor = Color.Black.copy(alpha = .5f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        SheetSurface(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

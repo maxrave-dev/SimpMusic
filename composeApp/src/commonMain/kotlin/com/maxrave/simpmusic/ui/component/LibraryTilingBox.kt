@@ -56,20 +56,25 @@ import simpmusic.composeapp.generated.resources.library_artist_count
 import simpmusic.composeapp.generated.resources.library_favorite_empty_hint
 import simpmusic.composeapp.generated.resources.liked_songs_count
 import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.replay_mix
+import simpmusic.composeapp.generated.resources.replay_mix_subtitle
 
 /**
- * The collections at the top of the Your library tab: Favorite as the wide card, then Followed,
- * Most played and Downloaded — and on Android, Cached, which turns the row of three into a 2×2
+ * The collections at the top of the Your library tab: Favorite as the wide card, Replay Mix as a
+ * second one under it while local tracking is on ([showReplayMix]), then Followed, Most played and
+ * Downloaded — and on Android, Cached, which turns the row of three into a 2×2
  * grid (Desktop keeps no song cache). Each card fans out the artwork of its newest items; with
  * nothing in it yet the fan is a set of empty dashed sleeves, so a new user sees the same shapes
- * waiting to be filled rather than a blank card. [overview] and [cached] are null until their first
- * read lands, and the cards then draw their titles alone.
+ * waiting to be filled rather than a blank card. [overview], [cached] and [replayMix] are null until
+ * their first read lands, and the cards then draw their titles alone.
  */
 @Composable
 fun LibraryTilingBox(
     navController: NavController,
     overview: LibraryOverview?,
     cached: LibraryCollectionPreview?,
+    replayMix: LibraryCollectionPreview? = null,
+    showReplayMix: Boolean = false,
 ) {
     val container = libraryCardColor()
     val open = { type: LibraryDynamicPlaylistType ->
@@ -109,7 +114,28 @@ fun LibraryTilingBox(
         modifier = Modifier.fillMaxWidth().padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        FavoriteCard(overview?.favorite, container) { open(LibraryDynamicPlaylistType.Favorite) }
+        val favorite = overview?.favorite
+        WideCard(
+            title = Res.string.favorite,
+            subtitle =
+                favorite?.let {
+                    if (it.count == 0) {
+                        stringResource(Res.string.library_favorite_empty_hint)
+                    } else {
+                        pluralStringResource(Res.plurals.liked_songs_count, it.count, it.count)
+                    }
+                },
+            preview = favorite,
+            container = container,
+        ) { open(LibraryDynamicPlaylistType.Favorite) }
+        if (showReplayMix) {
+            WideCard(
+                title = Res.string.replay_mix,
+                subtitle = replayMix?.let { stringResource(Res.string.replay_mix_subtitle) },
+                preview = replayMix,
+                container = container,
+            ) { open(LibraryDynamicPlaylistType.ReplayMix) }
+        }
         if (getPlatform() == Platform.Android) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 followedCard(Modifier.weight(1f))
@@ -137,7 +163,9 @@ fun LibraryTilingBox(
 }
 
 @Composable
-private fun FavoriteCard(
+private fun WideCard(
+    title: StringResource,
+    subtitle: String?,
     preview: LibraryCollectionPreview?,
     container: Color,
     onClick: () -> Unit,
@@ -154,20 +182,15 @@ private fun FavoriteCard(
         ) {
             Column(Modifier.weight(1f).padding(end = 14.dp)) {
                 Text(
-                    text = stringResource(Res.string.favorite),
+                    text = stringResource(title),
                     style = typo().titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (preview != null) {
+                if (subtitle != null) {
                     Text(
-                        text =
-                            if (preview.count == 0) {
-                                stringResource(Res.string.library_favorite_empty_hint)
-                            } else {
-                                pluralStringResource(Res.plurals.liked_songs_count, preview.count, preview.count)
-                            },
+                        text = subtitle,
                         style = typo().bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp),

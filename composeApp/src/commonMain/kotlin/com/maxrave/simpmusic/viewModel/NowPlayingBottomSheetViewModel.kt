@@ -23,7 +23,6 @@ import com.maxrave.domain.repository.PlaylistRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.collectLatestResource
-import com.maxrave.domain.utils.collectResource
 import com.maxrave.domain.utils.isLive
 import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
@@ -43,13 +42,10 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.added_to_playlist
 import simpmusic.composeapp.generated.resources.added_to_queue
 import simpmusic.composeapp.generated.resources.added_to_youtube_playlist
-import simpmusic.composeapp.generated.resources.delete_song_from_playlist
 import simpmusic.composeapp.generated.resources.downloading
 import simpmusic.composeapp.generated.resources.error
-import simpmusic.composeapp.generated.resources.error_occurred
 import simpmusic.composeapp.generated.resources.play_next
 import simpmusic.composeapp.generated.resources.removed_download
-import simpmusic.composeapp.generated.resources.removed_from_YouTube_playlist
 import simpmusic.composeapp.generated.resources.share_url
 import simpmusic.composeapp.generated.resources.sleep_timer_off_done
 
@@ -226,28 +222,6 @@ class NowPlayingBottomSheetViewModel(
         if (songUIState.videoId.isEmpty()) return
         viewModelScope.launch {
             when (ev) {
-                is NowPlayingBottomSheetUIEvent.DeleteFromPlaylist -> {
-                    localPlaylistRepository
-                        .removeTrackFromLocalPlaylist(
-                            id = ev.playlistId,
-                            song =
-                                songRepository.getSongById(ev.videoId).lastOrNull() ?: run {
-                                    makeToast(getString(Res.string.error_occurred))
-                                    return@launch
-                                },
-                            successMessage = getString(Res.string.delete_song_from_playlist),
-                            updatedYtMessage = getString(Res.string.removed_from_YouTube_playlist),
-                            errorMessage = getString(Res.string.error_occurred),
-                        ).collectResource(
-                            onSuccess = {
-                                makeToast(it ?: getString(Res.string.delete_song_from_playlist))
-                            },
-                            onError = {
-                                makeToast(it)
-                            },
-                        )
-                }
-
                 is NowPlayingBottomSheetUIEvent.AddToYouTubePlaylist -> {
                     localPlaylistRepository
                         .addYouTubePlaylistItem(
@@ -432,11 +406,6 @@ data class NowPlayingBottomSheetUIState(
 }
 
 sealed class NowPlayingBottomSheetUIEvent {
-    data class DeleteFromPlaylist(
-        val videoId: String,
-        val playlistId: Long,
-    ) : NowPlayingBottomSheetUIEvent()
-
     data object ToggleLike : NowPlayingBottomSheetUIEvent()
 
     data object Download : NowPlayingBottomSheetUIEvent()

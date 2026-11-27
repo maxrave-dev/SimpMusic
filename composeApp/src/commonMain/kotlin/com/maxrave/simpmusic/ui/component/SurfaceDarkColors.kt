@@ -7,13 +7,13 @@ import androidx.compose.ui.graphics.Color
 import com.maxrave.simpmusic.ui.theme.LocalForceDarkText
 
 /**
- * Color set for overlay surfaces (bottom sheets & dialogs) that must **inherit force-dark** from the
- * screen that opened them.
+ * Color set for overlay surfaces (bottom sheets & dialogs).
  *
  * Compose renders sheets/dialogs in a Popup that keeps the parent composition's CompositionLocals, so
- * [LocalForceDarkText] flows in from the caller: opened from a force-dark screen (Artist/Album/Playlist/
- * LocalPlaylist/NowPlaying/FullscreenPlayer/Podcast) it stays the original dark look; opened from a
- * normal screen it follows the app theme (light on a light screen).
+ * [LocalForceDarkText] flows in from the caller. Dialogs still inherit it: opened from a force-dark
+ * screen (Artist/Album/Playlist/LocalPlaylist/NowPlaying/FullscreenPlayer/Podcast) they stay dark.
+ * Sheets, and dialogs opened from a sheet, do not: [com.maxrave.simpmusic.ui.theme.SheetTheme] gives
+ * them the app theme back, so read these colours inside it.
  *
  * Keep `Color.Transparent` and `scrimColor = Color.Black.copy(...)` as-is — the scrim is a dim over the
  * content behind the sheet and is dark in both themes.

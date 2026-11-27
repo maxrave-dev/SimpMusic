@@ -9,7 +9,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +87,7 @@ import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.expect.ui.DesktopMiniPlayerClearance
 import com.maxrave.simpmusic.expect.ui.VerticalScrollBar
 import com.maxrave.simpmusic.extension.barBlurStyle
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.DownloadingIndicator
 import com.maxrave.domain.data.entities.DownloadState
 import com.maxrave.domain.data.model.browse.album.Track
@@ -522,19 +522,18 @@ fun PlaylistScreen(
                                                                 .liquidGlass(artworkBackdrop, RoundedCornerShape(24.dp)),
                                                         verticalAlignment = Alignment.CenterVertically,
                                                     ) {
-                                                        if (!data.isRadio) {
-                                                            Box(
-                                                                modifier = Modifier.size(48.dp),
-                                                                contentAlignment = Alignment.Center,
-                                                            ) {
-                                                                HeartCheckBox(
-                                                                    size = 28,
-                                                                    checked = liked,
-                                                                    onStateChange = {
-                                                                        viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                    },
-                                                                )
-                                                            }
+                                                        // Radios too: saving one keeps its id, title and artwork, and it opens rebuilt.
+                                                        Box(
+                                                            modifier = Modifier.size(48.dp),
+                                                            contentAlignment = Alignment.Center,
+                                                        ) {
+                                                            HeartCheckBox(
+                                                                size = 28,
+                                                                checked = liked,
+                                                                onStateChange = {
+                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                                },
+                                                            )
                                                         }
                                                         IconButton(
                                                             onClick = {
@@ -819,19 +818,17 @@ fun PlaylistScreen(
                                                             .liquidGlass(headerBackdrop, RoundedCornerShape(24.dp)),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                 ) {
-                                                    if (!data.isRadio) {
-                                                        Box(
-                                                            modifier = Modifier.size(48.dp),
-                                                            contentAlignment = Alignment.Center,
-                                                        ) {
-                                                            HeartCheckBox(
-                                                                size = 28,
-                                                                checked = liked,
-                                                                onStateChange = {
-                                                                    viewModel.onUIEvent(PlaylistUIEvent.Favorite)
-                                                                },
-                                                            )
-                                                        }
+                                                    Box(
+                                                        modifier = Modifier.size(48.dp),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        HeartCheckBox(
+                                                            size = 28,
+                                                            checked = liked,
+                                                            onStateChange = {
+                                                                viewModel.onUIEvent(PlaylistUIEvent.Favorite)
+                                                            },
+                                                        )
                                                     }
                                                     IconButton(
                                                         onClick = {
@@ -1348,7 +1345,7 @@ fun PlaylistScreen(
                                         .fillMaxWidth()
                                         .wrapContentHeight(
                                             align = Alignment.CenterVertically,
-                                        ).basicMarquee(
+                                        ).titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable(),

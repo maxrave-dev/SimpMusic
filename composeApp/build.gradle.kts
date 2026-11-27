@@ -46,7 +46,9 @@ kotlin {
     }
     android {
         namespace = "com.maxrave.simpmusic.composeapp"
-        compileSdk = 37
+        compileSdk {
+            version = release(37) { minorApiLevel = 2 }
+        }
         minSdk = 26
         withJava()
         androidResources {

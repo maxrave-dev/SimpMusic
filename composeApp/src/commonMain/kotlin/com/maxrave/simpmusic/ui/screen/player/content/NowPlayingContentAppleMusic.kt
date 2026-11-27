@@ -12,7 +12,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -84,10 +83,13 @@ import com.maxrave.simpmusic.expect.ui.rememberDeviceVolumeController
 import com.maxrave.simpmusic.expect.ui.toImageBitmap
 import com.maxrave.simpmusic.extension.LeftToRight
 import com.maxrave.simpmusic.extension.smoothScrimBrush
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.LyricText
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.LiquidGlassIconButton
+import com.maxrave.simpmusic.ui.component.LyricsFlowBackground
+import com.maxrave.simpmusic.ui.component.rememberAnimatedLyricsBackground
 import com.maxrave.simpmusic.ui.component.rememberHolderPainter
 import com.maxrave.simpmusic.ui.icon.Forward5
 import com.maxrave.simpmusic.ui.icon.Fullscreen
@@ -214,7 +216,8 @@ fun NowPlayingContentAppleMusic(
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Box(modifier = Modifier.matchParentSize().layerBackdrop(panelBackdrop)) {
-            AppleMusicArtworkBackdrop(state = state, actions = actions, seedColor = seedColor)
+            // MAIN covers this with its own mesh, so the animated background turns only on LYRICS and QUEUE.
+            AppleMusicArtworkBackdrop(state = state, actions = actions, seedColor = seedColor, animate = viewState != AppleMusicView.MAIN)
             // Flat black only for a CANVAS (it fills the screen). A video letterboxes, so a black page
             // turns the bars above and below it into dead black slabs — keep the artwork-tinted
             // gradient there.
@@ -690,7 +693,7 @@ private fun AppleMusicMainView(
                                                 Modifier
                                                     .fillMaxWidth()
                                                     .padding(horizontal = 20.dp, vertical = 2.dp)
-                                                    .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                                    .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                                                     .focusable(),
                                         )
                                         val translatedLineText =
@@ -711,7 +714,7 @@ private fun AppleMusicMainView(
                                                     Modifier
                                                         .fillMaxWidth()
                                                         .padding(horizontal = 20.dp, vertical = 2.dp)
-                                                        .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                                        .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                                                         .focusable(),
                                             )
                                         }
@@ -751,7 +754,7 @@ private fun AppleMusicMainView(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                                .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                                                 .focusable(),
                                     )
                                     Spacer(modifier = Modifier.height(3.dp))
@@ -762,7 +765,7 @@ private fun AppleMusicMainView(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                                                .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                                                 .focusable(),
                                     )
                                 }
@@ -782,13 +785,18 @@ private fun AppleMusicMainView(
  * with the fullscreen lyrics landscape layout. Emits straight into the caller's Box — in both
  * places that Box is the glass backdrop source, and anything stacked after this call (the canvas
  * black layer here) must keep drawing on top of it.
+ *
+ * With Animated lyrics background on, [LyricsFlowBackground] replaces the frosted art wherever this
+ * shows, except while [animate] is false: the Apple Music page's MAIN tab covers it with its own mesh.
  */
 @Composable
 internal fun BoxScope.AppleMusicArtworkBackdrop(
     state: NowPlayingContentState,
     actions: NowPlayingContentActions,
     seedColor: Color,
+    animate: Boolean = true,
 ) {
+    val animated = animate && rememberAnimatedLyricsBackground()
     // The artwork bitmap feeds BOTH the frosted backdrop below and the palette every colour on
     // this page is derived from. The only thing that ever supplied it is the AsyncImage inside the
     // artwork pager, which lives in MAIN — and the Crossfade composes exactly one body, so on
@@ -800,6 +808,8 @@ internal fun BoxScope.AppleMusicArtworkBackdrop(
     // this exact url while the execute() call did not, so this uses the path already proven to
     // work rather than a second one that has to be kept working.
     var backdropUrl by remember(state.screenData.thumbnailURL) { mutableStateOf(state.screenData.thumbnailURL) }
+    // The same load's bitmap, for the animated background: the art and the palette stay one song.
+    var artwork by remember(state.screenData.thumbnailURL) { mutableStateOf<ImageBitmap?>(null) }
 
     // The approved mock's page gradient is THREE stops — a clearly-tinted top, ~55%-darkened by
     // mid-page (48%), warm near-black at the bottom. The first cut's two stops to near-black read
@@ -841,20 +851,41 @@ internal fun BoxScope.AppleMusicArtworkBackdrop(
                     .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            onSuccess = { actions.onArtworkBitmap(it.result.image.toImageBitmap()) },
+            onSuccess = {
+                val bitmap = it.result.image.toImageBitmap()
+                artwork = bitmap
+                actions.onArtworkBitmap(bitmap)
+            },
             // Same fallback the artwork pager carries: maxresdefault is missing for plenty of
             // videos, and without this the page would simply stay black.
             onError = {
                 val fallback = backdropUrl?.replace("maxresdefault", "hqdefault")
                 if (fallback != null && fallback != backdropUrl) backdropUrl = fallback
             },
-            modifier = Modifier.fillMaxSize().blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
+            // Still loaded while the animated background shows, for the palette and for the art itself.
+            modifier = Modifier.fillMaxSize().alpha(if (animated) 0f else 1f).blur(BACKDROP_BLUR_RADIUS, BlurredEdgeTreatment.Unbounded),
+        )
+    }
+    if (animated) {
+        // The tint below already darkens the page, so the background adds none of its own.
+        LyricsFlowBackground(
+            artwork = artwork,
+            videoId = state.videoId,
+            positionMs = state.timelineState.current,
+            playing = state.controllerState.isPlaying,
+            dim = 0f,
         )
     }
     // The tint still rides on top, but as a translucent wash rather than the whole background:
     // it keeps the vertical darkening that makes the controls readable at the bottom, while the
-    // frosted artwork shows through it.
-    Box(modifier = Modifier.fillMaxSize().alpha(BACKDROP_TINT_ALPHA).background(backdropBrush))
+    // frosted artwork shows through it. Lighter over the animated background, which would drown in it.
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .alpha(if (animated) ANIMATED_BACKDROP_TINT_ALPHA else BACKDROP_TINT_ALPHA)
+                .background(backdropBrush),
+    )
 }
 
 @Composable
@@ -875,7 +906,7 @@ internal fun AppleMusicMainTitleRow(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                        .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                         .focusable(),
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -889,7 +920,7 @@ internal fun AppleMusicMainTitleRow(
                     maxLines = 1,
                     modifier =
                         Modifier
-                            .basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
+                            .titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)
                             .focusable()
                             .clickable { actions.onNavigateToArtist() },
                 )
@@ -1451,6 +1482,9 @@ private val VIDEO_FRAME_BOTTOM_GAP = 16.dp
 // How much of the artwork-derived gradient sits over the frosted art. Enough to darken the page
 // towards the bottom so the transport stays readable; not so much that it hides the art again.
 private const val BACKDROP_TINT_ALPHA = 0.62f
+
+// The same tint over the animated background, which needs more of itself showing to read as moving.
+private const val ANIMATED_BACKDROP_TINT_ALPHA = 0.45f
 
 // The bottom share of the artwork that dissolves into the page.
 private const val ARTWORK_FADE_FRACTION = 0.42f

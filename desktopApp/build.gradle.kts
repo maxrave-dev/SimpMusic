@@ -3,7 +3,10 @@
 import org.apache.commons.io.FileUtils
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import org.jetbrains.compose.desktop.application.tasks.AbstractProguardTask
 import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -135,13 +138,41 @@ tasks.named<hydraulic.conveyor.gradle.WriteConveyorConfigTask>("writeConveyorCon
             |// Override the Gradle-detected classpath with the ProGuard'd
             |// jar directory. Conveyor expands a directory entry to every
             |// file inside it — saves ~750 MB raw / ~100 MB compressed in
-            |// the resulting AppImage by replacing 221 raw jars with the
-            |// shrunk equivalents from compose.desktop's proguard task.
+            |// the resulting AppImage by replacing the raw jars with the
+            |// one jar compose.desktop's proguard task joins them into.
             |app.inputs = [
             |    "${proguardJarsDir.get().asFile.absolutePath}"
             |]
             """.trimMargin() + "\n",
         )
+    }
+}
+
+// joinOutputJars copies BouncyCastle's signature files (META-INF/BCRSA204.SF/.RSA) into the
+// joined jar. The JVM checks them against the joined manifest, which is not BouncyCastle's,
+// and refuses to load any class from the jar ("Invalid signature file digest for Manifest
+// main attributes"), so the app would not start. ProGuard drops signature files only when
+// it signs the jar itself (proguard-core JarWriter), so they are removed here.
+tasks.withType<AbstractProguardTask>().configureEach {
+    val outputDir = destinationDir
+    doLast {
+        val signatureFile = Regex("""(?i).+\.(SF|RSA|DSA|EC)|SIG-.*""")
+        outputDir.get().asFile.listFiles { file -> file.extension == "jar" }?.forEach { jar ->
+            // `java.nio...` written out in full does not resolve here: in a Gradle Kotlin
+            // script `java` is the project's JavaPluginExtension, hence the imports.
+            FileSystems.newFileSystem(jar.toPath()).use { zip ->
+                val metaInf = zip.getPath("META-INF")
+                if (!Files.isDirectory(metaInf)) return@use
+                val signatures =
+                    Files
+                        .list(metaInf)
+                        .use { entries -> entries.filter { signatureFile.matches(it.fileName.toString()) }.toList() }
+                signatures.forEach { Files.delete(it) }
+                // A release build is expected to print BouncyCastle's two files here; none at
+                // all, while bcprov is still a dependency, means its files were renamed.
+                logger.lifecycle("Signature files removed from ${jar.name}: ${signatures.joinToString { it.fileName.toString() }.ifEmpty { "none" }}")
+            }
+        }
     }
 }
 
@@ -232,6 +263,12 @@ compose.desktop {
             optimize.set(true)
             obfuscate.set(true)
             configurationFiles.from(rootDir.resolve("composeApp/proguard-desktop-rules.pro"))
+            // Conveyor's launcher holds the JVM options and the whole classpath in a fixed
+            // 16384-byte buffer, and ~330 jars under ProGuard's hashed names overflowed it once
+            // Compose 1.13 came in (linux-app failed, so the nightly stopped updating). One
+            // output jar makes the classpath a single entry. Its signature files are stripped
+            // by the AbstractProguardTask block above.
+            joinOutputJars.set(true)
         }
     }
 }
@@ -442,6 +479,11 @@ tasks.register("packageConveyorAppImage") {
             |APPIMAGE_PATH="${'$'}{APPIMAGE:-${'$'}SELF}"
             |sed "s|Exec=bin/simpmusic|Exec=${'$'}APPIMAGE_PATH|" "${'$'}HERE/simpmusic.desktop" > "${'$'}DESKTOP_DIR/com-maxrave-simpmusic-MainKt.desktop"
             |update-desktop-database "${'$'}DESKTOP_DIR" 2>/dev/null || true
+            |# Make this entry, which now points at this AppImage, the one that opens our links. With
+            |# several versions integrated (AppImageLauncher writes an entry per AppImage, each claiming
+            |# the schemes), xdg-open took the first entry by name, an old version: it lost the Discord
+            |# and Last.fm callbacks, since it hands links to the running app the old way (#2894).
+            |xdg-mime default com-maxrave-simpmusic-MainKt.desktop x-scheme-handler/simpmusic x-scheme-handler/wordbyword 2>/dev/null || true
             |
             |# Cap glibc's per-thread malloc arenas.
             |#

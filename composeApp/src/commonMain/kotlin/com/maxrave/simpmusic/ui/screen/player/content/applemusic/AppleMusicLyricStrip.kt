@@ -12,7 +12,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.domain.data.model.metadata.Line
 import com.maxrave.simpmusic.extension.ParsedRichSyncLine
 import com.maxrave.simpmusic.extension.parseRichSyncWords
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.ui.component.rememberLyricLayoutDirection
 import com.maxrave.simpmusic.ui.screen.player.content.NowPlayingContentState
 import com.maxrave.simpmusic.ui.screen.player.content.stripRichSyncTimestamps
@@ -170,7 +170,7 @@ private fun StripText(
         style = typography.lyricStrip.copy(textDirection = TextDirection.ContentOrLtr),
         maxLines = 1,
         softWrap = false,
-        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
+        modifier = Modifier.titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately),
     )
 }
 
@@ -205,7 +205,7 @@ private fun SweptLine(
     var layout by remember(text) { mutableStateOf<TextLayoutResult?>(null) }
     // The marquee sits on the Box, not on each Text, so the dim and bright copies scroll as one and
     // the sweep stays over the word it belongs to.
-    Box(modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)) {
+    Box(modifier = Modifier.titleMarquee(iterations = Int.MAX_VALUE, animationMode = MarqueeAnimationMode.Immediately)) {
         Text(
             text = text,
             style = typography.lyricStrip.copy(color = UNSUNG, textDirection = TextDirection.ContentOrLtr),

@@ -18,7 +18,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -48,7 +47,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,6 +93,7 @@ import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.lengthLabel
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.hsvToColor
+import com.maxrave.simpmusic.extension.titleMarquee
 import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.lyrics.ShareLyricsSheet
 import com.maxrave.simpmusic.ui.component.lyrics.toShareLyricsLines
@@ -185,6 +184,7 @@ fun FullscreenLyricsContent(
     // is the line the listener is actually hearing.
     val fullscreenLyricsOffsetMs by sharedViewModel.getLyricsOffsetMs().collectAsStateWithLifecycle(0)
     val controllerState by sharedViewModel.controllerState.collectAsStateWithLifecycle()
+    val animatedBackground = rememberAnimatedLyricsBackground()
 
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -310,12 +310,21 @@ fun FullscreenLyricsContent(
                 label = "sliderCrossfadeColor",
             )
             Box(modifier = Modifier.fillMaxSize()) {
-                // Animated gradient background. The glass source whenever glass is on: the Desktop
-                // chrome draws from it, and so does the lyrics timing button on both platforms.
-                AnimatedLyricsGradientBackground(
-                    color = color,
-                    modifier = if (LocalLiquidGlassEnabled.current) Modifier.layerBackdrop(backdrop) else Modifier,
-                )
+                // Animated gradient background, or the artwork one when that setting is on. The glass
+                // source whenever glass is on: the Desktop chrome draws from it, and so does the lyrics
+                // timing button on both platforms.
+                val backgroundModifier = if (LocalLiquidGlassEnabled.current) Modifier.layerBackdrop(backdrop) else Modifier
+                if (animatedBackground) {
+                    LyricsFlowBackground(
+                        artwork = screenDataState.bitmap,
+                        videoId = state.videoId,
+                        positionMs = timelineState.current,
+                        playing = controllerState.isPlaying,
+                        modifier = backgroundModifier,
+                    )
+                } else {
+                    AnimatedLyricsGradientBackground(color = color, modifier = backgroundModifier)
+                }
 
                 // ── Foreground content column ─────────────────────────────────────
                 Column(
@@ -381,7 +390,7 @@ fun FullscreenLyricsContent(
                                 maxLines = 1,
                                 modifier =
                                     Modifier
-                                        .basicMarquee(
+                                        .titleMarquee(
                                             iterations = Int.MAX_VALUE,
                                             animationMode = MarqueeAnimationMode.Immediately,
                                         ).focusable(),
@@ -427,7 +436,7 @@ fun FullscreenLyricsContent(
                                     maxLines = 1,
                                     modifier =
                                         Modifier
-                                            .basicMarquee(
+                                            .titleMarquee(
                                                 iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             ).focusable(),
@@ -559,7 +568,7 @@ fun FullscreenLyricsContent(
                                     }
                                 }
                                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                                    Slider(
+                                    ValueSlider(
                                         // Fraction, not 0..100 — see the note in NowPlayingScreen:
                                         // material3 alpha25 drops valueRange on its binary-compatibility
                                         // overload.
@@ -785,6 +794,7 @@ fun FullscreenLyricsContent(
             song = null,
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
+            onDeleteLyrics = screenDataState.lyricsData?.let { shown -> { sharedViewModel.deleteLyrics(shown) } },
         )
     }
 
@@ -826,10 +836,18 @@ private fun FullscreenLyricsLandscape(
                 // The same seed rule the Apple Music page applies: the shell's colour starts on black
                 // and only turns into the palette colour once the palette resolves.
                 val paletteColor = state.startColor.value
+                // Switches to the animated background by itself when that setting is on.
                 AppleMusicArtworkBackdrop(
                     state = state,
                     actions = actions,
                     seedColor = if (paletteColor == Color.Black) seed else paletteColor,
+                )
+            } else if (rememberAnimatedLyricsBackground()) {
+                LyricsFlowBackground(
+                    artwork = state.screenData.bitmap,
+                    videoId = state.videoId,
+                    positionMs = state.timelineState.current,
+                    playing = state.controllerState.isPlaying,
                 )
             } else {
                 AnimatedLyricsGradientBackground(color = color)
@@ -1069,7 +1087,7 @@ private fun FullscreenLyricsDesktopChrome(
                 )
             }
             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
-                Slider(
+                ValueSlider(
                     value = volumeValue,
                     onValueChangeFinished = {
                         isVolumeSliding = false

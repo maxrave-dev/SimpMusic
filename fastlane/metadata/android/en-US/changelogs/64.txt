@@ -1,0 +1,12 @@
+New:
+- Radio builder and Replay Mix
+- Delete lyrics, an animated lyrics background
+- Search in Settings, more AI providers with a model picker
+- AMOLED theme, a switch to stop scrolling text
+- Android: choose the app icon. Desktop: full screen
+Improved:
+- AutoMix keeps the first half of the last drop
+- Liquid glass sheets, Android Auto: Play all in playlists
+Fixed:
+- Android Auto: a crash, the wrong song from search, no sound
+- Desktop Discord login, Mix for you stuck loading, shuffle

@@ -157,6 +157,7 @@
     <string name="queue">Queue</string>
     <string name="recently">Recently</string>
     <string name="settings">Settings</string>
+    <string name="search_settings">Search settings</string>
     <string name="now_playing_upper">NOW PLAYING</string>
     <string name="radio_mix_upper">RADIO/MIX</string>
     <string name="radio_mix">Radio/Mix</string>
@@ -447,6 +448,7 @@
     <string name="theme_mode_system">System default</string>
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_amoled">AMOLED</string>
     <string name="now_playing_style">Now Playing style</string>
     <string name="now_playing_style_spotify">Classic</string>
     <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
@@ -457,6 +459,11 @@
     <string name="lyrics_style_classic">Classic</string>
     <string name="lyrics_style_apple_music" translatable="false">Apple Music</string>
     <string name="requires_android_12" translatable="false">Android 12+</string>
+    <string name="animated_lyrics_background">Animated lyrics background</string>
+    <string name="animated_lyrics_background_description">Artwork flows behind the lyrics</string>
+    <string name="lyrics_background_pulse">Pulse to the beat</string>
+    <string name="lyrics_background_pulse_description">Background swells with the bass</string>
+    <string name="lyrics_background_pulse_needs_animated">Turn on Animated lyrics background first</string>
     <string name="lyrics_offset">Lyrics timing offset</string>
     <string name="lyrics_offset_message">Shift every lyric line by this many milliseconds. Use a positive number when you hear the audio later than you see it, which is what Bluetooth headphones do, and a negative number to make the lyrics appear earlier.</string>
     <string name="lyrics_offset_value">%1$s ms</string>
@@ -579,6 +586,12 @@
     <string name="custom_ai_model_id">Custom AI model ID</string>
     <string name="default_models">Default models are "gemini-2.0-flash" and "gpt-4o"</string>
     <string name="invalid">Invalid</string>
+    <string name="ai_model_id_required">Required for this provider</string>
+    <string name="ai_model_id">Model ID</string>
+    <string name="search_ai_models">Search models</string>
+    <string name="other_ai_model">Other…</string>
+    <string name="ai_model_list_unavailable">Couldn't load the model list from %1$s.</string>
+    <string name="back_to_list">Back to list</string>
     <string name="custom_model_id_messages">Please enter the exactly model ID from your AI provider.</string>
     <string name="favorite_podcasts">Favorite Podcasts</string>
     <string name="no_favorite_podcasts">No favorite podcasts</string>
@@ -647,6 +660,8 @@
     <string name="update_channel">Update channel</string>
     <string name="enable_liquid_glass_effect">Enable liquid glass (BETA)</string>
     <string name="enable_liquid_glass_effect_description">Enable iOS's liquid glass effect in some position (Android 13+)</string>
+    <string name="scroll_long_text">Scroll long text</string>
+    <string name="scroll_long_text_description">Titles and names too long for their row scroll across it. Turn off to keep them still</string>
     <string name="your_library">Your library</string>
     <string name="play_explicit_content">Play explicit content</string>
     <string name="play_explicit_content_description">Enable to play explicit content</string>
@@ -1093,6 +1108,7 @@
     <string name="comment_placeholder">Comment…</string>
     <string name="local_playlist">Local playlist</string>
     <string name="create_playlist_description">Build a playlist on this device</string>
+    <string name="create_radio_description">Pick artists and a radio is built from them</string>
     <string name="create_room_description">Start or join a room</string>
     <string name="create_room_live">Your room is live</string>
     <string name="create_new_queue_and_play">Create a new queue and add to play</string>
@@ -1104,6 +1120,8 @@
     <string name="collapse_your_library">Collapse Your library</string>
     <string name="expand_your_library">Expand Your library</string>
     <string name="add_lyrics">Add lyrics</string>
+    <string name="delete_lyrics">Delete lyrics</string>
+    <string name="delete_lyrics_confirm">Delete lyrics?</string>
     <string name="add_lyrics_placeholder">[00:12.30] First line</string>
     <string name="add_lyrics_hint"><![CDATA[Start each line with a time like [01:23.45]. Put <01:23.45> before each word to sync it word by word.]]></string>
     <plurals name="add_lyrics_lines">
@@ -1151,4 +1169,13 @@
     <string name="browser_login_rejected">Sign-in could not be verified. Check your connection, or sign in again in this browser profile and refresh.</string>
     <string name="browser_login_refresh">Refresh browser profiles</string>
     <string name="soundcloud_play_count_info">%1$s - song info</string>
+    <string name="replay_mix">Replay Mix</string>
+    <string name="replay_mix_subtitle">Your most played lately · updated daily</string>
+    <string name="app_icon_title">App icon</string>
+    <string name="app_icon_liquid_glass">Liquid Glass</string>
+    <string name="app_icon_old_school">Old-school</string>
+    <string name="app_icon_minimalism_light">Minimalism Light</string>
+    <string name="app_icon_minimalism_dark">Minimalism Dark</string>
+    <string name="app_icon_pixel">Pixel</string>
+    <string name="app_icon_close_warning">Changing the app icon will close your app. Open it again from the new icon. Are you sure?</string>
 </resources>

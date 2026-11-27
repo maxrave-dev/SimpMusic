@@ -9,7 +9,9 @@ plugins {
 kotlin {
     android {
         namespace = "org.simpmusic.lastfm"
-        compileSdk = 37
+        compileSdk {
+            version = release(37) { minorApiLevel = 2 }
+        }
         minSdk = 26
     }
     val xcfName = "lastfmKit"

@@ -23,14 +23,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -66,8 +63,8 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SearchTextField
 import com.maxrave.simpmusic.ui.icon.ArrowBackIosNew
-import com.maxrave.simpmusic.ui.icon.Close
 import com.maxrave.simpmusic.ui.icon.ContentCopy
 import com.maxrave.simpmusic.ui.icon.Delete
 import com.maxrave.simpmusic.ui.icon.Download
@@ -76,7 +73,6 @@ import com.maxrave.simpmusic.ui.icon.KeyboardDoubleArrowDown
 import com.maxrave.simpmusic.ui.icon.Pause
 import com.maxrave.simpmusic.ui.icon.PlayArrow
 import com.maxrave.simpmusic.ui.icon.RestartAlt
-import com.maxrave.simpmusic.ui.icon.Search
 import com.maxrave.simpmusic.ui.icon.Share
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.UnfoldLess
@@ -118,7 +114,7 @@ private val POLL_INTERVAL = 1.seconds
 // The live view never holds more than this; the export always takes the whole files.
 private const val MAX_SHOWN_LINES = 5_000
 
-// Warn has no Material role. Amber by convention, the way the traffic lights in Color.kt are.
+// Warn has no Material role. Amber by convention.
 private val WarnDark = Color(0xFFFFCF6B)
 private val WarnLight = Color(0xFF8C5E00)
 
@@ -300,7 +296,7 @@ fun AppLogScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    LogSearchField(query, { query = it }, Modifier.width(360.dp))
+                    SearchTextField(query, { query = it }, stringResource(Res.string.log_search_hint), Modifier.width(360.dp))
                     if (tab == 0) {
                         LevelChips(minLevel) { minLevel = it }
                         Spacer(Modifier.weight(1f))
@@ -308,7 +304,12 @@ fun AppLogScreen(
                     }
                 }
             } else {
-                LogSearchField(query, { query = it }, Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp))
+                SearchTextField(
+                    query,
+                    { query = it },
+                    stringResource(Res.string.log_search_hint),
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                )
                 if (tab == 0) {
                     Row(
                         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp),
@@ -432,41 +433,6 @@ private fun LogTabs(
             },
         )
     }
-}
-
-@Composable
-private fun LogSearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier,
-        singleLine = true,
-        shape = RoundedCornerShape(8.dp),
-        textStyle = typo().labelMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-        placeholder = { Text(stringResource(Res.string.log_search_hint), style = typo().labelMedium) },
-        leadingIcon = { Icon(SimpIcons.Search, contentDescription = null) },
-        trailingIcon =
-            if (query.isNotEmpty()) {
-                {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(SimpIcons.Close, contentDescription = null)
-                    }
-                }
-            } else {
-                null
-            },
-        colors =
-            TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ),
-    )
 }
 
 /** The lowest level shown: Info is everything the file holds, Error the errors alone. */

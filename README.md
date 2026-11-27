@@ -15,55 +15,60 @@ A FOSS YouTube Music client for Android and Desktop with many features from<br>S
 <br><sub>On vivo phones, install <code>SimpMusic-full-vivo-*.apk</code> from <a href="https://github.com/maxrave-dev/SimpMusic/releases">Releases</a> for Origin Island and the music widget. It installs as a separate app and can't sit next to Spotify.</sub>
 <h4>Nightly Build</h4>  
 <a href="https://www.simpmusic.org/download/nightly"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/> <a href="https://www.simpmusic.org/download/nightly"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" width="200"></a> 
+<br>
+<br>
+<a href="https://apps.apple.com/app/id6813831686"><img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/kaout-banner.png?raw=true" alt="kaout: karaoke out of anything playing, from the maker of SimpMusic" width="800"></a>
 </div>  
 
-> SimpMusic is available on Desktop now!
->
 > [kotlin-footguns](https://github.com/maxrave-dev/kotlin-footguns) — the Kotlin, Compose Multiplatform and desktop JVM traps this project ran into the hard way. Star it if it saves you a night.
 
-[![Sponsor](https://readme.cash/i/janwgx1dnp.svg)](https://readme.cash/c/janwgx1dnp)
-  
 ## Features ✨️    
 - Play music from YouTube Music or YouTube for free, without ads and in the background
-- Recognize the song playing near you, then find it in SimpMusic (Android) (NEW)
-- Add your own synced lyrics, line by line or word by word, to songs that have none (NEW)
-- Read YouTube comments in Now Playing, and post, reply or like them when signed in (NEW)
-- Your library sidebar on Desktop with your playlists, albums, artists and podcasts (NEW)
-- Three Now Playing styles: Classic, Material 3 Expressive and a redesigned Apple Music player with Apple Music-style lyrics (NEW)
-- Ten-band equalizer with presets and AutoEq headphone profiles, plus Delay and Reverb effects, or your phone's system equalizer on Android (NEW)
-- Pick the speaker, headphones or Cast device SimpMusic plays on, without moving other apps' audio (NEW)
-- SimpMusic Wrapped: your year in music, plus monthly recap playlists (NEW)
-- On-device listening analytics: charts, period history, listening clock and a shareable listening receipt (NEW)
-- Word-by-word Apple Music-style lyrics, romanization for 12 languages, share lyrics as an image, landscape fullscreen lyrics and a timing offset (NEW)
-- Home screen widgets: turntable, playlists and listening insights (NEW)
-- Send your sign-ins from Android to Desktop by scanning a QR code (NEW)
-- Preferred audio language for videos with several audio tracks (NEW)
+- Library sync between your phone and your computer: likes, followed artists, saved albums and podcasts, playlists and listening history (NEW)
+- Radio builder: pick artists, songs and genres and tune one radio from all of them, plus a daily Replay Mix of the songs you play most (NEW)
+- 8D audio that moves the song around your head (NEW)
+- Delete lyrics, and an animated lyrics background that pulses to the beat (NEW)
+- Choose the app icon (Android), full screen on Desktop, search in Settings and a switch to stop long titles scrolling (NEW)
+- Import your YouTube and Spotify sign-ins from a browser on Desktop (NEW)
+- Recognize the song playing near you, then find it in SimpMusic (Android)
+- Add your own synced lyrics, line by line or word by word, to songs that have none
+- Read YouTube comments in Now Playing, and post, reply or like them when signed in
+- Your library sidebar on Desktop with your playlists, albums, artists and podcasts
+- Four Now Playing styles: Classic, Material 3 Expressive, a redesigned Apple Music player with Apple Music-style lyrics, and SoundCloud (NEW)
+- Ten-band equalizer with presets and AutoEq headphone profiles, plus Delay and Reverb effects, or your phone's system equalizer on Android
+- Pick the speaker, headphones or Cast device SimpMusic plays on, without moving other apps' audio
+- SimpMusic Wrapped: your year in music, plus monthly recap playlists
+- On-device listening analytics: charts, period history, listening clock and a shareable listening receipt
+- Word-by-word Apple Music-style lyrics, romanization for 12 languages, share lyrics as an image, landscape fullscreen lyrics and a timing offset
+- Home screen widgets: turntable, playlists and listening insights
+- Send your sign-ins from Android to Desktop by scanning a QR code
+- Preferred audio language for videos with several audio tracks
 - High quality up-to 256kbps stream (Opus or AAC) for YouTube Music Premium users
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed    
 - Search everything on YouTube    
-- Spotify Canvas and Animated Album Art supported (NEW)
+- Spotify Canvas and Animated Album Art supported
 - Power your experience with SimpMusic Chart (https://chart.simpmusic.org/)
 - Play 1080p video option with subtitle    
-- Play YouTube Music live stations (NEW)
-- AI song suggestions and an AI reading of your music taste (NEW)
+- Play YouTube Music live stations
+- AI song suggestions and an AI reading of your music taste
 - Import playlists converted from Spotify and other apps
 - Customize your playlist, synced with YouTube Music
 - Notifications from followed artists    
-- Caching and offline playback support, plus Smart downloads of the songs you play most (Android) (NEW)    
+- Caching and offline playback support, plus Smart downloads of the songs you play most (Android)    
 - Crossfade with DJ-style like Apple Music
-- Customizing THEME (Light, Dark, Color, etc)
+- Customizing THEME (Light, Dark, AMOLED, Color, presets from popular music apps, etc)
 - Synced lyrics from SimpMusic Lyrics, LRCLIB, BetterLyrics, Spotify (require login) and YouTube Transcript - AI lyrics translation (BETA) (\*)  
 - Personalize data (\**) and multi-YouTube-account support    
-- Dislike songs on YouTube Music so it recommends them less (NEW)
+- Dislike songs on YouTube Music so it recommends them less
 - Last.fm scrobbling (Full version)
 - Supports SponsorBlock and Return YouTube Dislike
 - Sleep Timer    
 - Android Auto with online content, feature rich UI/UX
 - Discord Rich Presence support
-- Listen Together: shared rooms that play in sync with friends, compatible with Metrolist (NEW)
+- Listen Together: shared rooms that play in sync with friends, compatible with Metrolist
 - And many more!    
   
-> (\*) Use your OpenAI or Gemini API key    
+> (\*) Use your own API key from OpenAI, Gemini, OpenRouter, Groq, DeepSeek, Mistral AI, xAI, Together AI, Fireworks AI, Cerebras, Anthropic or any OpenAI-compatible service    
 > (\**) For users who chose "Send back to Google" feature    
     
 > **Warning**    
@@ -116,8 +121,16 @@ see [this](https://github.com/maxrave-dev/core/blob/master/service/kotlinYtmusic
 We collect crash data in the Full version to improve the app.
    
 ## Full or FOSS version
-I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full version. [Sentry](https://github.com/getsentry/sentry) is the open-source project.
- If you don't want to be collected crash data, you must use FOSS version.
+Every Android release comes in two builds, `SimpMusic-full-*.apk` and `SimpMusic-foss-*.apk`. The Desktop app is the Full build.
+
+| | Full | FOSS |
+|---|---|---|
+| Crash reports | [Sentry](https://github.com/getsentry/sentry) (open source) | None |
+| Google Cast | Yes | No (no Google Play Services) |
+| Last.fm scrobbling | Yes | No |
+| Discord Rich Presence | Log in on Discord's own page | Log in with your Discord account token |
+
+Last.fm and the Discord login need the app's own API keys, which only the official Full build carries. The FOSS build has no keys, no Google Play Services and no tracking. If you don't want crash data collected, use the FOSS version.
  
 ## Desktop app
 
@@ -127,7 +140,7 @@ I use [Sentry](http://sentry.io) crashlytics to catch all crashes in the Full ve
 - For Linux: Download the file with extension `.AppImage` (all Linux distributions)
 
 ### Log in guide: https://www.simpmusic.org/blogs/en/how-to-log-in-on-desktop-app
-#### Discord login guide: https://gist.github.com/MarvNC/e601f3603df22f36ebd3102c501116c6
+#### Discord: log in from Settings on Discord's own page in your browser, no token needed
 
 ### Some limitations on Desktop app:
 - Some Linux distributions may have stability issues (upstream JetBrains issue).
@@ -162,6 +175,12 @@ Contributions are welcome — the full guide lives in [CONTRIBUTING.md](CONTRIBU
    - Repeat offenders are blocked.
 4. **Translations** go through [Crowdin](https://crowdin.com/project/simpmusic), never PRs editing the string files directly.
 
+See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md). Thanks for all my contributors:
+
+<a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
+</a>
+
 ## Legal Disclaimer & Terms of Use
 
 ### 1. 100% Free, Open-Source & Strictly Non-Commercial
@@ -180,16 +199,6 @@ We do not host, upload, distribute, or store any audio, video, or copyrighted me
 The software is provided "AS IS", without warranty of any kind. The developers of SimpMusic do not encourage or condone piracy. Users are solely responsible for ensuring their usage of this app complies with their local copyright laws and the Terms of Service of the platforms they access. 
 
 Because we do not host any media files, we cannot process DMCA takedown requests for audio or video content. However, if you represent a copyright holder or have legal concerns regarding the open-source code itself, please contact us via email at: **ndtminh2608@gmail.com**
-
-  ## Contribute
-We're looking for more contributors, all contributions are welcome!
-See our [CODE OF CONDUCT](https://github.com/maxrave-dev/SimpMusic/blob/main/CODE_OF_CONDUCT.md)
-
-Thanks for all my contributors:
-
-<a href="https://github.com/maxrave-dev/SimpMusic/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=maxrave-dev/SimpMusic" />
-</a>
 
  ## Showcase
 This project is following clean architecture and MVVM pattern (in UI, app module).
