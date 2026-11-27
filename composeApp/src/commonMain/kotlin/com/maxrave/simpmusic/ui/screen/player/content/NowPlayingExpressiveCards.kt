@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -167,6 +168,7 @@ internal fun ExpressiveArtworkCardPage(
     page: Int,
     topAppBarHeightDp: Int,
     middleLayoutPaddingDp: Int,
+    maxArtworkHeightDp: Int? = null,
     showHideFullscreenOverlay: Boolean,
     onToggleFullscreenOverlay: () -> Unit,
 ) {
@@ -297,13 +299,21 @@ internal fun ExpressiveArtworkCardPage(
             )
             // While the canvas covers the page the card hides (alpha 0) but keeps its
             // layout slot occupied — Classic's exact approach, so nothing below moves.
+            val slotRatio = state.expressiveCardSlotRatio()
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 20.dp)
+                        .then(
+                            if (maxArtworkHeightDp != null) {
+                                Modifier.widthIn(max = (maxArtworkHeightDp * slotRatio).dp)
+                            } else {
+                                Modifier
+                            },
+                        ).fillMaxWidth()
                         .alpha(if (pageHasCanvas) 0f else 1f)
-                        .aspectRatio(state.expressiveCardSlotRatio())
+                        .aspectRatio(slotRatio)
                         .wrapContentSize()
                         .aspectRatio(cardAspectRatio)
                         .clip(ArtworkCardShape)
