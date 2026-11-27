@@ -32,7 +32,7 @@ actual suspend fun readPickedFile(uri: Uri): ByteArray = File(uri.toString()).re
 actual suspend fun restoreNative(
     commonRepository: CommonRepository,
     uri: Uri,
-    getData: () -> Unit,
+    getData: suspend () -> Unit,
 ) {
     ZipInputStream(
         FileInputStream(File(uri.toString())),
@@ -67,6 +67,7 @@ actual suspend fun restoreNative(
             entry = inputStream.nextEntry
         }
         withContext(Dispatchers.Main) {
+            getData()
             showToast(getString(Res.string.restore_success), ToastGravity.Bottom)
             showToast("App will restart to apply changes", ToastGravity.Bottom)
             delay(2000)
